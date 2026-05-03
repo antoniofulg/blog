@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Public Blog Routes
 type: frontend
 complexity: medium
@@ -36,12 +36,12 @@ Implement the two public-facing blog routes: the post list (`/`) and the post de
 
 ## Subtasks
 
-- [ ] 9.1 Implement `getPublishedPosts()` and `getPostBySlug()` server functions in `app/routes/index.tsx` and `app/routes/$slug.tsx` respectively
-- [ ] 9.2 Implement `incrementViewCount()` server function and call it in the post detail route's loader
-- [ ] 9.3 Build the post list page UI — title, date, and excerpt per post; `<main>` and `<article>` landmarks
-- [ ] 9.4 Build the post detail page UI — post title as `<h1>`, `<time>` date, MDX content wrapped in a `prose` container
-- [ ] 9.5 Add SEO meta tags using TanStack Start's head management for `title`, `description`, and OG tags
-- [ ] 9.6 Import and apply Tailwind global CSS (`app/styles/global.css`) in the root layout if not already done
+- [x] 9.1 Implement `getPublishedPosts()` and `getPostBySlug()` server functions in `app/routes/index.tsx` and `app/routes/$slug.tsx` respectively
+- [x] 9.2 Implement `incrementViewCount()` server function and call it in the post detail route's loader
+- [x] 9.3 Build the post list page UI — title, date, and excerpt per post; `<main>` and `<article>` landmarks
+- [x] 9.4 Build the post detail page UI — post title as `<h1>`, `<time>` date, MDX content wrapped in a `prose` container
+- [x] 9.5 Add SEO meta tags using TanStack Start's head management for `title`, `description`, and OG tags
+- [x] 9.6 Import and apply Tailwind global CSS (`app/styles/global.css`) in the root layout if not already done
 
 ## Implementation Details
 

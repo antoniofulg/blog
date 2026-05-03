@@ -1,13 +1,13 @@
 import { join } from "node:path";
 import { isNotFound } from "@tanstack/react-router";
-import { createElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
 const mocks = vi.hoisted(() => {
-	// select chain: db.select().from(posts).where(eq(...))
-	const selectWhere = vi.fn().mockResolvedValue([]);
+	// select chain: db.select().from(posts).where(eq(...)).orderBy(desc(...))
+	const selectOrderBy = vi.fn().mockResolvedValue([]);
+	const selectWhere = vi.fn().mockReturnValue({ orderBy: selectOrderBy });
 	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
 	const select = vi.fn().mockReturnValue({ from: selectFrom });
 
@@ -26,6 +26,7 @@ const mocks = vi.hoisted(() => {
 		select,
 		selectFrom,
 		selectWhere,
+		selectOrderBy,
 		update,
 		set,
 		updateWhere,
@@ -49,12 +50,19 @@ vi.mock("#/lib/mdx.server", () => ({
 	renderMdx: mocks.renderMdx,
 }));
 
+// Prevent TanStack Start Vite plugin from stripping server fn handlers.
+vi.mock("@tanstack/react-start", () => ({
+	createServerFn: () => ({
+		inputValidator: () => ({
+			handler: (fn: unknown) => fn,
+		}),
+		handler: (fn: unknown) => fn,
+	}),
+}));
+
 import { posts } from "#/db/schema";
 import { getPostBySlugFn, incrementViewCountFn } from "#/routes/$slug";
-import {
-	getPublishedPostsFn,
-	// Route is also exported but not needed here
-} from "#/routes/index";
+import { getPublishedPostsFn } from "#/routes/index";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 
@@ -75,7 +83,8 @@ function makePost(overrides: Partial<(typeof posts)["_"]["inferSelect"]> = {}) {
 
 function resetMocks() {
 	vi.clearAllMocks();
-	mocks.selectWhere.mockResolvedValue([]);
+	mocks.selectOrderBy.mockResolvedValue([]);
+	mocks.selectWhere.mockReturnValue({ orderBy: mocks.selectOrderBy });
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
 	mocks.updateWhere.mockResolvedValue([]);
@@ -91,7 +100,7 @@ describe("unit: getPublishedPostsFn", () => {
 	beforeEach(resetMocks);
 
 	it("calls db.select().from(posts).where(isPublished=true).orderBy(publishedAt DESC)", async () => {
-		mocks.selectWhere.mockResolvedValue([makePost()]);
+		mocks.selectOrderBy.mockResolvedValue([makePost()]);
 		const result = await getPublishedPostsFn();
 		expect(mocks.select).toHaveBeenCalledTimes(1);
 		expect(mocks.selectFrom).toHaveBeenCalledWith(posts);
@@ -100,7 +109,7 @@ describe("unit: getPublishedPostsFn", () => {
 	});
 
 	it("returns only is_published=true rows — mock returns empty for draft-only DB", async () => {
-		mocks.selectWhere.mockResolvedValue([]);
+		mocks.selectOrderBy.mockResolvedValue([]);
 		const result = await getPublishedPostsFn();
 		expect(result).toHaveLength(0);
 	});
@@ -117,7 +126,7 @@ describe("unit: getPublishedPostsFn", () => {
 			publishedAt: new Date("2026-05-02"),
 		});
 		// Mock returns newer first (DESC order applied by Drizzle query)
-		mocks.selectWhere.mockResolvedValue([newer, older]);
+		mocks.selectOrderBy.mockResolvedValue([newer, older]);
 		const result = await getPublishedPostsFn();
 		expect(result[0].slug).toBe("newer");
 		expect(result[1].slug).toBe("older");

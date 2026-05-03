@@ -12,8 +12,8 @@ export async function getPublishedPostsFn(): Promise<Post[]> {
 		.orderBy(desc(posts.publishedAt));
 }
 
-const getPublishedPosts = createServerFn({ method: "GET" }).handler(
-	getPublishedPostsFn,
+const getPublishedPosts = createServerFn({ method: "GET" }).handler(() =>
+	getPublishedPostsFn(),
 );
 
 export const Route = createFileRoute("/")({

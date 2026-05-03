@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Better Auth Integration
 type: backend
 complexity: medium
@@ -34,12 +34,12 @@ Wire up Better Auth for admin session management: create the `auth` instance wit
 
 ## Subtasks
 
-- [ ] 10.1 Install `better-auth` package
-- [ ] 10.2 Create `app/lib/auth.ts` with `betterAuth({ database, emailAndPassword, plugins: [tanstackStartCookies()] })`
-- [ ] 10.3 Create `app/routes/api/auth/$.ts` catch-all handler with `GET` and `POST` handlers
-- [ ] 10.4 Update `app/routes/__root.tsx` `beforeLoad` to load session via `getWebRequest()` + `auth.api.getSession()`
-- [ ] 10.5 Run Better Auth migrations (or verify Drizzle adapter creates tables) and confirm `user`, `session`, `account` tables exist
-- [ ] 10.6 Register `app/lib/auth.ts` in `vite-env-only` in `app.config.ts`
+- [x] 10.1 Install `better-auth` package
+- [x] 10.2 Create `app/lib/auth.ts` with `betterAuth({ database, emailAndPassword, plugins: [reactStartCookies()] })`
+- [x] 10.3 Create `app/routes/api/auth/$.ts` catch-all handler with `GET` and `POST` handlers
+- [x] 10.4 Update `app/routes/__root.tsx` `beforeLoad` to load session via `getRequest()` + `auth.api.getSession()`
+- [x] 10.5 Run Better Auth migrations (or verify Drizzle adapter creates tables) and confirm `user`, `session`, `account` tables exist
+- [x] 10.6 Register `app/lib/auth.ts` in `vite-env-only` in `vite.config.ts`
 
 ## Implementation Details
 
@@ -75,17 +75,17 @@ See TechSpec "Integration Points" (Better Auth) for the full `auth` configuratio
 ## Tests
 
 - Unit tests:
-  - [ ] `auth` instance has `emailAndPassword` enabled
-  - [ ] `tanstackStartCookies` is the last element in the `plugins` array
-  - [ ] `app/routes/api/auth/$.ts` exports both `GET` and `POST` handler functions
-  - [ ] `app/lib/auth.ts` is not present in the client JavaScript bundle
+  - [x] `auth` instance has `emailAndPassword` enabled
+  - [x] `reactStartCookies` is the last element in the `plugins` array
+  - [x] `app/routes/api/auth/$.ts` exports both `GET` and `POST` handler functions
+  - [x] `app/lib/auth.ts` is not present in the client JavaScript bundle
 - Integration tests:
-  - [ ] `POST /api/auth/sign-in` with seeded `ADMIN_EMAIL` / `ADMIN_PASSWORD` returns 200 and a `Set-Cookie` header
-  - [ ] `GET /api/auth/get-session` with the session cookie returns the user object
-  - [ ] `GET /api/auth/get-session` without a cookie returns `null` user
-  - [ ] `POST /api/auth/sign-out` invalidates the session; subsequent `get-session` returns `null`
-  - [ ] `__root.tsx` `beforeLoad` returns `{ auth: { user: null } }` for unauthenticated requests
-  - [ ] `__root.tsx` `beforeLoad` returns `{ auth: { user: { email } } }` for authenticated requests
+  - [x] `POST /api/auth/sign-in` with seeded `ADMIN_EMAIL` / `ADMIN_PASSWORD` returns 200 and a `Set-Cookie` header
+  - [x] `GET /api/auth/get-session` with the session cookie returns the user object
+  - [x] `GET /api/auth/get-session` without a cookie returns `null` user
+  - [x] `POST /api/auth/sign-out` invalidates the session; subsequent `get-session` returns `null`
+  - [x] `__root.tsx` `beforeLoad` returns `{ auth: { user: null } }` for unauthenticated requests
+  - [x] `__root.tsx` `beforeLoad` returns `{ auth: { user: { email } } }` for authenticated requests
 - Test coverage target: >=80%
 - All tests must pass
 
