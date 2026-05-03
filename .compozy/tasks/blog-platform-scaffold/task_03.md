@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Drizzle Schema and Database Client
 type: backend
 complexity: medium
@@ -35,12 +35,12 @@ Define the Drizzle ORM schema for the `posts` table, create the `postgres.js`-ba
 
 ## Subtasks
 
-- [ ] 3.1 Install `drizzle-orm`, `drizzle-kit`, and `postgres` packages
-- [ ] 3.2 Create `app/db/schema.ts` with the `posts` table definition and exported `Post`/`NewPost` types
-- [ ] 3.3 Create `app/db/client.ts` with the `postgres.js` connection and Drizzle instance, registered as server-only
-- [ ] 3.4 Create `drizzle.config.ts` pointing at `app/db/schema.ts` and outputting migrations to `drizzle/`
-- [ ] 3.5 Run `bun run db:generate` to produce the initial migration SQL file
-- [ ] 3.6 Run `bun run db:migrate` against the running Postgres instance (requires task_02) and verify the `posts` table exists
+- [x] 3.1 Install `drizzle-orm`, `drizzle-kit`, and `postgres` packages
+- [x] 3.2 Create `app/db/schema.ts` with the `posts` table definition and exported `Post`/`NewPost` types
+- [x] 3.3 Create `app/db/client.ts` with the `postgres.js` connection and Drizzle instance, registered as server-only
+- [x] 3.4 Create `drizzle.config.ts` pointing at `app/db/schema.ts` and outputting migrations to `drizzle/`
+- [x] 3.5 Run `bun run db:generate` to produce the initial migration SQL file
+- [x] 3.6 Run `bun run db:migrate` against the running Postgres instance (requires task_02) and verify the `posts` table exists
 
 ## Implementation Details
 
@@ -80,17 +80,17 @@ See TechSpec "Core Interfaces" and "Data Models" sections for the exact schema d
 ## Tests
 
 - Unit tests:
-  - [ ] `posts` table schema has `file_path` with UNIQUE constraint
-  - [ ] `posts` table schema has `slug` with UNIQUE constraint
-  - [ ] `is_published` defaults to `false`
-  - [ ] `view_count` defaults to `0`
-  - [ ] `Post` type is correctly inferred (`id: number`, `slug: string`, `isPublished: boolean`)
+  - [x] `posts` table schema has `file_path` with UNIQUE constraint
+  - [x] `posts` table schema has `slug` with UNIQUE constraint
+  - [x] `is_published` defaults to `false`
+  - [x] `view_count` defaults to `0`
+  - [x] `Post` type is correctly inferred (`id: number`, `slug: string`, `isPublished: boolean`)
 - Integration tests:
-  - [ ] `bun run db:generate` exits 0 and creates a file in `drizzle/`
-  - [ ] `bun run db:migrate` exits 0 against a running Postgres instance
-  - [ ] After migration, `SELECT column_name FROM information_schema.columns WHERE table_name = 'posts'` returns all 9 expected columns
-  - [ ] Inserting a post with a duplicate `file_path` throws a unique constraint error
-  - [ ] Inserting a post with a duplicate `slug` throws a unique constraint error
+  - [x] `bun run db:generate` exits 0 and creates a file in `drizzle/`
+  - [x] `bun run db:migrate` exits 0 against a running Postgres instance
+  - [x] After migration, `SELECT column_name FROM information_schema.columns WHERE table_name = 'posts'` returns all 9 expected columns
+  - [x] Inserting a post with a duplicate `file_path` throws a unique constraint error
+  - [x] Inserting a post with a duplicate `slug` throws a unique constraint error
 - Test coverage target: >=80%
 - All tests must pass
 

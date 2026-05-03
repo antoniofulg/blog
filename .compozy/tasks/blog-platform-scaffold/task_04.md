@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Admin Seed Script
 type: backend
 complexity: low
@@ -33,11 +33,11 @@ Create an idempotent seed script (`scripts/seed.ts`) that inserts the initial ad
 
 ## Subtasks
 
-- [ ] 4.1 Create `scripts/seed.ts` that reads `ADMIN_EMAIL` and `ADMIN_PASSWORD` from `process.env`
-- [ ] 4.2 Query the Better Auth `user` table to check for an existing admin account; skip if found
-- [ ] 4.3 Hash `ADMIN_PASSWORD` using Better Auth's built-in password hasher and insert the admin user
-- [ ] 4.4 Add `db:seed` script to `package.json` that runs `bun run scripts/seed.ts`
-- [ ] 4.5 Verify running `bun run db:seed` twice produces one user row, not two
+- [x] 4.1 Create `scripts/seed.ts` that reads `ADMIN_EMAIL` and `ADMIN_PASSWORD` from `process.env`
+- [x] 4.2 Query the Better Auth `user` table to check for an existing admin account; skip if found
+- [x] 4.3 Hash `ADMIN_PASSWORD` using Better Auth's built-in password hasher and insert the admin user
+- [x] 4.4 Add `db:seed` script to `package.json` that runs `bun run scripts/seed.ts`
+- [x] 4.5 Verify running `bun run db:seed` twice produces one user row, not two
 
 ## Implementation Details
 

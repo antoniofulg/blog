@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Content Indexer
 type: backend
 complexity: medium
@@ -34,11 +34,11 @@ Implement the content indexer (`app/db/indexer.ts`) that reads `.mdx` file front
 
 ## Subtasks
 
-- [ ] 5.1 Implement frontmatter parsing for `.mdx` files (title, description, publishedAt, slug fields)
-- [ ] 5.2 Implement `upsertPost(filePath)` using Drizzle's `onConflictDoUpdate` targeting `file_path`
-- [ ] 5.3 Implement `removePost(filePath)` deleting by `file_path`
-- [ ] 5.4 Implement `syncAll(contentDir)` — glob all `.mdx` files, upsert each, delete orphaned rows
-- [ ] 5.5 Add structured console logging for add, update, remove, and error events
+- [x] 5.1 Implement frontmatter parsing for `.mdx` files (title, description, publishedAt, slug fields)
+- [x] 5.2 Implement `upsertPost(filePath)` using Drizzle's `onConflictDoUpdate` targeting `file_path`
+- [x] 5.3 Implement `removePost(filePath)` deleting by `file_path`
+- [x] 5.4 Implement `syncAll(contentDir)` — glob all `.mdx` files, upsert each, delete orphaned rows
+- [x] 5.5 Add structured console logging for add, update, remove, and error events
 
 ## Implementation Details
 
@@ -72,18 +72,18 @@ The frontmatter parser can be a thin wrapper around `gray-matter` or a custom YA
 ## Tests
 
 - Unit tests:
-  - [ ] `upsertPost` with a fixture `.mdx` file calls `db.insert().onConflictDoUpdate()` with correct field mapping
-  - [ ] `upsertPost` derives slug from frontmatter `slug` field when present
-  - [ ] `upsertPost` falls back to filename (without `.mdx`) when frontmatter has no `slug` field
-  - [ ] `removePost` calls `db.delete().where(eq(posts.filePath, filePath))`
-  - [ ] `syncAll` globs all `.mdx` files and calls `upsertPost` for each
-  - [ ] `syncAll` deletes a row whose `file_path` no longer exists on disk
+  - [x] `upsertPost` with a fixture `.mdx` file calls `db.insert().onConflictDoUpdate()` with correct field mapping
+  - [x] `upsertPost` derives slug from frontmatter `slug` field when present
+  - [x] `upsertPost` falls back to filename (without `.mdx`) when frontmatter has no `slug` field
+  - [x] `removePost` calls `db.delete().where(eq(posts.filePath, filePath))`
+  - [x] `syncAll` globs all `.mdx` files and calls `upsertPost` for each
+  - [x] `syncAll` deletes a row whose `file_path` no longer exists on disk
 - Integration tests:
-  - [ ] `upsertPost('content/hello.mdx')` creates a row with `is_published = false` and correct `slug`
-  - [ ] Calling `upsertPost` twice for the same file updates `title` but does not reset `view_count` or `is_published`
-  - [ ] `removePost('content/hello.mdx')` removes the row; subsequent query returns 0 rows
-  - [ ] `syncAll` on a directory with 3 `.mdx` files produces 3 rows in `posts`
-  - [ ] `syncAll` after deleting a file removes the orphaned row
+  - [x] `upsertPost('content/hello.mdx')` creates a row with `is_published = false` and correct `slug`
+  - [x] Calling `upsertPost` twice for the same file updates `title` but does not reset `view_count` or `is_published`
+  - [x] `removePost('content/hello.mdx')` removes the row; subsequent query returns 0 rows
+  - [x] `syncAll` on a directory with 3 `.mdx` files produces 3 rows in `posts`
+  - [x] `syncAll` after deleting a file removes the orphaned row
 - Test coverage target: >=80%
 - All tests must pass
 

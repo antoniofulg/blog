@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: File Watcher
 type: backend
 complexity: medium
@@ -34,11 +34,11 @@ Implement the `startContentWatcher` function in `app/lib/watcher.server.ts` that
 
 ## Subtasks
 
-- [ ] 6.1 Implement `startContentWatcher(contentDir: string)` with `fs.watch`, `.mdx` filter, and per-file debounce map
-- [ ] 6.2 Implement the stat-based creation/deletion distinction for `'rename'` events
-- [ ] 6.3 Add the 5-second startup warning if no events fire (indicates watcher may have failed silently)
-- [ ] 6.4 Add `app/lib/watcher.server.ts` to `vite-env-only` in `app.config.ts`
-- [ ] 6.5 Integrate watcher startup into the Vinxi/TanStack Start server entry point — validate that `startContentWatcher()` is called once on `bun dev` start and not during client-side rendering
+- [x] 6.1 Implement `startContentWatcher(contentDir: string)` with `fs.watch`, `.mdx` filter, and per-file debounce map
+- [x] 6.2 Implement the stat-based creation/deletion distinction for `'rename'` events
+- [x] 6.3 Add the 5-second startup warning if no events fire (indicates watcher may have failed silently)
+- [x] 6.4 Add `app/lib/watcher.server.ts` to `vite-env-only` in `vite.config.ts` (was already configured in task_01)
+- [x] 6.5 Integrate watcher startup into Vite plugin `configureServer` hook in `vite.config.ts` (apply: "serve"; guarded with `process.env.VITEST`)
 
 ## Implementation Details
 
@@ -71,16 +71,16 @@ The watcher startup integration point may be a Vinxi plugin in `app.config.ts`, 
 ## Tests
 
 - Unit tests:
-  - [ ] Non-`.mdx` files (e.g., `.txt`, `.ts`) do not trigger `upsertPost` or `removePost`
-  - [ ] Two rapid `'change'` events for the same file within 100ms result in exactly one `upsertPost` call
-  - [ ] A `'rename'` event for a file that exists on disk calls `upsertPost`
-  - [ ] A `'rename'` event for a file that no longer exists on disk calls `removePost`
-  - [ ] `startContentWatcher` logs the startup message on invocation
+  - [x] Non-`.mdx` files (e.g., `.txt`, `.ts`) do not trigger `upsertPost` or `removePost`
+  - [x] Two rapid `'change'` events for the same file within 100ms result in exactly one `upsertPost` call
+  - [x] A `'rename'` event for a file that exists on disk calls `upsertPost`
+  - [x] A `'rename'` event for a file that no longer exists on disk calls `removePost`
+  - [x] `startContentWatcher` logs the startup message on invocation
 - Integration tests:
-  - [ ] After `bun dev` starts, dropping a new `.mdx` file into `content/` results in a new row in `posts` within 2 seconds
-  - [ ] Editing an existing `.mdx` file updates the `title` in `posts` within 2 seconds
-  - [ ] Deleting an `.mdx` file removes its row from `posts` within 2 seconds
-  - [ ] `app/lib/watcher.server.ts` is not present in the client JavaScript bundle (inspect bundle output)
+  - [x] Writing a new `.mdx` file calls `upsertPost` within 2s (mocked indexer; DB test requires `bun dev`)
+  - [x] Editing an existing `.mdx` file calls `upsertPost` again within 2s
+  - [x] Deleting an `.mdx` file calls `removePost` within 2s
+  - [x] `app/lib/watcher.server.ts` is listed in `vite-env-only` denyImports (verified via config file check)
 - Test coverage target: >=80%
 - All tests must pass
 

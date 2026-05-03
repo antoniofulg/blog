@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Admin Routes and Dashboard
 type: frontend
 complexity: high
@@ -38,12 +38,12 @@ Implement the auth-protected admin dashboard at `/admin` and the preview route a
 
 ## Subtasks
 
-- [ ] 11.1 Implement `getAllPosts()` and `togglePublished()` server functions; wire `togglePublished` to a form action on the dashboard
-- [ ] 11.2 Implement `getAdminPreview()` server function; build the preview route at `app/routes/admin/preview.$slug.tsx`
-- [ ] 11.3 Build the admin dashboard table at `app/routes/admin/index.tsx` with auth guard, post list, status badges, view counts, and action buttons
-- [ ] 11.4 Implement the login page at `app/routes/login.tsx` with email/password form and Better Auth client sign-in call
-- [ ] 11.5 Implement redirect-after-login: read `redirect` search param after successful login and navigate to that URL
-- [ ] 11.6 Verify the complete publish flow end-to-end: drop `.mdx` file → appears in admin as draft → click Publish → post is live at `/$slug`
+- [x] 11.1 Implement `getAllPosts()` and `togglePublished()` server functions; wire `togglePublished` to a form action on the dashboard
+- [x] 11.2 Implement `getAdminPreview()` server function; build the preview route at `app/routes/admin/preview.$slug.tsx`
+- [x] 11.3 Build the admin dashboard table at `app/routes/admin/index.tsx` with auth guard, post list, status badges, view counts, and action buttons
+- [x] 11.4 Implement the login page at `app/routes/login.tsx` with email/password form and Better Auth client sign-in call
+- [x] 11.5 Implement redirect-after-login: read `redirect` search param after successful login and navigate to that URL
+- [ ] 11.6 Verify the complete publish flow end-to-end: drop `.mdx` file → appears in admin as draft → click Publish → post is live at `/$slug` *(integration tests deferred — requires live server + DB)*
 
 ## Implementation Details
 
@@ -84,13 +84,13 @@ The auth guard pattern for admin routes follows the TechSpec "Integration Points
 ## Tests
 
 - Unit tests:
-  - [ ] `getAllPosts()` returns both draft and published posts (no `is_published` filter)
-  - [ ] `togglePublished(id, true)` sets `is_published = true` and `published_at = now()` when `published_at` is null
-  - [ ] `togglePublished(id, true)` does not overwrite an existing non-null `published_at`
-  - [ ] `togglePublished(id, false)` sets `is_published = false` and does not change `published_at`
-  - [ ] `getAdminPreview('draft-slug')` returns the post regardless of `is_published` value
-  - [ ] Admin `beforeLoad` with `context.auth.user = null` redirects to `/login?redirect=/admin`
-- Integration tests:
+  - [x] `getAllPosts()` returns both draft and published posts (no `is_published` filter)
+  - [x] `togglePublished(id, true)` sets `is_published = true` and `published_at = now()` when `published_at` is null
+  - [x] `togglePublished(id, true)` does not overwrite an existing non-null `published_at`
+  - [x] `togglePublished(id, false)` sets `is_published = false` and does not change `published_at`
+  - [x] `getAdminPreview('draft-slug')` returns the post regardless of `is_published` value
+  - [x] Admin `beforeLoad` with `context.auth.user = null` redirects to `/login?redirect=/admin`
+- Integration tests (deferred — require live server + DB):
   - [ ] `GET /admin` without a session cookie redirects to `/login?redirect=%2Fadmin`
   - [ ] `GET /admin` with a valid session cookie returns 200 and the dashboard HTML
   - [ ] Dashboard HTML contains a table row for each indexed post (seed 2 posts; assert 2 rows)

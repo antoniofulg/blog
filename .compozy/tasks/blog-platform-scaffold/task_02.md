@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Docker Compose and Local Database
 type: infra
 complexity: low
@@ -33,10 +33,10 @@ Create the `docker-compose.yml` that runs a Postgres 16 container for local deve
 
 ## Subtasks
 
-- [ ] 2.1 Write `docker-compose.yml` with the `db` service, environment variables, port mapping, and named volume
-- [ ] 2.2 Add a `pg_isready` health check with the correct user flag and retry configuration
-- [ ] 2.3 Verify `docker compose up -d` starts Postgres and the health check reaches `healthy` status
-- [ ] 2.4 Verify the database is reachable from the host at `postgres://blog:blog@localhost:5432/blog`
+- [x] 2.1 Write `docker-compose.yml` with the `db` service, environment variables, port mapping, and named volume
+- [x] 2.2 Add a `pg_isready` health check with the correct user flag and retry configuration
+- [x] 2.3 Verify `docker compose up -d` starts Postgres and the health check reaches `healthy` status
+- [x] 2.4 Verify the database is reachable from the host at `postgres://blog:blog@localhost:5432/blog`
 
 ## Implementation Details
 
@@ -67,14 +67,14 @@ See TechSpec "Integration Points" section for the Docker Compose specification a
 ## Tests
 
 - Unit tests:
-  - [ ] `docker-compose.yml` is valid YAML (parse without error)
-  - [ ] Health check command is `pg_isready -U blog` (assert string in config)
-  - [ ] Named volume `postgres_data` is declared in the `volumes` top-level key
+  - [x] `docker-compose.yml` is valid YAML (parse without error)
+  - [x] Health check command is `pg_isready -U blog` (assert string in config)
+  - [x] Named volume `postgres_data` is declared in the `volumes` top-level key
 - Integration tests:
-  - [ ] `docker compose up -d` exits 0
-  - [ ] `docker compose ps` shows the `db` service as `healthy` within 30 seconds
-  - [ ] `psql postgres://blog:blog@localhost:5432/blog -c '\l'` exits 0 (database exists and is reachable)
-  - [ ] `docker compose down -v` exits 0 and removes the container (cleanup)
+  - [x] `docker compose up -d` exits 0
+  - [x] `docker compose ps` shows the `db` service as `healthy` within 30 seconds
+  - [x] `psql postgres://blog:blog@localhost:5432/blog -c '\l'` exits 0 (database exists and is reachable)
+  - [x] `docker compose down -v` exits 0 and removes the container (cleanup)
 - Test coverage target: >=80%
 - All tests must pass
 

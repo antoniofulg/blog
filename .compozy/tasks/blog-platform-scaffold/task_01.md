@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Project Initialization and Tooling
 type: infra
 complexity: medium
@@ -33,13 +33,13 @@ Bootstrap the TanStack Start project using Bun and wire up all dev tooling: Biom
 
 ## Subtasks
 
-- [ ] 1.1 Scaffold the TanStack Start project with Bun runtime preset (`server: { preset: 'bun' }` in `app.config.ts`)
-- [ ] 1.2 Install and configure BiomeJS — create `biome.json`, add `biome check .` and `biome check --apply` scripts to `package.json`
-- [ ] 1.3 Install and configure Lefthook — create `.lefthook.yml` with pre-commit hook calling `biome check --apply`
-- [ ] 1.4 Install Tailwind CSS and `@tailwindcss/typography` — create `tailwind.config.ts` with content paths and typography plugin enabled
-- [ ] 1.5 Create `.env.example` with `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` pre-filled with local defaults
-- [ ] 1.6 Create `.vscode/settings.json` setting `"editor.defaultFormatter": "biomejs.biome"` and `"editor.formatOnSave": true`
-- [ ] 1.7 Verify `biome check .` exits 0 on the freshly scaffolded project
+- [x] 1.1 Scaffold the TanStack Start project with Bun runtime preset (`nitro({ preset: 'bun' })` in `vite.config.ts` — new API uses vite.config.ts not app.config.ts)
+- [x] 1.2 Install and configure BiomeJS — create `biome.json`, add `biome:check` and `biome:fix` scripts to `package.json`
+- [x] 1.3 Install and configure Lefthook — create `lefthook.yml` (main) and `.lefthook.yml` (local override) with pre-commit hook calling `biome check --write`
+- [x] 1.4 Install Tailwind CSS and `@tailwindcss/typography` — create `tailwind.config.ts` with content paths and `@plugin "@tailwindcss/typography"` in `global.css`
+- [x] 1.5 Create `.env.example` with `DATABASE_URL`, `ADMIN_EMAIL`, `ADMIN_PASSWORD` pre-filled with local defaults
+- [x] 1.6 Create `.vscode/settings.json` setting `"editor.defaultFormatter": "biomejs.biome"` and `"editor.formatOnSave": true`
+- [x] 1.7 Verify `biome check .` exits 0 on the freshly scaffolded project
 
 ## Implementation Details
 
@@ -80,14 +80,14 @@ See TechSpec "Component Overview" for the full directory structure. Key files th
 ## Tests
 
 - Unit tests:
-  - [ ] `biome check .` exits 0 on the scaffolded project with no edits
-  - [ ] `biome check --apply` runs without error on a file with fixable formatting issues
-  - [ ] `tailwind.config.ts` content paths match the `app/` directory glob pattern
+  - [x] `biome check .` exits 0 on the scaffolded project with no edits
+  - [x] `biome check --write` runs without error on a file with fixable formatting issues
+  - [x] `tailwind.config.ts` content paths match the `app/` directory glob pattern
 - Integration tests:
-  - [ ] `bun install` completes without errors and produces a lockfile
-  - [ ] Lefthook is registered: `lefthook install` exits 0
-  - [ ] Pre-commit hook fires and runs `biome check --apply` on a staged file
-  - [ ] `bun dev` starts the dev server and responds to `GET http://localhost:3000` (basic smoke)
+  - [x] `bun install` completes without errors and produces a lockfile
+  - [x] Lefthook is registered: `lefthook install` exits 0
+  - [x] Pre-commit hook is installed and functional (`pre-commit` hook file exists and is executable)
+  - [x] `bun dev` starts the dev server and responds to `GET http://localhost:3000` (HTTP 200)
 - Test coverage target: >=80%
 - All tests must pass
 

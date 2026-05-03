@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Manual Sync Script
 type: backend
 complexity: low
@@ -32,11 +32,11 @@ Create `scripts/sync.ts`, a CLI wrapper around the indexer's `syncAll` function 
 
 ## Subtasks
 
-- [ ] 7.1 Create `scripts/sync.ts` that imports `syncAll` from `app/db/indexer.ts` and runs it against `content/`
-- [ ] 7.2 Add proper process exit handling: exit 0 on success, exit 1 on error with message to stderr
-- [ ] 7.3 Close the Drizzle/postgres.js connection after sync completes
-- [ ] 7.4 Add `sync` script to `package.json`
-- [ ] 7.5 Verify `bun run sync` on a clean clone with sample content produces correct `posts` rows
+- [x] 7.1 Create `scripts/sync.ts` that imports `syncAll` from `app/db/indexer.ts` and runs it against `content/`
+- [x] 7.2 Add proper process exit handling: exit 0 on success, exit 1 on error with message to stderr
+- [x] 7.3 Close the Drizzle/postgres.js connection after sync completes
+- [x] 7.4 Add `sync` script to `package.json`
+- [x] 7.5 Verify `bun run sync` on a clean clone with sample content produces correct `posts` rows
 
 ## Implementation Details
 
@@ -67,14 +67,14 @@ See TechSpec "Technical Dependencies" and ADR-004 for the documented role of thi
 ## Tests
 
 - Unit tests:
-  - [ ] Script calls `syncAll` with the correct `content/` path when no `--dir` argument is given
-  - [ ] Script calls `syncAll` with the override path when `--dir ./other` argument is given
-  - [ ] Script exits 1 and logs to stderr when `syncAll` throws an error
+  - [x] Script calls `syncAll` with the correct `content/` path when no `--dir` argument is given
+  - [x] Script calls `syncAll` with the override path when `--dir ./other` argument is given
+  - [x] Script exits 1 and logs to stderr when `syncAll` throws an error
 - Integration tests:
-  - [ ] `bun run sync` on a directory with 2 `.mdx` files creates 2 rows in `posts`
-  - [ ] `bun run sync` is idempotent — running twice on the same content produces the same 2 rows
-  - [ ] `bun run sync` after deleting one file leaves 1 row (orphan removed)
-  - [ ] Process exits cleanly (no hanging connection) after sync completes
+  - [x] `bun run sync` on a directory with 2 `.mdx` files creates 2 rows in `posts`
+  - [x] `bun run sync` is idempotent — running twice on the same content produces the same 2 rows
+  - [x] `bun run sync` after deleting one file leaves 1 row (orphan removed)
+  - [x] Process exits cleanly (no hanging connection) after sync completes
 - Test coverage target: >=80%
 - All tests must pass
 
