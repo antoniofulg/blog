@@ -1,11 +1,13 @@
 import { readFile } from "node:fs/promises";
 import { basename, extname } from "node:path";
 import { compile, run } from "@mdx-js/mdx";
-import rehypeShiki from "@shikijs/rehype";
+import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
 import matter from "gray-matter";
 import type { ComponentType } from "react";
 import * as runtime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
+import { createHighlighterCore } from "shiki/core";
+import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 
 export interface PostFrontmatter {
 	title: string;
@@ -14,16 +16,50 @@ export interface PostFrontmatter {
 	slug?: string;
 }
 
+let highlighterPromise: ReturnType<typeof createHighlighterCore> | null = null;
+
+function getHighlighter() {
+	if (!highlighterPromise) {
+		highlighterPromise = createHighlighterCore({
+			themes: [import("@shikijs/themes/github-dark")],
+			langs: [
+				import("@shikijs/langs/typescript"),
+				import("@shikijs/langs/javascript"),
+				import("@shikijs/langs/jsx"),
+				import("@shikijs/langs/tsx"),
+				import("@shikijs/langs/json"),
+				import("@shikijs/langs/bash"),
+				import("@shikijs/langs/markdown"),
+				import("@shikijs/langs/css"),
+				import("@shikijs/langs/html"),
+				import("@shikijs/langs/yaml"),
+				import("@shikijs/langs/python"),
+			],
+			engine: createJavaScriptRegexEngine(),
+		});
+	}
+	return highlighterPromise;
+}
+
 export async function parseFrontmatter(
 	filePath: string,
 ): Promise<PostFrontmatter> {
 	const source = await readFile(filePath, "utf-8");
 	const { data } = matter(source);
+
+	let publishedAt: string | undefined;
+	if (data.publishedAt != null) {
+		// gray-matter auto-parses YAML date fields as JS Date objects
+		publishedAt =
+			data.publishedAt instanceof Date
+				? data.publishedAt.toISOString().slice(0, 10)
+				: String(data.publishedAt);
+	}
+
 	return {
 		title: data.title as string,
 		description: data.description as string | undefined,
-		publishedAt:
-			data.publishedAt != null ? String(data.publishedAt) : undefined,
+		publishedAt,
 		slug:
 			(data.slug as string | undefined) ??
 			basename(filePath, extname(filePath)),
@@ -31,10 +67,13 @@ export async function parseFrontmatter(
 }
 
 export async function renderMdx(source: string): Promise<ComponentType> {
+	const highlighter = await getHighlighter();
 	const compiled = await compile(source, {
 		outputFormat: "function-body",
 		remarkPlugins: [remarkGfm],
-		rehypePlugins: [[rehypeShiki, { theme: "github-dark" }]],
+		rehypePlugins: [
+			() => rehypeShikiFromHighlighter(highlighter, { theme: "github-dark" }),
+		],
 	});
 	const { default: Content } = await run(compiled, {
 		...runtime,

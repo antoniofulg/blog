@@ -11,7 +11,7 @@
 | 05 | Content Indexer | completed | medium | task_03 |
 | 06 | File Watcher | completed | medium | task_05 |
 | 07 | Manual Sync Script | completed | low | task_05 |
-| 08 | MDX Renderer | pending | medium | task_01 |
+| 08 | MDX Renderer | completed | medium | task_01 |
 | 09 | Public Blog Routes | pending | medium | task_03, task_05, task_08 |
 | 10 | Better Auth Integration | pending | medium | task_03, task_04 |
 | 11 | Admin Routes and Dashboard | completed | high | task_05, task_08, task_09, task_10 |

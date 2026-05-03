@@ -68,12 +68,18 @@ Task 06 (File Watcher) — **completed**. `app/lib/watcher.server.ts` with `star
 - **Mock `@tanstack/react-start` in tests** to prevent plugin from stripping server fn handlers during test module loading.
 - **Router context requires default in `createRouter`**: `createRootRouteWithContext<RouterContext>()` requires `context: { auth: { user: null } }` in `createTanStackRouter()` call in `router.tsx`.
 
+## Shared Learnings (added task_08 fix)
+
+- **Shiki WASM crashes Vitest node environment**: `@shikijs/rehype` default uses `getSingletonHighlighter` → oniguruma WASM → `ERR_UNKNOWN_FILE_EXTENSION`. Fix: use `createHighlighterCore` from `shiki/core` + `createJavaScriptRegexEngine` from `shiki/engine/javascript` + `rehypeShikiFromHighlighter` from `@shikijs/rehype/core`.
+- **gray-matter parses YAML date fields as JS Date objects**: `String(data.publishedAt)` produces locale datetime string, not `"YYYY-MM-DD"`. Fix: `data.publishedAt instanceof Date ? data.publishedAt.toISOString().slice(0, 10) : String(data.publishedAt)`.
+- **`rehypeShikiFromHighlighter` is a Transformer factory, not a plugin**: returns `Transformer` directly; wrap in `() =>` for MDX `rehypePlugins` so unified treats the return value as the transformer.
+
 ## Handoffs
 
 - Task 05 (Content Indexer) — **completed**. `app/db/indexer.ts` has `upsertPost`, `removePost`, `syncAll`.
 - Task 06 (File Watcher) — **completed**. `app/lib/watcher.server.ts` has `startContentWatcher`. Startup integrated via Vite plugin `configureServer` in `vite.config.ts`.
 - Task 07 (Manual Sync Script) — **completed**. `scripts/sync.ts` with `parseDir`/`runSync`; `closeDb()` added to `app/db/client.ts`; `sync` npm script added; 7 unit + 4 integration tests passing.
-- Task 08 (MDX Renderer) — **completed**. `app/lib/mdx.server.ts` has `parseFrontmatter`, `renderMdx`. Note: `parseFrontmatter` returns `publishedAt` as a Date-stringified value (bug); some tests fail due to Shiki WASM in Vitest.
+- Task 08 (MDX Renderer) — **completed**. `app/lib/mdx.server.ts` has `parseFrontmatter`, `renderMdx`. Uses JS regex engine (no WASM). All 9 tests pass.
 - Task 09 (Public Routes) — **completed**. `app/routes/index.tsx` and `app/routes/$slug.tsx` with `getPublishedPosts`, `getPostBySlug`, `incrementViewCount`. Note: task-09 test file has pre-existing failures (createServerFn stripping issue in mocks).
 - Task 10 (Better Auth) — **completed**. `app/lib/auth.ts` has Better Auth instance with `reactStartCookies()`. `app/routes/api/auth/$.ts` has GET/POST handlers.
 - Task 11 (Admin Routes) — **completed**. Admin dashboard, preview route, login page; session loaded in `__root.tsx`; 12 unit tests passing. Integration tests deferred.

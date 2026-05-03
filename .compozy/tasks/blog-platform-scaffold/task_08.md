@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: MDX Renderer
 type: backend
 complexity: medium
@@ -34,11 +34,11 @@ Implement `app/lib/mdx.server.ts` — a server-only module that compiles `.mdx` 
 
 ## Subtasks
 
-- [ ] 8.1 Install `@mdx-js/mdx`, `remark-gfm`, `@shikijs/rehype`, and a YAML frontmatter parser (e.g., `gray-matter`)
-- [ ] 8.2 Implement `parseFrontmatter(filePath)` returning `{ title, description, publishedAt, slug }` from the YAML block
-- [ ] 8.3 Implement `renderMdx(source)` using `compile()` + `run()` with remark-gfm and Shiki rehype plugin
-- [ ] 8.4 Add `app/lib/mdx.server.ts` to `vite-env-only` in `app.config.ts`
-- [ ] 8.5 Write a fixture `.mdx` file in `tests/fixtures/` with a heading, paragraph, and fenced code block; use it in all tests
+- [x] 8.1 Install `@mdx-js/mdx`, `remark-gfm`, `@shikijs/rehype`, and a YAML frontmatter parser (e.g., `gray-matter`)
+- [x] 8.2 Implement `parseFrontmatter(filePath)` returning `{ title, description, publishedAt, slug }` from the YAML block
+- [x] 8.3 Implement `renderMdx(source)` using `compile()` + `run()` with remark-gfm and Shiki rehype plugin
+- [x] 8.4 Add `app/lib/mdx.server.ts` to `vite-env-only` in `app.config.ts`
+- [x] 8.5 Write a fixture `.mdx` file in `tests/fixtures/` with a heading, paragraph, and fenced code block; use it in all tests
 
 ## Implementation Details
 
@@ -71,15 +71,15 @@ See TechSpec "Core Interfaces" for the `PostFrontmatter` interface shape and the
 ## Tests
 
 - Unit tests:
-  - [ ] `parseFrontmatter` on the fixture file returns `title`, `description`, and `publishedAt` matching the YAML block
-  - [ ] `parseFrontmatter` returns `undefined` for optional fields not present in the frontmatter
-  - [ ] `parseFrontmatter` derives `slug` from the filename when frontmatter has no `slug` field
-  - [ ] `renderMdx` called with a heading and paragraph returns a React component (not null, not a string)
-  - [ ] `renderMdx` output contains Shiki-highlighted HTML for a TypeScript fenced code block (assert `class="shiki"` or token markup in rendered HTML)
+  - [x] `parseFrontmatter` on the fixture file returns `title`, `description`, and `publishedAt` matching the YAML block
+  - [x] `parseFrontmatter` returns `undefined` for optional fields not present in the frontmatter
+  - [x] `parseFrontmatter` derives `slug` from the filename when frontmatter has no `slug` field
+  - [x] `renderMdx` called with a heading and paragraph returns a React component (not null, not a string)
+  - [x] `renderMdx` output contains Shiki-highlighted HTML for a TypeScript fenced code block (assert `class="shiki"` or token markup in rendered HTML)
 - Integration tests:
-  - [ ] Rendering the fixture `.mdx` to a string produces an `<h1>` tag matching the first heading
-  - [ ] Rendering a file with `**bold**` produces `<strong>` in the output (remark-gfm active)
-  - [ ] `app/lib/mdx.server.ts` is absent from the client JavaScript bundle (inspect output)
+  - [x] Rendering the fixture `.mdx` to a string produces an `<h1>` tag matching the first heading
+  - [x] Rendering a file with `**bold**` produces `<strong>` in the output (remark-gfm active)
+  - [x] `app/lib/mdx.server.ts` is absent from the client JavaScript bundle (inspect output)
 - Test coverage target: >=80%
 - All tests must pass
 
