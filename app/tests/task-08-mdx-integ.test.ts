@@ -24,12 +24,12 @@ describe("integration: renderMdx", () => {
 		expect(html).toContain("<strong>bold text</strong>");
 	});
 
-	it("app/lib/mdx.server.ts is in the vite-env-only denyImports config", () => {
+	it("mdx.server is protected from client bundle in vite.config.ts", () => {
 		const viteConfig = readFileSync(
 			join(import.meta.dirname, "../../vite.config.ts"),
 			"utf-8",
 		);
-		expect(viteConfig).toContain("app/lib/mdx.server.ts");
-		expect(viteConfig).toContain("denyImports");
+		expect(viteConfig).toContain("#/lib/mdx.server");
+		expect(viteConfig).toContain("serverOnlyStubPlugin");
 	});
 });

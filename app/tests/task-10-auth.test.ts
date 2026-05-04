@@ -80,12 +80,12 @@ describe("unit: client bundle exclusion", () => {
 	const configPath = join(import.meta.dirname, "../../vite.config.ts");
 	const viteConfig = readFileSync(configPath, "utf-8");
 
-	it("vite.config.ts references denyImports plugin", () => {
-		expect(viteConfig).toContain("denyImports");
+	it("vite.config.ts has server-only stub plugin protecting client bundle", () => {
+		expect(viteConfig).toContain("serverOnlyStubPlugin");
 	});
 
-	it("auth.ts is listed in vite-env-only denyImports client.files", () => {
-		expect(viteConfig).toContain("app/lib/auth.ts");
+	it("auth module is in the server-only stub list", () => {
+		expect(viteConfig).toContain("#/lib/auth");
 	});
 });
 

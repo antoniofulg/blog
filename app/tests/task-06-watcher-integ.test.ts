@@ -18,11 +18,11 @@ import { startContentWatcher } from "#/lib/watcher.server";
 // ─── Bundle / config check ────────────────────────────────────────────────────
 
 describe("config: vite-env-only", () => {
-	it("vite.config.ts lists watcher.server.ts in denyImports client files", async () => {
+	it("vite.config.ts protects watcher.server from client bundle", async () => {
 		const { readFile } = await import("node:fs/promises");
 		const src = await readFile(join(process.cwd(), "vite.config.ts"), "utf8");
-		expect(src).toContain("watcher.server.ts");
-		expect(src).toContain("denyImports");
+		expect(src).toContain("#/lib/watcher.server");
+		expect(src).toContain("serverOnlyStubPlugin");
 	});
 
 	it("vite.config.ts includes content-watcher-dev Vite plugin with apply:serve", async () => {
