@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 1
 round_created_at: 2026-05-04T01:09:44Z
-status: pending
+status: resolved
 file: app/routes/login.tsx
 line: 31
 severity: medium
@@ -48,5 +48,5 @@ await navigate({ to: isSafeRedirect(redirectTo) ? redirectTo : "/" });
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Real CWE-601 open redirect. `redirectTo` passed directly to TanStack Router `navigate` with no origin check. Fixed by adding `isSafeRedirect` that uses `new URL(url, window.location.origin)` to verify same-origin before navigating, with a fallback `startsWith("/")` check for unparseable values. No external URLs can pass. Fix constrained to `app/routes/login.tsx`.

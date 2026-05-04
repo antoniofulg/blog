@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 1
 round_created_at: 2026-05-04T01:09:44Z
-status: pending
+status: resolved
 file: app/routes/$slug.tsx
 line: 43
 severity: medium
@@ -47,5 +47,5 @@ Option 2 is simpler but degrades navigation performance; option 1 is the idiomat
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `incrementViewCount` was called in the route loader at line 45. TanStack Router fires the loader on hover prefetch, inflating counts before actual navigation. Root cause: side-effecting mutation in a data-fetching loader. Fix: removed `incrementViewCount` call from loader; added `useEffect(() => { incrementViewCount({ data: post.id }); }, [post.id])` in `PostDetail` component. `useEffect` runs only in the browser after mount, never during SSR or prefetch. Existing tests unaffected — they test `incrementViewCountFn` directly, not the loader call site. Verification: 133 tests pass, biome check clean (2 pre-existing unrelated warnings).

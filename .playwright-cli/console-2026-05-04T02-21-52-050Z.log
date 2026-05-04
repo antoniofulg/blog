@@ -1,0 +1,31 @@
+[     137ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=85636db1:14337
+[     144ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=85636db1:564:14
+[   25344ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=85636db1:14337
+[   25352ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=85636db1:564:14
+[   51342ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=85636db1:14337
+[   51348ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=85636db1:564:14
+[   94169ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/app/routes/__root.tsx:66
+[   94170ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://localhost:3000/__tsd/console-pipe/sse:0
+[   96194ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=fbaf2fa2:14336
+[   96208ms] Error: Module "node:fs/promises" has been externalized for browser compatibility. Cannot access "node:fs/promises.readFile" in client code.  See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+    at Object.get (http://localhost:3000/@id/__vite-browser-external:node:fs/promises:3:11)
+    at http://localhost:3000/app/routes/$slug.tsx:1:350
+[   96656ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=b9764f5e:14337
+[   96670ms] Error: Module "node:fs/promises" has been externalized for browser compatibility. Cannot access "node:fs/promises.readFile" in client code.  See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+    at Object.get (http://localhost:3000/@id/__vite-browser-external:node:fs/promises:3:11)
+    at http://localhost:3000/app/routes/$slug.tsx:1:350
+[   98285ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/app/routes/__root.tsx:66
+[   98286ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://localhost:3000/__tsd/console-pipe/sse:0
+[   98388ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/__tsd/console-pipe:0
+[  102360ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=49104b44:14336
+[  102480ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=b9764f5e:14337
+[  102483ms] Error: Module "node:fs/promises" has been externalized for browser compatibility. Cannot access "node:fs/promises.readFile" in client code.  See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+    at Object.get (http://localhost:3000/@id/__vite-browser-external:node:fs/promises:3:11)
+    at http://localhost:3000/app/routes/$slug.tsx:1:350
+[  152184ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=b9764f5e:14337
+[  152189ms] Error: Module "node:fs/promises" has been externalized for browser compatibility. Cannot access "node:fs/promises.readFile" in client code.  See https://vite.dev/guide/troubleshooting.html#module-externalized-for-browser-compatibility for more details.
+    at Object.get (http://localhost:3000/@id/__vite-browser-external:node:fs/promises:3:11)
+    at http://localhost:3000/app/routes/$slug.tsx:1:350

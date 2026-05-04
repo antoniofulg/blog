@@ -43,13 +43,27 @@ export function startContentWatcher(contentDir: string): void {
 				filePath,
 				setTimeout(async () => {
 					debounceMap.delete(filePath);
-					// stat determines existence: success → upsert, ENOENT → remove.
-					// Note: if upsertPost itself throws (e.g. DB down), catch triggers removePost,
-					// which also fails for the same reason — no silent data loss occurs.
+					let fileExists: boolean;
 					try {
 						await stat(filePath);
-						await upsertPost(filePath);
+						fileExists = true;
 					} catch {
+						fileExists = false;
+					}
+					if (fileExists) {
+						try {
+							await upsertPost(filePath);
+						} catch (err) {
+							console.error(
+								JSON.stringify({
+									level: "ERROR",
+									event: "upsert_failed",
+									filePath,
+									error: String(err),
+								}),
+							);
+						}
+					} else {
 						await removePost(filePath);
 					}
 				}, 100),

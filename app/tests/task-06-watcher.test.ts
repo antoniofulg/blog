@@ -155,6 +155,33 @@ describe("unit: rename event stat dispatch", () => {
 	});
 });
 
+// ─── Unit: upsertPost failure does not trigger removePost ────────────────────
+
+describe("unit: upsertPost error isolation", () => {
+	beforeEach(() => {
+		resetAll();
+		vi.useFakeTimers();
+	});
+	afterEach(() => {
+		vi.clearAllTimers();
+		vi.useRealTimers();
+	});
+
+	it("upsertPost throws (e.g. YAML parse error) → removePost is NOT called, error logged", async () => {
+		const errorSpy = vi.spyOn(console, "error");
+		statMock.mockResolvedValue({});
+		indexerMocks.upsertPost.mockRejectedValue(new Error("YAML parse error"));
+		startContentWatcher("/content");
+		fsMock.trigger("change", "post.mdx");
+		await vi.advanceTimersByTimeAsync(200);
+		expect(indexerMocks.upsertPost).toHaveBeenCalledWith("/content/post.mdx");
+		expect(indexerMocks.removePost).not.toHaveBeenCalled();
+		expect(errorSpy).toHaveBeenCalledWith(
+			expect.stringContaining("upsert_failed"),
+		);
+	});
+});
+
 // ─── Unit: fs.watch startup failure ──────────────────────────────────────────
 
 describe("unit: watcher start failure", () => {

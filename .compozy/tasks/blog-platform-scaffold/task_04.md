@@ -69,14 +69,14 @@ See TechSpec "Integration Points" (Better Auth) and "Development Sequencing" (st
 ## Tests
 
 - Unit tests:
-  - [ ] Seed script reads `ADMIN_EMAIL` and `ADMIN_PASSWORD` from env — mock env vars and assert values are read
-  - [ ] Seed script exits 1 when `ADMIN_EMAIL` is not set
-  - [ ] Seed script exits 1 when `ADMIN_PASSWORD` is not set
-- Integration tests:
-  - [ ] `bun run db:seed` with valid env vars creates exactly one user row in the `user` table
-  - [ ] Running `bun run db:seed` a second time does not insert a duplicate user (row count stays at 1)
-  - [ ] Seeded user's `email` matches `ADMIN_EMAIL` env var
-  - [ ] Seeded user's `password` field is a hashed value, not the plaintext `ADMIN_PASSWORD`
+  - [x] Seed script reads `ADMIN_EMAIL` and `ADMIN_PASSWORD` from env — mock env vars and assert values are read
+  - [x] Seed script exits 1 when `ADMIN_EMAIL` is not set
+  - [x] Seed script exits 1 when `ADMIN_PASSWORD` is not set
+- Integration tests (skipIf no DB at port 5432):
+  - [x] `bun run db:seed` with valid env vars creates exactly one user row in the `user` table
+  - [x] Running `bun run db:seed` a second time does not insert a duplicate user (row count stays at 1)
+  - [x] Seeded user's `email` matches `ADMIN_EMAIL` env var
+  - [x] Seeded user's `password` field is a hashed value, not the plaintext `ADMIN_PASSWORD`
 - Test coverage target: >=80%
 - All tests must pass
 

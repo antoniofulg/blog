@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 1
 round_created_at: 2026-05-04T01:09:44Z
-status: pending
+status: resolved
 file: vite.config.ts
 line: 23
 severity: high
@@ -44,5 +44,7 @@ Alternatively, add a `predev` npm script in `package.json` that chains migrate â
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `VALID`
+- Status: `resolved`
+- Notes: PRD F1 acceptance criterion explicitly requires `docker compose up && bun dev` to be the complete startup sequence. The current `configureServer` hook only starts the content watcher; migrations and seed were never called. Root cause: missing `execFileSync` calls for `db:migrate` and `db:seed` in the hook. Fix: added two `execFileSync("bun", ["run", ...])` calls before `startContentWatcher`. Both operations are idempotent (`drizzle-kit migrate` skips applied migrations; seed checks for existing admin user). The `VITEST` guard already present prevents these from running during test runs. The `apply: "serve"` plugin option already prevents them during builds.
+- Pre-existing issues (not introduced by this fix): 13 TS errors across `app/tests/task-03-drizzle-schema.test.ts`, `app/tests/task-11-admin-routes.test.ts`, and `vite.config.ts` (vitest config in defineConfig). All 13 present on baseline before this change. 2 biome warnings in `app/tests/task-04-seed.test.ts` also pre-existing.

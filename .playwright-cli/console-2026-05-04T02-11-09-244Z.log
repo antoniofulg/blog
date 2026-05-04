@@ -1,0 +1,34 @@
+[      70ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[     233ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[     233ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[     234ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[     237ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx:0
+[     239ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx:0
+[   13448ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   13598ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[   13599ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[   13600ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[   13603ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx:0
+[   13606ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx:0
+[   19802ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   19931ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[   19931ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[   19932ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[   19933ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx:0
+[   19937ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx:0
+[   51091ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:968
+[   52760ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   53113ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:3000/node_modules/.vite/deps/@tanstack_react-devtools.js?v=255769ca:0
+[   53113ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[   53149ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:3000/node_modules/.vite/deps/drizzle-orm.js?v=6577c159:0
+[   53336ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   53526ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[   53542ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[   54174ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/app/routes/__root.tsx:66
+[   54176ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://localhost:3000/__tsd/console-pipe/sse:0
+[   54277ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/__tsd/console-pipe:0
+[   57846ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[   58125ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[   58134ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14

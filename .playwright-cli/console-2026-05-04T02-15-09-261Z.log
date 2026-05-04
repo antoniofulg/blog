@@ -1,0 +1,31 @@
+[     245ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[     256ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[   44758ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[   44765ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[  112684ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[  112691ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[  220277ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[  220286ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[  299396ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/app/routes/__root.tsx:66
+[  299409ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://localhost:3000/__tsd/console-pipe/sse:0
+[  301433ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[  301439ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[  303398ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/app/routes/__root.tsx:66
+[  303399ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://localhost:3000/__tsd/console-pipe/sse:0
+[  305423ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=597218c3:14337
+[  305438ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-CWMlau3D.js?v=cbcbb7ef:564:14
+[  305960ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=85636db1:14337
+[  305973ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=85636db1:564:14
+[  307066ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/app/routes/__root.tsx:66
+[  307068ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://localhost:3000/__tsd/console-pipe/sse:0
+[  307169ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/__tsd/console-pipe:0
+[  311001ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=85636db1:14337
+[  311011ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=85636db1:564:14

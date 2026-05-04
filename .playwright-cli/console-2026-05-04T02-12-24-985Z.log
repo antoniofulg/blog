@@ -1,0 +1,12 @@
+[     121ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[     138ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[     147ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[    6897ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login?email=admin%40example.com&password=changeme:0
+[    6909ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[    6915ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14
+[   98613ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login?email=admin%40example.com&password=changeme:0
+[   98639ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=0ff92dcd:14337
+[   98650ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=0ff92dcd:564:14

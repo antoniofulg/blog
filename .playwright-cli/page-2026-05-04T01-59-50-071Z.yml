@@ -1,0 +1,25 @@
+- generic [active] [ref=e1]:
+  - main [ref=e2]:
+    - heading "Login" [level=1] [ref=e3]
+    - generic [ref=e4]:
+      - generic [ref=e5]:
+        - text: Email
+        - textbox "Email" [ref=e6]
+      - generic [ref=e7]:
+        - text: Password
+        - textbox "Password" [ref=e8]
+      - button "Sign in" [ref=e9]
+  - generic [ref=e12]:
+    - generic [ref=e13]: "[plugin:vite:import-analysis] [vite-env-only] Import denied - Denied by file pattern: app/lib/mdx.server.ts - Importer: app/routes/$slug.tsx - Import: \"#/lib/mdx.server\" - Resolved: app/lib/mdx.server.ts - Environment: client"
+    - generic [ref=e14]: /Users/antoniofulg/Projects/blog/app/routes/$slug.tsx:20:36
+    - generic [ref=e15]: "17 | } 18 | const source = await readFile(post.filePath, \"utf-8\"); 19 | const { renderMdx } = await import(\"#/lib/mdx.server\"); | ^ 20 | const Content = await renderMdx(source); 21 | const html = renderToStaticMarkup(createElement(Content, {}));"
+    - generic [ref=e16]: at ResolveIdContext.resolveId (file:///Users/antoniofulg/Projects/blog/node_modules/vite-env-only/dist/index.js:194:15) at async EnvironmentPluginContainer.resolveId (file:///Users/antoniofulg/Projects/blog/node_modules/vite/dist/node/chunks/node.js:30080:19) at async TransformPluginContext.resolve (file:///Users/antoniofulg/Projects/blog/node_modules/vite/dist/node/chunks/node.js:30305:13) at async normalizeUrl (file:///Users/antoniofulg/Projects/blog/node_modules/vite/dist/node/chunks/node.js:27646:22) at async file:///Users/antoniofulg/Projects/blog/node_modules/vite/dist/node/chunks/node.js:27717:30 at async Promise.all (index 12) at async TransformPluginContext.transform (file:///Users/antoniofulg/Projects/blog/node_modules/vite/dist/node/chunks/node.js:27685:4) at async EnvironmentPluginContainer.transform (file:///Users/antoniofulg/Projects/blog/node_modules/vite/dist/node/chunks/node.js:30164:14) at async loadAndTransform (file:///Users/antoniofulg/Projects/blog/node_modules/vite/dist/node/chunks/node.js:24512:26)
+    - generic [ref=e17]:
+      - text: Click outside, press Esc key, or fix the code to dismiss.
+      - text: You can also disable this overlay by setting
+      - code [ref=e18]: server.hmr.overlay
+      - text: to
+      - code [ref=e19]: "false"
+      - text: in
+      - code [ref=e20]: vite.config.ts
+      - text: .

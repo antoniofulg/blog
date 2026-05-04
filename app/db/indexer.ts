@@ -1,6 +1,7 @@
 import { readdir, readFile } from "node:fs/promises";
 import { basename, extname, join } from "node:path";
 import { eq, like } from "drizzle-orm";
+import matter from "gray-matter";
 import { db } from "./client";
 import { posts } from "./schema";
 
@@ -15,23 +16,22 @@ function parseFrontmatterBlock(
 	source: string,
 	filePath: string,
 ): PostFrontmatter {
-	const match = source.match(/^---\r?\n([\s\S]*?)\r?\n---/);
-	if (!match) {
-		throw new Error(`No frontmatter found in ${filePath}`);
-	}
-	const block = match[1];
-	const get = (key: string): string | undefined => {
-		const m = block.match(new RegExp(`^${key}:\\s*(.+)$`, "m"));
-		return m ? m[1].trim() : undefined;
-	};
-	const title = get("title");
-	if (!title)
+	const { data } = matter(source);
+	if (!data.title)
 		throw new Error(`Missing required frontmatter 'title' in ${filePath}`);
-	const description = get("description");
-	const publishedAtRaw = get("publishedAt");
-	const publishedAt = publishedAtRaw ? new Date(publishedAtRaw) : undefined;
-	const slug = get("slug");
-	return { title, description, publishedAt, slug };
+	const publishedAtRaw = data.publishedAt;
+	const publishedAt: Date | undefined =
+		publishedAtRaw instanceof Date
+			? publishedAtRaw
+			: publishedAtRaw != null
+				? new Date(String(publishedAtRaw))
+				: undefined;
+	return {
+		title: data.title as string,
+		description: data.description as string | undefined,
+		publishedAt,
+		slug: data.slug as string | undefined,
+	};
 }
 
 function deriveSlug(filePath: string, frontmatterSlug?: string): string {

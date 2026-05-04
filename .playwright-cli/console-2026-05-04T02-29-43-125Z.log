@@ -1,0 +1,15 @@
+[     475ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=b9764f5e:14337
+[    7045ms] [ERROR] Failed to load resource: the server responded with a status of 500 () @ http://localhost:3000/e2e-test-post:0
+[    7096ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=b9764f5e:14337
+[    7110ms] [ERROR] %o
+
+%s
+
+%s
+ Error: ENOENT: no such file or directory, open '/Users/antoniofulg/Projects/blog/content/e2e-test-post.mdx'
+    at http://localhost:3000/e2e-test-post:1:3209
+    at http://localhost:3000/e2e-test-post:1:3368 The above error occurred in the <MatchInnerImpl> component. React will try to recreate this component tree from scratch using the error boundary you provided, CatchBoundaryImpl. @ http://localhost:3000/@vite/client:509
+[    7111ms] [WARNING] Warning: The following error wasn't caught by any route! At the very least, consider setting an 'errorComponent' in your RootRoute! @ http://localhost:3000/@vite/client:509
+[    7111ms] [WARNING] Warning: ENOENT: no such file or directory, open '/Users/antoniofulg/Projects/blog/content/e2e-test-post.mdx' @ http://localhost:3000/@vite/client:509
+[30129408ms] [ERROR] Failed to load resource: the server responded with a status of 404 () @ http://localhost:3000/e2e-test-post:0
+[30129559ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=b9764f5e:14337

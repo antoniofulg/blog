@@ -1,0 +1,74 @@
+- main [ref=e2]:
+  - heading "Admin Dashboard" [level=1] [ref=e3]
+  - table [ref=e4]:
+    - rowgroup [ref=e5]:
+      - row "Title Slug Status Views Actions" [ref=e6]:
+        - columnheader "Title" [ref=e7]
+        - columnheader "Slug" [ref=e8]
+        - columnheader "Status" [ref=e9]
+        - columnheader "Views" [ref=e10]
+        - columnheader "Actions" [ref=e11]
+    - rowgroup [ref=e12]:
+      - row "E2E Test Post e2e-test-post Draft 0 Publish Preview" [ref=e13]:
+        - cell "E2E Test Post" [ref=e14]
+        - cell "e2e-test-post" [ref=e15]
+        - cell "Draft" [ref=e16]
+        - cell "0" [ref=e17]
+        - cell "Publish Preview" [ref=e18]:
+          - button "Publish" [active] [ref=e19]
+          - link "Preview" [ref=e20] [cursor=pointer]:
+            - /url: /admin/preview/e2e-test-post
+      - row "Test A test-dup-slug-1777792085840 Draft 0 Publish Preview" [ref=e21]:
+        - cell "Test A" [ref=e22]
+        - cell "test-dup-slug-1777792085840" [ref=e23]
+        - cell "Draft" [ref=e24]
+        - cell "0" [ref=e25]
+        - cell "Publish Preview" [ref=e26]:
+          - button "Publish" [ref=e27]
+          - link "Preview" [ref=e28] [cursor=pointer]:
+            - /url: /admin/preview/test-dup-slug-1777792085840
+      - row "Test A test-dup-fp-1777792080835-a Draft 0 Publish Preview" [ref=e29]:
+        - cell "Test A" [ref=e30]
+        - cell "test-dup-fp-1777792080835-a" [ref=e31]
+        - cell "Draft" [ref=e32]
+        - cell "0" [ref=e33]
+        - cell "Publish Preview" [ref=e34]:
+          - button "Publish" [ref=e35]
+          - link "Preview" [ref=e36] [cursor=pointer]:
+            - /url: /admin/preview/test-dup-fp-1777792080835-a
+      - row "Test A test-dup-slug-1777791215821 Draft 0 Publish Preview" [ref=e37]:
+        - cell "Test A" [ref=e38]
+        - cell "test-dup-slug-1777791215821" [ref=e39]
+        - cell "Draft" [ref=e40]
+        - cell "0" [ref=e41]
+        - cell "Publish Preview" [ref=e42]:
+          - button "Publish" [ref=e43]
+          - link "Preview" [ref=e44] [cursor=pointer]:
+            - /url: /admin/preview/test-dup-slug-1777791215821
+      - row "Test A test-dup-fp-1777791210819-a Draft 0 Publish Preview" [ref=e45]:
+        - cell "Test A" [ref=e46]
+        - cell "test-dup-fp-1777791210819-a" [ref=e47]
+        - cell "Draft" [ref=e48]
+        - cell "0" [ref=e49]
+        - cell "Publish Preview" [ref=e50]:
+          - button "Publish" [ref=e51]
+          - link "Preview" [ref=e52] [cursor=pointer]:
+            - /url: /admin/preview/test-dup-fp-1777791210819-a
+      - row "Test A test-dup-slug-1777769225233 Draft 0 Publish Preview" [ref=e53]:
+        - cell "Test A" [ref=e54]
+        - cell "test-dup-slug-1777769225233" [ref=e55]
+        - cell "Draft" [ref=e56]
+        - cell "0" [ref=e57]
+        - cell "Publish Preview" [ref=e58]:
+          - button "Publish" [ref=e59]
+          - link "Preview" [ref=e60] [cursor=pointer]:
+            - /url: /admin/preview/test-dup-slug-1777769225233
+      - row "Test A test-dup-fp-1777769220230-a Draft 0 Publish Preview" [ref=e61]:
+        - cell "Test A" [ref=e62]
+        - cell "test-dup-fp-1777769220230-a" [ref=e63]
+        - cell "Draft" [ref=e64]
+        - cell "0" [ref=e65]
+        - cell "Publish Preview" [ref=e66]:
+          - button "Publish" [ref=e67]
+          - link "Preview" [ref=e68] [cursor=pointer]:
+            - /url: /admin/preview/test-dup-fp-1777769220230-a

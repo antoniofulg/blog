@@ -43,7 +43,7 @@ Implement the auth-protected admin dashboard at `/admin` and the preview route a
 - [x] 11.3 Build the admin dashboard table at `app/routes/admin/index.tsx` with auth guard, post list, status badges, view counts, and action buttons
 - [x] 11.4 Implement the login page at `app/routes/login.tsx` with email/password form and Better Auth client sign-in call
 - [x] 11.5 Implement redirect-after-login: read `redirect` search param after successful login and navigate to that URL
-- [ ] 11.6 Verify the complete publish flow end-to-end: drop `.mdx` file → appears in admin as draft → click Publish → post is live at `/$slug` *(integration tests deferred — requires live server + DB)*
+- [x] 11.6 Verify the complete publish flow end-to-end: drop `.mdx` file → appears in admin as draft → click Publish → post is live at `/$slug` *(verified via Playwright browser automation)*
 
 ## Implementation Details
 

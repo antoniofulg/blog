@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 1
 round_created_at: 2026-05-04T01:09:44Z
-status: pending
+status: resolved
 file: app/lib/watcher.server.ts
 line: 49
 severity: high
@@ -54,5 +54,5 @@ Errors from `upsertPost` then propagate or are caught by the outer debounce time
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `VALID`
+- Notes: Root cause confirmed. Single try/catch wraps both `stat()` and `upsertPost()`, so any upsertPost failure (YAML parse error, slug conflict, etc.) incorrectly routes to `removePost`, deleting the post record even though the file still exists on disk. Fix: separated stat check into its own try/catch that sets `fileExists`, then branches on that boolean. `upsertPost` errors are now caught independently and logged as `upsert_failed` without touching the post index. New test added: `unit: upsertPost error isolation` verifies `removePost` is not called and error is logged when `upsertPost` throws.

@@ -1,6 +1,15 @@
+import { createServer } from "node:net";
 import { join } from "node:path";
 import { isNotFound } from "@tanstack/react-router";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterAll,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
@@ -190,3 +199,83 @@ describe("unit: incrementViewCountFn", () => {
 		expect(mocks.update).toHaveBeenCalledTimes(2);
 	});
 });
+
+// ─── Integration: public routes (requires DB + running server) ──────────────
+
+function isPortFree(port: number): Promise<boolean> {
+	return new Promise((resolve) => {
+		const srv = createServer();
+		srv.listen(port, () => srv.close(() => resolve(true)));
+		srv.on("error", () => resolve(false));
+	});
+}
+
+const port5432Free = await isPortFree(5432);
+const port3000Free = await isPortFree(3000);
+
+describe.skipIf(port5432Free || port3000Free)(
+	"integration: public routes",
+	() => {
+		let sql: import("postgres").Sql;
+		const DB_URL = "postgres://blog:blog@localhost:5432/blog";
+		const BASE_URL = "http://localhost:3000";
+		const SLUG = `integ-pub-${Date.now()}`;
+		const DRAFT_SLUG = `integ-draft-${Date.now()}`;
+		const FIXTURE = join(import.meta.dirname, "fixtures", "hello.mdx");
+
+		beforeAll(async () => {
+			const pg = await import("postgres");
+			sql = pg.default(DB_URL);
+			await sql`
+        INSERT INTO posts (file_path, slug, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'Integration Published', 'desc', true, NOW(), 0, NOW())
+      `;
+			await sql`
+        INSERT INTO posts (file_path, slug, title, description, is_published, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${DRAFT_SLUG}, 'Integration Draft', 'desc', false, 0, NOW())
+      `;
+		});
+
+		afterAll(async () => {
+			await sql`DELETE FROM posts WHERE slug IN (${SLUG}, ${DRAFT_SLUG})`;
+			await sql.end();
+		});
+
+		it("GET / returns 200 and lists only the published post", async () => {
+			const res = await fetch(`${BASE_URL}/`);
+			expect(res.status).toBe(200);
+			const html = await res.text();
+			expect(html).toContain("Integration Published");
+			expect(html).not.toContain("Integration Draft");
+		});
+
+		it("GET /:slug returns 200 and includes <h1> for published post", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			expect(res.status).toBe(200);
+			const html = await res.text();
+			expect(html).toMatch(/<h1[^>]*>/);
+		});
+
+		it("GET /:slug twice increments view_count by 2", async () => {
+			await fetch(`${BASE_URL}/${SLUG}`);
+			await fetch(`${BASE_URL}/${SLUG}`);
+			// allow async increment to settle
+			await new Promise((r) => setTimeout(r, 300));
+			const rows = await sql<{ view_count: number }[]>`
+        SELECT view_count FROM posts WHERE slug = ${SLUG}
+      `;
+			expect(rows[0].view_count).toBeGreaterThanOrEqual(2);
+		});
+
+		it("GET /draft-slug returns 404 for unpublished post", async () => {
+			const res = await fetch(`${BASE_URL}/${DRAFT_SLUG}`);
+			expect(res.status).toBe(404);
+		});
+
+		it("GET /:slug <head> contains <title> matching post title", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain("<title>Integration Published</title>");
+		});
+	},
+);

@@ -1,0 +1,14 @@
+[     138ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=85636db1:14337
+[     173ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=85636db1:564:14
+[   10281ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/app/routes/__root.tsx:66
+[   10283ms] [ERROR] Failed to load resource: net::ERR_INCOMPLETE_CHUNKED_ENCODING @ http://localhost:3000/__tsd/console-pipe/sse:0
+[   10384ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/__tsd/console-pipe:0
+[   13284ms] [ERROR] Failed to load resource: net::ERR_CONNECTION_REFUSED @ http://localhost:3000/__tsd/console-pipe/sse:0
+[   16476ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:3000/node_modules/.vite/deps/@tanstack_router-core.js?v=51139c03:0
+[   16520ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[   16495ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:3000/node_modules/.vite/deps/@tanstack_react-router_n_@tanstack_react-store.js?v=c8aa74ec:0
+[   16517ms] [ERROR] Failed to load resource: the server responded with a status of 504 (Outdated Optimize Dep) @ http://localhost:3000/node_modules/.vite/deps/@tanstack_router-core_ssr_client.js?v=451f5cc2:0
+[   17234ms] [INFO] %cDownload the React DevTools for a better development experience: https://react.dev/link/react-devtools font-weight:bold @ http://localhost:3000/node_modules/.vite/deps/react-dom_client.js?v=85636db1:14337
+[   17243ms] ReferenceError: Buffer is not defined
+    at http://localhost:3000/node_modules/.vite/deps/src-t_3NSeTx.js?v=85636db1:564:14

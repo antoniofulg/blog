@@ -9,6 +9,16 @@ export const Route = createFileRoute("/login")({
 	component: LoginPage,
 });
 
+function isSafeRedirect(url: string | undefined): url is string {
+	if (!url) return false;
+	try {
+		const parsed = new URL(url, window.location.origin);
+		return parsed.origin === window.location.origin;
+	} catch {
+		return url.startsWith("/");
+	}
+}
+
 function LoginPage() {
 	const { redirect: redirectTo } = Route.useSearch();
 	const navigate = useNavigate();
@@ -28,7 +38,7 @@ function LoginPage() {
 		if (result.error) {
 			setError(result.error.message ?? "Login failed");
 		} else {
-			await navigate({ to: redirectTo ?? "/" });
+			await navigate({ to: isSafeRedirect(redirectTo) ? redirectTo : "/" });
 		}
 	};
 

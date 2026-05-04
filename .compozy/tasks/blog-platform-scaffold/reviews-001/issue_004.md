@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 1
 round_created_at: 2026-05-04T01:09:44Z
-status: pending
+status: resolved
 file: app/routes/admin/index.tsx
 line: 63
 severity: medium
@@ -50,5 +50,5 @@ const handleToggle = async () => {
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: `handleToggle` had no try/catch around `togglePublished`. On server error, the `await` rejects and short-circuits before `setIsPublished`/`setSuccessMsg`, producing an unhandled promise rejection with no user feedback. Fixed by wrapping in try/catch: on success, state updates as before; on catch, shows "Error — please try again" for 3s and leaves `isPublished` at its pre-toggle value (no state divergence). Biome auto-sorted imports in the file during the `check` run (pre-existing lint issue). 2 pre-existing warnings in `app/tests/task-04-seed.test.ts` unrelated to this change. All 132 tests pass.

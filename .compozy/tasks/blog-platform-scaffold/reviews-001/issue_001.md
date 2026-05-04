@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 1
 round_created_at: 2026-05-04T01:09:44Z
-status: pending
+status: resolved
 file: app/routes/admin/index.tsx
 line: 34
 severity: critical
@@ -39,5 +39,5 @@ Apply the same pattern to `getAllPosts` and `getAdminPreview`.
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `createServerFn` compiles to real HTTP endpoints callable without cookies/session. `beforeLoad` is a client-side router guard only — it never runs when the endpoint is called directly via `fetch`. Both `getAllPosts` and `togglePublished` in `admin/index.tsx` are unprotected, as is `getAdminPreview` in `admin/preview.$slug.tsx`. Fix: inside each `.handler()` call, retrieve the current request via `getRequest()` from `@tanstack/react-start/server`, then call `auth.api.getSession({ headers: request.headers })` and throw a 401 `Response` if no session is present. `preview.$slug.tsx` is outside the declared batch scope but is a security fix so it will be touched minimally (minimum-change rule applied).

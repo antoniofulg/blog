@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 1
 round_created_at: 2026-05-04T01:09:44Z
-status: pending
+status: resolved
 file: app/db/indexer.ts
 line: 14
 severity: medium
@@ -32,5 +32,5 @@ A frontmatter value that parses correctly in gray-matter (used by the MDX render
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Root cause confirmed. `parseFrontmatterBlock` regex breaks on `title: "Hello: World"` (reads `"Hello` instead of `Hello: World`), multiline YAML scalars, and YAML date literals (returns raw string instead of `Date`). `gray-matter` already installed as dep. Fix: replace regex parser in `indexer.ts` with `matter()`. No need for a shared utility — both files now use `gray-matter` so YAML semantics agree. Changes scoped to `indexer.ts` only.

@@ -1,9 +1,11 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import { getRequest } from "@tanstack/react-start/server";
 import { desc, eq } from "drizzle-orm";
 import { useState } from "react";
 import { db } from "#/db/client";
 import { type Post, posts } from "#/db/schema";
+import { auth } from "#/lib/auth";
 
 // ─── Server Functions ─────────────────────────────────────────────────────────
 
@@ -31,13 +33,22 @@ export async function togglePublishedFn(
 	}
 }
 
-const getAllPosts = createServerFn({ method: "GET" }).handler(() =>
-	getAllPostsFn(),
-);
+async function requireSession() {
+	const session = await auth.api.getSession({ headers: getRequest().headers });
+	if (!session?.user) throw new Response("Unauthorized", { status: 401 });
+}
+
+const getAllPosts = createServerFn({ method: "GET" }).handler(async () => {
+	await requireSession();
+	return getAllPostsFn();
+});
 
 const togglePublished = createServerFn({ method: "POST" })
 	.inputValidator((input: { id: number; isPublished: boolean }) => input)
-	.handler(async ({ data }) => togglePublishedFn(data.id, data.isPublished));
+	.handler(async ({ data }) => {
+		await requireSession();
+		return togglePublishedFn(data.id, data.isPublished);
+	});
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
@@ -62,10 +73,15 @@ function PostRow({ post }: { post: Post }) {
 
 	const handleToggle = async () => {
 		const next = !isPublished;
-		await togglePublished({ data: { id: post.id, isPublished: next } });
-		setIsPublished(next);
-		setSuccessMsg(next ? "Published" : "Unpublished");
-		setTimeout(() => setSuccessMsg(null), 2000);
+		try {
+			await togglePublished({ data: { id: post.id, isPublished: next } });
+			setIsPublished(next);
+			setSuccessMsg(next ? "Published" : "Unpublished");
+			setTimeout(() => setSuccessMsg(null), 2000);
+		} catch {
+			setSuccessMsg("Error — please try again");
+			setTimeout(() => setSuccessMsg(null), 3000);
+		}
 	};
 
 	return (

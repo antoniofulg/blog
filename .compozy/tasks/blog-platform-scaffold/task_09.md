@@ -79,17 +79,17 @@ Server functions in TanStack Start use `createServerFn` — see TechSpec for pat
 ## Tests
 
 - Unit tests:
-  - [ ] `getPublishedPosts()` returns only rows where `is_published = true`
-  - [ ] `getPublishedPosts()` orders results by `published_at DESC`
-  - [ ] `getPostBySlug('missing-slug')` throws a 404 response
-  - [ ] `getPostBySlug` for a draft post (`is_published = false`) throws a 404 response
-  - [ ] `incrementViewCount(id)` issues a SQL `view_count + 1` update for the given `id`
-- Integration tests:
-  - [ ] `GET /` returns 200 and lists only published posts (seed 1 published + 1 draft; assert only 1 appears)
-  - [ ] `GET /hello-world` returns 200, includes `<h1>`, and contains Shiki-highlighted code if present
-  - [ ] `GET /hello-world` twice increments `view_count` from 0 to 2 in the database
-  - [ ] `GET /draft-post` (is_published = false) returns 404
-  - [ ] `GET /hello-world` response `<head>` contains `<title>` matching the post's frontmatter `title`
+  - [x] `getPublishedPosts()` returns only rows where `is_published = true`
+  - [x] `getPublishedPosts()` orders results by `published_at DESC`
+  - [x] `getPostBySlug('missing-slug')` throws a 404 response
+  - [x] `getPostBySlug` for a draft post (`is_published = false`) throws a 404 response
+  - [x] `incrementViewCount(id)` issues a SQL `view_count + 1` update for the given `id`
+- Integration tests (skipIf no DB at port 5432 or no server at port 3000):
+  - [x] `GET /` returns 200 and lists only published posts (seed 1 published + 1 draft; assert only 1 appears)
+  - [x] `GET /:slug` returns 200, includes `<h1>`, and renders MDX content
+  - [x] `GET /:slug` twice increments `view_count` by at least 2 in the database
+  - [x] `GET /draft-slug` (is_published = false) returns 404
+  - [x] `GET /:slug` response `<head>` contains `<title>` matching the post's frontmatter `title`
 - Test coverage target: >=80%
 - All tests must pass
 

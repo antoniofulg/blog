@@ -2,13 +2,15 @@ import { readFile } from "node:fs/promises";
 import { createFileRoute, notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
 import { eq, sql } from "drizzle-orm";
-import { createElement } from "react";
+import { createElement, useEffect } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { db } from "#/db/client";
 import { type Post, posts } from "#/db/schema";
 
 export async function getPostBySlugFn(
 	slug: string,
+	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
+	renderFn: (source: string) => Promise<any> = async () => () => null,
 ): Promise<{ post: Post; html: string }> {
 	const [post] = await db.select().from(posts).where(eq(posts.slug, slug));
 
@@ -17,8 +19,7 @@ export async function getPostBySlugFn(
 	}
 
 	const source = await readFile(post.filePath, "utf-8");
-	const { renderMdx } = await import("#/lib/mdx.server");
-	const Content = await renderMdx(source);
+	const Content = await renderFn(source);
 	const html = renderToStaticMarkup(createElement(Content, {}));
 
 	return { post, html };
@@ -33,7 +34,10 @@ export async function incrementViewCountFn(id: number): Promise<void> {
 
 const getPostBySlug = createServerFn({ method: "GET" })
 	.inputValidator((slug: string) => slug)
-	.handler(async ({ data: slug }) => getPostBySlugFn(slug));
+	.handler(async ({ data: slug }) => {
+		const { renderMdx } = await import("#/lib/mdx.server");
+		return getPostBySlugFn(slug, renderMdx);
+	});
 
 const incrementViewCount = createServerFn({ method: "POST" })
 	.inputValidator((id: number) => id)
@@ -41,9 +45,7 @@ const incrementViewCount = createServerFn({ method: "POST" })
 
 export const Route = createFileRoute("/$slug")({
 	loader: async ({ params }) => {
-		const data = await getPostBySlug({ data: params.slug });
-		await incrementViewCount({ data: data.post.id });
-		return data;
+		return getPostBySlug({ data: params.slug });
 	},
 	head: ({ loaderData }) => ({
 		meta: [
@@ -74,6 +76,9 @@ export const Route = createFileRoute("/$slug")({
 
 function PostDetail() {
 	const { post, html } = Route.useLoaderData();
+	useEffect(() => {
+		incrementViewCount({ data: post.id });
+	}, [post.id]);
 	return (
 		<main>
 			<article>

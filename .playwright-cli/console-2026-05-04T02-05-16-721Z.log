@@ -1,0 +1,62 @@
+[     187ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[     272ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[     274ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[     305ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx?t=1777860291520:0
+[     306ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx?t=1777860294372:0
+[     307ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[    6632ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[    6689ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[    6692ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[    6691ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[    6693ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx?t=1777860291520:0
+[    6747ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx?t=1777860294372:0
+[  108458ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  108535ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx?t=1777860424774:0
+[  108537ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  108578ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  108579ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  108617ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx?t=1777860294372:0
+[  112843ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  112960ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx?t=1777860294372:0
+[  112962ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  112965ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx?t=1777860429155:0
+[  113015ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  113017ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  119637ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  119754ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx?t=1777860435739:0
+[  119755ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  119769ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx?t=1777860429155:0
+[  119792ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  119792ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  124261ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  124360ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx?t=1777860440563:0
+[  124362ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx?t=1777860429155:0
+[  124362ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  124363ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  124457ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  169237ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  169320ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  169320ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  169322ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx?t=1777860440563:0
+[  169322ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  169361ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx?t=1777860429155:0
+[  280383ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:968
+[  282036ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  282268ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  282269ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  282303ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx:0
+[  282322ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx:0
+[  282380ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  282732ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  282988ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  282990ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  282992ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  283003ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx:0
+[  283004ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx:0
+[  325694ms] [LOG] [vite] server connection lost. Polling for restart... @ http://localhost:3000/@vite/client:968
+[  329378ms] [VERBOSE] [DOM] Input elements should have autocomplete attributes (suggested: "current-password"): (More info: https://goo.gl/9p2vKq) %o @ http://localhost:3000/login:0
+[  329606ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/index.tsx:0
+[  329606ms] Failed to fetch dynamically imported module: http://localhost:3000/@id/virtual:tanstack-start-client-entry
+[  329613ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/index.tsx:0
+[  329665ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/admin/preview.$slug.tsx:0
+[  329693ms] [ERROR] Failed to load resource: the server responded with a status of 500 (Internal Server Error) @ http://localhost:3000/app/routes/$slug.tsx:0
