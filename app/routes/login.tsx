@@ -43,22 +43,59 @@ function LoginPage() {
 	};
 
 	return (
-		<main>
-			<h1>Login</h1>
-			<form onSubmit={handleSubmit}>
-				<div>
-					<label htmlFor="email">Email</label>
-					<input id="email" type="email" name="email" required />
-				</div>
-				<div>
-					<label htmlFor="password">Password</label>
-					<input id="password" type="password" name="password" required />
-				</div>
-				{error && <p role="alert">{error}</p>}
-				<button type="submit" disabled={pending}>
-					{pending ? "Signing in…" : "Sign in"}
-				</button>
-			</form>
-		</main>
+		<div className="flex min-h-[60vh] items-center justify-center px-5 py-12">
+			<div className="w-full max-w-sm rounded-lg border border-border bg-card p-8">
+				<h1 className="mb-6 font-heading text-2xl font-bold text-foreground">
+					Login
+				</h1>
+				<form onSubmit={handleSubmit} className="flex flex-col gap-4">
+					<div className="flex flex-col gap-1.5">
+						<label
+							htmlFor="email"
+							className="text-sm font-medium text-foreground"
+						>
+							Email
+						</label>
+						<input
+							id="email"
+							type="email"
+							name="email"
+							required
+							className="h-11 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent focus:outline-none"
+						/>
+					</div>
+					<div className="flex flex-col gap-1.5">
+						<label
+							htmlFor="password"
+							className="text-sm font-medium text-foreground"
+						>
+							Senha
+						</label>
+						<input
+							id="password"
+							type="password"
+							name="password"
+							required
+							className="h-11 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent focus:outline-none"
+						/>
+					</div>
+					{error && (
+						<p
+							role="alert"
+							className="rounded-md bg-callout-error px-3 py-2 text-sm text-error"
+						>
+							{error}
+						</p>
+					)}
+					<button
+						type="submit"
+						disabled={pending}
+						className="mt-2 h-11 rounded-md bg-accent text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover disabled:opacity-60"
+					>
+						{pending ? "Entrando…" : "Entrar"}
+					</button>
+				</form>
+			</div>
+		</div>
 	);
 }

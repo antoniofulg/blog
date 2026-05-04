@@ -1,6 +1,123 @@
-
 @import "tailwindcss";
 @plugin "@tailwindcss/typography";
+
+@custom-variant dark (&:where(.dark, .dark *));
+
+@theme {
+  --font-family-heading: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-body: "Inter", ui-sans-serif, system-ui, sans-serif;
+  --font-family-code: "JetBrains Mono", ui-monospace, monospace;
+
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 12px;
+  --radius-xl: 16px;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-surface: var(--surface);
+  --color-muted: var(--muted);
+  --color-card: var(--card);
+  --color-code-bg: var(--code-bg);
+
+  --color-foreground: var(--foreground);
+  --color-foreground-secondary: var(--foreground-secondary);
+  --color-foreground-muted: var(--foreground-muted);
+  --color-foreground-inverse: var(--foreground-inverse);
+  --color-foreground-code: var(--foreground-code);
+
+  --color-accent: var(--accent);
+  --color-accent-hover: var(--accent-hover);
+  --color-accent-light: var(--accent-light);
+
+  --color-border: var(--border);
+  --color-border-strong: var(--border-strong);
+
+  --color-success: var(--success);
+  --color-warning: var(--warning);
+  --color-error: var(--error);
+
+  --color-callout-tip: var(--callout-tip);
+  --color-callout-info: var(--callout-info);
+  --color-callout-warn: var(--callout-warn);
+  --color-callout-error: var(--callout-error);
+
+  --color-tag-react: var(--tag-react);
+  --color-tag-typescript: var(--tag-typescript);
+  --color-tag-bun: var(--tag-bun);
+  --color-tag-tanstack: var(--tag-tanstack);
+}
+
+:root {
+  --background: #F5F8FC;
+  --surface: #EAECEE;
+  --muted: #DDE0E3;
+  --card: #FFFFFF;
+  --code-bg: #272D34;
+
+  --foreground: #272D34;
+  --foreground-secondary: #3F4750;
+  --foreground-muted: #898989;
+  --foreground-inverse: #FAFAFA;
+  --foreground-code: #C8D1DC;
+
+  --accent: #0AA3D6;
+  --accent-hover: #088BB5;
+  --accent-light: #E0F3FA;
+
+  --border: #C2C8CE;
+  --border-strong: #A8B0B8;
+
+  --success: #41AD4E;
+  --warning: #E3946A;
+  --error: #EE5F50;
+
+  --callout-tip: #E8F7E9;
+  --callout-info: #E5F5FB;
+  --callout-warn: #FDF0EA;
+  --callout-error: #FDE9E7;
+
+  --tag-react: #0AA3D6;
+  --tag-typescript: #B377E3;
+  --tag-bun: #E39C03;
+  --tag-tanstack: #EE5F50;
+}
+
+.dark {
+  --background: #1C2433;
+  --surface: #171D2A;
+  --muted: #232D3E;
+  --card: #1E2838;
+  --code-bg: #141A26;
+
+  --foreground: #C8D1DC;
+  --foreground-secondary: #8196B5;
+  --foreground-muted: #4D5F76;
+  --foreground-inverse: #1C2433;
+  --foreground-code: #C8D1DC;
+
+  --accent: #69C3FF;
+  --accent-hover: #8BD3FF;
+  --accent-light: #1A2A3D;
+
+  --border: #151B27;
+  --border-strong: #2A3545;
+
+  --success: #3CEC85;
+  --warning: #FF955C;
+  --error: #E35535;
+
+  --callout-tip: #152D1E;
+  --callout-info: #1A2A3D;
+  --callout-warn: #2D2218;
+  --callout-error: #2D1818;
+
+  --tag-react: #69C3FF;
+  --tag-typescript: #B78AFF;
+  --tag-bun: #EACD61;
+  --tag-tanstack: #E35535;
+}
 
 * {
   box-sizing: border-box;
@@ -14,5 +131,9 @@ body,
 
 body {
   margin: 0;
+  font-family: var(--font-family-body);
+  background-color: var(--background);
+  color: var(--foreground);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
-

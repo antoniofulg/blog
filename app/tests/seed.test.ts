@@ -30,9 +30,9 @@ function createMockDb(existingUsers: unknown[] = []) {
 				}),
 			}),
 		}),
-		// biome-ignore lint/suspicious/noExplicitAny: mock type
 		transaction: vi
 			.fn()
+			// biome-ignore lint/suspicious/noExplicitAny: mock type
 			.mockImplementation(async (fn: (tx: any) => Promise<void>) => {
 				await fn({
 					insert: vi.fn().mockReturnValue({

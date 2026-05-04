@@ -9,16 +9,53 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
+import { Route as TutorialsRouteImport } from './routes/tutorials'
+import { Route as SearchRouteImport } from './routes/search'
+import { Route as ProjectsRouteImport } from './routes/projects'
+import { Route as NewsletterRouteImport } from './routes/newsletter'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as BlogRouteImport } from './routes/blog'
+import { Route as AboutRouteImport } from './routes/about'
 import { Route as SlugRouteImport } from './routes/$slug'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
+import { Route as TutorialsSeriesSlugRouteImport } from './routes/tutorials.$seriesSlug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminPreviewSlugRouteImport } from './routes/admin/preview.$slug'
 
+const TutorialsRoute = TutorialsRouteImport.update({
+  id: '/tutorials',
+  path: '/tutorials',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SearchRoute = SearchRouteImport.update({
+  id: '/search',
+  path: '/search',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const ProjectsRoute = ProjectsRouteImport.update({
+  id: '/projects',
+  path: '/projects',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const NewsletterRoute = NewsletterRouteImport.update({
+  id: '/newsletter',
+  path: '/newsletter',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const LoginRoute = LoginRouteImport.update({
   id: '/login',
   path: '/login',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const BlogRoute = BlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const AboutRoute = AboutRouteImport.update({
+  id: '/about',
+  path: '/about',
   getParentRoute: () => rootRouteImport,
 } as any)
 const SlugRoute = SlugRouteImport.update({
@@ -36,6 +73,11 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
+const TutorialsSeriesSlugRoute = TutorialsSeriesSlugRouteImport.update({
+  id: '/$seriesSlug',
+  path: '/$seriesSlug',
+  getParentRoute: () => TutorialsRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -50,7 +92,14 @@ const AdminPreviewSlugRoute = AdminPreviewSlugRouteImport.update({
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRoute
   '/login': typeof LoginRoute
+  '/newsletter': typeof NewsletterRoute
+  '/projects': typeof ProjectsRoute
+  '/search': typeof SearchRoute
+  '/tutorials': typeof TutorialsRouteWithChildren
+  '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -58,7 +107,14 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRoute
   '/login': typeof LoginRoute
+  '/newsletter': typeof NewsletterRoute
+  '/projects': typeof ProjectsRoute
+  '/search': typeof SearchRoute
+  '/tutorials': typeof TutorialsRouteWithChildren
+  '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -67,7 +123,14 @@ export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
   '/$slug': typeof SlugRoute
+  '/about': typeof AboutRoute
+  '/blog': typeof BlogRoute
   '/login': typeof LoginRoute
+  '/newsletter': typeof NewsletterRoute
+  '/projects': typeof ProjectsRoute
+  '/search': typeof SearchRoute
+  '/tutorials': typeof TutorialsRouteWithChildren
+  '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -77,7 +140,14 @@ export interface FileRouteTypes {
   fullPaths:
     | '/'
     | '/$slug'
+    | '/about'
+    | '/blog'
     | '/login'
+    | '/newsletter'
+    | '/projects'
+    | '/search'
+    | '/tutorials'
+    | '/tutorials/$seriesSlug'
     | '/admin/'
     | '/admin/preview/$slug'
     | '/api/auth/$'
@@ -85,7 +155,14 @@ export interface FileRouteTypes {
   to:
     | '/'
     | '/$slug'
+    | '/about'
+    | '/blog'
     | '/login'
+    | '/newsletter'
+    | '/projects'
+    | '/search'
+    | '/tutorials'
+    | '/tutorials/$seriesSlug'
     | '/admin'
     | '/admin/preview/$slug'
     | '/api/auth/$'
@@ -93,7 +170,14 @@ export interface FileRouteTypes {
     | '__root__'
     | '/'
     | '/$slug'
+    | '/about'
+    | '/blog'
     | '/login'
+    | '/newsletter'
+    | '/projects'
+    | '/search'
+    | '/tutorials'
+    | '/tutorials/$seriesSlug'
     | '/admin/'
     | '/admin/preview/$slug'
     | '/api/auth/$'
@@ -102,7 +186,13 @@ export interface FileRouteTypes {
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
   SlugRoute: typeof SlugRoute
+  AboutRoute: typeof AboutRoute
+  BlogRoute: typeof BlogRoute
   LoginRoute: typeof LoginRoute
+  NewsletterRoute: typeof NewsletterRoute
+  ProjectsRoute: typeof ProjectsRoute
+  SearchRoute: typeof SearchRoute
+  TutorialsRoute: typeof TutorialsRouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   AdminPreviewSlugRoute: typeof AdminPreviewSlugRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -110,11 +200,53 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
+    '/tutorials': {
+      id: '/tutorials'
+      path: '/tutorials'
+      fullPath: '/tutorials'
+      preLoaderRoute: typeof TutorialsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/search': {
+      id: '/search'
+      path: '/search'
+      fullPath: '/search'
+      preLoaderRoute: typeof SearchRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/projects': {
+      id: '/projects'
+      path: '/projects'
+      fullPath: '/projects'
+      preLoaderRoute: typeof ProjectsRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/newsletter': {
+      id: '/newsletter'
+      path: '/newsletter'
+      fullPath: '/newsletter'
+      preLoaderRoute: typeof NewsletterRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/login': {
       id: '/login'
       path: '/login'
       fullPath: '/login'
       preLoaderRoute: typeof LoginRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/blog': {
+      id: '/blog'
+      path: '/blog'
+      fullPath: '/blog'
+      preLoaderRoute: typeof BlogRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/about': {
+      id: '/about'
+      path: '/about'
+      fullPath: '/about'
+      preLoaderRoute: typeof AboutRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/$slug': {
@@ -138,6 +270,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/tutorials/$seriesSlug': {
+      id: '/tutorials/$seriesSlug'
+      path: '/$seriesSlug'
+      fullPath: '/tutorials/$seriesSlug'
+      preLoaderRoute: typeof TutorialsSeriesSlugRouteImport
+      parentRoute: typeof TutorialsRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -155,10 +294,28 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface TutorialsRouteChildren {
+  TutorialsSeriesSlugRoute: typeof TutorialsSeriesSlugRoute
+}
+
+const TutorialsRouteChildren: TutorialsRouteChildren = {
+  TutorialsSeriesSlugRoute: TutorialsSeriesSlugRoute,
+}
+
+const TutorialsRouteWithChildren = TutorialsRoute._addFileChildren(
+  TutorialsRouteChildren,
+)
+
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
   SlugRoute: SlugRoute,
+  AboutRoute: AboutRoute,
+  BlogRoute: BlogRoute,
   LoginRoute: LoginRoute,
+  NewsletterRoute: NewsletterRoute,
+  ProjectsRoute: ProjectsRoute,
+  SearchRoute: SearchRoute,
+  TutorialsRoute: TutorialsRouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   AdminPreviewSlugRoute: AdminPreviewSlugRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
