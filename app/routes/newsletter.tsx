@@ -47,12 +47,14 @@ function NewsletterPage() {
 						placeholder="seu@email.com"
 						className="h-12 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent focus:outline-none"
 					/>
+					{/* TODO: Wire to a real newsletter provider (e.g. Resend, ConvertKit) before enabling. */}
 					<button
 						type="submit"
-						className="inline-flex h-12 items-center justify-center gap-2 rounded-md bg-accent text-sm font-semibold text-foreground-inverse hover:bg-accent-hover"
+						disabled
+						className="inline-flex h-12 cursor-not-allowed items-center justify-center gap-2 rounded-md bg-accent/50 text-sm font-semibold text-foreground-inverse"
 					>
 						<Send className="h-4 w-4" />
-						Inscrever-se na Newsletter
+						Em breve
 					</button>
 				</form>
 

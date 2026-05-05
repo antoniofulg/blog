@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 2
 round_created_at: 2026-05-05T15:48:56Z
-status: pending
+status: resolved
 file: app/routes/newsletter.tsx
 line: 37
 severity: medium
@@ -41,5 +41,5 @@ For the scaffold, this ships broken UI. The PRD explicitly excludes newsletter i
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. Both `newsletter.tsx:36` and `index.tsx:248` use `onSubmit={(e) => e.preventDefault()}` with no server action, no feedback, and no loading/disabled state. Fix applied: replaced the submit button with a `disabled` button labelled "Em breve" in both locations, with a TODO comment pointing to the integration needed. This makes the placeholder intent explicit rather than silently broken.

@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 2
 round_created_at: 2026-05-05T15:48:56Z
-status: pending
+status: resolved
 file: app/routes/blog.tsx
 line: 57
 severity: medium
@@ -40,5 +40,5 @@ Alternatively, if the category filter is intentional future UI, add a disabled s
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `blog.tsx:57` assigns `const filteredPosts = allPosts` — `activeCategory` is never used as a filter predicate. The post schema has no `category` or `tags` field. Fix: remove the filter buttons UI and related state (`activeCategory`, `setActiveCategory`). The `categories` constant array and `validateSearch`/`category` search param are also removed since they serve no real function. This eliminates the misleading UI without data loss.

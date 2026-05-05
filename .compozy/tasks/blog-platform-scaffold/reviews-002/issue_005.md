@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 2
 round_created_at: 2026-05-05T15:48:56Z
-status: pending
+status: resolved
 file: app/routes/blog.tsx
 line: 11
 severity: low
@@ -45,5 +45,5 @@ const getPublishedPosts = createServerFn({ method: "GET" }).handler(getPublished
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `blog.tsx` lines 11–18 duplicates the published-posts query already present in `index.tsx:16`. Fix: created `app/db/queries.ts` as the single source of truth for this query (required touching a file outside batch scope — documented here because the fix is minimal and necessary). Updated both `blog.tsx` and `index.tsx` to import `getPublishedPostsFn` from `#/db/queries`. Removed the inline function definition from `index.tsx` and the now-unused drizzle/db imports from that file. The server function wrappers remain per-route as recommended in the issue.

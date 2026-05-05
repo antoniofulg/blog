@@ -1,6 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq } from "drizzle-orm";
 import {
 	ArrowRight,
 	Code,
@@ -10,19 +9,11 @@ import {
 	Package,
 	Route as RouteIcon,
 } from "lucide-react";
-import { db } from "#/db/client";
-import { type Post, posts } from "#/db/schema";
+import { getPublishedPostsFn } from "#/db/queries";
+import type { Post } from "#/db/schema";
 
-export async function getPublishedPostsFn(): Promise<Post[]> {
-	return await db
-		.select()
-		.from(posts)
-		.where(eq(posts.isPublished, true))
-		.orderBy(desc(posts.publishedAt));
-}
-
-const getPublishedPosts = createServerFn({ method: "GET" }).handler(() =>
-	getPublishedPostsFn(),
+const getPublishedPosts = createServerFn({ method: "GET" }).handler(
+	getPublishedPostsFn,
 );
 
 export const Route = createFileRoute("/")({
@@ -127,6 +118,7 @@ function RecentPosts({ posts }: { posts: Post[] }) {
 	);
 }
 
+// TODO: Replace hardcoded counts with real DB aggregates once a `category` field is added to the Post schema.
 const categories = [
 	{ name: "Front-end", count: 12, icon: Code },
 	{ name: "Back-end", count: 8, icon: Database },
@@ -167,6 +159,7 @@ function CategoriesSection() {
 }
 
 function SeriesSection() {
+	// TODO: Replace hardcoded series data with real DB queries once a `series` field is added to the Post schema.
 	return (
 		<section className="px-5 py-12 lg:px-20 lg:py-16">
 			<h2 className="mb-8 font-heading text-2xl font-bold text-foreground lg:text-3xl">
@@ -258,11 +251,13 @@ function NewsletterSection() {
 						placeholder="seu@email.com"
 						className="h-11 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent focus:outline-none"
 					/>
+					{/* TODO: Wire to a real newsletter provider before enabling. */}
 					<button
 						type="submit"
-						className="h-11 rounded-md bg-accent text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
+						disabled
+						className="h-11 cursor-not-allowed rounded-md bg-accent/50 text-sm font-semibold text-foreground-inverse"
 					>
-						Inscrever-se na Newsletter
+						Em breve
 					</button>
 				</form>
 			</div>

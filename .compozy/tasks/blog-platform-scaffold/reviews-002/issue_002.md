@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 2
 round_created_at: 2026-05-05T15:48:56Z
-status: pending
+status: resolved
 file: .gitignore
 line: 10
 severity: medium
@@ -35,5 +35,5 @@ After this change:
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `invalid`
+- Notes: `git ls-files .env` returns empty — `.env` is NOT tracked by git. The `.gitignore` entry at line 10 is functioning correctly. The premise of this issue (that `.env` is already tracked, making the `.gitignore` entry ineffective) is false for this repository. No code change needed.

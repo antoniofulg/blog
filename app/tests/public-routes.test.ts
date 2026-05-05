@@ -69,9 +69,9 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
+import { getPublishedPostsFn } from "#/db/queries";
 import { posts } from "#/db/schema";
 import { getPostBySlugFn, incrementViewCountFn } from "#/routes/$slug";
-import { getPublishedPostsFn } from "#/routes/index";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 

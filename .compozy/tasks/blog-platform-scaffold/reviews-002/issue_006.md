@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 2
 round_created_at: 2026-05-05T15:48:56Z
-status: pending
+status: resolved
 file: app/routes/index.tsx
 line: 130
 severity: low
@@ -31,5 +31,5 @@ For a scaffold that advertises itself as a reference integration, shipping UI th
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `index.tsx:130–137` has six hardcoded category cards with fake counts, and `index.tsx:176–230` has three hardcoded series with fake progress percentages. The Post schema has no `category` or `series` field. Fix: added explicit TODO comments above each section explaining what real data source to wire when the schema is extended. This makes the placeholder intent clear to scaffold users without removing the UI structure.

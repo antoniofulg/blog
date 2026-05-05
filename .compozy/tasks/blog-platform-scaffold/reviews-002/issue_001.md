@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 2
 round_created_at: 2026-05-05T15:48:56Z
-status: pending
+status: resolved
 file: app/routes/__root.tsx
 line: 115
 severity: high
@@ -43,5 +43,5 @@ Vite tree-shakes this branch in production builds, eliminating the devtools from
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `__root.tsx` lines 115–123 render `<TanStackDevtools>` unconditionally with no `import.meta.env.DEV` guard. In a production Vite build this ships the devtools bundle to every visitor and exposes internal router state. Fix: wrap the JSX in `{import.meta.env.DEV && (...)}` — Vite statically evaluates this and tree-shakes the branch in production builds.

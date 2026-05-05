@@ -1,27 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq } from "drizzle-orm";
 import { useState } from "react";
 import { EmptyState } from "#/components/ui/empty-state";
 import { Pagination } from "#/components/ui/pagination";
 import { PostCard } from "#/components/ui/post-card";
-import { db } from "#/db/client";
-import { posts } from "#/db/schema";
+import { getPublishedPostsFn } from "#/db/queries";
 
 const getPublishedPosts = createServerFn({ method: "GET" }).handler(
-	async () => {
-		return await db
-			.select()
-			.from(posts)
-			.where(eq(posts.isPublished, true))
-			.orderBy(desc(posts.publishedAt));
-	},
+	getPublishedPostsFn,
 );
 
 export const Route = createFileRoute("/blog")({
-	validateSearch: (search: Record<string, unknown>) => ({
-		category: (search.category as string) || undefined,
-	}),
 	loader: () => getPublishedPosts(),
 	head: () => ({
 		meta: [
@@ -38,28 +27,12 @@ export const Route = createFileRoute("/blog")({
 
 const POSTS_PER_PAGE = 9;
 
-const categories = [
-	"Todos",
-	"Front-end",
-	"Back-end",
-	"TypeScript",
-	"DevOps",
-	"TanStack",
-	"UI/UX",
-];
-
 function BlogPage() {
 	const allPosts = Route.useLoaderData();
-	const { category } = Route.useSearch();
-	const [activeCategory, setActiveCategory] = useState(category || "Todos");
 	const [currentPage, setCurrentPage] = useState(1);
 
-	const filteredPosts = allPosts;
-	const totalPages = Math.max(
-		1,
-		Math.ceil(filteredPosts.length / POSTS_PER_PAGE),
-	);
-	const paginatedPosts = filteredPosts.slice(
+	const totalPages = Math.max(1, Math.ceil(allPosts.length / POSTS_PER_PAGE));
+	const paginatedPosts = allPosts.slice(
 		(currentPage - 1) * POSTS_PER_PAGE,
 		currentPage * POSTS_PER_PAGE,
 	);
@@ -74,30 +47,10 @@ function BlogPage() {
 					Artigos sobre desenvolvimento web, React, TypeScript, Bun e mais.
 				</p>
 
-				<div className="mt-8 flex flex-wrap gap-2">
-					{categories.map((cat) => (
-						<button
-							key={cat}
-							type="button"
-							onClick={() => {
-								setActiveCategory(cat);
-								setCurrentPage(1);
-							}}
-							className={`rounded-full px-4 py-2 text-xs font-medium transition-colors ${
-								cat === activeCategory
-									? "bg-accent text-foreground-inverse"
-									: "bg-surface text-foreground hover:bg-muted"
-							}`}
-						>
-							{cat}
-						</button>
-					))}
-				</div>
-
 				{paginatedPosts.length === 0 ? (
 					<EmptyState
 						title="Nenhum artigo encontrado"
-						description="Não há artigos publicados nesta categoria ainda."
+						description="Não há artigos publicados ainda."
 					/>
 				) : (
 					<>
