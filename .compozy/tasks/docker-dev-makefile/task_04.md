@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: "Makefile: core targets (`help`, `setup`, `dev`, `dev-docker`)"
 type: infra
 complexity: medium
@@ -35,12 +35,12 @@ Create the `Makefile` at the project root with the skeleton (`.DEFAULT_GOAL`, `.
 
 ## Subtasks
 
-- [ ] 4.1 Write Makefile skeleton: `.DEFAULT_GOAL`, `.PHONY` (all 17 targets), `IMAGE_NAME` and `CONTAINER_APP` variables
-- [ ] 4.2 Implement `help` target with awk `##`-comment scraper and ANSI color formatting
-- [ ] 4.3 Implement `setup` target: `.env` copy guard, `DATABASE_URL` default check, `docker compose pull db`, `docker compose up db -d`, `pg_isready` poll, `bun run db:migrate`
-- [ ] 4.4 Implement `dev` target: `docker compose up db -d` then `bun dev`
-- [ ] 4.5 Implement `dev-docker` target: `docker compose watch` with `##` comment noting macOS HMR caveat
-- [ ] 4.6 Run `make help` and verify all four targets appear with correct descriptions
+- [x] 4.1 Write Makefile skeleton: `.DEFAULT_GOAL`, `.PHONY` (all 17 targets), `IMAGE_NAME` and `CONTAINER_APP` variables
+- [x] 4.2 Implement `help` target with awk `##`-comment scraper and ANSI color formatting
+- [x] 4.3 Implement `setup` target: `.env` copy guard, `DATABASE_URL` default check, `docker compose pull db`, `docker compose up db -d`, `pg_isready` poll, `bun run db:migrate`
+- [x] 4.4 Implement `dev` target: `docker compose up db -d` then `bun dev`
+- [x] 4.5 Implement `dev-docker` target: `docker compose watch` with `##` comment noting macOS HMR caveat
+- [x] 4.6 Run `make help` and verify all four targets appear with correct descriptions
 - [ ] 4.7 Run `make setup` on a machine with `.env` absent — verify `.env` is created, DB starts, migrations run
 
 ## Implementation Details
@@ -81,11 +81,11 @@ See TechSpec "Implementation Design → Makefile — All Targets" section for th
 ## Tests
 
 - Unit tests:
-  - [ ] `make help` exits 0 and prints `setup`, `dev`, `dev-docker` in output
-  - [ ] `make help` output is ANSI-colored (contains `\033[36m` escape in raw output)
-  - [ ] `make setup` with no `.env` file creates `.env` from `.env.example`
-  - [ ] `make setup` with `.env` containing default `DATABASE_URL` exits 1 with "ERROR:" message
-  - [ ] `make setup` with `.env` containing a non-default `DATABASE_URL` proceeds past the guard
+  - [x] `make help` exits 0 and prints `setup`, `dev`, `dev-docker` in output
+  - [x] `make help` output is ANSI-colored (contains `\033[36m` escape in raw output)
+  - [x] `make setup` with no `.env` file creates `.env` from `.env.example`
+  - [x] `make setup` with `.env` containing default `DATABASE_URL` exits 1 with "ERROR:" message
+  - [x] `make setup` with `.env` containing a non-default `DATABASE_URL` proceeds past the guard
 - Integration tests:
   - [ ] `make setup` (from clean state with Docker Desktop running) exits 0 and `docker compose ps db` shows healthy
   - [ ] `make dev` starts Bun dev server and browser opens at `localhost:3000`

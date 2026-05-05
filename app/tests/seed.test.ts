@@ -93,7 +93,7 @@ describe("unit: seedAdmin env validation", () => {
 describe("unit: script exit codes", () => {
 	it("exits 1 when ADMIN_EMAIL is not set", () => {
 		expect(() =>
-			execSync("bun run scripts/seed.ts", {
+			execSync("bun --no-env-file run scripts/seed.ts", {
 				cwd: root,
 				env: { ...process.env, ADMIN_EMAIL: undefined, ADMIN_PASSWORD: "x" },
 				stdio: "pipe",
@@ -103,7 +103,7 @@ describe("unit: script exit codes", () => {
 
 	it("exits 1 when ADMIN_PASSWORD is not set", () => {
 		expect(() =>
-			execSync("bun run scripts/seed.ts", {
+			execSync("bun --no-env-file run scripts/seed.ts", {
 				cwd: root,
 				env: {
 					...process.env,

@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: "Makefile: ops targets (quality gates, build, preview, db-*, lifecycle, deploy)"
 type: infra
 complexity: medium
@@ -41,13 +41,13 @@ Extend the `Makefile` created in task_04 with the remaining 13 targets: quality 
 
 ## Subtasks
 
-- [ ] 5.1 Add quality gate targets: `test`, `lint`, `format`, `check` — note `check` uses `bunx tsc --noEmit` not `bun run check`
-- [ ] 5.2 Add build and preview targets: `build` uses `$(IMAGE_NAME)` variable; `preview` uses `--env-file .env`
-- [ ] 5.3 Add database targets: `db-migrate`, `db-generate`, `db-seed` delegate to `bun run` scripts; `db-reset` uses `docker compose exec db psql` then migrate + seed
-- [ ] 5.4 Add container lifecycle targets: `stop`, `restart`, `logs`, `shell`
-- [ ] 5.5 Add `deploy` stub with `scripts/deploy.sh` existence check and fallback instructions
-- [ ] 5.6 Run `make help` and confirm all 17 targets are listed with descriptions
-- [ ] 5.7 Run `make test && make lint && make check` and verify all exit 0
+- [x] 5.1 Add quality gate targets: `test`, `lint`, `format`, `check` — note `check` uses `bunx tsc --noEmit` not `bun run check`
+- [x] 5.2 Add build and preview targets: `build` uses `$(IMAGE_NAME)` variable; `preview` uses `--env-file .env`
+- [x] 5.3 Add database targets: `db-migrate`, `db-generate`, `db-seed` delegate to `bun run` scripts; `db-reset` uses `docker compose exec db psql` then migrate + seed
+- [x] 5.4 Add container lifecycle targets: `stop`, `restart`, `logs`, `shell`
+- [x] 5.5 Add `deploy` stub with `scripts/deploy.sh` existence check and fallback instructions
+- [x] 5.6 Run `make help` and confirm all 19 targets are listed with descriptions
+- [x] 5.7 Run `make test && make lint && make check` and verify all exit 0
 
 ## Implementation Details
 
@@ -85,26 +85,26 @@ This never silently no-ops — either runs the script or prints actionable instr
 
 ## Deliverables
 
-- All 13 ops targets added to `Makefile`
-- `make help` lists all 17 targets with descriptions
+- All 13 ops target groups added to `Makefile`
+- `make help` lists all 19 targets with descriptions
 - `make test && make lint && make check` exit 0
 - `make build` produces a runnable image; `make preview` serves it at `localhost:3000`
 
 ## Tests
 
 - Unit tests:
-  - [ ] `make help` output contains all 17 targets: `help`, `setup`, `dev`, `dev-docker`, `test`, `lint`, `format`, `check`, `build`, `preview`, `db-migrate`, `db-generate`, `db-seed`, `db-reset`, `stop`, `restart`, `logs`, `shell`, `deploy`
-  - [ ] `make test` exits 0 and invokes Vitest (output contains "PASS" or test summary)
-  - [ ] `make lint` exits 0 with no lint errors on clean codebase
-  - [ ] `make format` exits 0
-  - [ ] `make check` exits 0 and invokes `tsc` (NOT Biome — verify output does not mention "biome")
-  - [ ] `make deploy` with no `scripts/deploy.sh` prints "No deploy script found" and exits 0
-  - [ ] `make deploy` with `scripts/deploy.sh` present runs the script
+  - [x] `make help` output contains all 19 targets: `help`, `setup`, `dev`, `dev-docker`, `test`, `lint`, `format`, `check`, `build`, `preview`, `db-migrate`, `db-generate`, `db-seed`, `db-reset`, `stop`, `restart`, `logs`, `shell`, `deploy`
+  - [x] `make test` exits 0 and invokes Vitest (output contains "PASS" or test summary)
+  - [x] `make lint` exits 0 with no lint errors on clean codebase
+  - [x] `make format` exits 0
+  - [x] `make check` exits 0 and invokes `tsc` (NOT Biome — verify output does not mention "biome")
+  - [x] `make deploy` with no `scripts/deploy.sh` prints "No deploy script found" and exits 0
+  - [x] `make deploy` with `scripts/deploy.sh` present runs the script
 - Integration tests:
-  - [ ] `make build` exits 0 and `docker image ls blog` shows the image
-  - [ ] `make preview` starts the production image and `curl localhost:3000` returns HTTP 200
-  - [ ] `make db-reset` (with DB running) drops schema, runs migrations, seeds without error
-  - [ ] `make stop` stops all running compose services
+  - [x] `make build` exits 0 and `docker image ls blog` shows the image
+  - [x] `make preview` starts the production image and `curl localhost:3000` returns HTTP 200
+  - [x] `make db-reset` (with DB running) drops schema, runs migrations, seeds without error
+  - [x] `make stop` stops all running compose services
   - [ ] `make logs` follows app container output (requires `make dev-docker` running in another terminal)
   - [ ] `make shell` opens an interactive shell in the app container
 - Test coverage target: >=80%
@@ -114,7 +114,7 @@ This never silently no-ops — either runs the script or prints actionable instr
 
 - All tests passing
 - Test coverage >=80%
-- `make help` lists all 17 targets — no targets missing
+- `make help` lists all 19 targets — no targets missing
 - `make check` invokes TypeScript (`tsc`), not Biome — confirmed by output
 - `make build && make preview` validates production build locally
 - `make deploy` never silently fails — either runs `scripts/deploy.sh` or prints instructions

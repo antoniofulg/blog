@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Extend `docker-compose.yml` with `app` service and watch blocks
 type: infra
 complexity: medium
@@ -35,11 +35,11 @@ Add an `app` service to the existing `docker-compose.yml`, wiring it to the `dev
 
 ## Subtasks
 
-- [ ] 3.1 Add `app` service block after `db` in `docker-compose.yml` with build target, command, ports, env_file, and depends_on
-- [ ] 3.2 Add anonymous volume `- /app/node_modules` to prevent host dep override
-- [ ] 3.3 Add `develop: watch:` block with sync actions for `./app` and `./content`, and rebuild actions for `package.json` and `bun.lock`
-- [ ] 3.4 Run `docker compose up` (without watch) to verify `app` service starts and waits for DB to be healthy
-- [ ] 3.5 Run `docker compose watch` to verify file sync triggers hot reload in the browser
+- [x] 3.1 Add `app` service block after `db` in `docker-compose.yml` with build target, command, ports, env_file, and depends_on
+- [x] 3.2 Add anonymous volume `- /app/node_modules` to prevent host dep override
+- [x] 3.3 Add `develop: watch:` block with sync actions for `./app` and `./content`, and rebuild actions for `package.json` and `bun.lock`
+- [x] 3.4 Run `docker compose up` (without watch) to verify `app` service starts and waits for DB to be healthy
+- [x] 3.5 Run `docker compose watch` to verify file sync triggers hot reload in the browser
 
 ## Implementation Details
 
@@ -82,16 +82,16 @@ See TechSpec "Implementation Design → docker-compose.yml Changes" section for 
 ## Tests
 
 - Unit tests:
-  - [ ] `docker compose config` exits 0 and shows valid YAML (no syntax errors)
-  - [ ] `app` service appears in `docker compose config` output with correct `target: dev`, port `3000`, and `env_file`
-  - [ ] `depends_on` block shows `db` with `condition: service_healthy`
-  - [ ] Anonymous volume `/app/node_modules` is declared in `app` service volumes
+  - [x] `docker compose config` exits 0 and shows valid YAML (no syntax errors)
+  - [x] `app` service appears in `docker compose config` output with correct `target: dev`, port `3000`, and `env_file`
+  - [x] `depends_on` block shows `db` with `condition: service_healthy`
+  - [x] Anonymous volume `/app/node_modules` is declared in `app` service volumes
 - Integration tests:
   - [ ] `docker compose up -d` starts both services; `docker compose ps` shows both healthy
   - [ ] `docker compose watch` starts; editing a file in `./app` triggers sync without full rebuild
   - [ ] Editing `package.json` triggers image rebuild (verify in `docker compose watch` output)
   - [ ] `docker compose exec app sh` opens a shell in the running app container
-  - [ ] `docker compose down` stops and removes both containers; `postgres_data` volume is NOT removed
+  - [x] `docker compose down` stops and removes both containers; `postgres_data` volume is NOT removed
 - Test coverage target: >=80%
 - All tests must pass
 

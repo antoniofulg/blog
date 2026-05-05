@@ -21,7 +21,9 @@ const port5432Free = await isPortFree(5432);
 
 describe("unit: posts schema", () => {
 	it("table name is 'posts'", () => {
-		expect(posts[Symbol.for("drizzle:Name")]).toBe("posts");
+		expect(
+			(posts as unknown as Record<symbol, unknown>)[Symbol.for("drizzle:Name")],
+		).toBe("posts");
 	});
 
 	it("file_path column has UNIQUE constraint", () => {

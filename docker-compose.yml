@@ -19,5 +19,31 @@ services:
       retries: 5
       start_period: 5s
 
+  app:
+    build:
+      context: .
+      target: dev
+    command: bun dev --port 3000
+    ports:
+      - "3000:3000"
+    env_file: .env
+    depends_on:
+      db:
+        condition: service_healthy
+    volumes:
+      - /app/node_modules
+    develop:
+      watch:
+        - action: sync
+          path: ./app
+          target: /app/app
+        - action: sync
+          path: ./content
+          target: /app/content
+        - action: rebuild
+          path: package.json
+        - action: rebuild
+          path: bun.lock
+
 volumes:
   postgres_data:

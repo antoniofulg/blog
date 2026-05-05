@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Create multi-stage `Dockerfile`
 type: infra
 complexity: medium
@@ -34,11 +34,11 @@ Create a three-stage `Dockerfile` at the project root with named stages `dev`, `
 
 ## Subtasks
 
-- [ ] 2.1 Write `dev` stage: `FROM oven/bun:1`, WORKDIR `/app`, COPY `package.json bun.lock`, `RUN bun install --frozen-lockfile`, `CMD ["bun", "dev", "--port", "3000"]`
-- [ ] 2.2 Write `builder` stage: `FROM dev AS builder`, `COPY . .`, `RUN bun run build`
-- [ ] 2.3 Write `runner` stage: `FROM oven/bun:1-alpine`, WORKDIR `/app`, `ENV NODE_ENV=production`, `COPY --from=builder /app/.output ./.output`, `EXPOSE 3000`, `CMD ["bun", ".output/server/index.mjs"]`
-- [ ] 2.4 Run `docker build -t blog .` and verify the runner image starts with `docker run --rm --env-file .env -p 3000:3000 blog`
-- [ ] 2.5 Confirm `.output/server/index.mjs` is the correct entry point — update CMD if Nitro outputs a different path
+- [x] 2.1 Write `dev` stage: `FROM oven/bun:1`, WORKDIR `/app`, COPY `package.json bun.lock`, `RUN bun install --frozen-lockfile`, `CMD ["bun", "dev", "--port", "3000"]`
+- [x] 2.2 Write `builder` stage: `FROM dev AS builder`, `COPY . .`, `RUN bun run build`
+- [x] 2.3 Write `runner` stage: `FROM oven/bun:1-alpine`, WORKDIR `/app`, `ENV NODE_ENV=production`, `COPY --from=builder /app/.output ./.output`, `EXPOSE 3000`, `CMD ["bun", ".output/server/index.mjs"]`
+- [x] 2.4 Run `docker build -t blog .` and verify the runner image starts with `docker run --rm --env-file .env -p 3000:3000 blog`
+- [x] 2.5 Confirm `.output/server/index.mjs` is the correct entry point — update CMD if Nitro outputs a different path
 
 ## Implementation Details
 
@@ -75,14 +75,14 @@ The `dev` stage installs all dependencies (including devDependencies) because `b
 ## Tests
 
 - Unit tests:
-  - [ ] `docker build --target dev -t blog-dev .` exits 0
-  - [ ] `docker build --target builder -t blog-builder .` exits 0 and `.output/` directory is populated
-  - [ ] `docker build -t blog .` (runner stage) exits 0
-  - [ ] Runner image size is under 500 MB (`docker image ls blog`)
+  - [x] `docker build --target dev -t blog-dev .` exits 0
+  - [x] `docker build --target builder -t blog-builder .` exits 0 and `.output/` directory is populated
+  - [x] `docker build -t blog .` (runner stage) exits 0
+  - [x] Runner image size is under 500 MB (`docker image ls blog`)
 - Integration tests:
-  - [ ] `docker run --rm --env-file .env -p 3000:3000 blog` starts and `curl localhost:3000` returns HTTP 200
-  - [ ] `docker run --rm blog ls .output/server/` shows the entry file (confirm CMD path is correct)
-  - [ ] No `node_modules` directory present in runner image (`docker run --rm blog ls /app/`)
+  - [x] `docker run --rm --env-file .env -p 3000:3000 blog` starts and `curl localhost:3000` returns HTTP 200
+  - [x] `docker run --rm blog ls .output/server/` shows the entry file (confirm CMD path is correct)
+  - [x] No `node_modules` directory present in runner image (`docker run --rm blog ls /app/`)
 - Test coverage target: >=80%
 - All tests must pass
 

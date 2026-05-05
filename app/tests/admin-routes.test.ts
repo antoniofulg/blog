@@ -11,29 +11,30 @@ const mocks = vi.hoisted(() => {
 	// both a Promise (thenable) and chainable (has .where/.orderBy methods).
 	const makeChain = (defaultResult: unknown[] = []) => {
 		let resolved: unknown = defaultResult;
-		const chain: Record<string, unknown> = {
-			from: vi.fn(() => chain),
-			where: vi.fn(() => chain),
-			orderBy: vi.fn(() => chain),
-			set: vi.fn(() => chain),
-			// biome-ignore lint/suspicious/noThenProperty: thenable chain needed to mock Drizzle's awaitable query builder
-			then(
-				onFulfilled?: (value: unknown) => unknown,
-				onRejected?: (reason: unknown) => unknown,
-			) {
-				return Promise.resolve(resolved).then(onFulfilled, onRejected);
-			},
-			catch(onRejected?: (reason: unknown) => unknown) {
-				return Promise.resolve(resolved).catch(onRejected);
-			},
-			finally(onFinally?: () => void) {
-				return Promise.resolve(resolved).finally(onFinally);
-			},
-			_resolve(val: unknown) {
-				resolved = val;
-				return chain;
-			},
-		};
+		const chain: Record<string, unknown> & { _resolve(val: unknown): unknown } =
+			{
+				from: vi.fn(() => chain),
+				where: vi.fn(() => chain),
+				orderBy: vi.fn(() => chain),
+				set: vi.fn(() => chain),
+				// biome-ignore lint/suspicious/noThenProperty: thenable chain needed to mock Drizzle's awaitable query builder
+				then(
+					onFulfilled?: (value: unknown) => unknown,
+					onRejected?: (reason: unknown) => unknown,
+				) {
+					return Promise.resolve(resolved).then(onFulfilled, onRejected);
+				},
+				catch(onRejected?: (reason: unknown) => unknown) {
+					return Promise.resolve(resolved).catch(onRejected);
+				},
+				finally(onFinally?: () => void) {
+					return Promise.resolve(resolved).finally(onFinally);
+				},
+				_resolve(val: unknown) {
+					resolved = val;
+					return chain;
+				},
+			};
 		return chain;
 	};
 

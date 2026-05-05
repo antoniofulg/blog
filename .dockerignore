@@ -1,0 +1,11 @@
+node_modules
+.output
+.nitro
+.tanstack
+.git
+.env
+.env.*
+!.env.example
+drizzle
+*.local
+.DS_Store

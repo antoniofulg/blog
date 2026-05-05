@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Create `.dockerignore`
 type: infra
 complexity: low
@@ -31,9 +31,9 @@ Create a `.dockerignore` file at the project root to control which files are exc
 
 ## Subtasks
 
-- [ ] 1.1 Create `.dockerignore` at project root with all exclusion patterns from TechSpec `.dockerignore` section
-- [ ] 1.2 Verify `.env.example` is NOT excluded (negation rule `!.env.example` required)
-- [ ] 1.3 Confirm build context size is reduced vs. no `.dockerignore` (run `docker build` and observe context transfer size)
+- [x] 1.1 Create `.dockerignore` at project root with all exclusion patterns from TechSpec `.dockerignore` section
+- [x] 1.2 Verify `.env.example` is NOT excluded (negation rule `!.env.example` required)
+- [x] 1.3 Confirm build context size is reduced vs. no `.dockerignore` (run `docker build` and observe context transfer size)
 
 ## Implementation Details
 
@@ -63,14 +63,14 @@ The `.gitignore` already excludes `docker-compose.override.yml`, `.output`, `.ni
 ## Tests
 
 - Unit tests:
-  - [ ] `.dockerignore` exists at project root
-  - [ ] `node_modules` is listed and excluded from build context
-  - [ ] `.env` is listed and excluded; `.env.example` is NOT excluded (negation rule present)
-  - [ ] `.output`, `.nitro`, `.tanstack` are listed
-  - [ ] `.git` is listed
+  - [x] `.dockerignore` exists at project root
+  - [x] `node_modules` is listed and excluded from build context
+  - [x] `.env` is listed and excluded; `.env.example` is NOT excluded (negation rule present)
+  - [x] `.output`, `.nitro`, `.tanstack` are listed
+  - [x] `.git` is listed
 - Integration tests:
-  - [ ] `docker build -t blog-test .` completes; inspect image layers confirm no `node_modules` directory in `/app`
-  - [ ] `docker build -t blog-test .` context transfer size is under 5 MB (vs. 170+ MB without `.dockerignore`)
+  - [ ] `docker build -t blog-test .` completes; inspect image layers confirm no `node_modules` directory in `/app` (blocked: needs Dockerfile from task_02)
+  - [x] `docker build -t blog-test .` context transfer size is under 5 MB — verified 54.47kB via `FROM scratch COPY . /ctx` (vs. ~486MB without `.dockerignore`)
 - Test coverage target: >=80%
 - All tests must pass
 

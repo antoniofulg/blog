@@ -1,10 +1,10 @@
 ---
-status: pending
+status: completed
 title: Create `CONTRIBUTING.md`
 type: docs
 complexity: low
 dependencies:
-  - task_05
+    - task_05
 ---
 
 # Task 6: Create `CONTRIBUTING.md`
@@ -34,12 +34,12 @@ Create `CONTRIBUTING.md` at the project root documenting the two-command onboard
 
 ## Subtasks
 
-- [ ] 6.1 Write prerequisites section (Docker Desktop, optional Bun for native dev)
-- [ ] 6.2 Write quick-start section with `make setup && make dev` as the two commands
-- [ ] 6.3 Write "Available commands" section referencing `make help`
-- [ ] 6.4 Write "Dev paths" section explaining `make dev` vs `make dev-docker` and macOS caveat
-- [ ] 6.5 Write "Before you commit" checklist (`make test && make lint`)
-- [ ] 6.6 Note that dev data (seed) resets on each `make dev` restart
+- [x] 6.1 Write prerequisites section (Docker Desktop, optional Bun for native dev)
+- [x] 6.2 Write quick-start section with `make setup && make dev` as the two commands
+- [x] 6.3 Write "Available commands" section referencing `make help`
+- [x] 6.4 Write "Dev paths" section explaining `make dev` vs `make dev-docker` and macOS caveat
+- [x] 6.5 Write "Before you commit" checklist (`make test && make lint`)
+- [x] 6.6 Note that dev data (seed) resets on each `make dev` restart
 
 ## Implementation Details
 
@@ -74,11 +74,11 @@ No downstream files depend on `CONTRIBUTING.md`.
 ## Tests
 
 - Unit tests:
-  - [ ] `CONTRIBUTING.md` exists at project root
-  - [ ] File contains `make setup` and `make dev` in the quick-start section
-  - [ ] File references `make help` for the full command list
-  - [ ] File mentions both dev paths (`make dev` and `make dev-docker`)
-  - [ ] File is ≤ 80 lines (`wc -l CONTRIBUTING.md` ≤ 80)
+  - [x] `CONTRIBUTING.md` exists at project root
+  - [x] File contains `make setup` and `make dev` in the quick-start section
+  - [x] File references `make help` for the full command list
+  - [x] File mentions both dev paths (`make dev` and `make dev-docker`)
+  - [x] File is ≤ 80 lines (`wc -l CONTRIBUTING.md` ≤ 80)
 - Integration tests:
   - [ ] Follow CONTRIBUTING.md quick-start on a clean clone: `make setup && make dev` completes in under 3 minutes
   - [ ] `make help` output matches the "Available commands" description in CONTRIBUTING.md

@@ -1,6 +1,6 @@
 import { createFileRoute, useNavigate } from "@tanstack/react-router";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { useState } from "react";
-import { authClient } from "#/lib/auth.client";
 
 export const Route = createFileRoute("/login")({
 	validateSearch: (search: Record<string, unknown>) => ({
@@ -19,6 +19,13 @@ function isSafeRedirect(url: string | undefined): url is string {
 	}
 }
 
+const signInEmail = createClientOnlyFn(
+	async (email: string, password: string) => {
+		const { authClient } = await import("#/lib/auth.client");
+		return authClient.signIn.email({ email, password });
+	},
+);
+
 function LoginPage() {
 	const { redirect: redirectTo } = Route.useSearch();
 	const navigate = useNavigate();
@@ -30,10 +37,10 @@ function LoginPage() {
 		setError(null);
 		setPending(true);
 		const formData = new FormData(e.currentTarget);
-		const result = await authClient.signIn.email({
-			email: formData.get("email") as string,
-			password: formData.get("password") as string,
-		});
+		const result = await signInEmail(
+			formData.get("email") as string,
+			formData.get("password") as string,
+		);
 		setPending(false);
 		if (result.error) {
 			setError(result.error.message ?? "Login failed");
