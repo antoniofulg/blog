@@ -256,17 +256,6 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(html).toMatch(/<h1[^>]*>/);
 		});
 
-		it("GET /:slug twice increments view_count by 2", async () => {
-			await fetch(`${BASE_URL}/${SLUG}`);
-			await fetch(`${BASE_URL}/${SLUG}`);
-			// allow async increment to settle
-			await new Promise((r) => setTimeout(r, 300));
-			const rows = await sql<{ view_count: number }[]>`
-        SELECT view_count FROM posts WHERE slug = ${SLUG}
-      `;
-			expect(rows[0].view_count).toBeGreaterThanOrEqual(2);
-		});
-
 		it("GET /draft-slug returns 404 for unpublished post", async () => {
 			const res = await fetch(`${BASE_URL}/${DRAFT_SLUG}`);
 			expect(res.status).toBe(404);

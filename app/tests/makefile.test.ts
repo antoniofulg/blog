@@ -77,6 +77,7 @@ describe("unit: Makefile", () => {
 			"db-reset",
 			"stop",
 			"restart",
+			"restart-all",
 			"logs",
 			"shell",
 			"deploy",
@@ -120,6 +121,7 @@ describe("unit: Makefile", () => {
 			"db-reset",
 			"stop",
 			"restart",
+			"restart-all",
 			"logs",
 			"shell",
 			"deploy",
@@ -145,7 +147,7 @@ describe("unit: Makefile", () => {
 		);
 	});
 
-	it("make setup with default DATABASE_URL proceeds without error", () => {
+	it("make setup runs DB startup and migration steps regardless of DATABASE_URL value", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:blog@localhost:5432/blog",
 		);
@@ -158,24 +160,9 @@ describe("unit: Makefile", () => {
 		const commands = readFileSync(logPath, "utf8");
 		expect(commands).toContain("docker compose pull db");
 		expect(commands).toContain("docker compose up db -d");
-		expect(commands).toContain("bun run db:migrate");
-	});
-
-	it("make setup with non-default DATABASE_URL proceeds past the guard", () => {
-		const { binDir, logPath, workspace } = makeSetupWorkspace(
-			"postgres://blog:custom@localhost:5432/blog",
-		);
-
-		runMake(["setup"], workspace, {
-			FAKE_COMMAND_LOG: logPath,
-			PATH: `${binDir}:${process.env.PATH}`,
-		});
-
-		const commands = readFileSync(logPath, "utf8");
-		expect(commands).toContain("docker compose pull db");
-		expect(commands).toContain("docker compose up db -d");
 		expect(commands).toContain("docker compose exec db pg_isready -U blog");
 		expect(commands).toContain("bun run db:migrate");
+		expect(commands).not.toContain("bun run db:seed"); // PRD F2: setup must not seed
 	});
 
 	it("quality gate targets delegate to the expected tools", () => {
@@ -250,7 +237,7 @@ describe("unit: Makefile", () => {
 			"postgres://blog:custom@localhost:5432/blog",
 		);
 
-		for (const target of ["stop", "restart", "logs", "shell"]) {
+		for (const target of ["stop", "restart", "restart-all", "logs", "shell"]) {
 			runMake([target], workspace, {
 				FAKE_COMMAND_LOG: logPath,
 				PATH: `${binDir}:${process.env.PATH}`,
@@ -260,8 +247,30 @@ describe("unit: Makefile", () => {
 		const commands = readFileSync(logPath, "utf8");
 		expect(commands).toContain("docker compose down");
 		expect(commands).toContain("docker compose restart db");
+		expect(commands).toContain("docker compose up -d");
 		expect(commands).toContain("docker compose logs -f app");
 		expect(commands).toContain("docker compose exec app sh");
+	});
+
+	it("dev and dev-docker targets delegate to the expected commands", () => {
+		const { binDir, logPath, workspace } = makeSetupWorkspace(
+			"postgres://blog:custom@localhost:5432/blog",
+		);
+
+		runMake(["dev"], workspace, {
+			FAKE_COMMAND_LOG: logPath,
+			PATH: `${binDir}:${process.env.PATH}`,
+		});
+		runMake(["dev-docker"], workspace, {
+			FAKE_COMMAND_LOG: logPath,
+			PATH: `${binDir}:${process.env.PATH}`,
+		});
+
+		const commands = readFileSync(logPath, "utf8");
+		expect(commands).toContain("docker compose up db -d");
+		expect(commands).toContain("bun dev");
+		expect(commands).toContain("docker compose watch");
+		expect(commands).not.toContain("docker compose up -d\n");
 	});
 
 	it("make deploy with no deploy script prints actionable instructions", () => {

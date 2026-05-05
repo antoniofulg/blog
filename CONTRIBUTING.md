@@ -42,5 +42,5 @@ Run `make help` for the full list of targets with descriptions.
 ## Before you commit
 
 ```sh
-make test && make lint
+make test && make lint && make check
 ```

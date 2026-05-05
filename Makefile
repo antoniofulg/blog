@@ -48,6 +48,7 @@ build: ## Build production Docker image
 	docker build -t $(IMAGE_NAME) .
 
 preview: ## Run production image locally (validates build before deploy; requires: make dev or docker compose up db -d)
+	@docker rm -f $(CONTAINER_APP) 2>/dev/null || true
 	docker run --rm \
 	  --env-file .env \
 	  --network blog \

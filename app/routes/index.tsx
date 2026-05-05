@@ -58,7 +58,6 @@ function HeroSection() {
 			</p>
 			<Link
 				to="/blog"
-				search={{ category: undefined }}
 				className="inline-flex items-center gap-2 rounded-md bg-accent px-8 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
 			>
 				Explorar Artigos
@@ -135,11 +134,11 @@ function CategoriesSection() {
 				Categorias
 			</h2>
 			<div className="grid grid-cols-2 gap-4 sm:grid-cols-3 lg:grid-cols-6">
+				{/* TODO: Restore search={{ category: cat.name }} on each Link when Post schema gains a category field and /blog re-wires the filter. */}
 				{categories.map((cat) => (
 					<Link
 						key={cat.name}
 						to="/blog"
-						search={{ category: cat.name }}
 						className="flex flex-col gap-3 rounded-lg border border-border bg-card p-5 transition-shadow hover:shadow-md"
 					>
 						<div className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-light">

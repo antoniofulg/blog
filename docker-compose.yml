@@ -1,5 +1,8 @@
-# Start the database, then run the app locally:
-#   docker compose up -d && bun dev
+# Developer workflow — use the Makefile targets, not these compose commands directly:
+#   make setup        First-clone: copy .env, start DB, run migrations
+#   make dev          Native Bun dev server (default)
+#   make dev-docker   Fully containerized dev stack
+# Run `make help` for the full list of targets.
 
 networks:
   blog:
