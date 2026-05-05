@@ -31,24 +31,30 @@ setup: ## First-clone: copy .env, start DB, run migrations
 	    sleep 1; \
 	  done
 	bun run db:migrate
-	@echo "Setup complete. Run: make dev"
+	@echo "Setup complete. Next: make dev or make dev-docker"
 
 # -- Development ---------------------------------------------------------------
 
 dev: ## Start native Bun dev server with Postgres in Docker (default)
 	docker compose up db -d
+	@echo "Starting dev server → http://localhost:3000  (Ctrl+C to stop)"
 	bun dev
+	@echo "Server stopped. Next: make dev | make build | make test"
 
 dev-docker: ## Start fully containerized stack with file sync (opt-in; macOS HMR may vary)
+	@echo "Starting containerized stack → http://localhost:3000  (Ctrl+C to stop)"
 	docker compose watch
+	@echo "Stack stopped. Next: make dev | make build | make test"
 
 # -- Build & Preview -----------------------------------------------------------
 
 build: ## Build production Docker image
 	docker build -t $(IMAGE_NAME) .
+	@echo "Image built → $(IMAGE_NAME). Next: make preview | make deploy"
 
 preview: ## Run production image locally (validates build before deploy; requires: make dev or docker compose up db -d)
 	@docker rm -f $(CONTAINER_APP) 2>/dev/null || true
+	@echo "Starting preview → http://localhost:3000  (Ctrl+C to stop)"
 	docker run --rm \
 	  --env-file .env \
 	  --network blog \
@@ -56,58 +62,76 @@ preview: ## Run production image locally (validates build before deploy; require
 	  -p 3000:3000 \
 	  --name $(CONTAINER_APP) \
 	  $(IMAGE_NAME)
+	@echo "Preview stopped. Next: make deploy"
 
 # -- Quality Gates -------------------------------------------------------------
 
 test: ## Run Vitest test suite
 	bun run test
+	@echo "Tests complete. Next: make lint | make check"
 
 lint: ## Run Biome linter
 	bun run lint
+	@echo "Lint clean. Next: make check | make format | make test"
 
 format: ## Run Biome formatter
 	bun run format
+	@echo "Format applied. Next: make lint"
 
 check: ## Run TypeScript type check (tsc --noEmit)
 	bunx tsc --noEmit
+	@echo "Types valid. Next: make test | git commit"
 
 # -- Database ------------------------------------------------------------------
 
 db-migrate: ## Run Drizzle migrations
 	bun run db:migrate
+	@echo "Migrations applied. Next: make db-seed | make dev"
 
 db-generate: ## Generate Drizzle migration files from schema changes
 	bun run db:generate
+	@echo "Migration files generated. Next: make db-migrate"
 
 db-seed: ## Seed the database with development data
 	bun run db:seed
+	@echo "DB seeded. Next: make dev"
 
 db-reset: ## DESTRUCTIVE: drop schema, migrate, and seed (requires DB running via make dev or make dev-docker)
 	docker compose exec db psql -U blog -c \
 	  "DROP SCHEMA public CASCADE; DROP SCHEMA IF EXISTS drizzle CASCADE; CREATE SCHEMA public;"
 	bun run db:migrate
 	bun run db:seed
+	@echo "DB reset. Next: make dev"
 
 # -- Container Lifecycle -------------------------------------------------------
 
 stop: ## Stop all Docker Compose services
 	docker compose down
+	@echo "Services stopped. Next: make dev | make dev-docker"
 
 restart: ## Restart DB service (native dev path)
 	docker compose restart db
+	@echo "DB restarted. Next: make dev | make logs"
 
 restart-all: ## Restart all Docker Compose services
-	docker compose down && docker compose up -d
+	docker compose down
+	docker compose up -d
+	@echo "Services restarted. Next: make logs | make dev"
 
 logs: ## Follow app container logs
+	@echo "Following app logs... (Ctrl+C to stop)"
 	docker compose logs -f app
 
 shell: ## Open interactive shell in app container
+	@echo "Opening shell in app container... (type 'exit' to close)"
 	docker compose exec app sh
 
 # -- Deploy --------------------------------------------------------------------
 
 deploy: ## Deploy to VPS (create scripts/deploy.sh to activate)
-	@test -f scripts/deploy.sh \
-	  && bash scripts/deploy.sh \
-	  || echo "No deploy script found. Create scripts/deploy.sh with your VPS deploy steps."
+	@if test -f scripts/deploy.sh; then \
+	  bash scripts/deploy.sh; \
+	  echo "Deployed. Next: make logs | make preview"; \
+	else \
+	  echo "No deploy script found. Create scripts/deploy.sh with your VPS deploy steps."; \
+	fi

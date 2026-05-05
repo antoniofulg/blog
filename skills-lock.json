@@ -61,6 +61,12 @@
       "skillPath": "skills/better-auth-organization-best-practices/SKILL.md",
       "computedHash": "2744b3d7f123b8cd7449dff839a268247b9b67b46c475eb430e219e8b200028a"
     },
+    "better-auth-security-best-practices": {
+      "source": "better-auth/skills",
+      "sourceType": "github",
+      "skillPath": "security/SKILL.md",
+      "computedHash": "5717187bba9c22030c7174c74012f01c359f21e2ce87e0eb80e24244d8b8c915"
+    },
     "brainstorming": {
       "source": "pedronauck/skills",
       "sourceType": "github",
@@ -78,6 +84,11 @@
       "sourceType": "github",
       "skillPath": "skills/building-components/SKILL.md",
       "computedHash": "f9b73b82c0c8ea576140290173f0f78ff314dc9497eb15f77a07541c6ef6eff4"
+    },
+    "bun": {
+      "source": "bun.sh",
+      "sourceType": "well-known",
+      "computedHash": "aa2f0425603c9dfc58bf707c051cf8ad4b117e897e602b3f65995c4f6f95d2b2"
     },
     "context7": {
       "source": "pedronauck/skills",
