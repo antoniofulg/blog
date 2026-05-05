@@ -4,6 +4,7 @@ WORKDIR /app
 
 COPY package.json bun.lock ./
 RUN bun install --frozen-lockfile
+COPY drizzle/ ./drizzle/
 
 CMD ["bun", "dev", "--port", "3000"]
 

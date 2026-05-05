@@ -19,8 +19,17 @@ setup: ## First-clone: copy .env, start DB, run migrations
 	@test -f .env || cp .env.example .env
 	docker compose pull db
 	docker compose up db -d
-	@echo "Waiting for database..."
-	@until docker compose exec db pg_isready -U blog > /dev/null 2>&1; do sleep 1; done
+	@echo "Waiting for database..."; \
+	  i=0; \
+	  until docker compose exec db pg_isready -U blog > /dev/null 2>&1; do \
+	    i=$$((i+1)); \
+	    if [ $$i -ge 30 ]; then \
+	      echo "ERROR: Postgres did not become ready after 30 seconds."; \
+	      echo "Check: docker compose logs db"; \
+	      exit 1; \
+	    fi; \
+	    sleep 1; \
+	  done
 	bun run db:migrate
 	@echo "Setup complete. Run: make dev"
 
@@ -38,8 +47,14 @@ dev-docker: ## Start fully containerized stack with file sync (opt-in; macOS HMR
 build: ## Build production Docker image
 	docker build -t $(IMAGE_NAME) .
 
-preview: ## Run production image locally (validates build before deploy)
-	docker run --rm --env-file .env -p 3000:3000 --name $(CONTAINER_APP) $(IMAGE_NAME)
+preview: ## Run production image locally (validates build before deploy; requires: make dev or docker compose up db -d)
+	docker run --rm \
+	  --env-file .env \
+	  --network blog \
+	  -e DATABASE_URL=postgres://blog:blog@db:5432/blog \
+	  -p 3000:3000 \
+	  --name $(CONTAINER_APP) \
+	  $(IMAGE_NAME)
 
 # -- Quality Gates -------------------------------------------------------------
 

@@ -220,7 +220,7 @@ describe("unit: Makefile", () => {
 		const commands = readFileSync(logPath, "utf8");
 		expect(commands).toContain("docker build -t custom-blog .");
 		expect(commands).toContain(
-			"docker run --rm --env-file .env -p 3000:3000 --name custom-app custom-blog",
+			"docker run --rm --env-file .env --network blog -e DATABASE_URL=postgres://blog:blog@db:5432/blog -p 3000:3000 --name custom-app custom-blog",
 		);
 	});
 

@@ -1,6 +1,10 @@
 # Start the database, then run the app locally:
 #   docker compose up -d && bun dev
 
+networks:
+  blog:
+    name: blog
+
 services:
   db:
     image: postgres:16-alpine
@@ -18,6 +22,7 @@ services:
       timeout: 5s
       retries: 5
       start_period: 5s
+    networks: [blog]
 
   app:
     build:
@@ -32,6 +37,7 @@ services:
         condition: service_healthy
     volumes:
       - /app/node_modules
+    networks: [blog]
     develop:
       watch:
         - action: sync
@@ -40,6 +46,9 @@ services:
         - action: sync
           path: ./content
           target: /app/content
+        - action: sync
+          path: ./drizzle
+          target: /app/drizzle
         - action: rebuild
           path: package.json
         - action: rebuild
