@@ -22,4 +22,5 @@ COPY --from=builder /app/.output ./.output
 
 EXPOSE 3000
 
+# Entry path verified against Nitro bun preset output on 2026-05-05
 CMD ["bun", ".output/server/index.mjs"]

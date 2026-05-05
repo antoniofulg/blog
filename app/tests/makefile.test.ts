@@ -134,12 +134,10 @@ describe("unit: Makefile", () => {
 		);
 		execSync("rm .env", { cwd: workspace });
 
-		expect(() =>
-			runMake(["setup"], workspace, {
-				FAKE_COMMAND_LOG: logPath,
-				PATH: `${binDir}:${process.env.PATH}`,
-			}),
-		).toThrow();
+		runMake(["setup"], workspace, {
+			FAKE_COMMAND_LOG: logPath,
+			PATH: `${binDir}:${process.env.PATH}`,
+		});
 
 		expect(existsSync(join(workspace, ".env"))).toBe(true);
 		expect(readFileSync(join(workspace, ".env"), "utf8")).toBe(
@@ -147,24 +145,20 @@ describe("unit: Makefile", () => {
 		);
 	});
 
-	it("make setup with default DATABASE_URL exits 1 with ERROR message", () => {
+	it("make setup with default DATABASE_URL proceeds without error", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:blog@localhost:5432/blog",
 		);
 
-		try {
-			runMake(["setup"], workspace, {
-				FAKE_COMMAND_LOG: logPath,
-				PATH: `${binDir}:${process.env.PATH}`,
-			});
-			throw new Error("make setup unexpectedly succeeded");
-		} catch (error) {
-			const processError = error as { stdout?: Buffer; stderr?: Buffer };
-			expect(processError.stdout?.toString()).toContain(
-				"ERROR: Change DATABASE_URL in .env before running setup.",
-			);
-			expect(processError.stderr?.toString()).toContain("Error 1");
-		}
+		runMake(["setup"], workspace, {
+			FAKE_COMMAND_LOG: logPath,
+			PATH: `${binDir}:${process.env.PATH}`,
+		});
+
+		const commands = readFileSync(logPath, "utf8");
+		expect(commands).toContain("docker compose pull db");
+		expect(commands).toContain("docker compose up db -d");
+		expect(commands).toContain("bun run db:migrate");
 	});
 
 	it("make setup with non-default DATABASE_URL proceeds past the guard", () => {
@@ -265,7 +259,7 @@ describe("unit: Makefile", () => {
 
 		const commands = readFileSync(logPath, "utf8");
 		expect(commands).toContain("docker compose down");
-		expect(commands).toContain("docker compose up -d");
+		expect(commands).toContain("docker compose restart db");
 		expect(commands).toContain("docker compose logs -f app");
 		expect(commands).toContain("docker compose exec app sh");
 	});

@@ -2,7 +2,7 @@
 .PHONY: help setup dev dev-docker build preview \
         test lint format check \
         db-migrate db-generate db-seed db-reset \
-        stop restart logs shell deploy
+        stop restart restart-all logs shell deploy
 
 IMAGE_NAME    ?= blog
 CONTAINER_APP ?= blog-app
@@ -17,9 +17,6 @@ help: ## Show available targets
 
 setup: ## First-clone: copy .env, start DB, run migrations
 	@test -f .env || cp .env.example .env
-	@grep -q 'DATABASE_URL=postgres://blog:blog@localhost' .env \
-	  && echo "ERROR: Change DATABASE_URL in .env before running setup." && exit 1 \
-	  || true
 	docker compose pull db
 	docker compose up db -d
 	@echo "Waiting for database..."
@@ -80,7 +77,10 @@ db-reset: ## DESTRUCTIVE: drop schema, migrate, and seed (requires DB running vi
 stop: ## Stop all Docker Compose services
 	docker compose down
 
-restart: ## Restart all Docker Compose services
+restart: ## Restart DB service (native dev path)
+	docker compose restart db
+
+restart-all: ## Restart all Docker Compose services
 	docker compose down && docker compose up -d
 
 logs: ## Follow app container logs

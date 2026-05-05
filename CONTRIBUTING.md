@@ -17,7 +17,9 @@ make dev
 Open http://localhost:3000.
 
 `make setup` copies `.env.example` → `.env`, starts Postgres, and runs migrations.
-Dev data resets on each restart — `vite.config.ts` seeds the DB on every `bun dev` start.
+On each `bun dev` start, `vite.config.ts` runs migrations (idempotent) and seeds the
+admin user if it does not already exist. Existing posts, view counts, and publish state
+are preserved across restarts. To reset all data, run `make db-reset`.
 
 ## Available commands
 
