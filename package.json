@@ -43,6 +43,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
+    "@commitlint/cli": "19.8.1",
+    "@commitlint/config-conventional": "19.8.1",
+    "conventional-changelog-cli": "5.0.0",
     "@tailwindcss/typography": "0.5.19",
     "@tanstack/devtools-vite": "0.6.0",
     "@testing-library/dom": "10.4.1",
