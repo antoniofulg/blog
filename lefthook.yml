@@ -4,3 +4,8 @@ pre-commit:
       glob: "*.{js,jsx,ts,tsx,json,css}"
       run: ./node_modules/.bin/biome check --write --no-errors-on-unmatched {staged_files}
       stage_fixed: true
+
+commit-msg:
+  commands:
+    commitlint:
+      run: ./node_modules/.bin/commitlint --edit {1}
