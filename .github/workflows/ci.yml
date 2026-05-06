@@ -19,6 +19,7 @@ jobs:
         with:
           bun-version: "1.3.13"
       - run: bun install --frozen-lockfile
+      - run: cp .env.example .env
       - run: make ${{ matrix.check }}
 
   commitlint:
