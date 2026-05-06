@@ -96,7 +96,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("ServerAliveCountMax=3");
 	});
 
-	it("docker pull runs before make db-migrate before docker compose up", () => {
+	it("docker pull runs before migration before docker compose up", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -108,11 +108,72 @@ describe("unit: scripts/deploy.sh", () => {
 		});
 		const log = readFileSync(logPath, "utf8");
 		const pullIdx = log.indexOf("docker pull");
-		const migrateIdx = log.indexOf("make db-migrate");
-		const upIdx = log.indexOf("docker compose up -d --no-deps app");
+		const migrateIdx = log.indexOf("bun run db:migrate");
+		const upIdx = log.indexOf("docker-compose.prod.yml");
 		expect(pullIdx).toBeGreaterThan(-1);
 		expect(migrateIdx).toBeGreaterThan(pullIdx);
 		expect(upIdx).toBeGreaterThan(migrateIdx);
+	});
+
+	it("runs migrations inside pulled image via docker run, not from VPS filesystem", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		expect(log).toContain("docker run --rm");
+		expect(log).toContain("bun run db:migrate");
+		expect(log).not.toContain("make db-migrate");
+	});
+
+	it("uses docker-compose.prod.yml for app restart", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		expect(log).toContain("docker-compose.prod.yml");
+		expect(log).toContain("up -d --no-deps app");
+	});
+
+	it("uses IMAGE_TAG when set, deploying exact SHA image", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				IMAGE_TAG: "abc1234",
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		expect(log).toContain("ghcr.io/myowner/myblog:abc1234");
+		expect(log).not.toContain(":latest");
+	});
+
+	it("defaults to :latest tag when IMAGE_TAG is unset", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		expect(log).toContain("ghcr.io/myowner/myblog:latest");
 	});
 
 	it("exits non-zero and references VPS_USER when unset", () => {

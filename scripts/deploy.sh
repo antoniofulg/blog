@@ -5,7 +5,8 @@ set -euo pipefail
 : "${VPS_HOST:?VPS_HOST env var required}"
 : "${DEPLOY_PATH:?DEPLOY_PATH env var required}"
 VPS_PORT="${VPS_PORT:-22}"
-IMAGE="ghcr.io/${GHCR_OWNER:?}/${GHCR_REPO:?}:latest"
+TAG="${IMAGE_TAG:-latest}"
+IMAGE="ghcr.io/${GHCR_OWNER:?}/${GHCR_REPO:?}:${TAG}"
 
 echo "[deploy] starting: $IMAGE → $VPS_USER@$VPS_HOST:$VPS_PORT"
 
@@ -16,7 +17,7 @@ ssh -p "$VPS_PORT" \
   -o ServerAliveCountMax=3 \
   "$VPS_USER@$VPS_HOST" \
   "docker pull $IMAGE && \
-   cd '$DEPLOY_PATH' && \
-   make db-migrate && \
-   docker compose up -d --no-deps app && \
+   docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog $IMAGE bun run db:migrate && \
+   GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
+     docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --no-deps app && \
    echo '[deploy] done: $IMAGE'"
