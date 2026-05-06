@@ -16,7 +16,7 @@ make setup
 make dev
 ```
 
-Open http://localhost:3000. See `CONTRIBUTING.md` for details.
+Open http://localhost:3000.
 
 ## Available Commands
 
@@ -31,6 +31,8 @@ make help          # List all targets with descriptions
 | `make setup` | First-clone: copy `.env`, start DB, run migrations |
 | `make dev` | Native Bun dev server + Postgres in Docker (default) |
 | `make dev-docker` | Fully containerized stack via `docker compose watch` |
+
+> **`make dev-docker` notes:** requires Docker Desktop 4.24+. macOS hot reload may be unreliable due to a Bun file-event issue ([oven-sh/bun#9300](https://github.com/oven-sh/bun/issues/9300)) — use `make dev` for day-to-day work.
 
 ### Quality Gates
 
@@ -67,6 +69,72 @@ make help          # List all targets with descriptions
 | `make restart-all` | Restart all Docker Compose services |
 | `make logs` | Follow app container logs |
 | `make shell` | Open shell in app container |
+
+## Development workflow
+
+### Branching
+
+All branches must follow `TASK-XXXX/short-description` (zero-padded task number) or `hotfix/description`. `main` is always exempt. GitHub Ruleset enforces this at push time.
+
+```sh
+git checkout -b TASK-0005/my-feature
+git checkout -b hotfix/broken-login    # emergency, no task number required
+```
+
+### Commit messages
+
+Commits must follow [Conventional Commits](https://www.conventionalcommits.org/): `type(scope): description`
+
+Allowed types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `ci`
+
+The `commit-msg` Lefthook hook validates on every local commit. CI re-validates all commits in a PR — `--no-verify` bypasses the local hook but not CI.
+
+Only `feat` and `fix` appear in `CHANGELOG.md`.
+
+### Before you commit
+
+```sh
+make test && make lint && make check
+```
+
+### CI checks on every PR
+
+| Check | What it validates |
+|-------|-------------------|
+| `make test` | Vitest test suite |
+| `make lint` | Biome linter |
+| `make check` | TypeScript type check |
+| commitlint | All commits follow Conventional Commits |
+| branch-check | Branch name matches pattern |
+
+All five must pass before merge is allowed.
+
+### What happens on merge to main
+
+CI re-runs on the merge commit → CD fires automatically:
+
+1. Builds production Docker image → pushes to GHCR (`:latest` + `:<sha>`)
+2. SSHes into VPS → runs migrations from new image → restarts app container
+3. Commits updated `CHANGELOG.md` back to main with `[skip ci]`
+
+VPS updated in ~5 minutes. No manual steps.
+
+### Emergency hotfix
+
+```sh
+git checkout -b hotfix/description
+git commit -m "fix(area): description" --no-verify   # if under pressure
+git push origin hotfix/description
+# open PR → CD deploys within 5 minutes
+```
+
+### Manual deploy fallback
+
+```sh
+export VPS_USER=deploy VPS_HOST=<ip> DEPLOY_PATH=/home/deploy/blog \
+       GHCR_OWNER=<owner> GHCR_REPO=blog
+bash scripts/deploy.sh   # or: make deploy
+```
 
 ## Stack
 
