@@ -1,10 +1,10 @@
 ---
-status: pending
+status: completed
 title: MDX Library Split
 type: refactor
 complexity: medium
 dependencies:
-  - task_01
+    - task_01
 ---
 
 # Task 03: MDX Library Split
@@ -35,11 +35,11 @@ Split `app/lib/mdx.server.ts` into two single-responsibility files inside `app/l
 
 ## Subtasks
 
-- [ ] 3.1 Create `app/lib/mdx/parser.server.ts` — move `parseFrontmatter` verbatim, update `PostFrontmatter` import to `#/types/content`
-- [ ] 3.2 Create `app/lib/mdx/renderer.server.ts` — move `renderMdx` verbatim, no type import changes needed
-- [ ] 3.3 Delete `app/lib/mdx.server.ts`
-- [ ] 3.4 Update `app/routes/$slug.tsx` — change `renderMdx` import from `#/lib/mdx.server` to `#/lib/mdx/renderer.server`
-- [ ] 3.5 Run `tsc --noEmit` — fix any remaining missed import sites before marking complete
+- [x] 3.1 Create `app/lib/mdx/parser.server.ts` — move `parseFrontmatter` verbatim, update `PostFrontmatter` import to `#/types/content`
+- [x] 3.2 Create `app/lib/mdx/renderer.server.ts` — move `renderMdx` verbatim, no type import changes needed
+- [x] 3.3 Delete `app/lib/mdx.server.ts`
+- [x] 3.4 Update `app/routes/$slug.tsx` — change `renderMdx` import from `#/lib/mdx.server` to `#/lib/mdx/renderer.server`
+- [x] 3.5 Run `tsc --noEmit` — fix any remaining missed import sites before marking complete
 
 ## Implementation Details
 

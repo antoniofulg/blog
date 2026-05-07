@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Admin Route Server Function Extraction
 type: refactor
 complexity: medium
@@ -36,11 +36,11 @@ Extract all `createServerFn` calls and raw database access functions out of `adm
 
 ## Subtasks
 
-- [ ] 4.1 Create `app/routes/admin/index.server.ts` — move all server fns and DB access functions; import `requireSession` from `#/lib/session`
-- [ ] 4.2 Create `app/routes/admin/preview.$slug.server.ts` — move server fn; import `requireSession` from `#/lib/session` and `renderMdx` from `#/lib/mdx/renderer.server`
-- [ ] 4.3 Strip `admin/index.tsx` — remove moved exports, add import from `./index.server`, remove inline `requireSession`
-- [ ] 4.4 Strip `admin/preview.$slug.tsx` — remove moved exports, add import from `./preview.$slug.server`, remove inline session check
-- [ ] 4.5 Run `tsc --noEmit` and verify zero `requireSession` definitions remain in route files (`grep -r "async function requireSession" app/routes/`)
+- [x] 4.1 Create `app/routes/admin/index.server.ts` — move all server fns and DB access functions; import `requireSession` from `#/lib/session`
+- [x] 4.2 Create `app/routes/admin/preview.$slug.server.ts` — move server fn; import `requireSession` from `#/lib/session` and `renderMdx` from `#/lib/mdx/renderer.server`
+- [x] 4.3 Strip `admin/index.tsx` — remove moved exports, add import from `./index.server`, remove inline `requireSession`
+- [x] 4.4 Strip `admin/preview.$slug.tsx` — remove moved exports, add import from `./preview.$slug.server`, remove inline session check
+- [x] 4.5 Run `tsc --noEmit` and verify zero `requireSession` definitions remain in route files (`grep -r "async function requireSession" app/routes/`)
 
 ## Implementation Details
 
@@ -82,12 +82,12 @@ After extraction, each route file should be significantly shorter (primarily `cr
 ## Tests
 
 - Unit tests:
-  - [ ] `tsc --noEmit` passes — all imports from new server files resolve correctly
-  - [ ] `app/tests/admin-routes.test.ts` passes — `getAllPostsFn`, `togglePublishedFn`, and `getAdminPreviewFn` must behave identically after move (verbatim body move)
-  - [ ] `grep -r "async function requireSession" app/routes/` returns zero matches — confirms all inline copies removed
+  - [x] `tsc --noEmit` passes — all imports from new server files resolve correctly
+  - [x] `app/tests/admin-routes.test.ts` passes — `getAllPostsFn`, `togglePublishedFn`, and `getAdminPreviewFn` must behave identically after move (verbatim body move)
+  - [x] `grep -r "async function requireSession" app/routes/` returns zero matches — confirms all inline copies removed
 - Integration tests:
-  - [ ] `app/tests/auth-integ.test.ts` passes — admin route session protection must work end-to-end with extracted `requireSession`
-  - [ ] `app/tests/sync-integ.test.ts` passes — no regressions in routes that depend on admin server fns
+  - [x] `app/tests/auth-integ.test.ts` passes — admin route session protection must work end-to-end with extracted `requireSession`
+  - [x] `app/tests/sync-integ.test.ts` passes — no regressions in routes that depend on admin server fns
 - Test coverage target: existing suite coverage maintained; no new code paths (verbatim moves only)
 - All tests must pass
 

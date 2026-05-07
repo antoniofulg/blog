@@ -13,17 +13,10 @@ import { Home } from "lucide-react";
 import { Footer } from "#/components/layout/footer";
 import { Header } from "#/components/layout/header";
 import { ThemeProvider } from "#/lib/theme";
+import type { AuthUser, RouterContext } from "#/types/auth";
 import appCss from "../styles/global.css?url";
 
-export type AuthUser = {
-	id: string;
-	email: string;
-	name: string;
-};
-
-export type RouterContext = {
-	auth: { user: AuthUser | null };
-};
+export type { AuthUser, RouterContext };
 
 const getAuthSession = createServerFn({ method: "GET" }).handler(async () => {
 	const { auth } = await import("#/lib/auth");

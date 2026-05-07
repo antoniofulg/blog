@@ -35,7 +35,7 @@ export async function incrementViewCountFn(id: number): Promise<void> {
 const getPostBySlug = createServerFn({ method: "GET" })
 	.inputValidator((slug: string) => slug)
 	.handler(async ({ data: slug }) => {
-		const { renderMdx } = await import("#/lib/mdx.server");
+		const { renderMdx } = await import("#/lib/mdx/renderer.server");
 		return getPostBySlugFn(slug, renderMdx);
 	});
 

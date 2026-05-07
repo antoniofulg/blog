@@ -3,7 +3,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { parseFrontmatter, renderMdx } from "#/lib/mdx.server";
+import { parseFrontmatter } from "#/lib/mdx/parser.server";
+import { renderMdx } from "#/lib/mdx/renderer.server";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 

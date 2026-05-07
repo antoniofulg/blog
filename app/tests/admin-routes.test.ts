@@ -61,7 +61,7 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("#/db/client", () => ({ db: mocks.db }));
 vi.mock("node:fs/promises", () => ({ readFile: mocks.readFile }));
-vi.mock("#/lib/mdx.server", () => ({ renderMdx: mocks.renderMdx }));
+vi.mock("#/lib/mdx/renderer.server", () => ({ renderMdx: mocks.renderMdx }));
 
 // Prevent TanStack Start Vite plugin from stripping server fn handlers.
 vi.mock("@tanstack/react-start", () => ({
@@ -74,8 +74,8 @@ vi.mock("@tanstack/react-start", () => ({
 }));
 
 import { posts } from "#/db/schema";
-import { getAllPostsFn, togglePublishedFn } from "#/routes/admin/index";
-import { getAdminPreviewFn } from "#/routes/admin/preview.$slug";
+import { getAllPostsFn, togglePublishedFn } from "#/routes/admin/index.server";
+import { getAdminPreviewFn } from "#/routes/admin/preview.$slug.server";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 

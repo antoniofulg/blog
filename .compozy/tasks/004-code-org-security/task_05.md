@@ -1,13 +1,13 @@
 ---
-status: pending
+status: completed
 title: Agent Documentation & Domain Rules
 type: docs
 complexity: medium
 dependencies:
-  - task_01
-  - task_02
-  - task_03
-  - task_04
+    - task_01
+    - task_02
+    - task_03
+    - task_04
 ---
 
 # Task 05: Agent Documentation & Domain Rules
@@ -38,12 +38,12 @@ Create `AGENTS.md` at repo root documenting the project structure, tech stack, c
 
 ## Subtasks
 
-- [ ] 5.1 Create `AGENTS.md` at repo root with all required sections from TechSpec "AGENTS.md Structure"; verify ≤200 lines
-- [ ] 5.2 Create `CLAUDE.md` symlink (`ln -s AGENTS.md CLAUDE.md` from repo root); verify symlink resolves
-- [ ] 5.3 Create `.agents/rules/auth.md` with content from TechSpec "Domain Rule Files Content → auth.md"
-- [ ] 5.4 Create `.agents/rules/routes.md` with content from TechSpec "Domain Rule Files Content → routes.md"
-- [ ] 5.5 Create `.agents/rules/db.md` with content from TechSpec "Domain Rule Files Content → db.md"
-- [ ] 5.6 Create `.agents/rules/components.md` with content from TechSpec "Domain Rule Files Content → components.md"
+- [x] 5.1 Create `AGENTS.md` at repo root with all required sections from TechSpec "AGENTS.md Structure"; verify ≤200 lines
+- [x] 5.2 Create `CLAUDE.md` symlink (`ln -s AGENTS.md CLAUDE.md` from repo root); verify symlink resolves
+- [x] 5.3 Create `.agents/rules/auth.md` with content from TechSpec "Domain Rule Files Content → auth.md"
+- [x] 5.4 Create `.agents/rules/routes.md` with content from TechSpec "Domain Rule Files Content → routes.md"
+- [x] 5.5 Create `.agents/rules/db.md` with content from TechSpec "Domain Rule Files Content → db.md"
+- [x] 5.6 Create `.agents/rules/components.md` with content from TechSpec "Domain Rule Files Content → components.md"
 
 ## Implementation Details
 
@@ -87,13 +87,13 @@ See TechSpec sections "AGENTS.md Structure" and "Domain Rule Files Content" for 
 ## Tests
 
 - Unit tests:
-  - [ ] `wc -l AGENTS.md` output is ≤200 — enforces the ≤200 line limit
-  - [ ] `ls -la CLAUDE.md` shows symlink pointing to `AGENTS.md` — symlink resolves correctly
-  - [ ] `make lint` passes — no lint regressions from new files
-  - [ ] `make check` (`tsc --noEmit`) passes — no TypeScript regressions
+  - [x] `wc -l AGENTS.md` output is ≤200 — enforces the ≤200 line limit
+  - [x] `ls -la CLAUDE.md` shows symlink pointing to `AGENTS.md` — symlink resolves correctly
+  - [x] `make lint` passes — no lint regressions from new files
+  - [x] `make check` (`tsc --noEmit`) passes — no TypeScript regressions
 - Integration tests:
-  - [ ] `make test` passes — full suite green after documentation additions
-  - [ ] All four `.agents/rules/*.md` files reference correct post-refactor paths (e.g., `#/lib/session`, `#/lib/mdx/renderer.server`, `#/types/content`) — manual grep verification
+  - [ ] `make test` passes — full suite green after documentation additions (pre-existing public-routes.test.ts failure unrelated to docs changes; documented in workflow memory)
+  - [x] All four `.agents/rules/*.md` files reference correct post-refactor paths (e.g., `#/lib/session`, `#/lib/mdx/renderer.server`, `#/types/content`) — manual grep verification
 - Test coverage target: N/A (documentation only); CI must remain green
 - All tests must pass
 

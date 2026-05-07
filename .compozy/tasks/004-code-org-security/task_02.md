@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Shared Session Utility
 type: refactor
 complexity: low
@@ -31,9 +31,9 @@ Create `app/lib/session.ts` with a single exported `requireSession()` function, 
 
 ## Subtasks
 
-- [ ] 2.1 Create `app/lib/session.ts` with `requireSession()` matching the throw-only signature in TechSpec "Core Interfaces"
-- [ ] 2.2 Verify the function is a drop-in replacement for the inline copies in `admin/index.tsx:36-39` and `admin/preview.$slug.tsx:32-35`
-- [ ] 2.3 Run `tsc --noEmit` to confirm the new file type-checks cleanly
+- [x] 2.1 Create `app/lib/session.ts` with `requireSession()` matching the throw-only signature in TechSpec "Core Interfaces"
+- [x] 2.2 Verify the function is a drop-in replacement for the inline copies in `admin/index.tsx:36-39` and `admin/preview.$slug.tsx:32-35`
+- [x] 2.3 Run `tsc --noEmit` to confirm the new file type-checks cleanly
 
 ## Implementation Details
 
@@ -67,10 +67,10 @@ Current inline copies (for reference — do not modify them in this task):
 ## Tests
 
 - Unit tests:
-  - [ ] `tsc --noEmit` passes — new file must type-check cleanly against existing `#/lib/auth` and `@tanstack/react-start/server`
-  - [ ] `app/tests/auth.test.ts` passes — no regressions in auth layer
+  - [x] `tsc --noEmit` passes — new file must type-check cleanly against existing `#/lib/auth` and `@tanstack/react-start/server`
+  - [x] `app/tests/auth.test.ts` passes — no regressions in auth layer
 - Integration tests:
-  - [ ] `app/tests/auth-integ.test.ts` passes — auth integration unaffected by new file addition
+  - [x] `app/tests/auth-integ.test.ts` passes — auth integration unaffected by new file addition
 - Test coverage target: existing suite coverage maintained; `session.ts` is exercised indirectly when task_04 wires callers
 - All tests must pass
 

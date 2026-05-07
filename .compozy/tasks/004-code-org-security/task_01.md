@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Types Directory & interface→type Migration
 type: refactor
 complexity: medium
@@ -33,12 +33,12 @@ Create `app/types/` as the canonical home for shared TypeScript types, moving `P
 
 ## Subtasks
 
-- [ ] 1.1 Create `app/types/` directory with `content.ts` exporting `PostFrontmatter` type
-- [ ] 1.2 Create `app/types/auth.ts` exporting `AuthUser` and `RouterContext` types
-- [ ] 1.3 Update `app/routes/__root.tsx` — remove type definitions, import from `#/types/auth`
-- [ ] 1.4 Update `app/db/indexer.ts` — remove duplicate `interface PostFrontmatter`, inline return type on `parseFrontmatterBlock`
-- [ ] 1.5 Convert `interface TocItem` to `type TocItem =` in `app/components/ui/table-of-contents.tsx`
-- [ ] 1.6 Run `tsc --noEmit` and fix any import errors
+- [x] 1.1 Create `app/types/` directory with `content.ts` exporting `PostFrontmatter` type
+- [x] 1.2 Create `app/types/auth.ts` exporting `AuthUser` and `RouterContext` types
+- [x] 1.3 Update `app/routes/__root.tsx` — remove type definitions, import from `#/types/auth`
+- [x] 1.4 Update `app/db/indexer.ts` — remove duplicate `interface PostFrontmatter`, inline return type on `parseFrontmatterBlock`
+- [x] 1.5 Convert `interface TocItem` to `type TocItem =` in `app/components/ui/table-of-contents.tsx`
+- [x] 1.6 Run `tsc --noEmit` and fix any import errors
 
 ## Implementation Details
 

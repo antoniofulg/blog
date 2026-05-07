@@ -55,7 +55,7 @@ vi.mock("node:fs/promises", () => ({
 	readFile: mocks.readFile,
 }));
 
-vi.mock("#/lib/mdx.server", () => ({
+vi.mock("#/lib/mdx/renderer.server", () => ({
 	renderMdx: mocks.renderMdx,
 }));
 

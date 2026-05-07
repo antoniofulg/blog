@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Security Findings Report
 type: docs
 complexity: low
