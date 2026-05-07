@@ -1,6 +1,7 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Menu, Moon, Search, Sun, Terminal } from "lucide-react";
 import { useState } from "react";
+import { LOCALES, type Locale, useLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
 
 const navLinks = [
@@ -12,9 +13,39 @@ const navLinks = [
 	{ label: "Newsletter", to: "/newsletter" },
 ] as const;
 
+function useLangSwitcher() {
+	const { locale, setLocale } = useLocale();
+	const navigate = useNavigate();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+	const targetLocale = LOCALES.find((l) => l !== locale) as Locale;
+	const label = targetLocale === "pt-br" ? "PT" : "EN";
+
+	function switchLang() {
+		setLocale(targetLocale);
+		const prefix = `/${locale}/`;
+		if (pathname.startsWith(prefix)) {
+			const rest = pathname.slice(prefix.length);
+			if (rest === "blog") {
+				navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+			} else {
+				navigate({
+					to: "/$lang/$slug",
+					params: { lang: targetLocale, slug: rest },
+				});
+			}
+		} else {
+			navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+		}
+	}
+
+	return { label, switchLang };
+}
+
 export function Header() {
 	const { theme, toggle } = useTheme();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+	const { label, switchLang } = useLangSwitcher();
 
 	return (
 		<>
@@ -47,6 +78,14 @@ export function Header() {
 					</Link>
 					<button
 						type="button"
+						onClick={switchLang}
+						aria-label="Switch language"
+						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
+					>
+						<span className="text-xs font-semibold">{label}</span>
+					</button>
+					<button
+						type="button"
 						onClick={toggle}
 						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
 					>
@@ -75,6 +114,12 @@ export function Header() {
 
 function MobileMenu({ onClose }: { onClose: () => void }) {
 	const { theme, toggle } = useTheme();
+	const { label, switchLang } = useLangSwitcher();
+
+	function handleLangSwitch() {
+		switchLang();
+		onClose();
+	}
 
 	return (
 		<div className="fixed inset-0 z-50 bg-background lg:hidden">
@@ -111,6 +156,15 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 					)}
 				</button>
 				<span className="text-sm text-foreground-secondary">Alternar tema</span>
+				<button
+					type="button"
+					onClick={handleLangSwitch}
+					aria-label="Switch language"
+					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground"
+				>
+					<span className="text-xs font-semibold">{label}</span>
+				</button>
+				<span className="text-sm text-foreground-secondary">Idioma</span>
 			</div>
 		</div>
 	);

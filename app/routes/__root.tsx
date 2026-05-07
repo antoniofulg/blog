@@ -12,6 +12,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { Home } from "lucide-react";
 import { Footer } from "#/components/layout/footer";
 import { Header } from "#/components/layout/header";
+import { LocaleProvider } from "#/lib/locale";
 import { ThemeProvider } from "#/lib/theme";
 import type { RouterContext } from "#/types/auth";
 import appCss from "../styles/global.css?url";
@@ -101,7 +102,7 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 				<HeadContent />
 				<script src="/theme-init.js" />
 			</head>
-			<body>
+			<body suppressHydrationWarning>
 				{children}
 				{import.meta.env.DEV && (
 					<TanStackDevtools
@@ -122,14 +123,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
 function RootLayout() {
 	return (
-		<ThemeProvider>
-			<div className="flex min-h-screen flex-col">
-				<Header />
-				<main className="flex-1">
-					<Outlet />
-				</main>
-				<Footer />
-			</div>
-		</ThemeProvider>
+		<LocaleProvider>
+			<ThemeProvider>
+				<div className="flex min-h-screen flex-col">
+					<Header />
+					<main className="flex-1">
+						<Outlet />
+					</main>
+					<Footer />
+				</div>
+			</ThemeProvider>
+		</LocaleProvider>
 	);
 }

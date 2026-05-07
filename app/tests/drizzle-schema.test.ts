@@ -32,10 +32,9 @@ describe("unit: posts schema", () => {
 		expect(col.isUnique).toBe(true);
 	});
 
-	it("slug column has UNIQUE constraint", () => {
+	it("slug column does not have standalone UNIQUE (composite unique only)", () => {
 		const col = posts.slug;
-		expect(col.uniqueName).toBeDefined();
-		expect(col.isUnique).toBe(true);
+		expect(col.isUnique).toBeFalsy();
 	});
 
 	it("is_published defaults to false", () => {
@@ -67,18 +66,24 @@ describe("unit: posts schema", () => {
 		// TypeScript compile check: if Post type is wrong this file won't compile.
 		const _post: Post = {
 			id: 1,
-			filePath: "content/hello.mdx",
+			filePath: "content/en/hello.mdx",
 			slug: "hello",
+			lang: "en",
 			title: "Hello",
 			description: null,
 			publishedAt: null,
 			isPublished: false,
 			viewCount: 0,
 			indexedAt: new Date(),
+			category: null,
+			series: null,
+			seriesPart: null,
+			draft: null,
 		};
 		expect(_post.id).toBe(1);
 		expect(typeof _post.slug).toBe("string");
 		expect(typeof _post.isPublished).toBe("boolean");
+		expect(_post.lang).toBe("en");
 	});
 
 	it("NewPost type omits id and indexedAt (compile-time check)", () => {
@@ -129,7 +134,7 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		).not.toThrow();
 	});
 
-	it("posts table has all 9 expected columns", async () => {
+	it("posts table has all 14 expected columns", async () => {
 		const pg = await import("postgres");
 		const sql = pg.default("postgres://blog:blog@localhost:5432/blog");
 		postgres = sql;
@@ -143,13 +148,18 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		expect(cols).toContain("id");
 		expect(cols).toContain("file_path");
 		expect(cols).toContain("slug");
+		expect(cols).toContain("lang");
 		expect(cols).toContain("title");
 		expect(cols).toContain("description");
 		expect(cols).toContain("published_at");
 		expect(cols).toContain("is_published");
 		expect(cols).toContain("view_count");
 		expect(cols).toContain("indexed_at");
-		expect(cols).toHaveLength(9);
+		expect(cols).toContain("category");
+		expect(cols).toContain("series");
+		expect(cols).toContain("series_part");
+		expect(cols).toContain("draft");
+		expect(cols).toHaveLength(14);
 	});
 
 	it("duplicate file_path insert throws unique constraint error", async () => {
@@ -167,16 +177,32 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		}
 	});
 
-	it("duplicate slug insert throws unique constraint error", async () => {
+	it("duplicate (slug, lang) insert throws composite unique constraint error", async () => {
 		const pg = await import("postgres");
 		const sql = pg.default("postgres://blog:blog@localhost:5432/blog");
 		postgres = sql;
 		const unique = `test-dup-slug-${Date.now()}`;
 		try {
-			await sql`INSERT INTO posts (file_path, slug, title) VALUES (${`content/${unique}-a.mdx`}, ${unique}, 'Test A')`;
+			// Same slug + same lang → should fail
+			await sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/en/${unique}-a.mdx`}, ${unique}, 'en', 'Test A')`;
 			await expect(
-				sql`INSERT INTO posts (file_path, slug, title) VALUES (${`content/${unique}-b.mdx`}, ${unique}, 'Test B')`,
+				sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/en/${unique}-b.mdx`}, ${unique}, 'en', 'Test B')`,
 			).rejects.toThrow();
+		} finally {
+			await sql`DELETE FROM posts WHERE slug = ${unique}`;
+		}
+	});
+
+	it("same slug with different lang is allowed (composite unique)", async () => {
+		const pg = await import("postgres");
+		const sql = pg.default("postgres://blog:blog@localhost:5432/blog");
+		postgres = sql;
+		const unique = `test-bilingual-${Date.now()}`;
+		try {
+			await sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/en/${unique}.mdx`}, ${unique}, 'en', 'Test EN')`;
+			await expect(
+				sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/pt-br/${unique}.mdx`}, ${unique}, 'pt-br', 'Test PT')`,
+			).resolves.not.toThrow();
 		} finally {
 			await sql`DELETE FROM posts WHERE slug = ${unique}`;
 		}

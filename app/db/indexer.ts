@@ -1,5 +1,5 @@
 import { readdir, readFile } from "node:fs/promises";
-import { basename, extname, join } from "node:path";
+import { basename, dirname, extname, join } from "node:path";
 import { eq, like } from "drizzle-orm";
 import matter from "gray-matter";
 import { db } from "./client";
@@ -8,7 +8,16 @@ import { posts } from "./schema";
 function parseFrontmatterBlock(
 	source: string,
 	filePath: string,
-): { title: string; description?: string; publishedAt?: Date; slug?: string } {
+): {
+	title: string;
+	description?: string;
+	publishedAt?: Date;
+	slug?: string;
+	category?: string;
+	series?: string;
+	seriesPart?: number;
+	draft?: boolean;
+} {
 	const { data } = matter(source);
 	if (!data.title)
 		throw new Error(`Missing required frontmatter 'title' in ${filePath}`);
@@ -19,17 +28,28 @@ function parseFrontmatterBlock(
 			: publishedAtRaw != null
 				? new Date(String(publishedAtRaw))
 				: undefined;
+	const seriesPartRaw = data.seriesPart;
+	const seriesPart: number | undefined =
+		seriesPartRaw != null ? parseInt(String(seriesPartRaw), 10) : undefined;
 	return {
 		title: data.title as string,
 		description: data.description as string | undefined,
 		publishedAt,
 		slug: data.slug as string | undefined,
+		category: data.category as string | undefined,
+		series: data.series as string | undefined,
+		seriesPart: Number.isNaN(seriesPart) ? undefined : seriesPart,
+		draft: data.draft as boolean | undefined,
 	};
 }
 
 function deriveSlug(filePath: string, frontmatterSlug?: string): string {
 	if (frontmatterSlug) return frontmatterSlug;
 	return basename(filePath, extname(filePath));
+}
+
+function deriveLang(filePath: string): string {
+	return basename(dirname(filePath));
 }
 
 async function findMdxFiles(dir: string): Promise<string[]> {
@@ -54,30 +74,48 @@ export async function upsertPost(filePath: string): Promise<void> {
 		const source = await readFile(filePath, "utf8");
 		const fm = parseFrontmatterBlock(source, filePath);
 		const slug = deriveSlug(filePath, fm.slug);
+		const lang = deriveLang(filePath);
 		const now = new Date();
 		await db
 			.insert(posts)
 			.values({
 				filePath,
 				slug,
+				lang,
 				title: fm.title,
 				description: fm.description ?? null,
 				publishedAt: fm.publishedAt ?? null,
 				isPublished: false,
 				indexedAt: now,
+				category: fm.category ?? null,
+				series: fm.series ?? null,
+				seriesPart: fm.seriesPart ?? null,
+				draft: fm.draft ?? null,
 			})
 			.onConflictDoUpdate({
 				target: posts.filePath,
 				set: {
 					slug,
+					lang,
 					title: fm.title,
 					description: fm.description ?? null,
 					publishedAt: fm.publishedAt ?? null,
 					indexedAt: now,
+					category: fm.category ?? null,
+					series: fm.series ?? null,
+					seriesPart: fm.seriesPart ?? null,
+					draft: fm.draft ?? null,
 				},
 			});
 		console.log(
-			JSON.stringify({ level: "INFO", action: "indexed", filePath, slug }),
+			JSON.stringify({
+				level: "INFO",
+				action: "indexed",
+				filePath,
+				slug,
+				lang,
+				category: fm.category ?? null,
+			}),
 		);
 	} catch (err) {
 		console.error(

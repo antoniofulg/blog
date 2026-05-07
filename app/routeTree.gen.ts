@@ -17,9 +17,12 @@ import { Route as LoginRouteImport } from './routes/login'
 import { Route as BlogRouteImport } from './routes/blog'
 import { Route as AboutRouteImport } from './routes/about'
 import { Route as SlugRouteImport } from './routes/$slug'
+import { Route as LangRouteImport } from './routes/$lang'
 import { Route as IndexRouteImport } from './routes/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as TutorialsSeriesSlugRouteImport } from './routes/tutorials.$seriesSlug'
+import { Route as LangBlogRouteImport } from './routes/$lang/blog'
+import { Route as LangSlugRouteImport } from './routes/$lang/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminPreviewSlugRouteImport } from './routes/admin/preview.$slug'
 
@@ -63,6 +66,11 @@ const SlugRoute = SlugRouteImport.update({
   path: '/$slug',
   getParentRoute: () => rootRouteImport,
 } as any)
+const LangRoute = LangRouteImport.update({
+  id: '/$lang',
+  path: '/$lang',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const IndexRoute = IndexRouteImport.update({
   id: '/',
   path: '/',
@@ -78,6 +86,16 @@ const TutorialsSeriesSlugRoute = TutorialsSeriesSlugRouteImport.update({
   path: '/$seriesSlug',
   getParentRoute: () => TutorialsRoute,
 } as any)
+const LangBlogRoute = LangBlogRouteImport.update({
+  id: '/blog',
+  path: '/blog',
+  getParentRoute: () => LangRoute,
+} as any)
+const LangSlugRoute = LangSlugRouteImport.update({
+  id: '/$slug',
+  path: '/$slug',
+  getParentRoute: () => LangRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -91,6 +109,7 @@ const AdminPreviewSlugRoute = AdminPreviewSlugRouteImport.update({
 
 export interface FileRoutesByFullPath {
   '/': typeof IndexRoute
+  '/$lang': typeof LangRouteWithChildren
   '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
@@ -99,6 +118,8 @@ export interface FileRoutesByFullPath {
   '/projects': typeof ProjectsRoute
   '/search': typeof SearchRoute
   '/tutorials': typeof TutorialsRouteWithChildren
+  '/$lang/$slug': typeof LangSlugRoute
+  '/$lang/blog': typeof LangBlogRoute
   '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
@@ -106,6 +127,7 @@ export interface FileRoutesByFullPath {
 }
 export interface FileRoutesByTo {
   '/': typeof IndexRoute
+  '/$lang': typeof LangRouteWithChildren
   '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
@@ -114,6 +136,8 @@ export interface FileRoutesByTo {
   '/projects': typeof ProjectsRoute
   '/search': typeof SearchRoute
   '/tutorials': typeof TutorialsRouteWithChildren
+  '/$lang/$slug': typeof LangSlugRoute
+  '/$lang/blog': typeof LangBlogRoute
   '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
   '/admin': typeof AdminIndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
@@ -122,6 +146,7 @@ export interface FileRoutesByTo {
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
   '/': typeof IndexRoute
+  '/$lang': typeof LangRouteWithChildren
   '/$slug': typeof SlugRoute
   '/about': typeof AboutRoute
   '/blog': typeof BlogRoute
@@ -130,6 +155,8 @@ export interface FileRoutesById {
   '/projects': typeof ProjectsRoute
   '/search': typeof SearchRoute
   '/tutorials': typeof TutorialsRouteWithChildren
+  '/$lang/$slug': typeof LangSlugRoute
+  '/$lang/blog': typeof LangBlogRoute
   '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
   '/admin/': typeof AdminIndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
@@ -139,6 +166,7 @@ export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
     | '/'
+    | '/$lang'
     | '/$slug'
     | '/about'
     | '/blog'
@@ -147,6 +175,8 @@ export interface FileRouteTypes {
     | '/projects'
     | '/search'
     | '/tutorials'
+    | '/$lang/$slug'
+    | '/$lang/blog'
     | '/tutorials/$seriesSlug'
     | '/admin/'
     | '/admin/preview/$slug'
@@ -154,6 +184,7 @@ export interface FileRouteTypes {
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/'
+    | '/$lang'
     | '/$slug'
     | '/about'
     | '/blog'
@@ -162,6 +193,8 @@ export interface FileRouteTypes {
     | '/projects'
     | '/search'
     | '/tutorials'
+    | '/$lang/$slug'
+    | '/$lang/blog'
     | '/tutorials/$seriesSlug'
     | '/admin'
     | '/admin/preview/$slug'
@@ -169,6 +202,7 @@ export interface FileRouteTypes {
   id:
     | '__root__'
     | '/'
+    | '/$lang'
     | '/$slug'
     | '/about'
     | '/blog'
@@ -177,6 +211,8 @@ export interface FileRouteTypes {
     | '/projects'
     | '/search'
     | '/tutorials'
+    | '/$lang/$slug'
+    | '/$lang/blog'
     | '/tutorials/$seriesSlug'
     | '/admin/'
     | '/admin/preview/$slug'
@@ -185,6 +221,7 @@ export interface FileRouteTypes {
 }
 export interface RootRouteChildren {
   IndexRoute: typeof IndexRoute
+  LangRoute: typeof LangRouteWithChildren
   SlugRoute: typeof SlugRoute
   AboutRoute: typeof AboutRoute
   BlogRoute: typeof BlogRoute
@@ -256,6 +293,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof SlugRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/$lang': {
+      id: '/$lang'
+      path: '/$lang'
+      fullPath: '/$lang'
+      preLoaderRoute: typeof LangRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/': {
       id: '/'
       path: '/'
@@ -277,6 +321,20 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof TutorialsSeriesSlugRouteImport
       parentRoute: typeof TutorialsRoute
     }
+    '/$lang/blog': {
+      id: '/$lang/blog'
+      path: '/blog'
+      fullPath: '/$lang/blog'
+      preLoaderRoute: typeof LangBlogRouteImport
+      parentRoute: typeof LangRoute
+    }
+    '/$lang/$slug': {
+      id: '/$lang/$slug'
+      path: '/$slug'
+      fullPath: '/$lang/$slug'
+      preLoaderRoute: typeof LangSlugRouteImport
+      parentRoute: typeof LangRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -294,6 +352,18 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface LangRouteChildren {
+  LangSlugRoute: typeof LangSlugRoute
+  LangBlogRoute: typeof LangBlogRoute
+}
+
+const LangRouteChildren: LangRouteChildren = {
+  LangSlugRoute: LangSlugRoute,
+  LangBlogRoute: LangBlogRoute,
+}
+
+const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
+
 interface TutorialsRouteChildren {
   TutorialsSeriesSlugRoute: typeof TutorialsSeriesSlugRoute
 }
@@ -308,6 +378,7 @@ const TutorialsRouteWithChildren = TutorialsRoute._addFileChildren(
 
 const rootRouteChildren: RootRouteChildren = {
   IndexRoute: IndexRoute,
+  LangRoute: LangRouteWithChildren,
   SlugRoute: SlugRoute,
   AboutRoute: AboutRoute,
   BlogRoute: BlogRoute,

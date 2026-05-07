@@ -7,6 +7,7 @@ Every branch must match one of these patterns — enforced by GitHub Ruleset at 
 ```
 TASK-XXXX/short-description   # normal work, XXXX is zero-padded task number
 hotfix/short-description      # production emergency, no task number required
+post/<lang>/<slug>            # new content post (advisory; not enforced by Ruleset)
 main                          # always exempt
 ```
 
@@ -14,9 +15,11 @@ Examples:
 - `TASK-0003/cicd-vps-pipeline` ✓
 - `TASK-0042/fix-login` ✓
 - `hotfix/broken-auth` ✓
+- `post/en/react-suspense-typescript` ✓ (content branch)
+- `post/pt-br/react-suspense-typescript` ✓ (translation branch)
 - `feature/my-thing` ✗ — blocked by Ruleset
 
-When creating a branch, look up the compozy task number first. The branch name must be traceable to a task.
+When creating a branch, look up the compozy task number first. The branch name must be traceable to a task. Content branches (`post/<lang>/<slug>`) are advisory — the GitHub Ruleset does not enforce this pattern.
 
 ## Commit messages
 

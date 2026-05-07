@@ -1,7 +1,7 @@
 import { Link } from "@tanstack/react-router";
 import type { Post } from "#/db/schema";
 
-export function PostCard({ post }: { post: Post }) {
+export function PostCard({ post, lang }: { post: Post; lang?: string }) {
 	return (
 		<article className="group overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
 			<div className="h-48 bg-muted" />
@@ -19,9 +19,18 @@ export function PostCard({ post }: { post: Post }) {
 					</time>
 				)}
 				<h3 className="font-heading text-lg font-bold leading-snug text-foreground group-hover:text-accent">
-					<Link to="/$slug" params={{ slug: post.slug }}>
-						{post.title}
-					</Link>
+					{lang ? (
+						<Link
+							to={"/$lang/$slug" as never}
+							params={{ lang, slug: post.slug } as never}
+						>
+							{post.title}
+						</Link>
+					) : (
+						<Link to="/$slug" params={{ slug: post.slug }}>
+							{post.title}
+						</Link>
+					)}
 				</h3>
 				{post.description && (
 					<p className="line-clamp-2 text-sm leading-relaxed text-foreground-secondary">
