@@ -3,7 +3,8 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { parseFrontmatter, renderMdx } from "#/lib/mdx.server";
+import { parseFrontmatter } from "#/lib/mdx/parser.server";
+import { renderMdx } from "#/lib/mdx/renderer.server";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 
@@ -31,6 +32,14 @@ describe("unit: parseFrontmatter", () => {
 	it("uses slug from frontmatter when slug field is present", async () => {
 		const fm = await parseFrontmatter(join(FIXTURES, "sample.mdx"));
 		expect(fm.slug).toBe("sample-post");
+	});
+
+	it("throws when frontmatter has no title field", async () => {
+		const err = await parseFrontmatter(join(FIXTURES, "no-title.mdx")).catch(
+			(e) => e,
+		);
+		expect(err).toBeInstanceOf(Error);
+		expect((err as Error).message).toContain("Missing required frontmatter");
 	});
 });
 

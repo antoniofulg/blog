@@ -4,7 +4,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
-import { renderMdx } from "#/lib/mdx.server";
+import { renderMdx } from "#/lib/mdx/renderer.server";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 const SAMPLE_SOURCE = readFileSync(join(FIXTURES, "sample.mdx"), "utf-8");
@@ -24,12 +24,14 @@ describe("integration: renderMdx", () => {
 		expect(html).toContain("<strong>bold text</strong>");
 	});
 
-	it("mdx.server is protected from client bundle in vite.config.ts", () => {
+	it("mdx modules are protected from client bundle in vite.config.ts", () => {
 		const viteConfig = readFileSync(
 			join(import.meta.dirname, "../../vite.config.ts"),
 			"utf-8",
 		);
-		expect(viteConfig).toContain("#/lib/mdx.server");
+		expect(viteConfig).toContain("#/lib/mdx/renderer.server");
+		expect(viteConfig).toContain("#/lib/mdx/parser.server");
+		expect(viteConfig).toContain("#/lib/session");
 		expect(viteConfig).toContain("serverOnlyStubPlugin");
 	});
 });

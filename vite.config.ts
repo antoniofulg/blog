@@ -13,9 +13,11 @@ import { defineConfig, type Plugin } from "vitest/config";
 const SERVER_ONLY_IDS = new Set([
 	"#/db/client",
 	"#/db/indexer",
-	"#/lib/mdx.server",
+	"#/lib/mdx/parser.server",
+	"#/lib/mdx/renderer.server",
 	"#/lib/watcher.server",
 	"#/lib/auth",
+	"#/lib/session",
 ]);
 // Node built-ins used only in server function bodies — stub for browser.
 const NODE_ONLY_IDS = new Set([
@@ -46,9 +48,9 @@ function serverOnlyStubPlugin(): Plugin {
 				}
 				return (
 					"export default {}; " +
-					"export const db=null,renderMdx=null,auth=null,syncAll=null," +
+					"export const db=null,renderMdx=null,parseFrontmatter=null,auth=null,syncAll=null," +
 					"upsertPost=null,removePost=null,startContentWatcher=null," +
-					"indexer=null,closeDb=()=>Promise.resolve();"
+					"indexer=null,closeDb=()=>Promise.resolve(),requireSession=()=>Promise.resolve();"
 				);
 			}
 		},

@@ -5,17 +5,10 @@ import matter from "gray-matter";
 import { db } from "./client";
 import { posts } from "./schema";
 
-interface PostFrontmatter {
-	title: string;
-	description?: string;
-	publishedAt?: Date;
-	slug?: string;
-}
-
 function parseFrontmatterBlock(
 	source: string,
 	filePath: string,
-): PostFrontmatter {
+): { title: string; description?: string; publishedAt?: Date; slug?: string } {
 	const { data } = matter(source);
 	if (!data.title)
 		throw new Error(`Missing required frontmatter 'title' in ${filePath}`);

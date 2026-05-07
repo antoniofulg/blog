@@ -1,8 +1,8 @@
-export interface TocItem {
+export type TocItem = {
 	id: string;
 	title: string;
 	level: number;
-}
+};
 
 export function TableOfContents({
 	items,
