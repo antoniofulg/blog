@@ -1,90 +1,10 @@
-import { readFile } from "node:fs/promises";
-import { createFileRoute, notFound } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-import { and, eq, sql } from "drizzle-orm";
-import { createElement, useEffect } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
 import { TranslationNotice } from "#/components/ui/translation-notice";
-import { db } from "#/db/client";
-import { type Post, posts } from "#/db/schema";
 import type { Locale } from "#/lib/locale";
+import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
 
-type PostLoaderResult = {
-	post: Post;
-	html: string;
-	requestedLang: Locale;
-	notTranslated: boolean;
-	availableLang: Locale | null;
-};
-
-export async function getPostBySlugWithLangFn(
-	slug: string,
-	requestedLang: Locale,
-	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
-	renderFn: (source: string) => Promise<any> = async () => () => null,
-): Promise<PostLoaderResult> {
-	const [exactPost] = await db
-		.select()
-		.from(posts)
-		.where(
-			and(
-				eq(posts.slug, slug),
-				eq(posts.lang, requestedLang),
-				eq(posts.isPublished, true),
-			),
-		);
-
-	if (exactPost) {
-		const source = await readFile(exactPost.filePath, "utf-8");
-		const Content = await renderFn(source);
-		const html = renderToStaticMarkup(createElement(Content, {}));
-		return {
-			post: exactPost,
-			html,
-			requestedLang,
-			notTranslated: false,
-			availableLang: null,
-		};
-	}
-
-	const [fallbackPost] = await db
-		.select()
-		.from(posts)
-		.where(and(eq(posts.slug, slug), eq(posts.isPublished, true)));
-
-	if (!fallbackPost) {
-		throw notFound();
-	}
-
-	const source = await readFile(fallbackPost.filePath, "utf-8");
-	const Content = await renderFn(source);
-	const html = renderToStaticMarkup(createElement(Content, {}));
-	return {
-		post: fallbackPost,
-		html,
-		requestedLang,
-		notTranslated: true,
-		availableLang: fallbackPost.lang as Locale,
-	};
-}
-
-export async function incrementViewCountFn(id: number): Promise<void> {
-	await db
-		.update(posts)
-		.set({ viewCount: sql`view_count + 1` })
-		.where(eq(posts.id, id));
-}
-
-const getPostBySlugWithLang = createServerFn({ method: "GET" })
-	.inputValidator((data: { slug: string; lang: Locale }) => data)
-	.handler(async ({ data: { slug, lang } }) => {
-		const { renderMdx } = await import("#/lib/mdx/renderer.server");
-		return getPostBySlugWithLangFn(slug, lang, renderMdx);
-	});
-
-const incrementViewCount = createServerFn({ method: "POST" })
-	.inputValidator((id: number) => id)
-	.handler(async ({ data: id }) => incrementViewCountFn(id));
+const dateLocale: Record<Locale, string> = { en: "en-US", "pt-br": "pt-BR" };
 
 export const Route = createFileRoute("/$lang/$slug")({
 	loader: async ({ params }) => {
@@ -110,6 +30,20 @@ export const Route = createFileRoute("/$lang/$slug")({
 					]
 				: []),
 		],
+		links: loaderData?.alternateLang
+			? [
+					{
+						rel: "alternate",
+						hrefLang: loaderData.post.lang,
+						href: `/${loaderData.post.lang}/${loaderData.post.slug}`,
+					},
+					{
+						rel: "alternate",
+						hrefLang: loaderData.alternateLang,
+						href: `/${loaderData.alternateLang}/${loaderData.post.slug}`,
+					},
+				]
+			: [],
 	}),
 	component: LocalePostDetail,
 	notFoundComponent: () => (
@@ -142,11 +76,14 @@ function LocalePostDetail() {
 							dateTime={new Date(post.publishedAt).toISOString()}
 							className="text-sm text-foreground-muted"
 						>
-							{new Date(post.publishedAt).toLocaleDateString("pt-BR", {
-								day: "numeric",
-								month: "long",
-								year: "numeric",
-							})}
+							{new Date(post.publishedAt).toLocaleDateString(
+								dateLocale[requestedLang],
+								{
+									day: "numeric",
+									month: "long",
+									year: "numeric",
+								},
+							)}
 						</time>
 					)}
 					<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">

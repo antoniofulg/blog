@@ -1,8 +1,9 @@
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db } from "#/db/client";
 import { type Post, posts } from "#/db/schema";
+import type { Locale } from "#/lib/locale";
 
-export async function getPublishedPostsFn(lang: string): Promise<Post[]> {
+export async function getPublishedPostsFn(lang: Locale): Promise<Post[]> {
 	return await db
 		.select()
 		.from(posts)

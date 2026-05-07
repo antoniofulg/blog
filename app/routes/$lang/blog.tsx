@@ -5,10 +5,29 @@ import { EmptyState } from "#/components/ui/empty-state";
 import { Pagination } from "#/components/ui/pagination";
 import { PostCard } from "#/components/ui/post-card";
 import { getPublishedPostsFn } from "#/db/queries";
+import type { Locale } from "#/lib/locale";
+
+const copy = {
+	en: {
+		subtitle:
+			"Articles about web development, React, TypeScript, Bun and more.",
+		emptyTitle: "No articles found",
+		emptyDesc: "No published articles yet.",
+	},
+	"pt-br": {
+		subtitle:
+			"Artigos sobre desenvolvimento web, React, TypeScript, Bun e mais.",
+		emptyTitle: "Nenhum artigo encontrado",
+		emptyDesc: "Não há artigos publicados ainda.",
+	},
+} satisfies Record<
+	string,
+	{ subtitle: string; emptyTitle: string; emptyDesc: string }
+>;
 
 const getLocalePosts = createServerFn({ method: "GET" })
 	.inputValidator((lang: string) => lang)
-	.handler(({ data: lang }) => getPublishedPostsFn(lang));
+	.handler(({ data: lang }) => getPublishedPostsFn(lang as Locale));
 
 export const Route = createFileRoute("/$lang/blog")({
 	loader: ({ params }) => getLocalePosts({ data: params.lang }),
@@ -21,6 +40,7 @@ function LocaleBlogPage() {
 	const allPosts = Route.useLoaderData();
 	const { lang } = Route.useParams();
 	const [currentPage, setCurrentPage] = useState(1);
+	const t = copy[lang as keyof typeof copy] ?? copy.en;
 
 	const totalPages = Math.max(1, Math.ceil(allPosts.length / POSTS_PER_PAGE));
 	const paginatedPosts = allPosts.slice(
@@ -34,15 +54,10 @@ function LocaleBlogPage() {
 				<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">
 					Blog
 				</h1>
-				<p className="mt-3 text-foreground-secondary">
-					Artigos sobre desenvolvimento web, React, TypeScript, Bun e mais.
-				</p>
+				<p className="mt-3 text-foreground-secondary">{t.subtitle}</p>
 
 				{paginatedPosts.length === 0 ? (
-					<EmptyState
-						title="Nenhum artigo encontrado"
-						description="Não há artigos publicados ainda."
-					/>
+					<EmptyState title={t.emptyTitle} description={t.emptyDesc} />
 				) : (
 					<>
 						<div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">

@@ -91,8 +91,8 @@ describe("unit: Header language switcher label", () => {
 		expect(btn.textContent).toBe("PT");
 	});
 
-	it("renders 'EN' label when locale is 'pt-br'", async () => {
-		localStorage.setItem("locale", "pt-br");
+	it("renders 'EN' label when on /pt-br/blog", async () => {
+		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Switch language" });

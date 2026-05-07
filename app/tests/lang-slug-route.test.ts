@@ -62,7 +62,7 @@ import { posts } from "#/db/schema";
 import {
 	getPostBySlugWithLangFn,
 	incrementViewCountFn,
-} from "#/routes/$lang/$slug";
+} from "#/routes/$lang/$slug.server";
 
 type Post = (typeof posts)["_"]["inferSelect"];
 
@@ -112,6 +112,26 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		expect(result.post.slug).toBe("react-suspense");
 	});
 
+	it("exact match with pt-br alternate → alternateLang: 'pt-br'", async () => {
+		const enPost = makePost({ lang: "en" });
+		const ptPost = makePost({
+			lang: "pt-br",
+			filePath: "/content/pt-br/hello.mdx",
+		});
+		mocks.selectWhere
+			.mockResolvedValueOnce([enPost])
+			.mockResolvedValueOnce([ptPost]);
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.alternateLang).toBe("pt-br");
+	});
+
+	it("exact match with no alternate → alternateLang: null", async () => {
+		const enPost = makePost({ lang: "en" });
+		mocks.selectWhere.mockResolvedValueOnce([enPost]);
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.alternateLang).toBeNull();
+	});
+
 	it("exact match found → html is string", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
@@ -131,13 +151,14 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 describe("unit: getPostBySlugWithLangFn — fallback", () => {
 	beforeEach(resetMocks);
 
-	it("(slug, pt-br) miss → fallback en → notTranslated: true, availableLang: 'en'", async () => {
+	it("(slug, pt-br) miss → fallback en → notTranslated: true, availableLang: 'en', alternateLang: null", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
 		expect(result.notTranslated).toBe(true);
 		expect(result.availableLang).toBe("en");
 		expect(result.requestedLang).toBe("pt-br");
+		expect(result.alternateLang).toBeNull();
 	});
 
 	it("(slug, en) miss → fallback pt-br → notTranslated: true, availableLang: 'pt-br'", async () => {

@@ -1,7 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Menu, Moon, Search, Sun, Terminal } from "lucide-react";
 import { useState } from "react";
-import { LOCALES, type Locale, useLocale } from "#/lib/locale";
+import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
 
 const navLinks = [
@@ -14,16 +14,20 @@ const navLinks = [
 ] as const;
 
 function useLangSwitcher() {
-	const { locale, setLocale } = useLocale();
+	const { setLocale } = useLocale();
 	const navigate = useNavigate();
 	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-	const targetLocale = LOCALES.find((l) => l !== locale) as Locale;
+	const currentLocale: Locale =
+		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
+			| Locale
+			| undefined) ?? DEFAULT_LOCALE;
+	const targetLocale = LOCALES.find((l) => l !== currentLocale) as Locale;
 	const label = targetLocale === "pt-br" ? "PT" : "EN";
 
 	function switchLang() {
 		setLocale(targetLocale);
-		const prefix = `/${locale}/`;
+		const prefix = `/${currentLocale}/`;
 		if (pathname.startsWith(prefix)) {
 			const rest = pathname.slice(prefix.length);
 			if (rest === "blog") {
