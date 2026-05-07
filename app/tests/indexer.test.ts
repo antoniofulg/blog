@@ -259,6 +259,21 @@ describe("unit: syncAll", () => {
 		expect(mocks.deleteChain).toHaveBeenCalledTimes(1);
 		expect(mocks.deleteChain).toHaveBeenCalledWith(posts);
 	});
+
+	it("file-move: deletes stale row before upserting to avoid UNIQUE(slug, lang) conflict", async () => {
+		const movedPath = join(tmpDir, "moved-post.mdx");
+		mocks.selectWhere.mockResolvedValue([{ filePath: movedPath }]);
+		await syncAll(tmpDir);
+		// stale row for moved file deleted
+		expect(mocks.deleteChain).toHaveBeenCalledTimes(1);
+		expect(mocks.deleteChain).toHaveBeenCalledWith(posts);
+		// current files upserted (3 files: a.mdx, b.mdx, sub/c.mdx)
+		expect(mocks.insert).toHaveBeenCalledTimes(3);
+		// delete must precede all inserts
+		const deleteOrder = mocks.deleteChain.mock.invocationCallOrder[0];
+		const firstInsertOrder = mocks.insert.mock.invocationCallOrder[0];
+		expect(deleteOrder).toBeLessThan(firstInsertOrder);
+	});
 });
 
 // ─── Unit: getPublishedPostsFn ───────────────────────────────────────────────

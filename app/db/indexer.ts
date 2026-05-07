@@ -149,17 +149,19 @@ export async function removePost(filePath: string): Promise<void> {
 
 export async function syncAll(contentDir: string): Promise<void> {
 	const files = await findMdxFiles(contentDir);
-	for (const filePath of files) {
-		await upsertPost(filePath);
-	}
+	const fileSet = new Set(files);
+
 	const rows = await db
 		.select({ filePath: posts.filePath })
 		.from(posts)
 		.where(like(posts.filePath, `${contentDir}/%`));
-	const fileSet = new Set(files);
 	for (const row of rows) {
 		if (!fileSet.has(row.filePath)) {
 			await removePost(row.filePath);
 		}
+	}
+
+	for (const filePath of files) {
+		await upsertPost(filePath);
 	}
 }
