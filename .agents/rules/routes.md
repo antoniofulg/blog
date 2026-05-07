@@ -8,6 +8,10 @@ Each route in app/routes/admin/ follows the two-file pattern:
 Public routes ($slug.tsx, blog.tsx, etc.) may keep server fns inline if the file
 stays under ~80 lines and has <= 2 server fns. Extract when either limit is exceeded.
 
+> **Known exception:** `app/routes/$slug.tsx` currently exceeds 80 lines and has
+> inline server fns. Extraction is deferred to V2 (borderline case per PRD-0004
+> non-goals). Do not extract it without a dedicated task.
+
 ## Naming
 - Route files: TanStack Router convention (flat dot-separated or directory)
 - Server fn files: same basename as route + .server.ts suffix

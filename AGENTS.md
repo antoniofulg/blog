@@ -21,6 +21,8 @@ app/
   lib/mdx/            — parser.server.ts (frontmatter), renderer.server.ts (compile)
   routes/             — file-based routes; admin/ and api/ subdirs
   routes/admin/       — *.tsx (UI only) + *.server.ts (server fns)
+                        Note: $slug.tsx exceeds 80 lines with inline server fns —
+                        extraction deferred to V2 (PRD-0004 non-goal)
   types/              — content.ts, auth.ts (shared TypeScript types)
   styles/             — global.css
   tests/              — unit + integration tests

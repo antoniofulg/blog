@@ -18,6 +18,9 @@ export async function parseFrontmatter(
 				: String(data.publishedAt);
 	}
 
+	if (!data.title) {
+		throw new Error(`Missing required frontmatter 'title' in ${filePath}`);
+	}
 	return {
 		title: data.title as string,
 		description: data.description as string | undefined,
