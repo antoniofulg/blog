@@ -31,6 +31,7 @@ describe("integration: renderMdx", () => {
 		);
 		expect(viteConfig).toContain("#/lib/mdx/renderer.server");
 		expect(viteConfig).toContain("#/lib/mdx/parser.server");
+		expect(viteConfig).toContain("#/lib/session");
 		expect(viteConfig).toContain("serverOnlyStubPlugin");
 	});
 });

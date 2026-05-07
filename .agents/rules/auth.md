@@ -20,7 +20,8 @@ as its first statement:
 ## Better Auth conventions
 - auth instance: app/lib/auth.ts (server only)
 - auth client: app/lib/auth.client.ts (client only)
-- reactStartCookies plugin MUST be last in the plugins array (ADR-001 in blog scaffold)
+- reactStartCookies plugin MUST be last in the plugins array — it mutates response
+  cookies and must run after all other plugins have processed the response
 - Auth API route: app/routes/api/auth/$.ts — do not add custom logic here
 
 ## DAL pattern

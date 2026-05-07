@@ -33,6 +33,14 @@ describe("unit: parseFrontmatter", () => {
 		const fm = await parseFrontmatter(join(FIXTURES, "sample.mdx"));
 		expect(fm.slug).toBe("sample-post");
 	});
+
+	it("throws when frontmatter has no title field", async () => {
+		const err = await parseFrontmatter(join(FIXTURES, "no-title.mdx")).catch(
+			(e) => e,
+		);
+		expect(err).toBeInstanceOf(Error);
+		expect((err as Error).message).toContain("Missing required frontmatter");
+	});
 });
 
 // ─── Unit: renderMdx ─────────────────────────────────────────────────────────
