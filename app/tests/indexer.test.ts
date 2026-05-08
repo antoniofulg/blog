@@ -71,7 +71,7 @@ describe("unit: upsertPost", () => {
 	beforeEach(resetMocks);
 
 	it("calls db.insert().values().onConflictDoUpdate() with correct field mapping", async () => {
-		await upsertPost(join(FIXTURES, "hello.mdx"));
+		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
 		expect(mocks.insert).toHaveBeenCalledWith(posts);
 		expect(mocks.values).toHaveBeenCalledTimes(1);
 		const valuesArg = mocks.values.mock.calls[0][0] as Record<string, unknown>;
@@ -90,13 +90,13 @@ describe("unit: upsertPost", () => {
 	});
 
 	it("derives slug from frontmatter slug field when present", async () => {
-		await upsertPost(join(FIXTURES, "hello.mdx"));
+		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
 		const valuesArg = mocks.values.mock.calls[0][0] as Record<string, unknown>;
 		expect(valuesArg.slug).toBe("hello-world");
 	});
 
 	it("falls back to filename without extension when frontmatter has no slug", async () => {
-		await upsertPost(join(FIXTURES, "no-slug.mdx"));
+		await upsertPost(join(FIXTURES, "en", "no-slug.mdx"));
 		const valuesArg = mocks.values.mock.calls[0][0] as Record<string, unknown>;
 		expect(valuesArg.slug).toBe("no-slug");
 	});
@@ -140,6 +140,34 @@ describe("unit: upsertPost — lang derivation", () => {
 			set: Record<string, unknown>;
 		};
 		expect(conflictArg.set.lang).toBe("pt-br");
+	});
+});
+
+// ─── Unit: upsertPost — invalid locale ──────────────────────────────────────
+
+describe("unit: upsertPost — invalid locale", () => {
+	let tmpDir: string;
+
+	beforeAll(async () => {
+		tmpDir = await mkdtemp(join(tmpdir(), "indexer-invalid-locale-"));
+		await mkdir(join(tmpDir, "fr"), { recursive: true });
+		await writeFile(
+			join(tmpDir, "fr", "post.mdx"),
+			"---\ntitle: French Post\n---\nContent.",
+		);
+	});
+
+	afterAll(async () => {
+		await rm(tmpDir, { recursive: true, force: true });
+	});
+
+	beforeEach(resetMocks);
+
+	it("throws on unsupported locale directory and does not call db.insert", async () => {
+		await expect(upsertPost(join(tmpDir, "fr", "post.mdx"))).rejects.toThrow(
+			/Unsupported locale directory "fr"/,
+		);
+		expect(mocks.insert).not.toHaveBeenCalled();
 	});
 });
 
@@ -229,11 +257,12 @@ describe("unit: syncAll", () => {
 
 	beforeAll(async () => {
 		tmpDir = await mkdtemp(join(tmpdir(), "indexer-unit-"));
-		await mkdir(join(tmpDir, "sub"), { recursive: true });
+		await mkdir(join(tmpDir, "en"), { recursive: true });
+		await mkdir(join(tmpDir, "pt-br"), { recursive: true });
 		const mdx = (title: string) => `---\ntitle: ${title}\n---\nContent.`;
-		await writeFile(join(tmpDir, "a.mdx"), mdx("Post A"));
-		await writeFile(join(tmpDir, "b.mdx"), mdx("Post B"));
-		await writeFile(join(tmpDir, "sub", "c.mdx"), mdx("Post C"));
+		await writeFile(join(tmpDir, "en", "a.mdx"), mdx("Post A"));
+		await writeFile(join(tmpDir, "en", "b.mdx"), mdx("Post B"));
+		await writeFile(join(tmpDir, "pt-br", "c.mdx"), mdx("Post C"));
 	});
 
 	afterAll(async () => {
@@ -249,8 +278,8 @@ describe("unit: syncAll", () => {
 	});
 
 	it("deletes row whose file_path no longer exists on disk", async () => {
-		const orphanPath = join(tmpDir, "orphan.mdx");
-		const existingPath = join(tmpDir, "a.mdx");
+		const orphanPath = join(tmpDir, "en", "orphan.mdx");
+		const existingPath = join(tmpDir, "en", "a.mdx");
 		mocks.selectWhere.mockResolvedValue([
 			{ filePath: existingPath },
 			{ filePath: orphanPath },
@@ -261,7 +290,7 @@ describe("unit: syncAll", () => {
 	});
 
 	it("file-move: deletes stale row before upserting to avoid UNIQUE(slug, lang) conflict", async () => {
-		const movedPath = join(tmpDir, "moved-post.mdx");
+		const movedPath = join(tmpDir, "en", "moved-post.mdx");
 		mocks.selectWhere.mockResolvedValue([{ filePath: movedPath }]);
 		await syncAll(tmpDir);
 		// stale row for moved file deleted

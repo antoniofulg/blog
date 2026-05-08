@@ -78,24 +78,39 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function NotFoundPage() {
+	const { pathname } = useLocation();
+	const segment = pathname.split("/")[1] as Locale;
+	const lang = LOCALES.includes(segment) ? segment : DEFAULT_LOCALE;
+
+	const copy = {
+		en: {
+			heading: "Page not found",
+			body: "The page you're looking for doesn't exist or has been moved.",
+			cta: "Back to Home",
+		},
+		"pt-br": {
+			heading: "Página não encontrada",
+			body: "A página que você está procurando não existe ou foi movida para outro endereço.",
+			cta: "Voltar ao Início",
+		},
+	} satisfies Record<Locale, { heading: string; body: string; cta: string }>;
+
+	const t = copy[lang];
 	return (
 		<div className="flex flex-col items-center justify-center gap-6 px-5 py-20 text-center">
 			<span className="font-heading text-7xl font-extrabold text-accent lg:text-9xl">
 				404
 			</span>
 			<h1 className="font-heading text-2xl font-bold text-foreground lg:text-3xl">
-				Página não encontrada
+				{t.heading}
 			</h1>
-			<p className="max-w-md text-foreground-secondary">
-				A página que você está procurando não existe ou foi movida para outro
-				endereço.
-			</p>
+			<p className="max-w-md text-foreground-secondary">{t.body}</p>
 			<Link
 				to="/"
 				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
 			>
 				<Home className="h-4 w-4" />
-				Voltar ao Início
+				{t.cta}
 			</Link>
 		</div>
 	);

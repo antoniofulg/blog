@@ -42,7 +42,9 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 	}
 
 	it("upsertPost creates row with is_published=false and correct slug", async () => {
-		const filePath = join(tmpDir, "integ-hello.mdx");
+		const dir = join(tmpDir, "en");
+		await mkdir(dir, { recursive: true });
+		const filePath = join(dir, "integ-hello.mdx");
 		await writeFile(filePath, mdx("Integration Hello", "slug: integ-hello\n"));
 		await upsertPost(filePath);
 		const rows = await sql<{ is_published: boolean; slug: string }[]>`
@@ -54,7 +56,9 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 	});
 
 	it("second upsertPost updates title but preserves is_published and view_count", async () => {
-		const filePath = join(tmpDir, "integ-preserve.mdx");
+		const dir = join(tmpDir, "en");
+		await mkdir(dir, { recursive: true });
+		const filePath = join(dir, "integ-preserve.mdx");
 		await writeFile(filePath, mdx("Original Title", "slug: integ-preserve\n"));
 		await upsertPost(filePath);
 		await sql`UPDATE posts SET is_published = true, view_count = 5 WHERE file_path = ${filePath}`;
@@ -72,7 +76,9 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 	});
 
 	it("removePost deletes row; subsequent query returns 0 rows", async () => {
-		const filePath = join(tmpDir, "integ-remove.mdx");
+		const dir = join(tmpDir, "en");
+		await mkdir(dir, { recursive: true });
+		const filePath = join(dir, "integ-remove.mdx");
 		await writeFile(filePath, mdx("To Remove"));
 		await upsertPost(filePath);
 		await removePost(filePath);
@@ -82,10 +88,10 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 
 	it("syncAll on directory with 3 .mdx files produces 3 rows", async () => {
 		const syncDir = join(tmpDir, "sync3");
-		await mkdir(syncDir, { recursive: true });
-		await writeFile(join(syncDir, "s1.mdx"), mdx("Sync One"));
-		await writeFile(join(syncDir, "s2.mdx"), mdx("Sync Two"));
-		await writeFile(join(syncDir, "s3.mdx"), mdx("Sync Three"));
+		await mkdir(join(syncDir, "en"), { recursive: true });
+		await writeFile(join(syncDir, "en", "s1.mdx"), mdx("Sync One"));
+		await writeFile(join(syncDir, "en", "s2.mdx"), mdx("Sync Two"));
+		await writeFile(join(syncDir, "en", "s3.mdx"), mdx("Sync Three"));
 		await syncAll(syncDir);
 		const rows =
 			await sql`SELECT id FROM posts WHERE file_path LIKE ${`${syncDir}/%`}`;
@@ -94,9 +100,9 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 
 	it("syncAll after deleting a file removes the orphaned row", async () => {
 		const syncDir = join(tmpDir, "sync-orphan");
-		await mkdir(syncDir, { recursive: true });
-		const keepPath = join(syncDir, "keep.mdx");
-		const orphanPath = join(syncDir, "orphan.mdx");
+		await mkdir(join(syncDir, "en"), { recursive: true });
+		const keepPath = join(syncDir, "en", "keep.mdx");
+		const orphanPath = join(syncDir, "en", "orphan.mdx");
 		await writeFile(keepPath, mdx("Keep Me"));
 		await writeFile(orphanPath, mdx("Orphan"));
 		await syncAll(syncDir);

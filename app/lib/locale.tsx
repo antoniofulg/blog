@@ -34,6 +34,7 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 	const setLocale = useCallback((l: Locale) => {
 		setLocaleState(l);
 		localStorage.setItem("locale", l);
+		document.cookie = `locale=${l}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
 	}, []);
 
 	return (
@@ -48,6 +49,11 @@ export function useLocale() {
 }
 
 export function detectLocaleFromRequest(request: Request): Locale {
+	const cookieHeader = request.headers.get("Cookie") ?? "";
+	const match = cookieHeader.match(/(?:^|;\s*)locale=([^;]+)/);
+	const stored = match?.[1]?.trim() as Locale | undefined;
+	if (stored && LOCALES.includes(stored)) return stored;
+
 	const acceptLang = request.headers.get("Accept-Language") ?? "";
 	return /\bpt\b/i.test(acceptLang) ? "pt-br" : DEFAULT_LOCALE;
 }

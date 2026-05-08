@@ -2,6 +2,7 @@ import { readdir, readFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
 import { eq, like } from "drizzle-orm";
 import matter from "gray-matter";
+import { LOCALES, type Locale } from "#/lib/locale";
 import { db } from "./client";
 import { posts } from "./schema";
 
@@ -48,8 +49,14 @@ function deriveSlug(filePath: string, frontmatterSlug?: string): string {
 	return basename(filePath, extname(filePath));
 }
 
-function deriveLang(filePath: string): string {
-	return basename(dirname(filePath));
+function deriveLang(filePath: string): Locale {
+	const dir = basename(dirname(filePath));
+	if (!(LOCALES as readonly string[]).includes(dir)) {
+		throw new Error(
+			`Unsupported locale directory "${dir}" in path ${filePath}. Expected one of: ${LOCALES.join(", ")}`,
+		);
+	}
+	return dir as Locale;
 }
 
 async function findMdxFiles(dir: string): Promise<string[]> {

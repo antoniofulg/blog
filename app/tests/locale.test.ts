@@ -11,10 +11,13 @@ import {
 
 // ─── helpers ────────────────────────────────────────────────────────────────
 
-function makeRequest(acceptLanguage?: string): Request {
+function makeRequest(acceptLanguage?: string, cookie?: string): Request {
 	const headers: Record<string, string> = {};
 	if (acceptLanguage !== undefined) {
 		headers["Accept-Language"] = acceptLanguage;
+	}
+	if (cookie !== undefined) {
+		headers.Cookie = cookie;
 	}
 	return new Request("http://localhost/", { headers });
 }
@@ -46,6 +49,34 @@ describe("unit: detectLocaleFromRequest", () => {
 
 	it("empty header → 'en'", () => {
 		expect(detectLocaleFromRequest(makeRequest(""))).toBe(DEFAULT_LOCALE);
+	});
+
+	it("cookie locale=en overrides Accept-Language: pt-BR", () => {
+		expect(
+			detectLocaleFromRequest(
+				makeRequest("pt-BR,pt;q=0.9,en-US;q=0.8", "locale=en"),
+			),
+		).toBe("en");
+	});
+
+	it("cookie locale=pt-br overrides Accept-Language: en-US", () => {
+		expect(
+			detectLocaleFromRequest(makeRequest("en-US,en;q=0.9", "locale=pt-br")),
+		).toBe("pt-br");
+	});
+
+	it("invalid cookie locale falls back to Accept-Language", () => {
+		expect(
+			detectLocaleFromRequest(makeRequest("pt-BR,pt;q=0.9", "locale=fr")),
+		).toBe("pt-br");
+	});
+
+	it("cookie among multiple cookies → locale=en wins", () => {
+		expect(
+			detectLocaleFromRequest(
+				makeRequest("pt-BR,pt;q=0.9", "theme=dark; locale=en; other=value"),
+			),
+		).toBe("en");
 	});
 });
 

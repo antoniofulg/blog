@@ -4,14 +4,40 @@ import { useState } from "react";
 import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
 
-const navLinks = [
-	{ label: "Home", to: "/" },
-	{ label: "Blog", to: "/blog" },
-	{ label: "Tutoriais", to: "/tutorials" },
-	{ label: "Projetos", to: "/projects" },
-	{ label: "Sobre", to: "/about" },
-	{ label: "Newsletter", to: "/newsletter" },
-] as const;
+const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
+	en: [
+		{ label: "Home", to: "/" },
+		{ label: "Blog", to: "/blog" },
+		{ label: "Tutorials", to: "/tutorials" },
+		{ label: "Projects", to: "/projects" },
+		{ label: "About", to: "/about" },
+		{ label: "Newsletter", to: "/newsletter" },
+	],
+	"pt-br": [
+		{ label: "Home", to: "/" },
+		{ label: "Blog", to: "/blog" },
+		{ label: "Tutoriais", to: "/tutorials" },
+		{ label: "Projetos", to: "/projects" },
+		{ label: "Sobre", to: "/about" },
+		{ label: "Newsletter", to: "/newsletter" },
+	],
+};
+
+const MOBILE_STRINGS: Record<
+	Locale,
+	{ closeMenu: string; toggleTheme: string; language: string }
+> = {
+	en: {
+		closeMenu: "Close menu",
+		toggleTheme: "Toggle theme",
+		language: "Language",
+	},
+	"pt-br": {
+		closeMenu: "Fechar menu",
+		toggleTheme: "Alternar tema",
+		language: "Idioma",
+	},
+};
 
 function useLangSwitcher() {
 	const { setLocale } = useLocale();
@@ -43,13 +69,14 @@ function useLangSwitcher() {
 		}
 	}
 
-	return { label, switchLang };
+	return { label, switchLang, currentLocale };
 }
 
 export function Header() {
 	const { theme, toggle } = useTheme();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-	const { label, switchLang } = useLangSwitcher();
+	const { label, switchLang, currentLocale } = useLangSwitcher();
+	const navLinks = NAV_LABELS[currentLocale];
 
 	return (
 		<>
@@ -118,7 +145,9 @@ export function Header() {
 
 function MobileMenu({ onClose }: { onClose: () => void }) {
 	const { theme, toggle } = useTheme();
-	const { label, switchLang } = useLangSwitcher();
+	const { label, switchLang, currentLocale } = useLangSwitcher();
+	const navLinks = NAV_LABELS[currentLocale];
+	const mobileStrings = MOBILE_STRINGS[currentLocale];
 
 	function handleLangSwitch() {
 		switchLang();
@@ -132,7 +161,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 					AF Blog
 				</span>
 				<button type="button" onClick={onClose} className="text-foreground">
-					<span className="sr-only">Fechar menu</span>✕
+					<span className="sr-only">{mobileStrings.closeMenu}</span>✕
 				</button>
 			</div>
 			<nav className="flex flex-col px-5 py-2">
@@ -159,7 +188,9 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 						<Moon className="h-5 w-5 text-foreground" />
 					)}
 				</button>
-				<span className="text-sm text-foreground-secondary">Alternar tema</span>
+				<span className="text-sm text-foreground-secondary">
+					{mobileStrings.toggleTheme}
+				</span>
 				<button
 					type="button"
 					onClick={handleLangSwitch}
@@ -168,7 +199,9 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 				>
 					<span className="text-xs font-semibold">{label}</span>
 				</button>
-				<span className="text-sm text-foreground-secondary">Idioma</span>
+				<span className="text-sm text-foreground-secondary">
+					{mobileStrings.language}
+				</span>
 			</div>
 		</div>
 	);

@@ -45,9 +45,9 @@ describe.skipIf(port5432Free)("integration: sync script", () => {
 
 	it("2 .mdx files → 2 rows in posts", async () => {
 		const dir = join(tmpDir, "sync2");
-		await mkdir(dir, { recursive: true });
-		await writeFile(join(dir, "t7s2alpha.mdx"), mdx("Post Alpha"));
-		await writeFile(join(dir, "t7s2beta.mdx"), mdx("Post Beta"));
+		await mkdir(join(dir, "en"), { recursive: true });
+		await writeFile(join(dir, "en", "t7s2alpha.mdx"), mdx("Post Alpha"));
+		await writeFile(join(dir, "en", "t7s2beta.mdx"), mdx("Post Beta"));
 		await runSync(["--dir", dir]);
 		const rows =
 			await sql`SELECT id FROM posts WHERE file_path LIKE ${`${dir}/%`}`;
@@ -56,9 +56,9 @@ describe.skipIf(port5432Free)("integration: sync script", () => {
 
 	it("idempotent: run twice → same 2 rows", async () => {
 		const dir = join(tmpDir, "sync-idem");
-		await mkdir(dir, { recursive: true });
-		await writeFile(join(dir, "t7idema.mdx"), mdx("Idem A"));
-		await writeFile(join(dir, "t7idemb.mdx"), mdx("Idem B"));
+		await mkdir(join(dir, "en"), { recursive: true });
+		await writeFile(join(dir, "en", "t7idema.mdx"), mdx("Idem A"));
+		await writeFile(join(dir, "en", "t7idemb.mdx"), mdx("Idem B"));
 		await runSync(["--dir", dir]);
 		await runSync(["--dir", dir]);
 		const rows =
@@ -68,9 +68,9 @@ describe.skipIf(port5432Free)("integration: sync script", () => {
 
 	it("delete one file → 1 row (orphan removed)", async () => {
 		const dir = join(tmpDir, "sync-orphan");
-		await mkdir(dir, { recursive: true });
-		const keepPath = join(dir, "t7keepme.mdx");
-		const orphanPath = join(dir, "t7orphan.mdx");
+		await mkdir(join(dir, "en"), { recursive: true });
+		const keepPath = join(dir, "en", "t7keepme.mdx");
+		const orphanPath = join(dir, "en", "t7orphan.mdx");
 		await writeFile(keepPath, mdx("Keep Me"));
 		await writeFile(orphanPath, mdx("Orphan Post"));
 		await runSync(["--dir", dir]);
@@ -87,8 +87,8 @@ describe.skipIf(port5432Free)("integration: sync script", () => {
 
 	it("process exits cleanly (exit 0) after sync completes", async () => {
 		const dir = join(tmpDir, "sync-exit");
-		await mkdir(dir, { recursive: true });
-		await writeFile(join(dir, "t7exitpost.mdx"), mdx("Exit Test"));
+		await mkdir(join(dir, "en"), { recursive: true });
+		await writeFile(join(dir, "en", "t7exitpost.mdx"), mdx("Exit Test"));
 		const scriptPath = resolve(import.meta.dirname, "../../scripts/sync.ts");
 		await expect(
 			execFileAsync("bun", ["run", scriptPath, "--dir", dir], {
