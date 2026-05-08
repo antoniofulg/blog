@@ -11,6 +11,11 @@ export type Locale = "en" | "pt-br";
 export const LOCALES: Locale[] = ["en", "pt-br"];
 export const DEFAULT_LOCALE: Locale = "en";
 
+const BCP47_MAP: Record<Locale, string> = { en: "en", "pt-br": "pt-BR" };
+export function toBcp47(locale: Locale): string {
+	return BCP47_MAP[locale] ?? locale;
+}
+
 const LocaleContext = createContext<{
 	locale: Locale;
 	setLocale: (locale: Locale) => void;

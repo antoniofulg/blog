@@ -5,6 +5,7 @@ import { EmptyState } from "#/components/ui/empty-state";
 import { Pagination } from "#/components/ui/pagination";
 import { PostCard } from "#/components/ui/post-card";
 import { getPublishedPostsFn } from "#/db/queries";
+import type { Post } from "#/db/schema";
 import type { Locale } from "#/lib/locale";
 
 const copy = {
@@ -30,6 +31,17 @@ const getLocalePosts = createServerFn({ method: "GET" })
 	.handler(({ data: lang }) => getPublishedPostsFn(lang as Locale));
 
 export const Route = createFileRoute("/$lang/blog")({
+	head: ({ params }) => ({
+		meta: [
+			{
+				name: "description",
+				content:
+					params.lang === "pt-br"
+						? "Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional."
+						: "Articles about web development, React, TypeScript, Bun and international career.",
+			},
+		],
+	}),
 	loader: ({ params }) => getLocalePosts({ data: params.lang }),
 	component: LocaleBlogPage,
 });
@@ -37,7 +49,7 @@ export const Route = createFileRoute("/$lang/blog")({
 const POSTS_PER_PAGE = 9;
 
 function LocaleBlogPage() {
-	const allPosts = Route.useLoaderData();
+	const allPosts: Post[] = Route.useLoaderData() ?? [];
 	const { lang } = Route.useParams();
 	const [currentPage, setCurrentPage] = useState(1);
 	const t = copy[lang as keyof typeof copy] ?? copy.en;
@@ -62,7 +74,7 @@ function LocaleBlogPage() {
 					<>
 						<div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 							{paginatedPosts.map((post) => (
-								<PostCard key={post.id} post={post} lang={lang} />
+								<PostCard key={post.id} post={post} lang={lang as Locale} />
 							))}
 						</div>
 

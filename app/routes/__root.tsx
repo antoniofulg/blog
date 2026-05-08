@@ -5,6 +5,7 @@ import {
 	Link,
 	Outlet,
 	Scripts,
+	useLocation,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
@@ -12,7 +13,12 @@ import { getRequest } from "@tanstack/react-start/server";
 import { Home } from "lucide-react";
 import { Footer } from "#/components/layout/footer";
 import { Header } from "#/components/layout/header";
-import { LocaleProvider } from "#/lib/locale";
+import {
+	DEFAULT_LOCALE,
+	LOCALES,
+	type Locale,
+	LocaleProvider,
+} from "#/lib/locale";
 import { ThemeProvider } from "#/lib/theme";
 import type { RouterContext } from "#/types/auth";
 import appCss from "../styles/global.css?url";
@@ -49,7 +55,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			{
 				name: "description",
 				content:
-					"Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional.",
+					"Articles about web development, React, TypeScript, Bun and international career.",
 			},
 		],
 		links: [
@@ -96,8 +102,12 @@ function NotFoundPage() {
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	const { pathname } = useLocation();
+	const segment = pathname.split("/")[1] as Locale;
+	const locale = LOCALES.includes(segment) ? segment : DEFAULT_LOCALE;
+	const htmlLang = locale === "pt-br" ? "pt-BR" : "en";
 	return (
-		<html lang="pt-BR" suppressHydrationWarning>
+		<html lang={htmlLang} suppressHydrationWarning>
 			<head>
 				<HeadContent />
 				<script src="/theme-init.js" />
