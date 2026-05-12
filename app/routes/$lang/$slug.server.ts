@@ -6,7 +6,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { db } from "#/db/client";
 import { type Post, posts } from "#/db/schema";
-import type { Locale } from "#/lib/locale";
+import { LOCALES, type Locale } from "#/lib/locale";
 
 export type PostLoaderResult = {
 	post: Post;
@@ -90,8 +90,20 @@ export async function incrementViewCountFn(id: number): Promise<void> {
 		.where(eq(posts.id, id));
 }
 
+export function validateLocaleInput(data: { slug: string; lang: string }): {
+	slug: string;
+	lang: Locale;
+} {
+	if (!(LOCALES as readonly string[]).includes(data.lang)) {
+		throw new Error(
+			`Invalid locale: "${data.lang}". Expected one of: ${LOCALES.join(", ")}`,
+		);
+	}
+	return { slug: data.slug, lang: data.lang as Locale };
+}
+
 export const getPostBySlugWithLang = createServerFn({ method: "GET" })
-	.inputValidator((data: { slug: string; lang: Locale }) => data)
+	.inputValidator(validateLocaleInput)
 	.handler(async ({ data: { slug, lang } }) => {
 		const { renderMdx } = await import("#/lib/mdx/renderer.server");
 		return getPostBySlugWithLangFn(slug, lang, renderMdx);

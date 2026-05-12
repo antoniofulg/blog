@@ -62,6 +62,7 @@ import { posts } from "#/db/schema";
 import {
 	getPostBySlugWithLangFn,
 	incrementViewCountFn,
+	validateLocaleInput,
 } from "#/routes/$lang/$slug.server";
 
 type Post = (typeof posts)["_"]["inferSelect"];
@@ -96,6 +97,36 @@ function resetMocks() {
 	mocks.update.mockReturnValue({ set: mocks.set });
 	mocks.readFile.mockResolvedValue("# Test\n\nContent");
 }
+
+// ─── Unit: validateLocaleInput ────────────────────────────────────────────────
+
+describe("unit: validateLocaleInput", () => {
+	it("rejects invalid locale string", () => {
+		expect(() => validateLocaleInput({ slug: "test", lang: "fr" })).toThrow(
+			'Invalid locale: "fr"',
+		);
+	});
+
+	it("accepts valid en locale", () => {
+		expect(validateLocaleInput({ slug: "test", lang: "en" })).toEqual({
+			slug: "test",
+			lang: "en",
+		});
+	});
+
+	it("accepts valid pt-br locale", () => {
+		expect(validateLocaleInput({ slug: "test", lang: "pt-br" })).toEqual({
+			slug: "test",
+			lang: "pt-br",
+		});
+	});
+
+	it("rejects empty string", () => {
+		expect(() => validateLocaleInput({ slug: "test", lang: "" })).toThrow(
+			'Invalid locale: ""',
+		);
+	});
+});
 
 // ─── Unit: getPostBySlugWithLangFn ────────────────────────────────────────────
 

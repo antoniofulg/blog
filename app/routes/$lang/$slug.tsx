@@ -46,11 +46,19 @@ export const Route = createFileRoute("/$lang/$slug")({
 			: [],
 	}),
 	component: LocalePostDetail,
-	notFoundComponent: () => (
-		<main>
-			<h1>Post not found</h1>
-		</main>
-	),
+	notFoundComponent: () => {
+		const { lang } = Route.useParams();
+		const copy = {
+			en: "Post not found",
+			"pt-br": "Post não encontrado",
+		} satisfies Record<Locale, string>;
+		const message = copy[lang as Locale] ?? copy.en;
+		return (
+			<main>
+				<h1>{message}</h1>
+			</main>
+		);
+	},
 });
 
 function LocalePostDetail() {
