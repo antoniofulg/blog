@@ -1,20 +1,11 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import { EmptyState } from "#/components/ui/empty-state";
 import { Pagination } from "#/components/ui/pagination";
 import { PostCard } from "#/components/ui/post-card";
 import type { Post } from "#/db/schema";
 import type { Locale } from "#/lib/locale";
-
-const getLocalePosts = createServerFn({ method: "GET" })
-	.inputValidator((lang: string) => lang)
-	.handler(async ({ data: lang }) => {
-		const { getLocalePostsFn, validateLocaleFn } = await import(
-			"./blog.server"
-		);
-		return getLocalePostsFn(validateLocaleFn(lang));
-	});
+import { getLocalePosts } from "./blog.server";
 
 const copy = {
 	en: {

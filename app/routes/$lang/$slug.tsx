@@ -1,27 +1,8 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { useEffect } from "react";
 import { TranslationNotice } from "#/components/ui/translation-notice";
 import { type Locale, toBcp47 } from "#/lib/locale";
-
-const getPostBySlugWithLang = createServerFn({ method: "GET" })
-	.inputValidator((data: { slug: string; lang: string }) => data)
-	.handler(async ({ data }) => {
-		const [{ getPostBySlugWithLangFn, validateLocaleInput }, { renderMdx }] =
-			await Promise.all([
-				import("./$slug.server"),
-				import("#/lib/mdx/renderer.server"),
-			]);
-		const { slug, lang } = validateLocaleInput(data);
-		return getPostBySlugWithLangFn(slug, lang, renderMdx);
-	});
-
-const incrementViewCount = createServerFn({ method: "POST" })
-	.inputValidator((id: number) => id)
-	.handler(async ({ data: id }) => {
-		const { incrementViewCountFn } = await import("./$slug.server");
-		return incrementViewCountFn(id);
-	});
+import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
 
 const dateLocale: Record<Locale, string> = { en: "en-US", "pt-br": "pt-BR" };
 
