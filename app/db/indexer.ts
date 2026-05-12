@@ -77,11 +77,12 @@ async function findMdxFiles(dir: string): Promise<string[]> {
 }
 
 export async function upsertPost(filePath: string): Promise<void> {
+	let lang: string | null = null;
 	try {
 		const source = await readFile(filePath, "utf8");
 		const fm = parseFrontmatterBlock(source, filePath);
 		const slug = deriveSlug(filePath, fm.slug);
-		const lang = deriveLang(filePath);
+		lang = deriveLang(filePath);
 		const now = new Date();
 		await db
 			.insert(posts)
@@ -130,6 +131,7 @@ export async function upsertPost(filePath: string): Promise<void> {
 				level: "ERROR",
 				action: "index_error",
 				filePath,
+				lang,
 				error: String(err),
 			}),
 		);
