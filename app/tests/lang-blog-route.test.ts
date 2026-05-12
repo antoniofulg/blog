@@ -27,6 +27,7 @@ vi.mock("@tanstack/react-start", () => ({
 
 import { getPublishedPostsFn } from "#/db/queries";
 import type { posts } from "#/db/schema";
+import { validateLocaleFn } from "#/routes/$lang/blog.server";
 
 type Post = (typeof posts)["_"]["inferSelect"];
 
@@ -129,6 +130,26 @@ describe("unit: getPublishedPostsFn — locale filtering", () => {
 		mocks.selectOrderBy.mockResolvedValue([]);
 		const result = await getPublishedPostsFn("en");
 		expect(result).toHaveLength(0);
+	});
+});
+
+// ─── Unit: getLocalePosts inputValidator ─────────────────────────────────────
+
+describe("unit: getLocalePosts inputValidator — locale validation", () => {
+	it("rejects an unknown locale string", () => {
+		expect(() => validateLocaleFn("fr")).toThrow(/Invalid locale/);
+	});
+
+	it("rejects an empty string", () => {
+		expect(() => validateLocaleFn("")).toThrow(/Invalid locale/);
+	});
+
+	it("accepts 'en'", () => {
+		expect(validateLocaleFn("en")).toBe("en");
+	});
+
+	it("accepts 'pt-br'", () => {
+		expect(validateLocaleFn("pt-br")).toBe("pt-br");
 	});
 });
 
