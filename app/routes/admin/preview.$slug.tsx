@@ -1,18 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
-
-const getAdminPreview = createServerFn({ method: "GET" })
-	.inputValidator((slug: string) => slug)
-	.handler(async ({ data: slug }) => {
-		const [{ getAdminPreviewFn }, { renderMdx }, { requireSession }] =
-			await Promise.all([
-				import("./preview.$slug.server"),
-				import("#/lib/mdx/renderer.server"),
-				import("#/lib/session"),
-			]);
-		await requireSession();
-		return getAdminPreviewFn(slug, renderMdx);
-	});
+import { getAdminPreview } from "./preview.$slug.server";
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
