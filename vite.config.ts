@@ -83,7 +83,19 @@ const config = defineConfig({
 		devtools(),
 		nitro({ preset: "bun", rollupConfig: { external: [/^@sentry\//] } }),
 		tailwindcss(),
-		tanstackStart({ srcDirectory: "app" }),
+		tanstackStart({
+			srcDirectory: "app",
+			importProtection: {
+				client: {
+					excludeFiles: [
+						"app/routes/$lang/$slug.server.ts",
+						"app/routes/$lang/blog.server.ts",
+						"app/routes/admin/index.server.ts",
+						"app/routes/admin/preview.$slug.server.ts",
+					],
+				},
+			},
+		}),
 		viteReact(),
 		serverOnlyStubPlugin(),
 	],

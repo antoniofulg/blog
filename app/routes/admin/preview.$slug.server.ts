@@ -1,10 +1,7 @@
-import { readFile } from "node:fs/promises";
 import { createServerFn } from "@tanstack/react-start";
-import { eq } from "drizzle-orm";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { db } from "#/db/client";
-import { type Post, posts } from "#/db/schema";
+import type { Post } from "#/db/schema";
 import { renderMdx } from "#/lib/mdx/renderer.server";
 import { requireSession } from "#/lib/session";
 
@@ -13,6 +10,12 @@ export async function getAdminPreviewFn(
 	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
 	renderFn: (source: string) => Promise<any> = async () => () => null,
 ): Promise<{ post: Post; html: string }> {
+	const [{ readFile }, { db }, { posts }, { eq }] = await Promise.all([
+		import("node:fs/promises"),
+		import("#/db/client"),
+		import("#/db/schema"),
+		import("drizzle-orm"),
+	]);
 	const [post] = await db.select().from(posts).where(eq(posts.slug, slug));
 	if (!post) {
 		throw new Response("Not found", { status: 404 });

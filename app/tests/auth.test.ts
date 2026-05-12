@@ -84,6 +84,12 @@ describe("unit: client bundle exclusion", () => {
 		expect(viteConfig).toContain("serverOnlyStubPlugin");
 	});
 
+	it("TanStack Start import protection is not disabled", () => {
+		expect(viteConfig).not.toMatch(
+			/importProtection\s*:\s*\{[^}]*enabled\s*:\s*false/,
+		);
+	});
+
 	it("auth module is in the server-only stub list", () => {
 		expect(viteConfig).toContain("#/lib/auth");
 	});

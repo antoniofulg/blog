@@ -48,6 +48,10 @@ dev-docker: ## Start fully containerized stack with file sync (opt-in; macOS HMR
 
 # -- Build & Preview -----------------------------------------------------------
 
+build-js: ## Build JS/SSR bundle (bun run build) — run in CI before Docker build
+	bun run build
+	@echo "JS build complete. Next: make build | make check | make test"
+
 build: ## Build production Docker image
 	docker build -t $(IMAGE_NAME) .
 	@echo "Image built → $(IMAGE_NAME). Next: make preview | make deploy"

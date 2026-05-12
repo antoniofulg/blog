@@ -1,10 +1,13 @@
 import { createServerFn } from "@tanstack/react-start";
-import { desc, eq } from "drizzle-orm";
-import { db } from "#/db/client";
-import { type Post, posts } from "#/db/schema";
+import type { Post } from "#/db/schema";
 import { requireSession } from "#/lib/session";
 
 export async function getAllPostsFn(): Promise<Post[]> {
+	const [{ db }, { posts }, { desc }] = await Promise.all([
+		import("#/db/client"),
+		import("#/db/schema"),
+		import("drizzle-orm"),
+	]);
 	return await db.select().from(posts).orderBy(desc(posts.indexedAt));
 }
 
@@ -12,6 +15,11 @@ export async function togglePublishedFn(
 	id: number,
 	isPublished: boolean,
 ): Promise<void> {
+	const [{ db }, { posts }, { eq }] = await Promise.all([
+		import("#/db/client"),
+		import("#/db/schema"),
+		import("drizzle-orm"),
+	]);
 	if (isPublished) {
 		const [post] = await db
 			.select({ publishedAt: posts.publishedAt })

@@ -1,11 +1,6 @@
-import { readFile } from "node:fs/promises";
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import { and, eq, sql } from "drizzle-orm";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
-import { db } from "#/db/client";
-import { type Post, posts } from "#/db/schema";
+import type { Post } from "#/db/schema";
 import { LOCALES, type Locale } from "#/lib/locale";
 
 export type PostLoaderResult = {
@@ -23,6 +18,21 @@ export async function getPostBySlugWithLangFn(
 	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
 	renderFn: (source: string) => Promise<any> = async () => () => null,
 ): Promise<PostLoaderResult> {
+	const [
+		{ readFile },
+		{ and, eq },
+		{ createElement },
+		{ renderToStaticMarkup },
+		{ db },
+		{ posts },
+	] = await Promise.all([
+		import("node:fs/promises"),
+		import("drizzle-orm"),
+		import("react"),
+		import("react-dom/server"),
+		import("#/db/client"),
+		import("#/db/schema"),
+	]);
 	const [exactPost] = await db
 		.select()
 		.from(posts)
@@ -84,6 +94,11 @@ export async function getPostBySlugWithLangFn(
 }
 
 export async function incrementViewCountFn(id: number): Promise<void> {
+	const [{ db }, { posts }, { eq, sql }] = await Promise.all([
+		import("#/db/client"),
+		import("#/db/schema"),
+		import("drizzle-orm"),
+	]);
 	await db
 		.update(posts)
 		.set({ viewCount: sql`view_count + 1` })
