@@ -1,3 +1,4 @@
+import "@tanstack/react-start/server-only";
 import { readdir, readFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
 import { eq, like } from "drizzle-orm";

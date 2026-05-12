@@ -1,6 +1,5 @@
 import { readFile } from "node:fs/promises";
 import { notFound } from "@tanstack/react-router";
-import { createServerFn } from "@tanstack/react-start";
 import { and, eq, sql } from "drizzle-orm";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
@@ -101,14 +100,3 @@ export function validateLocaleInput(data: { slug: string; lang: string }): {
 	}
 	return { slug: data.slug, lang: data.lang as Locale };
 }
-
-export const getPostBySlugWithLang = createServerFn({ method: "GET" })
-	.inputValidator(validateLocaleInput)
-	.handler(async ({ data: { slug, lang } }) => {
-		const { renderMdx } = await import("#/lib/mdx/renderer.server");
-		return getPostBySlugWithLangFn(slug, lang, renderMdx);
-	});
-
-export const incrementViewCount = createServerFn({ method: "POST" })
-	.inputValidator((id: number) => id)
-	.handler(async ({ data: id }) => incrementViewCountFn(id));

@@ -1,12 +1,9 @@
 import { readFile } from "node:fs/promises";
-import { createServerFn } from "@tanstack/react-start";
 import { eq } from "drizzle-orm";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { db } from "#/db/client";
 import { type Post, posts } from "#/db/schema";
-import { renderMdx } from "#/lib/mdx/renderer.server";
-import { requireSession } from "#/lib/session";
 
 export async function getAdminPreviewFn(
 	slug: string,
@@ -22,10 +19,3 @@ export async function getAdminPreviewFn(
 	const html = renderToStaticMarkup(createElement(Content, {}));
 	return { post, html };
 }
-
-export const getAdminPreview = createServerFn({ method: "GET" })
-	.inputValidator((slug: string) => slug)
-	.handler(async ({ data: slug }) => {
-		await requireSession();
-		return getAdminPreviewFn(slug, renderMdx);
-	});

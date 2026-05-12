@@ -1,4 +1,3 @@
-import { createServerFn } from "@tanstack/react-start";
 import { getPublishedPostsFn } from "#/db/queries";
 import { LOCALES, type Locale } from "#/lib/locale";
 
@@ -11,6 +10,6 @@ export function validateLocaleFn(lang: string): Locale {
 	return lang as Locale;
 }
 
-export const getLocalePosts = createServerFn({ method: "GET" })
-	.inputValidator(validateLocaleFn)
-	.handler(({ data: lang }) => getPublishedPostsFn(lang));
+export function getLocalePostsFn(lang: Locale) {
+	return getPublishedPostsFn(lang);
+}

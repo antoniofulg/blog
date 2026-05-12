@@ -83,10 +83,7 @@ const config = defineConfig({
 		devtools(),
 		nitro({ preset: "bun", rollupConfig: { external: [/^@sentry\//] } }),
 		tailwindcss(),
-		tanstackStart({
-			srcDirectory: "app",
-			importProtection: { enabled: false },
-		}),
+		tanstackStart({ srcDirectory: "app" }),
 		viteReact(),
 		serverOnlyStubPlugin(),
 	],

@@ -1,7 +1,27 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { createServerFn } from "@tanstack/react-start";
 import { useState } from "react";
 import type { Post } from "#/db/schema";
-import { getAllPosts, togglePublished } from "./index.server";
+
+const getAllPosts = createServerFn({ method: "GET" }).handler(async () => {
+	const [{ getAllPostsFn }, { requireSession }] = await Promise.all([
+		import("./index.server"),
+		import("#/lib/session"),
+	]);
+	await requireSession();
+	return getAllPostsFn();
+});
+
+const togglePublished = createServerFn({ method: "POST" })
+	.inputValidator((input: { id: number; isPublished: boolean }) => input)
+	.handler(async ({ data }) => {
+		const [{ togglePublishedFn }, { requireSession }] = await Promise.all([
+			import("./index.server"),
+			import("#/lib/session"),
+		]);
+		await requireSession();
+		return togglePublishedFn(data.id, data.isPublished);
+	});
 
 // ─── Route ────────────────────────────────────────────────────────────────────
 
