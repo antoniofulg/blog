@@ -5,6 +5,7 @@ import {
 	Link,
 	Outlet,
 	Scripts,
+	useLocation,
 } from "@tanstack/react-router";
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
@@ -12,6 +13,12 @@ import { getRequest } from "@tanstack/react-start/server";
 import { Home } from "lucide-react";
 import { Footer } from "#/components/layout/footer";
 import { Header } from "#/components/layout/header";
+import {
+	DEFAULT_LOCALE,
+	LOCALES,
+	type Locale,
+	LocaleProvider,
+} from "#/lib/locale";
 import { ThemeProvider } from "#/lib/theme";
 import type { RouterContext } from "#/types/auth";
 import appCss from "../styles/global.css?url";
@@ -48,7 +55,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			{
 				name: "description",
 				content:
-					"Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional.",
+					"Articles about web development, React, TypeScript, Bun and international career.",
 			},
 		],
 		links: [
@@ -71,37 +78,56 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 });
 
 function NotFoundPage() {
+	const { pathname } = useLocation();
+	const segment = pathname.split("/")[1] as Locale;
+	const lang = LOCALES.includes(segment) ? segment : DEFAULT_LOCALE;
+
+	const copy = {
+		en: {
+			heading: "Page not found",
+			body: "The page you're looking for doesn't exist or has been moved.",
+			cta: "Back to Home",
+		},
+		"pt-br": {
+			heading: "Página não encontrada",
+			body: "A página que você está procurando não existe ou foi movida para outro endereço.",
+			cta: "Voltar ao Início",
+		},
+	} satisfies Record<Locale, { heading: string; body: string; cta: string }>;
+
+	const t = copy[lang];
 	return (
 		<div className="flex flex-col items-center justify-center gap-6 px-5 py-20 text-center">
 			<span className="font-heading text-7xl font-extrabold text-accent lg:text-9xl">
 				404
 			</span>
 			<h1 className="font-heading text-2xl font-bold text-foreground lg:text-3xl">
-				Página não encontrada
+				{t.heading}
 			</h1>
-			<p className="max-w-md text-foreground-secondary">
-				A página que você está procurando não existe ou foi movida para outro
-				endereço.
-			</p>
+			<p className="max-w-md text-foreground-secondary">{t.body}</p>
 			<Link
 				to="/"
 				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
 			>
 				<Home className="h-4 w-4" />
-				Voltar ao Início
+				{t.cta}
 			</Link>
 		</div>
 	);
 }
 
 function RootDocument({ children }: { children: React.ReactNode }) {
+	const { pathname } = useLocation();
+	const segment = pathname.split("/")[1] as Locale;
+	const locale = LOCALES.includes(segment) ? segment : DEFAULT_LOCALE;
+	const htmlLang = locale === "pt-br" ? "pt-BR" : "en";
 	return (
-		<html lang="pt-BR" suppressHydrationWarning>
+		<html lang={htmlLang} suppressHydrationWarning>
 			<head>
 				<HeadContent />
 				<script src="/theme-init.js" />
 			</head>
-			<body>
+			<body suppressHydrationWarning>
 				{children}
 				{import.meta.env.DEV && (
 					<TanStackDevtools
@@ -122,14 +148,16 @@ function RootDocument({ children }: { children: React.ReactNode }) {
 
 function RootLayout() {
 	return (
-		<ThemeProvider>
-			<div className="flex min-h-screen flex-col">
-				<Header />
-				<main className="flex-1">
-					<Outlet />
-				</main>
-				<Footer />
-			</div>
-		</ThemeProvider>
+		<LocaleProvider>
+			<ThemeProvider>
+				<div className="flex min-h-screen flex-col">
+					<Header />
+					<main className="flex-1">
+						<Outlet />
+					</main>
+					<Footer />
+				</div>
+			</ThemeProvider>
+		</LocaleProvider>
 	);
 }

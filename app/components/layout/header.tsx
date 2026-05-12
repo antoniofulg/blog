@@ -1,20 +1,82 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Menu, Moon, Search, Sun, Terminal } from "lucide-react";
 import { useState } from "react";
+import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
 
-const navLinks = [
-	{ label: "Home", to: "/" },
-	{ label: "Blog", to: "/blog" },
-	{ label: "Tutoriais", to: "/tutorials" },
-	{ label: "Projetos", to: "/projects" },
-	{ label: "Sobre", to: "/about" },
-	{ label: "Newsletter", to: "/newsletter" },
-] as const;
+const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
+	en: [
+		{ label: "Home", to: "/" },
+		{ label: "Blog", to: "/blog" },
+		{ label: "Tutorials", to: "/tutorials" },
+		{ label: "Projects", to: "/projects" },
+		{ label: "About", to: "/about" },
+		{ label: "Newsletter", to: "/newsletter" },
+	],
+	"pt-br": [
+		{ label: "Home", to: "/" },
+		{ label: "Blog", to: "/blog" },
+		{ label: "Tutoriais", to: "/tutorials" },
+		{ label: "Projetos", to: "/projects" },
+		{ label: "Sobre", to: "/about" },
+		{ label: "Newsletter", to: "/newsletter" },
+	],
+};
+
+const MOBILE_STRINGS: Record<
+	Locale,
+	{ closeMenu: string; toggleTheme: string; language: string }
+> = {
+	en: {
+		closeMenu: "Close menu",
+		toggleTheme: "Toggle theme",
+		language: "Language",
+	},
+	"pt-br": {
+		closeMenu: "Fechar menu",
+		toggleTheme: "Alternar tema",
+		language: "Idioma",
+	},
+};
+
+function useLangSwitcher() {
+	const { setLocale } = useLocale();
+	const navigate = useNavigate();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+
+	const currentLocale: Locale =
+		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
+			| Locale
+			| undefined) ?? DEFAULT_LOCALE;
+	const targetLocale = LOCALES.find((l) => l !== currentLocale) as Locale;
+	const label = targetLocale === "pt-br" ? "PT" : "EN";
+
+	function switchLang() {
+		setLocale(targetLocale);
+		const prefix = `/${currentLocale}/`;
+		if (pathname.startsWith(prefix)) {
+			const rest = pathname.slice(prefix.length);
+			if (rest === "blog") {
+				navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+			} else {
+				navigate({
+					to: "/$lang/$slug",
+					params: { lang: targetLocale, slug: rest },
+				});
+			}
+		} else {
+			navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+		}
+	}
+
+	return { label, switchLang, currentLocale };
+}
 
 export function Header() {
 	const { theme, toggle } = useTheme();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+	const { label, switchLang, currentLocale } = useLangSwitcher();
+	const navLinks = NAV_LABELS[currentLocale];
 
 	return (
 		<>
@@ -47,6 +109,14 @@ export function Header() {
 					</Link>
 					<button
 						type="button"
+						onClick={switchLang}
+						aria-label="Switch language"
+						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
+					>
+						<span className="text-xs font-semibold">{label}</span>
+					</button>
+					<button
+						type="button"
 						onClick={toggle}
 						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
 					>
@@ -75,6 +145,14 @@ export function Header() {
 
 function MobileMenu({ onClose }: { onClose: () => void }) {
 	const { theme, toggle } = useTheme();
+	const { label, switchLang, currentLocale } = useLangSwitcher();
+	const navLinks = NAV_LABELS[currentLocale];
+	const mobileStrings = MOBILE_STRINGS[currentLocale];
+
+	function handleLangSwitch() {
+		switchLang();
+		onClose();
+	}
 
 	return (
 		<div className="fixed inset-0 z-50 bg-background lg:hidden">
@@ -83,7 +161,7 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 					AF Blog
 				</span>
 				<button type="button" onClick={onClose} className="text-foreground">
-					<span className="sr-only">Fechar menu</span>✕
+					<span className="sr-only">{mobileStrings.closeMenu}</span>✕
 				</button>
 			</div>
 			<nav className="flex flex-col px-5 py-2">
@@ -110,7 +188,20 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 						<Moon className="h-5 w-5 text-foreground" />
 					)}
 				</button>
-				<span className="text-sm text-foreground-secondary">Alternar tema</span>
+				<span className="text-sm text-foreground-secondary">
+					{mobileStrings.toggleTheme}
+				</span>
+				<button
+					type="button"
+					onClick={handleLangSwitch}
+					aria-label="Switch language"
+					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground"
+				>
+					<span className="text-xs font-semibold">{label}</span>
+				</button>
+				<span className="text-sm text-foreground-secondary">
+					{mobileStrings.language}
+				</span>
 			</div>
 		</div>
 	);

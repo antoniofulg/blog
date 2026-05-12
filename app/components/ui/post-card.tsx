@@ -1,7 +1,10 @@
 import { Link } from "@tanstack/react-router";
 import type { Post } from "#/db/schema";
+import { DEFAULT_LOCALE, type Locale } from "#/lib/locale";
 
-export function PostCard({ post }: { post: Post }) {
+const dateLocale: Record<Locale, string> = { en: "en-US", "pt-br": "pt-BR" };
+
+export function PostCard({ post, lang }: { post: Post; lang?: Locale }) {
 	return (
 		<article className="group overflow-hidden rounded-lg border border-border bg-card transition-shadow hover:shadow-md">
 			<div className="h-48 bg-muted" />
@@ -11,17 +14,26 @@ export function PostCard({ post }: { post: Post }) {
 						dateTime={new Date(post.publishedAt).toISOString()}
 						className="text-xs text-foreground-muted"
 					>
-						{new Date(post.publishedAt).toLocaleDateString("pt-BR", {
-							day: "numeric",
-							month: "short",
-							year: "numeric",
-						})}
+						{new Date(post.publishedAt).toLocaleDateString(
+							dateLocale[lang ?? DEFAULT_LOCALE],
+							{
+								day: "numeric",
+								month: "short",
+								year: "numeric",
+							},
+						)}
 					</time>
 				)}
 				<h3 className="font-heading text-lg font-bold leading-snug text-foreground group-hover:text-accent">
-					<Link to="/$slug" params={{ slug: post.slug }}>
-						{post.title}
-					</Link>
+					{lang ? (
+						<Link to="/$lang/$slug" params={{ lang, slug: post.slug }}>
+							{post.title}
+						</Link>
+					) : (
+						<Link to="/$slug" params={{ slug: post.slug }}>
+							{post.title}
+						</Link>
+					)}
 				</h3>
 				{post.description && (
 					<p className="line-clamp-2 text-sm leading-relaxed text-foreground-secondary">

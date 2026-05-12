@@ -54,3 +54,4 @@ app/
 - Components: .agents/rules/components.md
 - Git workflow: .agents/rules/git-workflow.md
 - CI/CD: .agents/rules/cicd.md
+- Content authoring: CONTENT.md
