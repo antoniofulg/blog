@@ -22,6 +22,27 @@ jobs:
       - run: cp .env.example .env
       - run: make ${{ matrix.check }}
 
+  docker-build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build runner image
+        run: docker build --target runner -t blog-runner-test .
+      - name: Start DB
+        run: |
+          docker network create blog || true
+          docker run -d --name db --network blog \
+            -e POSTGRES_DB=blog -e POSTGRES_USER=blog -e POSTGRES_PASSWORD=blog \
+            postgres:16-alpine
+          sleep 5
+      - name: Test db:migrate inside container
+        run: |
+          docker run --rm \
+            --network blog \
+            -e DATABASE_URL=postgres://blog:blog@db:5432/blog \
+            blog-runner-test \
+            bun run db:migrate
+
   commitlint:
     runs-on: ubuntu-latest
     if: github.event_name == 'pull_request'
