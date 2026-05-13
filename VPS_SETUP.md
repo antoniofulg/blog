@@ -222,6 +222,7 @@ _Run as deploy user (with sudo) — it will ask for the deploy user password you
   ADMIN_PASSWORD=strongpassword
   ```
   > `POSTGRES_PASSWORD` and the password in `DATABASE_URL` must be identical.
+  > **Avoid `$` in passwords.** Docker Compose interpolates `$` in values as variable references when parsing compose files. A password like `abc$XYZ` becomes `abc` because `$XYZ` resolves to an empty variable. Use alphanumeric + symbols like `!`, `@`, `#`, `%`, `^`, `&`, `*` instead.
   ```sh
   chmod 600 .env
   ```

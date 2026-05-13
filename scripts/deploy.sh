@@ -5,6 +5,7 @@ set -euo pipefail
 : "${VPS_HOST:?VPS_HOST env var required}"
 : "${DEPLOY_PATH:?DEPLOY_PATH env var required}"
 VPS_PORT="${VPS_PORT:-22}"
+COMPOSE_FILE="${COMPOSE_FILE:-docker-compose.yml}"
 TAG="${IMAGE_TAG:-latest}"
 IMAGE="ghcr.io/${GHCR_OWNER:?}/${GHCR_REPO:?}:${TAG}"
 
@@ -20,8 +21,13 @@ ssh -p "$VPS_PORT" \
   "$VPS_USER@$VPS_HOST" \
   "set -euo pipefail
 
+   # Pre-flight: verify required vars exist in .env (grep avoids $ interpolation)
+   for _var in POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD DATABASE_URL BETTER_AUTH_SECRET; do
+     grep -q "^\$_var=" '$DEPLOY_PATH/.env' 2>/dev/null || { echo "[deploy] ERROR: \$_var not set in '$DEPLOY_PATH/.env'"; exit 1; }
+   done
+
    # Save current image for rollback
-   OLD_IMAGE=\$(docker inspect --format='{{.Config.Image}}' \$(docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' ps -q app 2>/dev/null) 2>/dev/null || echo '')
+   OLD_IMAGE=\$(docker inspect --format='{{.Config.Image}}' \$(docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' ps -q app 2>/dev/null) 2>/dev/null || echo '')
    echo '[deploy] current: \${OLD_IMAGE:-none}'
 
    # Pull new image
@@ -29,14 +35,14 @@ ssh -p "$VPS_PORT" \
 
    # Ensure DB is running and healthy before migrations (also creates blog network)
    GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
-     docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --wait db
+     docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' up -d --wait db
 
    # Run migrations inside pulled image
    docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog $IMAGE bun run db:migrate
 
    # Deploy new image
    GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
-     docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --no-deps app
+     docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' up -d --no-deps app
 
    # Smoke test (skipped when DEPLOY_DOMAIN is unset)
    if [ -n \"$DOMAIN\" ]; then
@@ -49,7 +55,7 @@ ssh -p "$VPS_PORT" \
        if [ -n \"\$OLD_IMAGE\" ]; then
          docker tag \"\$OLD_IMAGE\" ghcr.io/$GHCR_OWNER/$GHCR_REPO:latest
          GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=latest \
-           docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --no-deps app
+           docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' up -d --no-deps app
          echo '[deploy] rollback complete'
        else
          echo '[deploy] no previous image to roll back to'

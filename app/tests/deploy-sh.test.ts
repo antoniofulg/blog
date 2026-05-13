@@ -131,12 +131,28 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).not.toContain("make db-migrate");
 	});
 
-	it("uses docker-compose.prod.yml for app restart", () => {
+	it("uses docker-compose.yml (default) for app restart", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
 				...baseEnv,
 				...requiredVars,
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		expect(log).toContain("docker-compose.yml");
+		expect(log).toContain("up -d --no-deps app");
+	});
+
+	it("uses COMPOSE_FILE override when set", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				COMPOSE_FILE: "docker-compose.prod.yml",
 				PATH: `${binDir}:${baseEnv.PATH}`,
 			},
 			encoding: "utf8",
