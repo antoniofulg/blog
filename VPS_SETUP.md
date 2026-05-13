@@ -214,10 +214,14 @@ _Run as deploy user (with sudo) — it will ask for the deploy user password you
   Contents (fill in real values):
   ```
   DATABASE_URL=postgres://blog:STRONG_PG_PASSWORD@db:5432/blog
+  POSTGRES_DB=blog
+  POSTGRES_USER=blog
+  POSTGRES_PASSWORD=STRONG_PG_PASSWORD
   BETTER_AUTH_SECRET=<run: openssl rand -base64 32>
   ADMIN_EMAIL=your@email.com
   ADMIN_PASSWORD=strongpassword
   ```
+  > `POSTGRES_PASSWORD` and the password in `DATABASE_URL` must be identical.
   ```sh
   chmod 600 .env
   ```
@@ -260,6 +264,7 @@ Go to: `github.com/YOUR_USER/blog` → Settings → Secrets and variables → Ac
 - [ ] `VPS_SSH_KEY` — contents of `~/.ssh/blog_deploy` (private key, full PEM including header/footer lines)
 - [ ] `VPS_PORT` — the port you found in Phase 2 (e.g. `22`, `2222`, `22022`)
 - [ ] `VPS_DEPLOY_PATH` — `/home/deploy/blog`
+- [ ] `DEPLOY_DOMAIN` — your domain (e.g. `antoniofulg.tech`) — used for smoke test after deploy
 
 ---
 
@@ -267,11 +272,12 @@ Go to: `github.com/YOUR_USER/blog` → Settings → Secrets and variables → Ac
 
 - [ ] Merge a PR (or push a trivial commit) to `main`
 - [ ] Watch Actions tab:
-  - [ ] `ci.yml` → all 3 jobs green (test / lint / check)
+  - [ ] `ci.yml` → all jobs green (test / lint / check / build-js / docker-build)
   - [ ] `cd.yml` → triggered automatically after ci.yml passes
     - [ ] `build-push` job: image pushed to GHCR
-    - [ ] `deploy` job: SSH to VPS, `db:migrate` ran, container restarted
+    - [ ] `deploy` job: SSH to VPS, `db:migrate` ran, container restarted, smoke test passed
     - [ ] `changelog` job: CHANGELOG.md updated
+  > If smoke test fails, deploy auto-rolls back to previous image
 - [ ] Visit `https://your-domain.com` — live with new changes
 
 ---
@@ -291,9 +297,14 @@ docker compose -f /home/deploy/blog/docker-compose.yml logs -f app
 # Restart app
 docker compose -f /home/deploy/blog/docker-compose.yml restart app
 
-# Rollback to previous SHA
-docker pull ghcr.io/OWNER/blog:OLD_SHA
-docker tag ghcr.io/OWNER/blog:OLD_SHA ghcr.io/OWNER/blog:latest
-docker push ghcr.io/OWNER/blog:latest
-# Then SSH in: docker compose pull && docker compose up -d app
+# Manual rollback to a previous SHA
+docker pull ghcr.io/antoniofulg/blog:OLD_SHA
+docker tag ghcr.io/antoniofulg/blog:OLD_SHA ghcr.io/antoniofulg/blog:latest
+docker push ghcr.io/antoniofulg/blog:latest
+# Then SSH in and run:
+# docker compose -f /home/deploy/blog/docker-compose.yml pull && \
+# docker compose -f /home/deploy/blog/docker-compose.yml up -d --no-deps app
+
+# Smoke test site manually
+curl -I https://antoniofulg.tech
 ```

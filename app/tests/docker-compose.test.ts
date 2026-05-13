@@ -49,7 +49,8 @@ describe("unit: docker-compose.yml", () => {
 			expect.objectContaining({
 				ADMIN_EMAIL: "admin@example.com",
 				ADMIN_PASSWORD: "changeme",
-				DATABASE_URL: "postgres://blog:blog@localhost:5432/blog",
+				DATABASE_URL:
+					"postgres://POSTGRES_USER:POSTGRES_PASSWORD@localhost:5432/POSTGRES_DB",
 			}),
 		);
 	});
@@ -122,8 +123,8 @@ describe("unit: docker-compose.yml", () => {
 		);
 	});
 
-	it("health check command is pg_isready -U blog", () => {
-		expect(content).toContain("pg_isready -U blog");
+	it("health check command is pg_isready -U ${POSTGRES_USER}", () => {
+		expect(content).toContain("pg_isready -U ${POSTGRES_USER}");
 	});
 
 	it("postgres_data volume declared in top-level volumes key", () => {

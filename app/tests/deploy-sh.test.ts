@@ -109,7 +109,7 @@ describe("unit: scripts/deploy.sh", () => {
 		const log = readFileSync(logPath, "utf8");
 		const pullIdx = log.indexOf("docker pull");
 		const migrateIdx = log.indexOf("bun run db:migrate");
-		const upIdx = log.indexOf("docker-compose.prod.yml");
+		const upIdx = log.indexOf("up -d --no-deps app");
 		expect(pullIdx).toBeGreaterThan(-1);
 		expect(migrateIdx).toBeGreaterThan(pullIdx);
 		expect(upIdx).toBeGreaterThan(migrateIdx);
@@ -158,8 +158,9 @@ describe("unit: scripts/deploy.sh", () => {
 			encoding: "utf8",
 		});
 		const log = readFileSync(logPath, "utf8");
-		expect(log).toContain("ghcr.io/myowner/myblog:abc1234");
-		expect(log).not.toContain(":latest");
+		expect(log).toContain("docker pull ghcr.io/myowner/myblog:abc1234");
+		expect(log).toContain("IMAGE_TAG=abc1234");
+		expect(log).not.toContain("docker pull ghcr.io/myowner/myblog:latest");
 	});
 
 	it("defaults to :latest tag when IMAGE_TAG is unset", () => {
