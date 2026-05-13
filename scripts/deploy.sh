@@ -28,7 +28,8 @@ ssh -p "$VPS_PORT" \
    docker pull $IMAGE
 
    # Ensure DB is running and healthy before migrations (also creates blog network)
-   docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --wait db
+   GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
+     docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --wait db
 
    # Run migrations inside pulled image
    docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog $IMAGE bun run db:migrate
