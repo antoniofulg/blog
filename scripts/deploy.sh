@@ -24,8 +24,13 @@ ssh -p "$VPS_PORT" \
    OLD_IMAGE=\$(docker inspect --format='{{.Config.Image}}' \$(docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' ps -q app 2>/dev/null) 2>/dev/null || echo '')
    echo '[deploy] current: \${OLD_IMAGE:-none}'
 
-   # Pull and migrate
+   # Pull new image
    docker pull $IMAGE
+
+   # Ensure DB is running and healthy before migrations (also creates blog network)
+   docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --wait db
+
+   # Run migrations inside pulled image
    docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog $IMAGE bun run db:migrate
 
    # Deploy new image
