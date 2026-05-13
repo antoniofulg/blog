@@ -8,16 +8,15 @@ networks:
 services:
   db:
     image: postgres:16-alpine
+    env_file: .env
     environment:
-      POSTGRES_DB: blog
-      POSTGRES_USER: blog
-      POSTGRES_PASSWORD: blog
-    ports:
-      - "5432:5432"
+      POSTGRES_DB: ${POSTGRES_DB}
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U blog"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
       interval: 5s
       timeout: 5s
       retries: 5
