@@ -25,6 +25,8 @@ COPY --from=builder /app/node_modules ./node_modules
 COPY --from=builder /app/drizzle ./drizzle
 COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/scripts/migrate.ts ./scripts/migrate.ts
+COPY --from=builder /app/scripts/seed.ts ./scripts/seed.ts
+COPY --from=builder /app/app/db ./app/db
 
 EXPOSE 3000
 
