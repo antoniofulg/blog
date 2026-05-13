@@ -21,7 +21,7 @@ setup: ## First-clone: copy .env, start DB, run migrations
 	docker compose up db -d
 	@echo "Waiting for database..."; \
 	  i=0; \
-	  until docker compose exec db pg_isready -U blog > /dev/null 2>&1; do \
+	  until [ "$$(docker compose ps db --format '{{.Health}}')" = "healthy" ]; do \
 	    i=$$((i+1)); \
 	    if [ $$i -ge 30 ]; then \
 	      echo "ERROR: Postgres did not become ready after 30 seconds."; \

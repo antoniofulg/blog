@@ -10,7 +10,7 @@ IMAGE="ghcr.io/${GHCR_OWNER:?}/${GHCR_REPO:?}:${TAG}"
 
 echo "[deploy] starting: $IMAGE → $VPS_USER@$VPS_HOST:$VPS_PORT"
 
-DOMAIN="${DEPLOY_DOMAIN:?DEPLOY_DOMAIN env var required}"
+DOMAIN="${DEPLOY_DOMAIN:-}"
 
 ssh -p "$VPS_PORT" \
   -o StrictHostKeyChecking=accept-new \
@@ -32,20 +32,24 @@ ssh -p "$VPS_PORT" \
    GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
      docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --no-deps app
 
-   # Smoke test
-   echo '[deploy] running smoke test...'
-   sleep 10
-   if curl --fail --silent --max-time 10 https://$DOMAIN > /dev/null; then
-     echo '[deploy] smoke test passed — done: $IMAGE'
-   else
-     echo '[deploy] smoke test FAILED — rolling back to \${OLD_IMAGE:-previous}'
-     if [ -n \"\$OLD_IMAGE\" ]; then
-       docker tag \"\$OLD_IMAGE\" ghcr.io/$GHCR_OWNER/$GHCR_REPO:latest
-       GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=latest \
-         docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --no-deps app
-       echo '[deploy] rollback complete'
+   # Smoke test (skipped when DEPLOY_DOMAIN is unset)
+   if [ -n \"$DOMAIN\" ]; then
+     echo '[deploy] running smoke test...'
+     sleep 10
+     if curl --fail --silent --max-time 10 https://$DOMAIN > /dev/null; then
+       echo '[deploy] smoke test passed — done: $IMAGE'
      else
-       echo '[deploy] no previous image to roll back to'
+       echo '[deploy] smoke test FAILED — rolling back to \${OLD_IMAGE:-previous}'
+       if [ -n \"\$OLD_IMAGE\" ]; then
+         docker tag \"\$OLD_IMAGE\" ghcr.io/$GHCR_OWNER/$GHCR_REPO:latest
+         GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=latest \
+           docker compose -f '$DEPLOY_PATH/docker-compose.prod.yml' up -d --no-deps app
+         echo '[deploy] rollback complete'
+       else
+         echo '[deploy] no previous image to roll back to'
+       fi
+       exit 1
      fi
-     exit 1
+   else
+     echo '[deploy] done: $IMAGE'
    fi"
