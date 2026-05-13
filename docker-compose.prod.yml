@@ -1,5 +1,6 @@
 # Production stack — managed by deploy.sh via GitHub Actions CD; do not run manually.
 # Requires env: GHCR_OWNER, GHCR_REPO, IMAGE_TAG (defaults to latest)
+# Required in .env: POSTGRES_DB, POSTGRES_USER, POSTGRES_PASSWORD, DATABASE_URL, BETTER_AUTH_SECRET
 
 networks:
   blog:
@@ -10,13 +11,13 @@ services:
     image: postgres:16-alpine
     env_file: .env
     environment:
-      POSTGRES_DB: ${POSTGRES_DB}
-      POSTGRES_USER: ${POSTGRES_USER}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in .env}
+      POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:?POSTGRES_USER must be set in .env}"]
       interval: 5s
       timeout: 5s
       retries: 5
