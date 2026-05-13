@@ -16,7 +16,7 @@
     "biome:check": "biome check .",
     "biome:fix": "biome check --write .",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "drizzle-kit migrate",
+    "db:migrate": "bun run scripts/migrate.ts",
     "db:seed": "bun run scripts/seed.ts",
     "sync": "bun run scripts/sync.ts"
   },

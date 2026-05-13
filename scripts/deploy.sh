@@ -38,7 +38,7 @@ ssh -p "$VPS_PORT" \
      docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' up -d --wait db
 
    # Run migrations inside pulled image
-   docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog -e CI=true $IMAGE bun run db:migrate
+   docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog $IMAGE bun run db:migrate
 
    # Deploy new image
    GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
