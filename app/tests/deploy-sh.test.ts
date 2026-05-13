@@ -17,6 +17,11 @@ function makeWorkspace() {
 		`#!/bin/sh\nprintf 'ssh %s\\n' "$*" >> "${logPath}"\nexit 0\n`,
 		{ mode: 0o755 },
 	);
+	writeFileSync(
+		join(binDir, "scp"),
+		`#!/bin/sh\nprintf 'scp %s\\n' "$*" >> "${logPath}"\nexit 0\n`,
+		{ mode: 0o755 },
+	);
 	return { binDir, logPath };
 }
 
@@ -94,6 +99,44 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("ConnectTimeout=30");
 		expect(log).toContain("ServerAliveInterval=15");
 		expect(log).toContain("ServerAliveCountMax=3");
+	});
+
+	it("scp pushes docker-compose.prod.yml to VPS before ssh runs", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		const scpIdx = log.indexOf("scp ");
+		const sshIdx = log.indexOf("ssh ");
+		expect(scpIdx).toBeGreaterThan(-1);
+		expect(sshIdx).toBeGreaterThan(scpIdx);
+		expect(log).toContain("docker-compose.prod.yml");
+		expect(log).toContain(
+			"testuser@testhost:/home/deploy/blog/docker-compose.yml",
+		);
+	});
+
+	it("scp uses COMPOSE_FILE override as destination filename", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				COMPOSE_FILE: "docker-compose.prod.yml",
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		expect(log).toContain(
+			"testuser@testhost:/home/deploy/blog/docker-compose.prod.yml",
+		);
 	});
 
 	it("docker pull runs before migration before docker compose up", () => {

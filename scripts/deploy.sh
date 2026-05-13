@@ -13,6 +13,14 @@ echo "[deploy] starting: $IMAGE → $VPS_USER@$VPS_HOST:$VPS_PORT"
 
 DOMAIN="${DEPLOY_DOMAIN:-}"
 
+# Sync compose file from repo to VPS (compose is CD-managed, not VPS-managed)
+echo "[deploy] syncing docker-compose.prod.yml → $DEPLOY_PATH/$COMPOSE_FILE"
+scp -P "$VPS_PORT" \
+  -o StrictHostKeyChecking=accept-new \
+  -o ConnectTimeout=30 \
+  docker-compose.prod.yml \
+  "$VPS_USER@$VPS_HOST:$DEPLOY_PATH/$COMPOSE_FILE"
+
 ssh -p "$VPS_PORT" \
   -o StrictHostKeyChecking=accept-new \
   -o ConnectTimeout=30 \
