@@ -21,6 +21,11 @@ ssh -p "$VPS_PORT" \
   "$VPS_USER@$VPS_HOST" \
   "set -euo pipefail
 
+   # Pre-flight: verify required vars exist in .env (grep avoids $ interpolation)
+   for _var in POSTGRES_DB POSTGRES_USER POSTGRES_PASSWORD DATABASE_URL BETTER_AUTH_SECRET; do
+     grep -q "^\$_var=" '$DEPLOY_PATH/.env' 2>/dev/null || { echo "[deploy] ERROR: \$_var not set in '$DEPLOY_PATH/.env'"; exit 1; }
+   done
+
    # Save current image for rollback
    OLD_IMAGE=\$(docker inspect --format='{{.Config.Image}}' \$(docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' ps -q app 2>/dev/null) 2>/dev/null || echo '')
    echo '[deploy] current: \${OLD_IMAGE:-none}'

@@ -13,7 +13,9 @@ services:
     environment:
       POSTGRES_DB: ${POSTGRES_DB:?POSTGRES_DB must be set in .env}
       POSTGRES_USER: ${POSTGRES_USER:?POSTGRES_USER must be set in .env}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?POSTGRES_PASSWORD must be set in .env}
+      # POSTGRES_PASSWORD comes from env_file only — not repeated here because
+      # Docker Compose interpolates $ in environment: values, which mangles
+      # passwords containing dollar signs before they reach the container.
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
