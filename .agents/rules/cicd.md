@@ -37,7 +37,7 @@ Triggers: `workflow_run` on CI completion with `conclusion == 'success'` for pus
 Three jobs run in sequence (each needs the previous):
 
 1. **build-push** — builds Docker image (`target: runner` from multi-stage Dockerfile), tags with `:latest` and `:<short-sha>`, pushes to GHCR
-2. **deploy** — SSHes into VPS, runs `make db-migrate` first, then `docker compose up -d --no-deps app`
+2. **deploy** — `scp`s `docker-compose.prod.yml` → `$DEPLOY_PATH/docker-compose.yml` on the VPS, SSHes in, brings up `db` and waits healthy, runs `bun run db:migrate`, then `docker compose up -d --no-deps app`. The compose file on the VPS is **CD-managed** — hand-edits get overwritten on the next deploy.
 3. **changelog** — runs `conventional-changelog-cli`, commits updated `CHANGELOG.md` back to `main` with `[skip ci]`
 
 Migration runs before container restart — this ordering is non-negotiable. If `make db-migrate` fails, the deploy aborts and the VPS keeps serving the previous container.

@@ -202,11 +202,7 @@ _Run as deploy user (with sudo) — it will ask for the deploy user password you
   sudo chown deploy:deploy /home/deploy/blog
   cd /home/deploy/blog
   ```
-- [ ] Create `docker-compose.yml` (copy from `docker-compose.prod.yml` in repo — paste contents):
-  ```sh
-  nano docker-compose.yml
-  ```
-  > Key: change `POSTGRES_PASSWORD` to a strong value. Match it in DATABASE_URL below.
+- [ ] `docker-compose.yml` is **CD-managed** — `scripts/deploy.sh` `scp`s `docker-compose.prod.yml` from the repo to `$DEPLOY_PATH/docker-compose.yml` on every deploy. Do NOT hand-edit this file on the VPS; edits will be overwritten on the next deploy.
 - [ ] Create `.env`:
   ```sh
   nano .env
@@ -230,8 +226,17 @@ _Run as deploy user (with sudo) — it will ask for the deploy user password you
 
 ---
 
-## Phase 7 — First manual start (bootstrap)
+## Phase 7 — First start (bootstrap)
 
+Recommended path: configure Phase 8 secrets first, then push to `main` — CD will scp `docker-compose.yml`, pull the image, run migrations, and start the stack. No manual `docker compose` needed.
+
+If you must start manually before CI/CD is wired up:
+
+- [ ] Copy `docker-compose.prod.yml` from the repo to `/home/deploy/blog/docker-compose.yml` (one-time only — CD will overwrite it on the next deploy):
+  ```sh
+  # from your laptop:
+  scp -i ~/.ssh/blog_deploy -P PORT docker-compose.prod.yml deploy@YOUR_VPS_IP:/home/deploy/blog/docker-compose.yml
+  ```
 - [ ] Set GHCR vars and pull image:
   ```sh
   export GHCR_OWNER=your-github-username
