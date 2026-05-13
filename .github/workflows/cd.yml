@@ -50,6 +50,7 @@ jobs:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_PORT: ${{ secrets.VPS_PORT }}
           DEPLOY_PATH: ${{ secrets.VPS_DEPLOY_PATH }}
+          DEPLOY_DOMAIN: ${{ secrets.DEPLOY_DOMAIN }}
           GHCR_OWNER: ${{ github.repository_owner }}
           GHCR_REPO: ${{ github.event.repository.name }}
           IMAGE_TAG: ${{ needs.build-push.outputs.sha_short }}
