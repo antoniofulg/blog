@@ -12,6 +12,7 @@
 * **ci:** copy .env.example before run tests ([b1c2e3d](https://github.com/antoniofulg/blog/commit/b1c2e3db1576818a692f10168a76cfbc3b59cb64))
 * **ci:** use production GHCR image and immutable tag for deploy ([8646454](https://github.com/antoniofulg/blog/commit/8646454b62792297a8334ce8a610a39f6d58329d))
 * **deploy:** add CI=true to migration run for clean output ([8e9100c](https://github.com/antoniofulg/blog/commit/8e9100c50414e2a4c7033bdc540ed4843071eb24))
+* **deploy:** bake seed script and db modules into runner image ([#12](https://github.com/antoniofulg/blog/issues/12)) ([84fdf71](https://github.com/antoniofulg/blog/commit/84fdf712de128c3866ad454ae25a150977a5cee9))
 * **deploy:** replace drizzle-kit migrate with programmatic migrator ([#10](https://github.com/antoniofulg/blog/issues/10)) ([9b89244](https://github.com/antoniofulg/blog/commit/9b89244df6e3fabc74c7f5a394961de0e9f5e80f))
 * **deploy:** start db and wait healthy before running migrations ([#7](https://github.com/antoniofulg/blog/issues/7)) ([897a002](https://github.com/antoniofulg/blog/commit/897a00278a3166b294741000ad7c18d67a3190de))
 * **deploy:** sync docker-compose.prod.yml to VPS on every deploy ([#11](https://github.com/antoniofulg/blog/issues/11)) ([5dafef8](https://github.com/antoniofulg/blog/commit/5dafef884f7a94bc842fdbd4eaeb2ba7d062d056))
