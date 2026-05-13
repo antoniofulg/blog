@@ -20,8 +20,10 @@ setup: ## First-clone: copy .env, start DB, run migrations
 	docker compose pull db
 	docker compose up db -d
 	@echo "Waiting for database..."; \
+	  PGUSER=$$(grep '^POSTGRES_USER=' .env 2>/dev/null | cut -d= -f2); \
+	  PGUSER=$${PGUSER:-blog}; \
 	  i=0; \
-	  until [ "$$(docker compose ps db --format '{{.Health}}')" = "healthy" ]; do \
+	  until docker compose exec db pg_isready -U $$PGUSER > /dev/null 2>&1; do \
 	    i=$$((i+1)); \
 	    if [ $$i -ge 30 ]; then \
 	      echo "ERROR: Postgres did not become ready after 30 seconds."; \
