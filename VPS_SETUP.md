@@ -288,6 +288,26 @@ Go to: `github.com/YOUR_USER/blog` → Settings → Secrets and variables → Ac
 
 ---
 
+## Phase 10 — Seed admin user (one-time)
+
+CD runs migrations on every deploy but **never seeds** — seeding is a one-shot bootstrap. Run it manually once, the first time the DB exists:
+
+- [ ] Confirm `ADMIN_EMAIL` and `ADMIN_PASSWORD` are set in `/home/deploy/blog/.env` (Phase 6)
+- [ ] SSH in and run:
+  ```sh
+  cd /home/deploy/blog
+  docker compose pull   # ensure latest image with scripts/seed.ts baked in
+  docker run --rm --env-file .env --network blog \
+    ghcr.io/YOUR_GH_USER/blog:latest bun run db:seed
+  ```
+- [ ] Expected: `[seed] Admin user created (<your-email>)`
+- [ ] Re-running is idempotent: prints `Admin user already exists (...), skipping`
+- [ ] Log in at `https://your-domain.com/admin` with the credentials from `.env`
+
+If you change `ADMIN_PASSWORD` later, the seed script will NOT update the existing user — it only creates. To rotate the admin password, either delete the user row first or change it via the running app.
+
+---
+
 ## Done ✓
 
 Site live at `https://your-domain.com` with automatic deploys on every merge to `main`.
