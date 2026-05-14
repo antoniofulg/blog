@@ -13,6 +13,7 @@ import { getRequest } from "@tanstack/react-start/server";
 import { Home } from "lucide-react";
 import { Footer } from "#/components/layout/footer";
 import { Header } from "#/components/layout/header";
+import { WipBanner } from "#/components/layout/wip-banner";
 import {
 	DEFAULT_LOCALE,
 	LOCALES,
@@ -151,6 +152,7 @@ function RootLayout() {
 		<LocaleProvider>
 			<ThemeProvider>
 				<div className="flex min-h-screen flex-col">
+					<WipBanner />
 					<Header />
 					<main className="flex-1">
 						<Outlet />
