@@ -1,5 +1,5 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Menu, Moon, Search, Sun, Terminal } from "lucide-react";
+import { Menu, Moon, Sun, Terminal } from "lucide-react";
 import { useState } from "react";
 import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
@@ -9,13 +9,11 @@ const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 		{ label: "Home", to: "/" },
 		{ label: "Blog", to: "/blog" },
 		{ label: "About", to: "/about" },
-		{ label: "Newsletter", to: "/newsletter" },
 	],
 	"pt-br": [
 		{ label: "Home", to: "/" },
 		{ label: "Blog", to: "/blog" },
 		{ label: "Sobre", to: "/about" },
-		{ label: "Newsletter", to: "/newsletter" },
 	],
 };
 
@@ -97,12 +95,6 @@ export function Header() {
 				</nav>
 
 				<div className="flex items-center gap-3">
-					<Link
-						to="/search"
-						className="text-foreground-secondary transition-colors hover:text-foreground"
-					>
-						<Search className="h-5 w-5" />
-					</Link>
 					<button
 						type="button"
 						onClick={switchLang}

@@ -1,4 +1,6 @@
+import { readFileSync } from "node:fs";
 import { createServer } from "node:net";
+import { join } from "node:path";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
@@ -155,6 +157,46 @@ describe.skipIf(port3000Free)("integration: legacy redirect routes", () => {
 	});
 });
 
+// ─── Unit: deleted routes absent from routeTree.gen.ts ───────────────────────
+
+describe("unit: deleted routes absent from routeTree", () => {
+	const routeTree = readFileSync(
+		join(import.meta.dirname, "../../app/routeTree.gen.ts"),
+		"utf8",
+	);
+
+	const deletedPaths = [
+		"/tutorials",
+		"/tutorials/$seriesSlug",
+		"/projects",
+		"/newsletter",
+		"/search",
+	];
+
+	for (const path of deletedPaths) {
+		it(`routeTree.gen.ts has no route definition for '${path}'`, () => {
+			expect(routeTree).not.toContain(`'${path}'`);
+			expect(routeTree).not.toContain(`"${path}"`);
+		});
+	}
+
+	it("routeTree.gen.ts has no import from routes/tutorials", () => {
+		expect(routeTree).not.toMatch(/from '\.\/routes\/tutorials/);
+	});
+
+	it("routeTree.gen.ts has no import from routes/projects", () => {
+		expect(routeTree).not.toMatch(/from '\.\/routes\/projects'/);
+	});
+
+	it("routeTree.gen.ts has no import from routes/newsletter", () => {
+		expect(routeTree).not.toMatch(/from '\.\/routes\/newsletter'/);
+	});
+
+	it("routeTree.gen.ts has no import from routes/search", () => {
+		expect(routeTree).not.toMatch(/from '\.\/routes\/search'/);
+	});
+});
+
 // ─── Integration: $lang layout route ────────────────────────────────────────
 
 describe.skipIf(port3000Free)("integration: $lang layout route", () => {
@@ -172,5 +214,31 @@ describe.skipIf(port3000Free)("integration: $lang layout route", () => {
 	it("GET /about is not intercepted by $lang layout", async () => {
 		const res = await fetch(`${BASE_URL}/about`);
 		expect(res.status).toBe(200);
+	});
+});
+
+// ─── Integration: deleted routes return 404 ──────────────────────────────────
+
+describe.skipIf(port3000Free)("integration: deleted routes return 404", () => {
+	const BASE_URL = "http://localhost:3000";
+
+	it("GET /tutorials returns 404", async () => {
+		const res = await fetch(`${BASE_URL}/tutorials`, { redirect: "manual" });
+		expect(res.status).toBe(404);
+	});
+
+	it("GET /projects returns 404", async () => {
+		const res = await fetch(`${BASE_URL}/projects`, { redirect: "manual" });
+		expect(res.status).toBe(404);
+	});
+
+	it("GET /newsletter returns 404", async () => {
+		const res = await fetch(`${BASE_URL}/newsletter`, { redirect: "manual" });
+		expect(res.status).toBe(404);
+	});
+
+	it("GET /search returns 404", async () => {
+		const res = await fetch(`${BASE_URL}/search`, { redirect: "manual" });
+		expect(res.status).toBe(404);
 	});
 });
