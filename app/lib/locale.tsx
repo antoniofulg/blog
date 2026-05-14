@@ -16,6 +16,13 @@ export function toBcp47(locale: Locale): string {
 	return BCP47_MAP[locale] ?? locale;
 }
 
+export function localeHref(locale: Locale, slug?: string): string {
+	if (locale === DEFAULT_LOCALE) {
+		return slug ? `/${slug}` : "/";
+	}
+	return slug ? `/${locale}/${slug}` : `/${locale}/`;
+}
+
 const LocaleContext = createContext<{
 	locale: Locale;
 	setLocale: (locale: Locale) => void;

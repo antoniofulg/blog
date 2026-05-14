@@ -202,5 +202,34 @@ describe.skipIf(port5432Free || port3000Free)(
 			const html = await res.text();
 			expect(html).toContain("Nenhum artigo encontrado");
 		});
+
+		it("GET / head contains hreflang en → /", async () => {
+			const res = await fetch(`${BASE_URL}/`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain('href="/"');
+		});
+
+		it("GET / head contains hreflang pt-BR → /pt-br/", async () => {
+			const res = await fetch(`${BASE_URL}/`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain('href="/pt-br/"');
+		});
+
+		it("GET /pt-br/ head contains both hreflang pairs", async () => {
+			const res = await fetch(`${BASE_URL}/pt-br/`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain('href="/"');
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain('href="/pt-br/"');
+		});
+
+		it("GET / hreflang hrefs contain no /en/ prefix", async () => {
+			const res = await fetch(`${BASE_URL}/`);
+			const html = await res.text();
+			expect(html).not.toMatch(/hreflang="en"[^>]*href="\/en\//);
+		});
 	},
 );

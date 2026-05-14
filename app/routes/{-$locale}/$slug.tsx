@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { TranslationNotice } from "#/components/ui/translation-notice";
-import { DEFAULT_LOCALE, type Locale, toBcp47 } from "#/lib/locale";
+import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
 import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
 
 const dateLocale: Record<Locale, string> = { en: "en-US", "pt-br": "pt-BR" };
@@ -36,12 +36,18 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 					{
 						rel: "alternate",
 						hrefLang: toBcp47(loaderData.post.lang as Locale),
-						href: `/${loaderData.post.lang}/${loaderData.post.slug}`,
+						href: localeHref(
+							loaderData.post.lang as Locale,
+							loaderData.post.slug,
+						),
 					},
 					{
 						rel: "alternate",
 						hrefLang: toBcp47(loaderData.alternateLang as Locale),
-						href: `/${loaderData.alternateLang}/${loaderData.post.slug}`,
+						href: localeHref(
+							loaderData.alternateLang as Locale,
+							loaderData.post.slug,
+						),
 					},
 				]
 			: [],

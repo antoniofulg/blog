@@ -345,5 +345,48 @@ describe.skipIf(port5432Free || port3000Free)(
 			const res = await fetch(`${BASE_URL}/__nonexistent_slug_${Date.now()}__`);
 			expect(res.status).toBe(404);
 		});
+
+		it("GET /<slug> head contains hreflang pair for pt-br alternate", async () => {
+			// Insert pt-br version of the post so alternateLang is populated
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain(`href="/${SLUG}"`);
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain(`href="/pt-br/${SLUG}"`);
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
+		});
+
+		it("GET /pt-br/<slug> head contains hreflang pair for en alternate", async () => {
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain(`href="/pt-br/${SLUG}"`);
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain(`href="/${SLUG}"`);
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
+		});
+
+		it("GET /<slug> hreflang hrefs contain no /en/ prefix", async () => {
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			const html = await res.text();
+			expect(html).not.toMatch(/hreflang="en"[^>]*href="\/en\//);
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
+		});
 	},
 );

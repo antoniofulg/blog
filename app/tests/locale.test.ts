@@ -6,6 +6,7 @@ import {
 	DEFAULT_LOCALE,
 	detectLocaleFromRequest,
 	LocaleProvider,
+	localeHref,
 	useLocale,
 } from "#/lib/locale";
 
@@ -25,6 +26,34 @@ function makeRequest(acceptLanguage?: string, cookie?: string): Request {
 function wrapper({ children }: { children: React.ReactNode }) {
 	return React.createElement(LocaleProvider, null, children);
 }
+
+// ─── unit: localeHref ───────────────────────────────────────────────────────
+
+describe("unit: localeHref", () => {
+	it("en feed → '/'", () => {
+		expect(localeHref("en")).toBe("/");
+	});
+
+	it("pt-br feed → '/pt-br/'", () => {
+		expect(localeHref("pt-br")).toBe("/pt-br/");
+	});
+
+	it("en post → '/slug'", () => {
+		expect(localeHref("en", "my-post")).toBe("/my-post");
+	});
+
+	it("pt-br post → '/pt-br/slug'", () => {
+		expect(localeHref("pt-br", "my-post")).toBe("/pt-br/my-post");
+	});
+
+	it("en href has no /en/ prefix", () => {
+		expect(localeHref("en", "slug")).not.toContain("/en/");
+	});
+
+	it("en feed has no /en/ prefix", () => {
+		expect(localeHref("en")).not.toContain("/en");
+	});
+});
 
 // ─── unit: detectLocaleFromRequest ──────────────────────────────────────────
 

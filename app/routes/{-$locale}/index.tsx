@@ -7,7 +7,10 @@ import type { Post } from "#/db/schema";
 import {
 	DEFAULT_LOCALE,
 	detectLocaleFromRequest,
+	LOCALES,
 	type Locale,
+	localeHref,
+	toBcp47,
 } from "#/lib/locale";
 import { getLocalePosts } from "./index.server";
 
@@ -53,6 +56,11 @@ export const Route = createFileRoute("/{-$locale}/")({
 						: "Articles about web development, React, TypeScript, Bun and international career.",
 			},
 		],
+		links: LOCALES.map((l) => ({
+			rel: "alternate",
+			hrefLang: toBcp47(l),
+			href: localeHref(l),
+		})),
 	}),
 	loader: ({ params }) =>
 		getLocalePosts({ data: params.locale ?? DEFAULT_LOCALE }),
