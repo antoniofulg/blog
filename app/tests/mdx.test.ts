@@ -134,7 +134,7 @@ describe("lint: frontmatter conventions", () => {
 
 	it("lorem-ipsum.mdx has all required fields", () => {
 		expect(() =>
-			lintFrontmatter(join(CONTENT_DIR, "en/lorem-ipsum.mdx")),
+			lintFrontmatter(join(FIXTURES, "lorem-ipsum.mdx")),
 		).not.toThrow();
 	});
 
@@ -170,7 +170,7 @@ describe("lint: frontmatter conventions", () => {
 
 	it("passes when category field is absent", () => {
 		expect(() =>
-			lintFrontmatter(join(CONTENT_DIR, "en/lorem-ipsum.mdx")),
+			lintFrontmatter(join(FIXTURES, "lorem-ipsum.mdx")),
 		).not.toThrow();
 	});
 });
