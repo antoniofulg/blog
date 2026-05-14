@@ -208,6 +208,35 @@ describe.skipIf(port3000Free)("integration: locale layout route", () => {
 	});
 });
 
+// ─── Integration: NotFoundPage UIStrings ─────────────────────────────────────
+
+describe.skipIf(port3000Free)(
+	"integration: NotFoundPage renders locale-aware UIStrings",
+	() => {
+		const BASE_URL = "http://localhost:3000";
+
+		it("GET /nonexistent returns 404 with en notFound.title", async () => {
+			const res = await fetch(
+				`${BASE_URL}/__nonexistent_route_${Date.now()}__`,
+				{ redirect: "manual" },
+			);
+			expect(res.status).toBe(404);
+			const html = await res.text();
+			expect(html).toContain("Page not found");
+		});
+
+		it("GET /pt-br/nonexistent returns 404 with pt-br notFound.title", async () => {
+			const res = await fetch(
+				`${BASE_URL}/pt-br/__nonexistent_route_${Date.now()}__`,
+				{ redirect: "manual" },
+			);
+			expect(res.status).toBe(404);
+			const html = await res.text();
+			expect(html).toContain("Página não encontrada");
+		});
+	},
+);
+
 // ─── Integration: deleted routes return 404 ──────────────────────────────────
 
 describe.skipIf(port3000Free)("integration: deleted routes return 404", () => {

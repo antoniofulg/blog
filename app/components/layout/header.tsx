@@ -1,6 +1,7 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
 import { Menu, Moon, Sun, Terminal } from "lucide-react";
 import { useState } from "react";
+import { strings } from "#/lib/i18n/strings";
 import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
 
@@ -43,7 +44,7 @@ function useLangSwitcher() {
 			| Locale
 			| undefined) ?? DEFAULT_LOCALE;
 	const targetLocale = LOCALES.find((l) => l !== currentLocale) as Locale;
-	const label = targetLocale === "pt-br" ? "PT" : "EN";
+	const label = strings[targetLocale].localeSwitcher.label;
 
 	function switchLang() {
 		setLocale(targetLocale);

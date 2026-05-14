@@ -388,5 +388,23 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(html).not.toMatch(/hreflang="en"[^>]*href="\/en\//);
 			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
 		});
+
+		it("GET /<slug> SSR contains en postMeta.publishedOn label before the date", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain("Published on");
+		});
+
+		it("GET /pt-br/<slug> SSR contains pt-br postMeta.publishedOn label before the date", async () => {
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain("Publicado em");
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
+		});
 	},
 );

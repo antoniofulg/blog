@@ -1,6 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { TranslationNotice } from "#/components/ui/translation-notice";
+import { strings } from "#/lib/i18n/strings";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
 import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
 
@@ -69,7 +70,7 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 	},
 });
 
-function LocalePostDetail() {
+export function LocalePostDetail() {
 	const { post, html, notTranslated, requestedLang, availableLang } =
 		Route.useLoaderData();
 	useEffect(() => {
@@ -88,19 +89,19 @@ function LocalePostDetail() {
 				)}
 				<header className="mb-8 flex flex-col gap-4">
 					{post.publishedAt && (
-						<time
-							dateTime={new Date(post.publishedAt).toISOString()}
-							className="text-sm text-foreground-muted"
-						>
-							{new Date(post.publishedAt).toLocaleDateString(
-								dateLocale[requestedLang],
-								{
-									day: "numeric",
-									month: "long",
-									year: "numeric",
-								},
-							)}
-						</time>
+						<p className="text-sm text-foreground-muted">
+							<span>{strings[requestedLang].postMeta.publishedOn}</span>{" "}
+							<time dateTime={new Date(post.publishedAt).toISOString()}>
+								{new Date(post.publishedAt).toLocaleDateString(
+									dateLocale[requestedLang],
+									{
+										day: "numeric",
+										month: "long",
+										year: "numeric",
+									},
+								)}
+							</time>
+						</p>
 					)}
 					<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">
 						{post.title}
