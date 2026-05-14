@@ -158,6 +158,25 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(upIdx).toBeGreaterThan(migrateIdx);
 	});
 
+	it("bun run sync runs after migrate and before docker compose up", () => {
+		const { binDir, logPath } = makeWorkspace();
+		spawnSync("bash", [deployScript], {
+			env: {
+				...baseEnv,
+				...requiredVars,
+				PATH: `${binDir}:${baseEnv.PATH}`,
+			},
+			encoding: "utf8",
+		});
+		const log = readFileSync(logPath, "utf8");
+		const migrateIdx = log.indexOf("bun run db:migrate");
+		const syncIdx = log.indexOf("bun run sync");
+		const upIdx = log.indexOf("up -d --no-deps app");
+		expect(syncIdx).toBeGreaterThan(-1);
+		expect(syncIdx).toBeGreaterThan(migrateIdx);
+		expect(upIdx).toBeGreaterThan(syncIdx);
+	});
+
 	it("runs migrations inside pulled image via docker run, not from VPS filesystem", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {

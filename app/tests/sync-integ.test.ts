@@ -85,6 +85,22 @@ describe.skipIf(port5432Free)("integration: sync script", () => {
 		expect(remaining[0]?.file_path).toBe(keepPath);
 	});
 
+	it("process exits non-zero when .mdx has missing required title field", async () => {
+		const dir = join(tmpDir, "sync-malformed");
+		await mkdir(join(dir, "en"), { recursive: true });
+		await writeFile(
+			join(dir, "en", "bad.mdx"),
+			"---\nnotitle: true\n---\nContent.",
+		);
+		const scriptPath = resolve(import.meta.dirname, "../../scripts/sync.ts");
+		await expect(
+			execFileAsync("bun", ["run", scriptPath, "--dir", dir], {
+				env: { ...process.env, DATABASE_URL: DB_URL },
+				timeout: 15000,
+			}),
+		).rejects.toMatchObject({ code: 1 });
+	}, 20000);
+
 	it("process exits cleanly (exit 0) after sync completes", async () => {
 		const dir = join(tmpDir, "sync-exit");
 		await mkdir(join(dir, "en"), { recursive: true });

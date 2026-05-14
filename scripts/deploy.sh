@@ -48,6 +48,9 @@ ssh -p "$VPS_PORT" \
    # Run migrations inside pulled image
    docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog $IMAGE bun run db:migrate
 
+   # Sync posts from content/ into the posts table
+   docker run --rm --env-file '$DEPLOY_PATH/.env' --network blog $IMAGE bun run sync
+
    # Deploy new image
    GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
      docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' up -d --no-deps app
