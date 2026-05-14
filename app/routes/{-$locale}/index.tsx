@@ -1,10 +1,14 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, redirect } from "@tanstack/react-router";
 import { useState } from "react";
 import { EmptyState } from "#/components/ui/empty-state";
 import { Pagination } from "#/components/ui/pagination";
 import { PostCard } from "#/components/ui/post-card";
 import type { Post } from "#/db/schema";
-import { DEFAULT_LOCALE, type Locale } from "#/lib/locale";
+import {
+	DEFAULT_LOCALE,
+	detectLocaleFromRequest,
+	type Locale,
+} from "#/lib/locale";
 import { getLocalePosts } from "./index.server";
 
 const copy = {
@@ -26,6 +30,19 @@ const copy = {
 >;
 
 export const Route = createFileRoute("/{-$locale}/")({
+	beforeLoad: async ({ params }) => {
+		if (params.locale !== undefined) return;
+		if (!import.meta.env.SSR) return;
+		const { getRequest, setResponseHeader } = await import(
+			"@tanstack/react-start/server"
+		);
+		const req = getRequest();
+		setResponseHeader("Vary", "Cookie, Accept-Language");
+		const detected = detectLocaleFromRequest(req);
+		if (detected !== DEFAULT_LOCALE) {
+			throw redirect({ href: `/${detected}/`, statusCode: 302 });
+		}
+	},
 	head: ({ params }) => ({
 		meta: [
 			{
