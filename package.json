@@ -40,7 +40,7 @@
     "react-dom": "19.2.5",
     "remark-gfm": "4.0.1",
     "tailwindcss": "4.2.4",
-    "zod": "^4.4.3"
+    "zod": "4.4.3"
   },
   "devDependencies": {
     "@biomejs/biome": "2.4.5",
