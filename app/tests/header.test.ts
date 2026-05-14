@@ -112,7 +112,7 @@ describe("unit: Header language switcher navigation", () => {
 		cleanup();
 	});
 
-	it("on '/en/react-suspense' navigates to '/$lang/$slug' with pt-br and react-suspense", async () => {
+	it("on '/en/react-suspense' navigates to '/{-$locale}/$slug' with pt-br and react-suspense", async () => {
 		mocks.setPathname("/en/react-suspense");
 		renderHeader();
 		await act(async () => {});
@@ -123,13 +123,13 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/$lang/$slug",
-			params: { lang: "pt-br", slug: "react-suspense" },
+			to: "/{-$locale}/$slug",
+			params: { locale: "pt-br", slug: "react-suspense" },
 		});
 		expect(localStorage.getItem("locale")).toBe("pt-br");
 	});
 
-	it("on '/en/blog' navigates to '/$lang/blog' with pt-br", async () => {
+	it("on '/en/blog' navigates to '/{-$locale}' with pt-br", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -140,12 +140,12 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/$lang/blog",
-			params: { lang: "pt-br" },
+			to: "/{-$locale}",
+			params: { locale: "pt-br" },
 		});
 	});
 
-	it("on non-locale path falls back to '/$lang/blog' with pt-br", async () => {
+	it("on non-locale path falls back to '/{-$locale}' with pt-br", async () => {
 		mocks.setPathname("/about");
 		renderHeader();
 		await act(async () => {});
@@ -156,8 +156,8 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/$lang/blog",
-			params: { lang: "pt-br" },
+			to: "/{-$locale}",
+			params: { locale: "pt-br" },
 		});
 	});
 });

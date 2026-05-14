@@ -48,18 +48,20 @@ function useLangSwitcher() {
 	function switchLang() {
 		setLocale(targetLocale);
 		const prefix = `/${currentLocale}/`;
+		const localeParam =
+			targetLocale === DEFAULT_LOCALE ? undefined : targetLocale;
 		if (pathname.startsWith(prefix)) {
-			const rest = pathname.slice(prefix.length);
-			if (rest === "blog") {
-				navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
+			if (rest === "" || rest === "blog") {
+				navigate({ to: "/{-$locale}", params: { locale: localeParam } });
 			} else {
 				navigate({
-					to: "/$lang/$slug",
-					params: { lang: targetLocale, slug: rest },
+					to: "/{-$locale}/$slug",
+					params: { locale: localeParam, slug: rest },
 				});
 			}
 		} else {
-			navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+			navigate({ to: "/{-$locale}", params: { locale: localeParam } });
 		}
 	}
 

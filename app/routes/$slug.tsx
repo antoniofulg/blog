@@ -10,7 +10,10 @@ const detectLocale = createServerFn({ method: "GET" }).handler(() =>
 export const Route = createFileRoute("/$slug")({
 	loader: async ({ params }) => {
 		const lang = await detectLocale();
-		throw redirect({ to: "/$lang/$slug", params: { lang, slug: params.slug } });
+		throw redirect({
+			to: "/{-$locale}/$slug",
+			params: { locale: lang === "en" ? undefined : lang, slug: params.slug },
+		});
 	},
 	component: () => null,
 });

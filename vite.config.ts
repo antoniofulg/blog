@@ -82,8 +82,8 @@ const config = defineConfig({
 			importProtection: {
 				client: {
 					excludeFiles: [
-						"app/routes/$lang/$slug.server.ts",
-						"app/routes/$lang/blog.server.ts",
+						"app/routes/{-$locale}/$slug.server.ts",
+						"app/routes/{-$locale}/index.server.ts",
 						"app/routes/admin/index.server.ts",
 						"app/routes/admin/preview.$slug.server.ts",
 					],

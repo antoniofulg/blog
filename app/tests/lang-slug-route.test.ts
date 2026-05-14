@@ -63,7 +63,7 @@ import {
 	getPostBySlugWithLangFn,
 	incrementViewCountFn,
 	validateLocaleInput,
-} from "#/routes/$lang/$slug.server";
+} from "#/routes/{-$locale}/$slug.server";
 
 type Post = (typeof posts)["_"]["inferSelect"];
 
@@ -296,12 +296,12 @@ const port5432Free = await isPortFree(5432);
 const port3000Free = await isPortFree(3000);
 
 describe.skipIf(port5432Free || port3000Free)(
-	"integration: $lang/$slug route",
+	"integration: {-$locale}/$slug route",
 	() => {
 		let sql: import("postgres").Sql;
 		const DB_URL = "postgres://blog:blog@localhost:5432/blog";
 		const BASE_URL = "http://localhost:3000";
-		const SLUG = `integ-lang-slug-${Date.now()}`;
+		const SLUG = `integ-locale-slug-${Date.now()}`;
 		const FIXTURE = join(import.meta.dirname, "fixtures", "hello.mdx");
 
 		beforeAll(async () => {
@@ -319,15 +319,15 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql.end();
 		});
 
-		it("GET /en/<slug> returns 200 and renders post title", async () => {
-			const res = await fetch(`${BASE_URL}/en/${SLUG}`);
+		it("GET /<slug> returns 200 and renders post title", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
 			expect(html).toContain("Integration Lang Slug Test");
 		});
 
-		it("GET /en/<slug> does not show translation notice", async () => {
-			const res = await fetch(`${BASE_URL}/en/${SLUG}`);
+		it("GET /<slug> does not show translation notice", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			const html = await res.text();
 			expect(html).not.toContain("not available in English");
 			expect(html).not.toContain("não está disponível");
@@ -341,10 +341,8 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(html).toContain("Português");
 		});
 
-		it("GET /en/nonexistent returns 404", async () => {
-			const res = await fetch(
-				`${BASE_URL}/en/__nonexistent_slug_${Date.now()}__`,
-			);
+		it("GET /<nonexistent-slug> returns 404", async () => {
+			const res = await fetch(`${BASE_URL}/__nonexistent_slug_${Date.now()}__`);
 			expect(res.status).toBe(404);
 		});
 	},

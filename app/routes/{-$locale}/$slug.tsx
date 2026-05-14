@@ -1,15 +1,16 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { useEffect } from "react";
 import { TranslationNotice } from "#/components/ui/translation-notice";
-import { type Locale, toBcp47 } from "#/lib/locale";
+import { DEFAULT_LOCALE, type Locale, toBcp47 } from "#/lib/locale";
 import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
 
 const dateLocale: Record<Locale, string> = { en: "en-US", "pt-br": "pt-BR" };
 
-export const Route = createFileRoute("/$lang/$slug")({
+export const Route = createFileRoute("/{-$locale}/$slug")({
 	loader: async ({ params }) => {
+		const lang = (params.locale ?? DEFAULT_LOCALE) as Locale;
 		return getPostBySlugWithLang({
-			data: { slug: params.slug, lang: params.lang as Locale },
+			data: { slug: params.slug, lang },
 		});
 	},
 	head: ({ loaderData }) => ({
@@ -47,12 +48,13 @@ export const Route = createFileRoute("/$lang/$slug")({
 	}),
 	component: LocalePostDetail,
 	notFoundComponent: () => {
-		const { lang } = Route.useParams();
+		const { locale } = Route.useParams();
+		const lang = (locale ?? DEFAULT_LOCALE) as Locale;
 		const copy = {
 			en: "Post not found",
 			"pt-br": "Post não encontrado",
 		} satisfies Record<Locale, string>;
-		const message = copy[lang as Locale] ?? copy.en;
+		const message = copy[lang] ?? copy.en;
 		return (
 			<main>
 				<h1>{message}</h1>

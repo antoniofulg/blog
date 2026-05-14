@@ -4,8 +4,8 @@ import { EmptyState } from "#/components/ui/empty-state";
 import { Pagination } from "#/components/ui/pagination";
 import { PostCard } from "#/components/ui/post-card";
 import type { Post } from "#/db/schema";
-import type { Locale } from "#/lib/locale";
-import { getLocalePosts } from "./blog.server";
+import { DEFAULT_LOCALE, type Locale } from "#/lib/locale";
+import { getLocalePosts } from "./index.server";
 
 const copy = {
 	en: {
@@ -25,19 +25,20 @@ const copy = {
 	{ subtitle: string; emptyTitle: string; emptyDesc: string }
 >;
 
-export const Route = createFileRoute("/$lang/blog")({
+export const Route = createFileRoute("/{-$locale}/")({
 	head: ({ params }) => ({
 		meta: [
 			{
 				name: "description",
 				content:
-					params.lang === "pt-br"
+					params.locale === "pt-br"
 						? "Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional."
 						: "Articles about web development, React, TypeScript, Bun and international career.",
 			},
 		],
 	}),
-	loader: ({ params }) => getLocalePosts({ data: params.lang }),
+	loader: ({ params }) =>
+		getLocalePosts({ data: params.locale ?? DEFAULT_LOCALE }),
 	component: LocaleBlogPage,
 });
 
@@ -45,7 +46,8 @@ const POSTS_PER_PAGE = 9;
 
 function LocaleBlogPage() {
 	const allPosts: Post[] = Route.useLoaderData() ?? [];
-	const { lang } = Route.useParams();
+	const { locale } = Route.useParams();
+	const lang = (locale ?? DEFAULT_LOCALE) as Locale;
 	const [currentPage, setCurrentPage] = useState(1);
 	const t = copy[lang as keyof typeof copy] ?? copy.en;
 
@@ -69,7 +71,7 @@ function LocaleBlogPage() {
 					<>
 						<div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 							{paginatedPosts.map((post) => (
-								<PostCard key={post.id} post={post} lang={lang as Locale} />
+								<PostCard key={post.id} post={post} lang={lang} />
 							))}
 						</div>
 

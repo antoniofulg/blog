@@ -26,7 +26,13 @@ export function PostCard({ post, lang }: { post: Post; lang?: Locale }) {
 				)}
 				<h3 className="font-heading text-lg font-bold leading-snug text-foreground group-hover:text-accent">
 					{lang ? (
-						<Link to="/$lang/$slug" params={{ lang, slug: post.slug }}>
+						<Link
+							to="/{-$locale}/$slug"
+							params={{
+								locale: lang === DEFAULT_LOCALE ? undefined : lang,
+								slug: post.slug,
+							}}
+						>
 							{post.title}
 						</Link>
 					) : (
