@@ -98,7 +98,7 @@ describe("unit: getPublishedPostsFn", () => {
 	});
 });
 
-// ─── Integration: legacy redirect routes (requires running server) ────────────
+// ─── Integration helpers ──────────────────────────────────────────────────────
 
 function isPortFree(port: number): Promise<boolean> {
 	return new Promise((resolve) => {
@@ -110,50 +110,19 @@ function isPortFree(port: number): Promise<boolean> {
 
 const port3000Free = await isPortFree(3000);
 
-describe.skipIf(port3000Free)("integration: legacy redirect routes", () => {
+// ─── Integration: post-shim URL resolution ────────────────────────────────────
+
+describe.skipIf(port3000Free)("integration: post-shim URL resolution", () => {
 	const BASE_URL = "http://localhost:3000";
 
-	it("GET / returns HTTP redirect to /en/blog (default locale)", async () => {
-		const res = await fetch(`${BASE_URL}/`, { redirect: "manual" });
-		expect([301, 302, 303, 307, 308]).toContain(res.status);
-		const location = res.headers.get("location");
-		expect(location).toMatch(/\/en\/blog/);
+	it("GET / returns 200 (en feed served by {-$locale}/index.tsx)", async () => {
+		const res = await fetch(`${BASE_URL}/`);
+		expect(res.status).toBe(200);
 	});
 
-	it("GET / with Accept-Language: pt-BR redirects to /pt-br/blog", async () => {
-		const res = await fetch(`${BASE_URL}/`, {
-			redirect: "manual",
-			headers: { "Accept-Language": "pt-BR,pt;q=0.9" },
-		});
-		expect([301, 302, 303, 307, 308]).toContain(res.status);
-		const location = res.headers.get("location");
-		expect(location).toMatch(/\/pt-br\/blog/);
-	});
-
-	it("GET / with Accept-Language: en-US redirects to /en/blog", async () => {
-		const res = await fetch(`${BASE_URL}/`, {
-			redirect: "manual",
-			headers: { "Accept-Language": "en-US,en;q=0.9" },
-		});
-		expect([301, 302, 303, 307, 308]).toContain(res.status);
-		const location = res.headers.get("location");
-		expect(location).toMatch(/\/en\/blog/);
-	});
-
-	it("GET /blog returns HTTP redirect to /en/blog", async () => {
+	it("GET /blog returns 404 (intentional per ADR-001)", async () => {
 		const res = await fetch(`${BASE_URL}/blog`, { redirect: "manual" });
-		expect([301, 302, 303, 307, 308]).toContain(res.status);
-		const location = res.headers.get("location");
-		expect(location).toMatch(/\/en\/blog/);
-	});
-
-	it("GET /react-suspense returns HTTP redirect to /en/react-suspense", async () => {
-		const res = await fetch(`${BASE_URL}/react-suspense`, {
-			redirect: "manual",
-		});
-		expect([301, 302, 303, 307, 308]).toContain(res.status);
-		const location = res.headers.get("location");
-		expect(location).toMatch(/\/en\/react-suspense/);
+		expect(res.status).toBe(404);
 	});
 });
 
@@ -195,23 +164,45 @@ describe("unit: deleted routes absent from routeTree", () => {
 	it("routeTree.gen.ts has no import from routes/search", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/search'/);
 	});
+
+	it("routeTree.gen.ts has no import from routes/index (shim deleted)", () => {
+		expect(routeTree).not.toMatch(/from '\.\/routes\/index'/);
+	});
+
+	it("routeTree.gen.ts has no import from routes/blog (shim deleted)", () => {
+		expect(routeTree).not.toMatch(/from '\.\/routes\/blog'/);
+	});
+
+	it("routeTree.gen.ts has no import from routes/$slug (shim deleted)", () => {
+		expect(routeTree).not.toMatch(/from '\.\/routes\/\$slug'/);
+	});
+
+	it("routeTree.gen.ts has no top-level route definition for '/blog'", () => {
+		expect(routeTree).not.toContain("id: '/blog'");
+		expect(routeTree).not.toContain("path: '/blog'");
+	});
+
+	it("routeTree.gen.ts has no top-level '$slug' shim route (root parent)", () => {
+		// Shim's FileRoutesById entry was `'/$slug': typeof SlugRoute`.
+		// After deletion only `'/{-$locale}/$slug'` remains.
+		expect(routeTree).not.toContain("'/$slug': typeof SlugRoute");
+		expect(routeTree).not.toContain("const SlugRoute =");
+	});
 });
 
-// ─── Integration: $lang layout route ────────────────────────────────────────
+// ─── Integration: locale layout route ────────────────────────────────────────
 
-describe.skipIf(port3000Free)("integration: $lang layout route", () => {
+describe.skipIf(port3000Free)("integration: locale layout route", () => {
 	const BASE_URL = "http://localhost:3000";
 
-	it("GET /invalid/blog redirects to /en/blog", async () => {
+	it("GET /invalid/blog returns 404 (invalid locale throws notFound)", async () => {
 		const res = await fetch(`${BASE_URL}/invalid/blog`, {
 			redirect: "manual",
 		});
-		expect([301, 302, 303, 307, 308]).toContain(res.status);
-		const location = res.headers.get("location");
-		expect(location).toMatch(/\/en\/blog/);
+		expect(res.status).toBe(404);
 	});
 
-	it("GET /about is not intercepted by $lang layout", async () => {
+	it("GET /about is not intercepted by locale layout", async () => {
 		const res = await fetch(`${BASE_URL}/about`);
 		expect(res.status).toBe(200);
 	});

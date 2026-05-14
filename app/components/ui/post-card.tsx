@@ -36,7 +36,10 @@ export function PostCard({ post, lang }: { post: Post; lang?: Locale }) {
 							{post.title}
 						</Link>
 					) : (
-						<Link to="/$slug" params={{ slug: post.slug }}>
+						<Link
+							to="/{-$locale}/$slug"
+							params={{ locale: undefined, slug: post.slug }}
+						>
 							{post.title}
 						</Link>
 					)}

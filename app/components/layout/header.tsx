@@ -77,7 +77,14 @@ export function Header() {
 	return (
 		<>
 			<header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-background px-6 lg:px-20">
-				<Link to="/" className="flex items-center gap-2">
+				<Link
+					to="/{-$locale}"
+					params={{
+						locale:
+							currentLocale === DEFAULT_LOCALE ? undefined : currentLocale,
+					}}
+					className="flex items-center gap-2"
+				>
 					<Terminal className="h-6 w-6 text-accent" />
 					<span className="font-heading text-lg font-bold text-foreground">
 						Antonio Fulgencio

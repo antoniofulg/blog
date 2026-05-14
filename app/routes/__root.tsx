@@ -107,7 +107,8 @@ function NotFoundPage() {
 			</h1>
 			<p className="max-w-md text-foreground-secondary">{t.body}</p>
 			<Link
-				to="/"
+				to="/{-$locale}"
+				params={{ locale: undefined }}
 				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
 			>
 				<Home className="h-4 w-4" />

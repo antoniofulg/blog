@@ -12,8 +12,8 @@ export function CategoryCard({
 }) {
 	return (
 		<Link
-			to="/blog"
-			search={{ category: name }}
+			to="/{-$locale}"
+			params={{ locale: undefined }}
 			className="flex flex-col gap-3 rounded-lg border border-border bg-card p-5 transition-shadow hover:shadow-md"
 		>
 			<div className="flex h-10 w-10 items-center justify-center rounded-md bg-accent-light">
