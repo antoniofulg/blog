@@ -145,7 +145,7 @@ describe("unit: Header language switcher navigation", () => {
 		});
 	});
 
-	it("on non-locale path falls back to '/{-$locale}' with pt-br", async () => {
+	it("on '/about' navigates to '/{-$locale}/about' with pt-br", async () => {
 		mocks.setPathname("/about");
 		renderHeader();
 		await act(async () => {});
@@ -156,7 +156,7 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/{-$locale}",
+			to: "/{-$locale}/about",
 			params: { locale: "pt-br" },
 		});
 	});

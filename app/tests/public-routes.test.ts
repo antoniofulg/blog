@@ -202,8 +202,13 @@ describe.skipIf(port3000Free)("integration: locale layout route", () => {
 		expect(res.status).toBe(404);
 	});
 
-	it("GET /about is not intercepted by locale layout", async () => {
+	it("GET /about returns 200 (en locale About from MDX)", async () => {
 		const res = await fetch(`${BASE_URL}/about`);
+		expect(res.status).toBe(200);
+	});
+
+	it("GET /pt-br/about returns 200 (pt-br locale About from MDX)", async () => {
+		const res = await fetch(`${BASE_URL}/pt-br/about`);
 		expect(res.status).toBe(200);
 	});
 });

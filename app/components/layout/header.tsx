@@ -14,7 +14,7 @@ const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 	"pt-br": [
 		{ label: "Home", to: "/" },
 		{ label: "Blog", to: "/blog" },
-		{ label: "Sobre", to: "/about" },
+		{ label: "Sobre", to: "/pt-br/about" },
 	],
 };
 
@@ -55,12 +55,16 @@ function useLangSwitcher() {
 			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
 			if (rest === "" || rest === "blog") {
 				navigate({ to: "/{-$locale}", params: { locale: localeParam } });
+			} else if (rest === "about") {
+				navigate({ to: "/{-$locale}/about", params: { locale: localeParam } });
 			} else {
 				navigate({
 					to: "/{-$locale}/$slug",
 					params: { locale: localeParam, slug: rest },
 				});
 			}
+		} else if (pathname === "/about") {
+			navigate({ to: "/{-$locale}/about", params: { locale: localeParam } });
 		} else {
 			navigate({ to: "/{-$locale}", params: { locale: localeParam } });
 		}
