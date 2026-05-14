@@ -8,16 +8,12 @@ const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 	en: [
 		{ label: "Home", to: "/" },
 		{ label: "Blog", to: "/blog" },
-		{ label: "Tutorials", to: "/tutorials" },
-		{ label: "Projects", to: "/projects" },
 		{ label: "About", to: "/about" },
 		{ label: "Newsletter", to: "/newsletter" },
 	],
 	"pt-br": [
 		{ label: "Home", to: "/" },
 		{ label: "Blog", to: "/blog" },
-		{ label: "Tutoriais", to: "/tutorials" },
-		{ label: "Projetos", to: "/projects" },
 		{ label: "Sobre", to: "/about" },
 		{ label: "Newsletter", to: "/newsletter" },
 	],

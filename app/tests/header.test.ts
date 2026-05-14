@@ -196,3 +196,62 @@ describe("integration: language switcher localStorage", () => {
 		expect(btn).toBeDefined();
 	});
 });
+
+// ─── unit: NAV_LABELS absent entries ──────────────────────────────────────────
+
+describe("unit: Header removed nav entries", () => {
+	beforeEach(() => {
+		localStorage.clear();
+		mocks.navigate.mockClear();
+	});
+	afterEach(() => {
+		localStorage.clear();
+		cleanup();
+	});
+
+	it("en locale: no link to /tutorials", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/tutorials"]')).toBeNull();
+	});
+
+	it("en locale: no link to /projects", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/projects"]')).toBeNull();
+	});
+
+	it("pt-br locale: no link to /tutorials", async () => {
+		mocks.setPathname("/pt-br/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/tutorials"]')).toBeNull();
+	});
+
+	it("pt-br locale: no link to /projects", async () => {
+		mocks.setPathname("/pt-br/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/projects"]')).toBeNull();
+	});
+
+	it("locale switcher button still renders", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(
+			screen.getByRole("button", { name: "Switch language" }),
+		).toBeDefined();
+	});
+
+	it("theme toggle button still renders", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		const themeBtn = document.querySelectorAll('button[type="button"]');
+		const hasToggle = Array.from(themeBtn).some((b) => b.querySelector("svg"));
+		expect(hasToggle).toBe(true);
+	});
+});

@@ -4,16 +4,9 @@ import { Github, Linkedin, Twitter } from "lucide-react";
 const navLinks = [
 	{ label: "Home", to: "/" },
 	{ label: "Blog", to: "/blog" },
-	{ label: "Tutoriais", to: "/tutorials" },
-	{ label: "Projetos", to: "/projects" },
 ];
 
-const resourceLinks = [
-	{ label: "Newsletter", to: "/newsletter" },
-	{ label: "Sobre", to: "/about" },
-	{ label: "RSS Feed", to: "/feed.xml" },
-	{ label: "Sitemap", to: "/sitemap.xml" },
-];
+const resourceLinks = [{ label: "Sobre", to: "/about" }];
 
 export function Footer() {
 	return (
