@@ -3,7 +3,7 @@ import matter from "gray-matter";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { z } from "zod";
-import { DEFAULT_LOCALE, type Locale } from "#/lib/locale";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "#/lib/locale";
 import { renderMdx } from "#/lib/mdx/renderer.server";
 
 const linkSchema = z.object({
@@ -14,7 +14,7 @@ const linkSchema = z.object({
 
 export const aboutFrontmatterSchema = z.object({
 	title: z.string(),
-	locale: z.enum(["en", "pt-br"]),
+	locale: z.enum(LOCALES),
 	links: z.array(linkSchema).optional().default([]),
 });
 

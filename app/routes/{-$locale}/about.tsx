@@ -36,7 +36,7 @@ function AboutPage() {
 
 	return (
 		<div className="px-5 py-12 lg:px-20">
-			<article className="mx-auto max-w-3xl" lang={locale}>
+			<article className="mx-auto max-w-3xl" lang={toBcp47(locale)}>
 				{fallbackLocale && (
 					<div className="mb-6">
 						<TranslationNotice

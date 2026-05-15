@@ -26,6 +26,7 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
+import { LOCALES } from "#/lib/locale";
 import { aboutFrontmatterSchema, loadAbout } from "#/lib/mdx/about.server";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -95,6 +96,14 @@ describe("unit: aboutFrontmatterSchema", () => {
 			locale: "en",
 		});
 		expect(result.links).toEqual([]);
+	});
+
+	it("accepts every member of LOCALES as a valid locale value", () => {
+		for (const locale of LOCALES) {
+			expect(() =>
+				aboutFrontmatterSchema.parse({ title: "T", locale }),
+			).not.toThrow();
+		}
 	});
 
 	it("throws ZodError when link kind is outside enum", () => {

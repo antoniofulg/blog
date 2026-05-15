@@ -78,7 +78,10 @@ export function LocalePostDetail() {
 	}, [post.id]);
 	return (
 		<div className="px-5 py-12 lg:px-20">
-			<article className="mx-auto max-w-3xl">
+			<article
+				className="mx-auto max-w-3xl"
+				lang={toBcp47(post.lang as Locale)}
+			>
 				{notTranslated && availableLang && (
 					<div className="mb-6">
 						<TranslationNotice

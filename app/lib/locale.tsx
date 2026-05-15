@@ -8,7 +8,7 @@ import {
 
 export type Locale = "en" | "pt-br";
 
-export const LOCALES: readonly Locale[] = ["en", "pt-br"];
+export const LOCALES = ["en", "pt-br"] as const satisfies readonly Locale[];
 export const DEFAULT_LOCALE: Locale = "en";
 
 const BCP47_MAP: Record<Locale, string> = { en: "en", "pt-br": "pt-BR" };

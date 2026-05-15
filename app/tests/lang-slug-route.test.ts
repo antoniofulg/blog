@@ -341,6 +341,13 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(html).toContain("Português");
 		});
 
+		it("GET /pt-br/<slug> (fallback to en) article element has lang=en", async () => {
+			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
+			expect(res.status).toBe(200);
+			const html = await res.text();
+			expect(html).toMatch(/<article[^>]+lang="en"/);
+		});
+
 		it("GET /<nonexistent-slug> returns 404", async () => {
 			const res = await fetch(`${BASE_URL}/__nonexistent_slug_${Date.now()}__`);
 			expect(res.status).toBe(404);
