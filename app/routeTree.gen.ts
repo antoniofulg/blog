@@ -9,41 +9,24 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as TutorialsRouteImport } from './routes/tutorials'
-import { Route as SearchRouteImport } from './routes/search'
-import { Route as ProjectsRouteImport } from './routes/projects'
-import { Route as NewsletterRouteImport } from './routes/newsletter'
+import { Route as Char123LocaleChar125RouteImport } from './routes/{-$locale}'
+import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as LoginRouteImport } from './routes/login'
-import { Route as BlogRouteImport } from './routes/blog'
-import { Route as AboutRouteImport } from './routes/about'
-import { Route as SlugRouteImport } from './routes/$slug'
-import { Route as LangRouteImport } from './routes/$lang'
-import { Route as IndexRouteImport } from './routes/index'
+import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as TutorialsSeriesSlugRouteImport } from './routes/tutorials.$seriesSlug'
-import { Route as LangBlogRouteImport } from './routes/$lang/blog'
-import { Route as LangSlugRouteImport } from './routes/$lang/$slug'
+import { Route as Char123LocaleChar125AboutRouteImport } from './routes/{-$locale}/about'
+import { Route as Char123LocaleChar125SlugRouteImport } from './routes/{-$locale}/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminPreviewSlugRouteImport } from './routes/admin/preview.$slug'
 
-const TutorialsRoute = TutorialsRouteImport.update({
-  id: '/tutorials',
-  path: '/tutorials',
+const Char123LocaleChar125Route = Char123LocaleChar125RouteImport.update({
+  id: '/{-$locale}',
+  path: '/{-$locale}',
   getParentRoute: () => rootRouteImport,
 } as any)
-const SearchRoute = SearchRouteImport.update({
-  id: '/search',
-  path: '/search',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const ProjectsRoute = ProjectsRouteImport.update({
-  id: '/projects',
-  path: '/projects',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const NewsletterRoute = NewsletterRouteImport.update({
-  id: '/newsletter',
-  path: '/newsletter',
+const RobotsDottxtRoute = RobotsDottxtRouteImport.update({
+  id: '/robots.txt',
+  path: '/robots.txt',
   getParentRoute: () => rootRouteImport,
 } as any)
 const LoginRoute = LoginRouteImport.update({
@@ -51,51 +34,29 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
-const BlogRoute = BlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const AboutRoute = AboutRouteImport.update({
-  id: '/about',
-  path: '/about',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const SlugRoute = SlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const LangRoute = LangRouteImport.update({
-  id: '/$lang',
-  path: '/$lang',
-  getParentRoute: () => rootRouteImport,
-} as any)
-const IndexRoute = IndexRouteImport.update({
-  id: '/',
-  path: '/',
-  getParentRoute: () => rootRouteImport,
-} as any)
+const Char123LocaleChar125IndexRoute =
+  Char123LocaleChar125IndexRouteImport.update({
+    id: '/',
+    path: '/',
+    getParentRoute: () => Char123LocaleChar125Route,
+  } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const TutorialsSeriesSlugRoute = TutorialsSeriesSlugRouteImport.update({
-  id: '/$seriesSlug',
-  path: '/$seriesSlug',
-  getParentRoute: () => TutorialsRoute,
-} as any)
-const LangBlogRoute = LangBlogRouteImport.update({
-  id: '/blog',
-  path: '/blog',
-  getParentRoute: () => LangRoute,
-} as any)
-const LangSlugRoute = LangSlugRouteImport.update({
-  id: '/$slug',
-  path: '/$slug',
-  getParentRoute: () => LangRoute,
-} as any)
+const Char123LocaleChar125AboutRoute =
+  Char123LocaleChar125AboutRouteImport.update({
+    id: '/about',
+    path: '/about',
+    getParentRoute: () => Char123LocaleChar125Route,
+  } as any)
+const Char123LocaleChar125SlugRoute =
+  Char123LocaleChar125SlugRouteImport.update({
+    id: '/$slug',
+    path: '/$slug',
+    getParentRoute: () => Char123LocaleChar125Route,
+  } as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -108,128 +69,77 @@ const AdminPreviewSlugRoute = AdminPreviewSlugRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
-  '/': typeof IndexRoute
-  '/$lang': typeof LangRouteWithChildren
-  '/$slug': typeof SlugRoute
-  '/about': typeof AboutRoute
-  '/blog': typeof BlogRoute
   '/login': typeof LoginRoute
-  '/newsletter': typeof NewsletterRoute
-  '/projects': typeof ProjectsRoute
-  '/search': typeof SearchRoute
-  '/tutorials': typeof TutorialsRouteWithChildren
-  '/$lang/$slug': typeof LangSlugRoute
-  '/$lang/blog': typeof LangBlogRoute
-  '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
+  '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
+  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
+  '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
-  '/': typeof IndexRoute
-  '/$lang': typeof LangRouteWithChildren
-  '/$slug': typeof SlugRoute
-  '/about': typeof AboutRoute
-  '/blog': typeof BlogRoute
   '/login': typeof LoginRoute
-  '/newsletter': typeof NewsletterRoute
-  '/projects': typeof ProjectsRoute
-  '/search': typeof SearchRoute
-  '/tutorials': typeof TutorialsRouteWithChildren
-  '/$lang/$slug': typeof LangSlugRoute
-  '/$lang/blog': typeof LangBlogRoute
-  '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
+  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin': typeof AdminIndexRoute
+  '/{-$locale}': typeof Char123LocaleChar125IndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
-  '/': typeof IndexRoute
-  '/$lang': typeof LangRouteWithChildren
-  '/$slug': typeof SlugRoute
-  '/about': typeof AboutRoute
-  '/blog': typeof BlogRoute
   '/login': typeof LoginRoute
-  '/newsletter': typeof NewsletterRoute
-  '/projects': typeof ProjectsRoute
-  '/search': typeof SearchRoute
-  '/tutorials': typeof TutorialsRouteWithChildren
-  '/$lang/$slug': typeof LangSlugRoute
-  '/$lang/blog': typeof LangBlogRoute
-  '/tutorials/$seriesSlug': typeof TutorialsSeriesSlugRoute
+  '/robots.txt': typeof RobotsDottxtRoute
+  '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
+  '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
+  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
+  '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
-    | '/'
-    | '/$lang'
-    | '/$slug'
-    | '/about'
-    | '/blog'
     | '/login'
-    | '/newsletter'
-    | '/projects'
-    | '/search'
-    | '/tutorials'
-    | '/$lang/$slug'
-    | '/$lang/blog'
-    | '/tutorials/$seriesSlug'
+    | '/robots.txt'
+    | '/{-$locale}'
+    | '/{-$locale}/$slug'
+    | '/{-$locale}/about'
     | '/admin/'
+    | '/{-$locale}/'
     | '/admin/preview/$slug'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
-    | '/'
-    | '/$lang'
-    | '/$slug'
-    | '/about'
-    | '/blog'
     | '/login'
-    | '/newsletter'
-    | '/projects'
-    | '/search'
-    | '/tutorials'
-    | '/$lang/$slug'
-    | '/$lang/blog'
-    | '/tutorials/$seriesSlug'
+    | '/robots.txt'
+    | '/{-$locale}/$slug'
+    | '/{-$locale}/about'
     | '/admin'
+    | '/{-$locale}'
     | '/admin/preview/$slug'
     | '/api/auth/$'
   id:
     | '__root__'
-    | '/'
-    | '/$lang'
-    | '/$slug'
-    | '/about'
-    | '/blog'
     | '/login'
-    | '/newsletter'
-    | '/projects'
-    | '/search'
-    | '/tutorials'
-    | '/$lang/$slug'
-    | '/$lang/blog'
-    | '/tutorials/$seriesSlug'
+    | '/robots.txt'
+    | '/{-$locale}'
+    | '/{-$locale}/$slug'
+    | '/{-$locale}/about'
     | '/admin/'
+    | '/{-$locale}/'
     | '/admin/preview/$slug'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
-  IndexRoute: typeof IndexRoute
-  LangRoute: typeof LangRouteWithChildren
-  SlugRoute: typeof SlugRoute
-  AboutRoute: typeof AboutRoute
-  BlogRoute: typeof BlogRoute
   LoginRoute: typeof LoginRoute
-  NewsletterRoute: typeof NewsletterRoute
-  ProjectsRoute: typeof ProjectsRoute
-  SearchRoute: typeof SearchRoute
-  TutorialsRoute: typeof TutorialsRouteWithChildren
+  RobotsDottxtRoute: typeof RobotsDottxtRoute
+  Char123LocaleChar125Route: typeof Char123LocaleChar125RouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   AdminPreviewSlugRoute: typeof AdminPreviewSlugRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -237,32 +147,18 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/tutorials': {
-      id: '/tutorials'
-      path: '/tutorials'
-      fullPath: '/tutorials'
-      preLoaderRoute: typeof TutorialsRouteImport
+    '/{-$locale}': {
+      id: '/{-$locale}'
+      path: '/{-$locale}'
+      fullPath: '/{-$locale}'
+      preLoaderRoute: typeof Char123LocaleChar125RouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/search': {
-      id: '/search'
-      path: '/search'
-      fullPath: '/search'
-      preLoaderRoute: typeof SearchRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/projects': {
-      id: '/projects'
-      path: '/projects'
-      fullPath: '/projects'
-      preLoaderRoute: typeof ProjectsRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/newsletter': {
-      id: '/newsletter'
-      path: '/newsletter'
-      fullPath: '/newsletter'
-      preLoaderRoute: typeof NewsletterRouteImport
+    '/robots.txt': {
+      id: '/robots.txt'
+      path: '/robots.txt'
+      fullPath: '/robots.txt'
+      preLoaderRoute: typeof RobotsDottxtRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/login': {
@@ -272,40 +168,12 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/blog': {
-      id: '/blog'
-      path: '/blog'
-      fullPath: '/blog'
-      preLoaderRoute: typeof BlogRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/about': {
-      id: '/about'
-      path: '/about'
-      fullPath: '/about'
-      preLoaderRoute: typeof AboutRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$slug': {
-      id: '/$slug'
-      path: '/$slug'
-      fullPath: '/$slug'
-      preLoaderRoute: typeof SlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/$lang': {
-      id: '/$lang'
-      path: '/$lang'
-      fullPath: '/$lang'
-      preLoaderRoute: typeof LangRouteImport
-      parentRoute: typeof rootRouteImport
-    }
-    '/': {
-      id: '/'
+    '/{-$locale}/': {
+      id: '/{-$locale}/'
       path: '/'
-      fullPath: '/'
-      preLoaderRoute: typeof IndexRouteImport
-      parentRoute: typeof rootRouteImport
+      fullPath: '/{-$locale}/'
+      preLoaderRoute: typeof Char123LocaleChar125IndexRouteImport
+      parentRoute: typeof Char123LocaleChar125Route
     }
     '/admin/': {
       id: '/admin/'
@@ -314,26 +182,19 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/tutorials/$seriesSlug': {
-      id: '/tutorials/$seriesSlug'
-      path: '/$seriesSlug'
-      fullPath: '/tutorials/$seriesSlug'
-      preLoaderRoute: typeof TutorialsSeriesSlugRouteImport
-      parentRoute: typeof TutorialsRoute
+    '/{-$locale}/about': {
+      id: '/{-$locale}/about'
+      path: '/about'
+      fullPath: '/{-$locale}/about'
+      preLoaderRoute: typeof Char123LocaleChar125AboutRouteImport
+      parentRoute: typeof Char123LocaleChar125Route
     }
-    '/$lang/blog': {
-      id: '/$lang/blog'
-      path: '/blog'
-      fullPath: '/$lang/blog'
-      preLoaderRoute: typeof LangBlogRouteImport
-      parentRoute: typeof LangRoute
-    }
-    '/$lang/$slug': {
-      id: '/$lang/$slug'
+    '/{-$locale}/$slug': {
+      id: '/{-$locale}/$slug'
       path: '/$slug'
-      fullPath: '/$lang/$slug'
-      preLoaderRoute: typeof LangSlugRouteImport
-      parentRoute: typeof LangRoute
+      fullPath: '/{-$locale}/$slug'
+      preLoaderRoute: typeof Char123LocaleChar125SlugRouteImport
+      parentRoute: typeof Char123LocaleChar125Route
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -352,41 +213,25 @@ declare module '@tanstack/react-router' {
   }
 }
 
-interface LangRouteChildren {
-  LangSlugRoute: typeof LangSlugRoute
-  LangBlogRoute: typeof LangBlogRoute
+interface Char123LocaleChar125RouteChildren {
+  Char123LocaleChar125SlugRoute: typeof Char123LocaleChar125SlugRoute
+  Char123LocaleChar125AboutRoute: typeof Char123LocaleChar125AboutRoute
+  Char123LocaleChar125IndexRoute: typeof Char123LocaleChar125IndexRoute
 }
 
-const LangRouteChildren: LangRouteChildren = {
-  LangSlugRoute: LangSlugRoute,
-  LangBlogRoute: LangBlogRoute,
+const Char123LocaleChar125RouteChildren: Char123LocaleChar125RouteChildren = {
+  Char123LocaleChar125SlugRoute: Char123LocaleChar125SlugRoute,
+  Char123LocaleChar125AboutRoute: Char123LocaleChar125AboutRoute,
+  Char123LocaleChar125IndexRoute: Char123LocaleChar125IndexRoute,
 }
 
-const LangRouteWithChildren = LangRoute._addFileChildren(LangRouteChildren)
-
-interface TutorialsRouteChildren {
-  TutorialsSeriesSlugRoute: typeof TutorialsSeriesSlugRoute
-}
-
-const TutorialsRouteChildren: TutorialsRouteChildren = {
-  TutorialsSeriesSlugRoute: TutorialsSeriesSlugRoute,
-}
-
-const TutorialsRouteWithChildren = TutorialsRoute._addFileChildren(
-  TutorialsRouteChildren,
-)
+const Char123LocaleChar125RouteWithChildren =
+  Char123LocaleChar125Route._addFileChildren(Char123LocaleChar125RouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
-  IndexRoute: IndexRoute,
-  LangRoute: LangRouteWithChildren,
-  SlugRoute: SlugRoute,
-  AboutRoute: AboutRoute,
-  BlogRoute: BlogRoute,
   LoginRoute: LoginRoute,
-  NewsletterRoute: NewsletterRoute,
-  ProjectsRoute: ProjectsRoute,
-  SearchRoute: SearchRoute,
-  TutorialsRoute: TutorialsRouteWithChildren,
+  RobotsDottxtRoute: RobotsDottxtRoute,
+  Char123LocaleChar125Route: Char123LocaleChar125RouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   AdminPreviewSlugRoute: AdminPreviewSlugRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

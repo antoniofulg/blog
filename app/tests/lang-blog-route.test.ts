@@ -27,7 +27,7 @@ vi.mock("@tanstack/react-start", () => ({
 
 import { getPublishedPostsFn } from "#/db/queries";
 import type { posts } from "#/db/schema";
-import { validateLocaleFn } from "#/routes/$lang/blog.server";
+import { validateLocaleFn } from "#/routes/{-$locale}/index.server";
 
 type Post = (typeof posts)["_"]["inferSelect"];
 
@@ -185,22 +185,51 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql.end();
 		});
 
-		it("GET /en/blog returns 200", async () => {
-			const res = await fetch(`${BASE_URL}/en/blog`);
+		it("GET / returns 200", async () => {
+			const res = await fetch(`${BASE_URL}/`);
 			expect(res.status).toBe(200);
 		});
 
-		it("GET /en/blog contains the published English post", async () => {
-			const res = await fetch(`${BASE_URL}/en/blog`);
+		it("GET / contains the published English post", async () => {
+			const res = await fetch(`${BASE_URL}/`);
 			const html = await res.text();
 			expect(html).toContain("Locale Blog Test");
 		});
 
-		it("GET /pt-br/blog returns 200 with empty state", async () => {
-			const res = await fetch(`${BASE_URL}/pt-br/blog`);
+		it("GET /pt-br/ returns 200 with empty state", async () => {
+			const res = await fetch(`${BASE_URL}/pt-br/`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
 			expect(html).toContain("Nenhum artigo encontrado");
+		});
+
+		it("GET / head contains hreflang en → /", async () => {
+			const res = await fetch(`${BASE_URL}/`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain('href="/"');
+		});
+
+		it("GET / head contains hreflang pt-BR → /pt-br/", async () => {
+			const res = await fetch(`${BASE_URL}/`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain('href="/pt-br/"');
+		});
+
+		it("GET /pt-br/ head contains both hreflang pairs", async () => {
+			const res = await fetch(`${BASE_URL}/pt-br/`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain('href="/"');
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain('href="/pt-br/"');
+		});
+
+		it("GET / hreflang hrefs contain no /en/ prefix", async () => {
+			const res = await fetch(`${BASE_URL}/`);
+			const html = await res.text();
+			expect(html).not.toMatch(/hreflang="en"[^>]*href="\/en\//);
 		});
 	},
 );

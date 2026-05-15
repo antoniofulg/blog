@@ -1,25 +1,18 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Menu, Moon, Search, Sun, Terminal } from "lucide-react";
+import { Menu, Moon, Sun, Terminal } from "lucide-react";
 import { useState } from "react";
+import { strings } from "#/lib/i18n/strings";
 import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
 
 const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 	en: [
 		{ label: "Home", to: "/" },
-		{ label: "Blog", to: "/blog" },
-		{ label: "Tutorials", to: "/tutorials" },
-		{ label: "Projects", to: "/projects" },
-		{ label: "About", to: "/about" },
-		{ label: "Newsletter", to: "/newsletter" },
+		{ label: "About", to: "/en/about" },
 	],
 	"pt-br": [
 		{ label: "Home", to: "/" },
-		{ label: "Blog", to: "/blog" },
-		{ label: "Tutoriais", to: "/tutorials" },
-		{ label: "Projetos", to: "/projects" },
-		{ label: "Sobre", to: "/about" },
-		{ label: "Newsletter", to: "/newsletter" },
+		{ label: "Sobre", to: "/pt-br/about" },
 	],
 };
 
@@ -49,23 +42,29 @@ function useLangSwitcher() {
 			| Locale
 			| undefined) ?? DEFAULT_LOCALE;
 	const targetLocale = LOCALES.find((l) => l !== currentLocale) as Locale;
-	const label = targetLocale === "pt-br" ? "PT" : "EN";
+	const label = strings[targetLocale].localeSwitcher.label;
 
 	function switchLang() {
 		setLocale(targetLocale);
 		const prefix = `/${currentLocale}/`;
+		const localeParam =
+			targetLocale === DEFAULT_LOCALE ? undefined : targetLocale;
 		if (pathname.startsWith(prefix)) {
-			const rest = pathname.slice(prefix.length);
-			if (rest === "blog") {
-				navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
+			if (rest === "" || rest === "blog") {
+				navigate({ to: "/{-$locale}", params: { locale: localeParam } });
+			} else if (rest === "about") {
+				navigate({ to: "/{-$locale}/about", params: { locale: localeParam } });
 			} else {
 				navigate({
-					to: "/$lang/$slug",
-					params: { lang: targetLocale, slug: rest },
+					to: "/{-$locale}/$slug",
+					params: { locale: localeParam, slug: rest },
 				});
 			}
+		} else if (pathname === "/about") {
+			navigate({ to: "/{-$locale}/about", params: { locale: localeParam } });
 		} else {
-			navigate({ to: "/$lang/blog", params: { lang: targetLocale } });
+			navigate({ to: "/{-$locale}", params: { locale: localeParam } });
 		}
 	}
 
@@ -81,7 +80,14 @@ export function Header() {
 	return (
 		<>
 			<header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-background px-6 lg:px-20">
-				<Link to="/" className="flex items-center gap-2">
+				<Link
+					to="/{-$locale}"
+					params={{
+						locale:
+							currentLocale === DEFAULT_LOCALE ? undefined : currentLocale,
+					}}
+					className="flex items-center gap-2"
+				>
 					<Terminal className="h-6 w-6 text-accent" />
 					<span className="font-heading text-lg font-bold text-foreground">
 						Antonio Fulgencio
@@ -101,12 +107,6 @@ export function Header() {
 				</nav>
 
 				<div className="flex items-center gap-3">
-					<Link
-						to="/search"
-						className="text-foreground-secondary transition-colors hover:text-foreground"
-					>
-						<Search className="h-5 w-5" />
-					</Link>
 					<button
 						type="button"
 						onClick={switchLang}

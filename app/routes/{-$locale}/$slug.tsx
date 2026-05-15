@@ -1,0 +1,126 @@
+import { createFileRoute } from "@tanstack/react-router";
+import { useEffect } from "react";
+import { TranslationNotice } from "#/components/ui/translation-notice";
+import { strings } from "#/lib/i18n/strings";
+import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
+import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
+
+const dateLocale: Record<Locale, string> = { en: "en-US", "pt-br": "pt-BR" };
+
+export const Route = createFileRoute("/{-$locale}/$slug")({
+	loader: async ({ params }) => {
+		const lang = (params.locale ?? DEFAULT_LOCALE) as Locale;
+		return getPostBySlugWithLang({
+			data: { slug: params.slug, lang },
+		});
+	},
+	head: ({ loaderData }) => ({
+		meta: [
+			{ title: loaderData?.post?.title ?? "Blog" },
+			...(loaderData?.post?.description
+				? [{ name: "description", content: loaderData.post.description }]
+				: []),
+			...(loaderData?.post?.title
+				? [{ property: "og:title", content: loaderData.post.title }]
+				: []),
+			...(loaderData?.post?.description
+				? [
+						{
+							property: "og:description",
+							content: loaderData.post.description,
+						},
+					]
+				: []),
+		],
+		links: loaderData?.alternateLang
+			? [
+					{
+						rel: "alternate",
+						hrefLang: toBcp47(loaderData.post.lang as Locale),
+						href: localeHref(
+							loaderData.post.lang as Locale,
+							loaderData.post.slug,
+						),
+					},
+					{
+						rel: "alternate",
+						hrefLang: toBcp47(loaderData.alternateLang as Locale),
+						href: localeHref(
+							loaderData.alternateLang as Locale,
+							loaderData.post.slug,
+						),
+					},
+				]
+			: [],
+	}),
+	component: LocalePostDetail,
+	notFoundComponent: () => {
+		const { locale } = Route.useParams();
+		const lang = (locale ?? DEFAULT_LOCALE) as Locale;
+		const copy = {
+			en: "Post not found",
+			"pt-br": "Post não encontrado",
+		} satisfies Record<Locale, string>;
+		const message = copy[lang] ?? copy.en;
+		return (
+			<main>
+				<h1>{message}</h1>
+			</main>
+		);
+	},
+});
+
+export function LocalePostDetail() {
+	const { post, html, notTranslated, requestedLang, availableLang } =
+		Route.useLoaderData();
+	useEffect(() => {
+		incrementViewCount({ data: post.id });
+	}, [post.id]);
+	return (
+		<div className="px-5 py-12 lg:px-20">
+			<article
+				className="mx-auto max-w-3xl"
+				lang={toBcp47(post.lang as Locale)}
+			>
+				{notTranslated && availableLang && (
+					<div className="mb-6">
+						<TranslationNotice
+							requestedLang={requestedLang}
+							availableLang={availableLang}
+						/>
+					</div>
+				)}
+				<header className="mb-8 flex flex-col gap-4">
+					{post.publishedAt && (
+						<p className="text-sm text-foreground-muted">
+							<span>{strings[requestedLang].postMeta.publishedOn}</span>{" "}
+							<time dateTime={new Date(post.publishedAt).toISOString()}>
+								{new Date(post.publishedAt).toLocaleDateString(
+									dateLocale[requestedLang],
+									{
+										day: "numeric",
+										month: "long",
+										year: "numeric",
+									},
+								)}
+							</time>
+						</p>
+					)}
+					<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">
+						{post.title}
+					</h1>
+					{post.description && (
+						<p className="text-lg leading-relaxed text-foreground-secondary">
+							{post.description}
+						</p>
+					)}
+				</header>
+				<div
+					className="prose prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-accent prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:text-foreground-code prose-pre:bg-code-bg prose-pre:text-foreground-code"
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
+					dangerouslySetInnerHTML={{ __html: html }}
+				/>
+			</article>
+		</div>
+	);
+}

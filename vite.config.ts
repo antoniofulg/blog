@@ -70,14 +70,8 @@ const config = defineConfig({
 			// Skipped during vitest: tests start the watcher explicitly via their own imports.
 			async configureServer() {
 				if (process.env.VITEST) return;
-				const { execFileSync, spawn } = await import("node:child_process");
-				execFileSync("bun", ["run", "db:migrate"], { stdio: "inherit" });
-				execFileSync("bun", ["run", "db:seed"], { stdio: "inherit" });
-				const proc = spawn("bun", ["scripts/watcher.ts"], {
-					stdio: "inherit",
-					cwd: process.cwd(),
-				});
-				proc.unref();
+				const { runDevBoot } = await import("./app/lib/dev-boot");
+				await runDevBoot();
 			},
 		},
 		devtools(),
@@ -88,8 +82,9 @@ const config = defineConfig({
 			importProtection: {
 				client: {
 					excludeFiles: [
-						"app/routes/$lang/$slug.server.ts",
-						"app/routes/$lang/blog.server.ts",
+						"app/routes/{-$locale}/$slug.server.ts",
+						"app/routes/{-$locale}/about.server.ts",
+						"app/routes/{-$locale}/index.server.ts",
 						"app/routes/admin/index.server.ts",
 						"app/routes/admin/preview.$slug.server.ts",
 					],

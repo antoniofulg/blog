@@ -124,8 +124,11 @@ function lintFrontmatter(filePath: string): void {
 }
 
 describe("lint: frontmatter conventions", () => {
-	it("all MDX files in content/ pass frontmatter validation", () => {
-		const files = findMdxFiles(CONTENT_DIR);
+	it("all post MDX files in content/ pass frontmatter validation", () => {
+		// About pages use aboutFrontmatterSchema (different shape); exclude from post lint
+		const files = findMdxFiles(CONTENT_DIR).filter(
+			(f) => !f.endsWith("/about.mdx"),
+		);
 		expect(files.length).toBeGreaterThan(0);
 		for (const file of files) {
 			expect(() => lintFrontmatter(file)).not.toThrow();
@@ -134,7 +137,7 @@ describe("lint: frontmatter conventions", () => {
 
 	it("lorem-ipsum.mdx has all required fields", () => {
 		expect(() =>
-			lintFrontmatter(join(CONTENT_DIR, "en/lorem-ipsum.mdx")),
+			lintFrontmatter(join(FIXTURES, "lorem-ipsum.mdx")),
 		).not.toThrow();
 	});
 
@@ -170,7 +173,7 @@ describe("lint: frontmatter conventions", () => {
 
 	it("passes when category field is absent", () => {
 		expect(() =>
-			lintFrontmatter(join(CONTENT_DIR, "en/lorem-ipsum.mdx")),
+			lintFrontmatter(join(FIXTURES, "lorem-ipsum.mdx")),
 		).not.toThrow();
 	});
 });

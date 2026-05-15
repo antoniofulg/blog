@@ -12,9 +12,9 @@ const localeNames: Record<Locale, string> = {
 
 const messages: Record<Locale, (availableName: string) => string> = {
 	en: (availableName) =>
-		`This post is not available in English — showing ${availableName} version`,
+		`This content is not yet available in English — showing the ${availableName} version`,
 	"pt-br": (availableName) =>
-		`Este post não está disponível em Português — mostrando versão em ${availableName}`,
+		`Este conteúdo ainda não está disponível em Português — exibindo a versão em ${availableName}`,
 };
 
 export function TranslationNotice({ requestedLang, availableLang }: Props) {

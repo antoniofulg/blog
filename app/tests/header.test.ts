@@ -84,19 +84,19 @@ describe("unit: Header language switcher label", () => {
 		cleanup();
 	});
 
-	it("renders 'PT' label when locale is 'en'", async () => {
+	it("renders 'Português' label when locale is 'en'", async () => {
 		renderHeader();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Switch language" });
-		expect(btn.textContent).toBe("PT");
+		expect(btn.textContent).toBe("Português");
 	});
 
-	it("renders 'EN' label when on /pt-br/blog", async () => {
+	it("renders 'English' label when on /pt-br/blog", async () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Switch language" });
-		expect(btn.textContent).toBe("EN");
+		expect(btn.textContent).toBe("English");
 	});
 });
 
@@ -112,7 +112,7 @@ describe("unit: Header language switcher navigation", () => {
 		cleanup();
 	});
 
-	it("on '/en/react-suspense' navigates to '/$lang/$slug' with pt-br and react-suspense", async () => {
+	it("on '/en/react-suspense' navigates to '/{-$locale}/$slug' with pt-br and react-suspense", async () => {
 		mocks.setPathname("/en/react-suspense");
 		renderHeader();
 		await act(async () => {});
@@ -123,13 +123,13 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/$lang/$slug",
-			params: { lang: "pt-br", slug: "react-suspense" },
+			to: "/{-$locale}/$slug",
+			params: { locale: "pt-br", slug: "react-suspense" },
 		});
 		expect(localStorage.getItem("locale")).toBe("pt-br");
 	});
 
-	it("on '/en/blog' navigates to '/$lang/blog' with pt-br", async () => {
+	it("on '/en/blog' navigates to '/{-$locale}' with pt-br", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -140,12 +140,12 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/$lang/blog",
-			params: { lang: "pt-br" },
+			to: "/{-$locale}",
+			params: { locale: "pt-br" },
 		});
 	});
 
-	it("on non-locale path falls back to '/$lang/blog' with pt-br", async () => {
+	it("on '/about' navigates to '/{-$locale}/about' with pt-br", async () => {
 		mocks.setPathname("/about");
 		renderHeader();
 		await act(async () => {});
@@ -156,8 +156,8 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/$lang/blog",
-			params: { lang: "pt-br" },
+			to: "/{-$locale}/about",
+			params: { locale: "pt-br" },
 		});
 	});
 });
@@ -194,5 +194,64 @@ describe("integration: language switcher localStorage", () => {
 
 		const btn = screen.getByRole("button", { name: "Switch language" });
 		expect(btn).toBeDefined();
+	});
+});
+
+// ─── unit: NAV_LABELS absent entries ──────────────────────────────────────────
+
+describe("unit: Header removed nav entries", () => {
+	beforeEach(() => {
+		localStorage.clear();
+		mocks.navigate.mockClear();
+	});
+	afterEach(() => {
+		localStorage.clear();
+		cleanup();
+	});
+
+	it("en locale: no link to /tutorials", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/tutorials"]')).toBeNull();
+	});
+
+	it("en locale: no link to /projects", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/projects"]')).toBeNull();
+	});
+
+	it("pt-br locale: no link to /tutorials", async () => {
+		mocks.setPathname("/pt-br/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/tutorials"]')).toBeNull();
+	});
+
+	it("pt-br locale: no link to /projects", async () => {
+		mocks.setPathname("/pt-br/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(document.querySelector('a[href="/projects"]')).toBeNull();
+	});
+
+	it("locale switcher button still renders", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		expect(
+			screen.getByRole("button", { name: "Switch language" }),
+		).toBeDefined();
+	});
+
+	it("theme toggle button still renders", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+		const themeBtn = document.querySelectorAll('button[type="button"]');
+		const hasToggle = Array.from(themeBtn).some((b) => b.querySelector("svg"));
+		expect(hasToggle).toBe(true);
 	});
 });

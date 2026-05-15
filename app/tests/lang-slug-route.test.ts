@@ -63,7 +63,7 @@ import {
 	getPostBySlugWithLangFn,
 	incrementViewCountFn,
 	validateLocaleInput,
-} from "#/routes/$lang/$slug.server";
+} from "#/routes/{-$locale}/$slug.server";
 
 type Post = (typeof posts)["_"]["inferSelect"];
 
@@ -266,8 +266,10 @@ describe("unit: TranslationNotice", () => {
 				availableLang: "en",
 			}),
 		);
-		expect(html).toContain("Este post");
-		expect(html).toContain("mostrando versão");
+		expect(html).toContain(
+			"Este conteúdo ainda não está disponível em Português",
+		);
+		expect(html).toContain("exibindo a versão");
 	});
 
 	it("en → pt-br message is in English", () => {
@@ -277,8 +279,26 @@ describe("unit: TranslationNotice", () => {
 				availableLang: "pt-br",
 			}),
 		);
-		expect(html).toContain("This post is not available in English");
+		expect(html).toContain("This content is not yet available in English");
 		expect(html).toContain("showing");
+	});
+
+	it("banner copy does not contain the word 'post' (content-neutral for About)", () => {
+		const ptBrHtml = renderToStaticMarkup(
+			createElement(TranslationNotice, {
+				requestedLang: "pt-br",
+				availableLang: "en",
+			}),
+		);
+		expect(ptBrHtml.toLowerCase()).not.toContain("post");
+
+		const enHtml = renderToStaticMarkup(
+			createElement(TranslationNotice, {
+				requestedLang: "en",
+				availableLang: "pt-br",
+			}),
+		);
+		expect(enHtml.toLowerCase()).not.toContain("post");
 	});
 });
 
@@ -296,12 +316,12 @@ const port5432Free = await isPortFree(5432);
 const port3000Free = await isPortFree(3000);
 
 describe.skipIf(port5432Free || port3000Free)(
-	"integration: $lang/$slug route",
+	"integration: {-$locale}/$slug route",
 	() => {
 		let sql: import("postgres").Sql;
 		const DB_URL = "postgres://blog:blog@localhost:5432/blog";
 		const BASE_URL = "http://localhost:3000";
-		const SLUG = `integ-lang-slug-${Date.now()}`;
+		const SLUG = `integ-locale-slug-${Date.now()}`;
 		const FIXTURE = join(import.meta.dirname, "fixtures", "hello.mdx");
 
 		beforeAll(async () => {
@@ -319,15 +339,15 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql.end();
 		});
 
-		it("GET /en/<slug> returns 200 and renders post title", async () => {
-			const res = await fetch(`${BASE_URL}/en/${SLUG}`);
+		it("GET /<slug> returns 200 and renders post title", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
 			expect(html).toContain("Integration Lang Slug Test");
 		});
 
-		it("GET /en/<slug> does not show translation notice", async () => {
-			const res = await fetch(`${BASE_URL}/en/${SLUG}`);
+		it("GET /<slug> does not show translation notice", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			const html = await res.text();
 			expect(html).not.toContain("not available in English");
 			expect(html).not.toContain("não está disponível");
@@ -341,11 +361,77 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(html).toContain("Português");
 		});
 
-		it("GET /en/nonexistent returns 404", async () => {
-			const res = await fetch(
-				`${BASE_URL}/en/__nonexistent_slug_${Date.now()}__`,
-			);
+		it("GET /pt-br/<slug> (fallback to en) article element has lang=en", async () => {
+			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
+			expect(res.status).toBe(200);
+			const html = await res.text();
+			expect(html).toMatch(/<article[^>]+lang="en"/);
+		});
+
+		it("GET /<nonexistent-slug> returns 404", async () => {
+			const res = await fetch(`${BASE_URL}/__nonexistent_slug_${Date.now()}__`);
 			expect(res.status).toBe(404);
+		});
+
+		it("GET /<slug> head contains hreflang pair for pt-br alternate", async () => {
+			// Insert pt-br version of the post so alternateLang is populated
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain(`href="/${SLUG}"`);
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain(`href="/pt-br/${SLUG}"`);
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
+		});
+
+		it("GET /pt-br/<slug> head contains hreflang pair for en alternate", async () => {
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain('hreflang="pt-BR"');
+			expect(html).toContain(`href="/pt-br/${SLUG}"`);
+			expect(html).toContain('hreflang="en"');
+			expect(html).toContain(`href="/${SLUG}"`);
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
+		});
+
+		it("GET /<slug> hreflang hrefs contain no /en/ prefix", async () => {
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			const html = await res.text();
+			expect(html).not.toMatch(/hreflang="en"[^>]*href="\/en\//);
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
+		});
+
+		it("GET /<slug> SSR contains en postMeta.publishedOn label before the date", async () => {
+			const res = await fetch(`${BASE_URL}/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain("Published on");
+		});
+
+		it("GET /pt-br/<slug> SSR contains pt-br postMeta.publishedOn label before the date", async () => {
+			await sql`
+        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        ON CONFLICT DO NOTHING
+      `;
+			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
+			const html = await res.text();
+			expect(html).toContain("Publicado em");
+			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
 		});
 	},
 );
