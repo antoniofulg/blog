@@ -43,7 +43,14 @@ export const Route = createFileRoute("/{-$locale}/")({
 		setResponseHeader("Vary", "Cookie, Accept-Language");
 		const detected = detectLocaleFromRequest(req);
 		if (detected !== DEFAULT_LOCALE) {
-			throw redirect({ href: `/${detected}/`, statusCode: 302 });
+			// href used instead of `to`: TanStack Router excludes "/{-$locale}/"
+			// from the redirect `to` union and does not expose the optional-segment
+			// param in the inferred params type (TS2820/TS2353). See issue_003.md.
+			throw redirect({
+				href: `/${detected}/`,
+				statusCode: 302,
+				headers: { Vary: "Cookie, Accept-Language" },
+			});
 		}
 	},
 	head: ({ params }) => ({

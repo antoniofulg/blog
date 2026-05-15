@@ -107,6 +107,26 @@ describe("unit: detectLocaleFromRequest", () => {
 			),
 		).toBe("en");
 	});
+
+	it("en-US,en;q=0.9,pt;q=0.1 → 'en' (English wins by weight)", () => {
+		expect(
+			detectLocaleFromRequest(makeRequest("en-US,en;q=0.9,pt;q=0.1")),
+		).toBe("en");
+	});
+
+	it("en;q=1.0,pt;q=0.0 → 'en' (pt explicitly declined)", () => {
+		expect(detectLocaleFromRequest(makeRequest("en;q=1.0,pt;q=0.0"))).toBe(
+			"en",
+		);
+	});
+
+	it("zh-CN,zh;q=0.9,en-US;q=0.8,pt-BR;q=0.1 → 'en' (en beats pt by weight)", () => {
+		expect(
+			detectLocaleFromRequest(
+				makeRequest("zh-CN,zh;q=0.9,en-US;q=0.8,pt-BR;q=0.1"),
+			),
+		).toBe("en");
+	});
 });
 
 // ─── unit: LocaleProvider + useLocale ───────────────────────────────────────

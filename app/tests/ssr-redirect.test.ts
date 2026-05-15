@@ -62,4 +62,15 @@ describe.skipIf(port3000Free)("integration: SSR redirect on /", () => {
 		expect(vary).toContain("Cookie");
 		expect(vary).toContain("Accept-Language");
 	});
+
+	it("302 redirect response includes Vary: Cookie, Accept-Language", async () => {
+		const res = await fetch(`${BASE_URL}/`, {
+			redirect: "manual",
+			headers: { Cookie: "locale=pt-br" },
+		});
+		expect(res.status).toBe(302);
+		const vary = res.headers.get("vary") ?? "";
+		expect(vary).toContain("Cookie");
+		expect(vary).toContain("Accept-Language");
+	});
 });
