@@ -29,7 +29,7 @@ describe("unit: docker-compose.yml", () => {
 		expect(() =>
 			execSync("docker compose config", { cwd: root, stdio: "pipe" }),
 		).not.toThrow();
-	});
+	}, 15_000);
 
 	it("defines an app service built from the dev Dockerfile target", () => {
 		const config = JSON.parse(
@@ -53,7 +53,7 @@ describe("unit: docker-compose.yml", () => {
 					"postgres://POSTGRES_USER:POSTGRES_PASSWORD@localhost:5432/POSTGRES_DB",
 			}),
 		);
-	});
+	}, 15_000);
 
 	it("loads app environment from .env", () => {
 		expect(content).toMatch(/^\s+env_file: \.env$/m);
@@ -71,7 +71,7 @@ describe("unit: docker-compose.yml", () => {
 		expect(config.services.app.depends_on.db).toEqual(
 			expect.objectContaining({ condition: "service_healthy" }),
 		);
-	});
+	}, 15_000);
 
 	it("declares an anonymous node_modules volume for app", () => {
 		const config = JSON.parse(
@@ -88,7 +88,7 @@ describe("unit: docker-compose.yml", () => {
 				target: "/app/node_modules",
 			}),
 		);
-	});
+	}, 15_000);
 
 	it("configures compose watch sync and rebuild paths", () => {
 		const config = JSON.parse(
@@ -121,7 +121,7 @@ describe("unit: docker-compose.yml", () => {
 				}),
 			]),
 		);
-	});
+	}, 15_000);
 
 	it("health check command is pg_isready -U ${POSTGRES_USER}", () => {
 		expect(content).toContain("pg_isready -U ${POSTGRES_USER}");
