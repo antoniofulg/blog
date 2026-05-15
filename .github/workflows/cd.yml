@@ -55,23 +55,3 @@ jobs:
           GHCR_REPO: ${{ github.event.repository.name }}
           IMAGE_TAG: ${{ needs.build-push.outputs.sha_short }}
         run: bash scripts/deploy.sh
-
-  changelog:
-    runs-on: ubuntu-latest
-    needs: deploy
-    permissions:
-      contents: write
-    steps:
-      - uses: actions/checkout@v4
-        with:
-          fetch-depth: 0
-      - uses: oven-sh/setup-bun@v2
-        with:
-          bun-version: "1.3.13"
-      - run: bun install --frozen-lockfile
-      - run: bunx conventional-changelog-cli -p angular -i CHANGELOG.md -s -r 0
-      - run: |
-          git config user.name "github-actions[bot]"
-          git config user.email "github-actions[bot]@users.noreply.github.com"
-          git add CHANGELOG.md
-          git diff --staged --quiet || (git commit -m "chore: update changelog [skip ci]" && git push)
