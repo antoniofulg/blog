@@ -8,7 +8,7 @@ import { useTheme } from "#/lib/theme";
 const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 	en: [
 		{ label: "Home", to: "/" },
-		{ label: "About", to: "/about" },
+		{ label: "About", to: "/en/about" },
 	],
 	"pt-br": [
 		{ label: "Home", to: "/" },
