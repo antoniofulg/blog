@@ -30,6 +30,7 @@ COPY --from=builder /app/scripts/seed.ts ./scripts/seed.ts
 COPY --from=builder /app/scripts/sync.ts ./scripts/sync.ts
 COPY --from=builder /app/content ./content
 COPY --from=builder /app/app/db ./app/db
+COPY --from=builder /app/app/lib ./app/lib
 
 EXPOSE 3000
 
