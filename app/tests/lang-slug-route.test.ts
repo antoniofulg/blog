@@ -266,8 +266,10 @@ describe("unit: TranslationNotice", () => {
 				availableLang: "en",
 			}),
 		);
-		expect(html).toContain("Este post");
-		expect(html).toContain("mostrando versão");
+		expect(html).toContain(
+			"Este conteúdo ainda não está disponível em Português",
+		);
+		expect(html).toContain("exibindo a versão");
 	});
 
 	it("en → pt-br message is in English", () => {
@@ -277,8 +279,26 @@ describe("unit: TranslationNotice", () => {
 				availableLang: "pt-br",
 			}),
 		);
-		expect(html).toContain("This post is not available in English");
+		expect(html).toContain("This content is not yet available in English");
 		expect(html).toContain("showing");
+	});
+
+	it("banner copy does not contain the word 'post' (content-neutral for About)", () => {
+		const ptBrHtml = renderToStaticMarkup(
+			createElement(TranslationNotice, {
+				requestedLang: "pt-br",
+				availableLang: "en",
+			}),
+		);
+		expect(ptBrHtml.toLowerCase()).not.toContain("post");
+
+		const enHtml = renderToStaticMarkup(
+			createElement(TranslationNotice, {
+				requestedLang: "en",
+				availableLang: "pt-br",
+			}),
+		);
+		expect(enHtml.toLowerCase()).not.toContain("post");
 	});
 });
 
