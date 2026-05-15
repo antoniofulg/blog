@@ -36,6 +36,11 @@ describe("unit: Footer navLinks absent entries", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/projects"]')).toBeNull();
 	});
+
+	it("no link to /blog — deleted route, listing moved to /", () => {
+		renderFooter();
+		expect(document.querySelector('a[href="/blog"]')).toBeNull();
+	});
 });
 
 // ─── unit: resourceLinks absent entries ───────────────────────────────────────
@@ -62,17 +67,31 @@ describe("unit: Footer resourceLinks absent entries", () => {
 	});
 });
 
+// ─── unit: social links absent ────────────────────────────────────────────────
+
+describe("unit: Footer social links absent", () => {
+	it("no placeholder github.com link", () => {
+		renderFooter();
+		expect(document.querySelector('a[href="https://github.com"]')).toBeNull();
+	});
+
+	it("no placeholder linkedin.com link", () => {
+		renderFooter();
+		expect(document.querySelector('a[href="https://linkedin.com"]')).toBeNull();
+	});
+
+	it("no placeholder twitter.com link", () => {
+		renderFooter();
+		expect(document.querySelector('a[href="https://twitter.com"]')).toBeNull();
+	});
+});
+
 // ─── unit: valid remaining links ──────────────────────────────────────────────
 
 describe("unit: Footer valid remaining links", () => {
 	it("renders link to /", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/"]')).not.toBeNull();
-	});
-
-	it("renders link to /blog", () => {
-		renderFooter();
-		expect(document.querySelector('a[href="/blog"]')).not.toBeNull();
 	});
 
 	it("renders link to /about", () => {

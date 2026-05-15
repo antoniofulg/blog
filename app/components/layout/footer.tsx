@@ -1,10 +1,6 @@
 import { Link } from "@tanstack/react-router";
-import { Github, Linkedin, Twitter } from "lucide-react";
 
-const navLinks = [
-	{ label: "Home", to: "/" },
-	{ label: "Blog", to: "/blog" },
-];
+const navLinks = [{ label: "Home", to: "/" }];
 
 const resourceLinks = [{ label: "Sobre", to: "/about" }];
 
@@ -20,32 +16,6 @@ export function Footer() {
 						Artigos sobre desenvolvimento web, React, TypeScript e carreira
 						internacional.
 					</p>
-					<div className="flex gap-3">
-						<a
-							href="https://github.com"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-foreground-secondary transition-colors hover:text-foreground"
-						>
-							<Github className="h-5 w-5" />
-						</a>
-						<a
-							href="https://linkedin.com"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-foreground-secondary transition-colors hover:text-foreground"
-						>
-							<Linkedin className="h-5 w-5" />
-						</a>
-						<a
-							href="https://twitter.com"
-							target="_blank"
-							rel="noopener noreferrer"
-							className="text-foreground-secondary transition-colors hover:text-foreground"
-						>
-							<Twitter className="h-5 w-5" />
-						</a>
-					</div>
 				</div>
 
 				<div className="flex gap-16">
