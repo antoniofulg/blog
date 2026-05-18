@@ -22,4 +22,6 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 
 ## Handoffs
 
-- task_02 can start: all Phase 1-3 deps are installed.
+- task_02 complete: site-model module, vite stub, drift test all done. 28 tests pass, 95.45% branch coverage.
+- task_03 complete: PGLite harness done. 18 tests pass, 94%+ statement coverage. State file at `os.tmpdir()/pglite-e2e-state.json`. TCP proxy built from `net.Server` + `PGlite.execProtocolRaw()`.
+- task_04 can start: `E2E_STATE_FILE`, `getActiveTestDb()`, `clearActiveTestDb()` exported from `tests/e2e/global-setup.ts`.

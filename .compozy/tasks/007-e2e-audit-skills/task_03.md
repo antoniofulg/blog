@@ -1,5 +1,5 @@
 ---
-status: pending
+status: done
 title: PGLite test DB harness + admin seed + global setup/teardown
 type: test
 complexity: medium
@@ -34,11 +34,11 @@ Build the ephemeral PGLite test database harness that Playwright's preview serve
 
 ## Subtasks
 
-- [ ] 3.1 Create `tests/e2e/db.ts` exporting `createTestDb()` using `@electric-sql/pglite` + `drizzle-orm/pglite`.
-- [ ] 3.2 Create `tests/e2e/seed.ts` exporting `seedAdminUser(db)` that uses Better Auth's API to create the e2e admin.
-- [ ] 3.3 Create `tests/e2e/global-setup.ts` — orchestrates `createTestDb()` + `seedAdminUser()`, exposes connection string to subsequent test workers and the webServer process.
-- [ ] 3.4 Create `tests/e2e/global-teardown.ts` — closes the PGLite client; idempotent.
-- [ ] 3.5 Add Vitest integration tests under `app/tests/e2e-harness.test.ts` (Vitest, not Playwright) that exercise `createTestDb()` + `seedAdminUser()` in isolation.
+- [x] 3.1 Create `tests/e2e/db.ts` exporting `createTestDb()` using `@electric-sql/pglite` + `drizzle-orm/pglite`.
+- [x] 3.2 Create `tests/e2e/seed.ts` exporting `seedAdminUser(db)` that uses Better Auth's API to create the e2e admin.
+- [x] 3.3 Create `tests/e2e/global-setup.ts` — orchestrates `createTestDb()` + `seedAdminUser()`, exposes connection string to subsequent test workers and the webServer process.
+- [x] 3.4 Create `tests/e2e/global-teardown.ts` — closes the PGLite client; idempotent.
+- [x] 3.5 Add Vitest integration tests under `app/tests/e2e-harness.test.ts` (Vitest, not Playwright) that exercise `createTestDb()` + `seedAdminUser()` in isolation.
 
 ## Implementation Details
 
