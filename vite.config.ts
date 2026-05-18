@@ -18,6 +18,7 @@ const SERVER_ONLY_IDS = new Set([
 	"#/lib/watcher.server",
 	"#/lib/auth",
 	"#/lib/session",
+	"#/lib/site-model.server",
 ]);
 // Node built-ins used only in server function bodies — stub for browser.
 const NODE_ONLY_IDS = new Set([
