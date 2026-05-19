@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: MDX link-parser (remark AST)
 type: backend
 complexity: medium
@@ -34,10 +34,10 @@ Build the AST-based MDX link extractor that the content-audit checks consume. Us
 
 ## Subtasks
 
-- [ ] 11.1 Create `app/lib/content-audit/link-parser.server.ts` exporting `extractLinks()` and the `Link` type.
-- [ ] 11.2 Implement the `unified` pipeline + `unist-util-visit` walker.
-- [ ] 11.3 Add `#/lib/content-audit/link-parser.server` to `vite.config.ts:serverOnlyStubPlugin`.
-- [ ] 11.4 Create `app/tests/link-parser.test.ts` with fixture MDX covering markdown links, JSX `<Link>`, JSX `<a>`, expression-attribute hrefs, external/internal/fragment classifications.
+- [x] 11.1 Create `app/lib/content-audit/link-parser.server.ts` exporting `extractLinks()` and the `Link` type.
+- [x] 11.2 Implement the `unified` pipeline + `unist-util-visit` walker.
+- [x] 11.3 Add `#/lib/content-audit/link-parser.server` to `vite.config.ts:serverOnlyStubPlugin`.
+- [x] 11.4 Create `app/tests/link-parser.test.ts` with fixture MDX covering markdown links, JSX `<Link>`, JSX `<a>`, expression-attribute hrefs, external/internal/fragment classifications.
 
 ## Implementation Details
 
@@ -81,17 +81,17 @@ See TechSpec "Build Order step 28" and "Core Interfaces". Note that `@mdx-js/mdx
 ## Tests
 
 - Unit tests:
-  - [ ] Markdown link extraction returns correct href + line/column.
-  - [ ] JSX `<Link href="...">` extraction returns correct href + line/column.
-  - [ ] JSX `<a href="...">` extraction works the same.
-  - [ ] JSX expression-attribute `href={"/foo"}`: literal-string-attribute returns the href.
-  - [ ] JSX dynamic expression `href={someVar}` either returns null href or emits a documented warning.
-  - [ ] Fragment-only `[anchor](#section)` returns the link with `href: '#section'`.
-  - [ ] External `[example](https://example.com)` returns the link.
-  - [ ] Empty MDX file returns `[]`.
+  - [x] Markdown link extraction returns correct href + line/column.
+  - [x] JSX `<Link href="...">` extraction returns correct href + line/column.
+  - [x] JSX `<a href="...">` extraction works the same.
+  - [x] JSX expression-attribute `href={"/foo"}`: literal-string-attribute returns the href.
+  - [x] JSX dynamic expression `href={someVar}` either returns null href or emits a documented warning.
+  - [x] Fragment-only `[anchor](#section)` returns the link with `href: '#section'`.
+  - [x] External `[example](https://example.com)` returns the link.
+  - [x] Empty MDX file returns `[]`.
 - Integration tests:
-  - [ ] Walk all of `app/content/posts/**` and assert `extractLinks()` returns an array; no exceptions.
-  - [ ] Client bundle build succeeds with `link-parser.server.ts` present.
+  - [x] Walk all of `app/content/posts/**` and assert `extractLinks()` returns an array; no exceptions.
+  - [x] Client bundle build succeeds with `link-parser.server.ts` present.
 - Test coverage target: >=80%.
 - All tests must pass.
 
