@@ -1,11 +1,11 @@
 ---
-status: pending
+status: completed
 title: content-audit SKILL + slash alias + audit.md + AGENTS updates
 type: docs
 complexity: low
 dependencies:
-  - task_13
-  - task_14
+    - task_13
+    - task_14
 feature: audit/skill-docs
 ---
 
@@ -35,11 +35,11 @@ Ship the `content-audit` agent skill as the canonical entrypoint for content swe
 
 ## Subtasks
 
-- [ ] 15.1 Create `.agents/skills/content-audit/SKILL.md` with frontmatter + body.
-- [ ] 15.2 Create symlink `.claude/skills/content-audit -> ../../.agents/skills/content-audit`.
-- [ ] 15.3 Create `.claude/commands/content-audit.md` slash-command file.
-- [ ] 15.4 Create `.agents/rules/audit.md`.
-- [ ] 15.5 Update `AGENTS.md` File Structure + Skill Map + Rules list blocks.
+- [x] 15.1 Create `.agents/skills/content-audit/SKILL.md` with frontmatter + body.
+- [x] 15.2 Create symlink `.claude/skills/content-audit -> ../../.agents/skills/content-audit`.
+- [x] 15.3 Create `.claude/commands/content-audit.md` slash-command file.
+- [x] 15.4 Create `.agents/rules/audit.md`.
+- [x] 15.5 Update `AGENTS.md` File Structure + Skill Map + Rules list blocks.
 
 ## Implementation Details
 
@@ -83,10 +83,10 @@ See TechSpec "Build Order steps 35-38" and PRD-007 User Stories ("As the develop
 ## Tests
 
 - Unit tests:
-  - [ ] Vitest test reads `.agents/skills/content-audit/SKILL.md`, parses frontmatter, asserts required fields.
-  - [ ] Vitest test asserts `.claude/skills/content-audit` is a symbolic link to `../../.agents/skills/content-audit`.
-  - [ ] Vitest test asserts `.agents/rules/audit.md` contains strings: "translation-gap", "broken-link", "missing-alt-text", "series-gap", "frontmatter-invalid", "abort condition".
-  - [ ] Vitest test asserts `AGENTS.md` contains "docs/_reports/", "docs/audits/", "content-audit", ".agents/rules/audit.md".
+  - [x] Vitest test reads `.agents/skills/content-audit/SKILL.md`, parses frontmatter, asserts required fields.
+  - [x] Vitest test asserts `.claude/skills/content-audit` is a symbolic link to `../../.agents/skills/content-audit`.
+  - [x] Vitest test asserts `.agents/rules/audit.md` contains strings: "translation-gap", "broken-link", "missing-alt-text", "series-gap", "frontmatter-invalid", "abort condition".
+  - [x] Vitest test asserts `AGENTS.md` contains "docs/_reports/", "docs/audits/", "content-audit", ".agents/rules/audit.md".
 - Integration tests:
   - [ ] Manual `/content-audit` invocation on a clean conversation triggers the SKILL.md (verified once before merging Phase 3).
   - [ ] Slash-command alias resolves to the same SKILL.md content.
