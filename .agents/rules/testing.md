@@ -105,6 +105,12 @@ test.describe("auth flow", { tag: ["@auth", "@smoke"] }, () => { ... });
 test.describe("admin dashboard", { tag: ["@admin", "@smoke"] }, () => { ... });
 ```
 
+## forbidOnly — CI safety net
+
+`playwright.config.ts` sets `forbidOnly: !!process.env.CI`. On CI, any `test.only(...)` in the suite causes Playwright to exit non-zero with a "forbid-only" error before any test runs. Locally the option is off so `test.only` still works for debugging.
+
+Do NOT remove `forbidOnly`. It is the enforcement mechanism for ADR-003's assumption that the full suite executes per PR.
+
 ## 48h SLA Rule for @flaky
 
 Any test marked `@flaky` or `.skip` MUST have an ISO-date comment on the

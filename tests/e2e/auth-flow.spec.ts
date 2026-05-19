@@ -1,7 +1,13 @@
 import { test, expect } from "./fixtures/auth";
 
-const adminEmail = process.env.E2E_ADMIN_EMAIL ?? "e2e@test.local";
-const adminPassword = process.env.E2E_ADMIN_PASSWORD ?? "e2e-test-password";
+const isCI = process.env.CI === "true";
+const adminEmail = process.env.E2E_ADMIN_EMAIL ?? (isCI ? undefined : "e2e@test.local");
+const adminPassword =
+	process.env.E2E_ADMIN_PASSWORD ?? (isCI ? undefined : "e2e-test-password");
+
+if (!adminEmail) throw new Error("Missing credential: E2E_ADMIN_EMAIL is required on CI");
+if (!adminPassword)
+	throw new Error("Missing credential: E2E_ADMIN_PASSWORD is required on CI");
 
 test.describe("auth flow", { tag: ["@auth", "@smoke"] }, () => {
 	// These tests need a fresh browser context — no pre-loaded storageState
