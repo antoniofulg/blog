@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 title: lint-test-annotations script + scripts wiring
 type: infra
 complexity: medium
@@ -35,11 +35,11 @@ Implement the CI lint script that enforces the 48-hour SLA on `@flaky`, `.skip`,
 
 ## Subtasks
 
-- [ ] 6.1 Create `scripts/lint-test-annotations.ts` implementing AST scan + date-age check + exit codes.
-- [ ] 6.2 Add `lint:tests` script to `package.json`.
-- [ ] 6.3 Add `lint-tests` target to `Makefile` invoking `bun run lint:tests`.
-- [ ] 6.4 Create fixture spec files under `app/tests/fixtures/lint-annotations/` covering happy + offense cases.
-- [ ] 6.5 Create `app/tests/lint-test-annotations.test.ts` (Vitest) covering all exit code paths.
+- [x] 6.1 Create `scripts/lint-test-annotations.ts` implementing AST scan + date-age check + exit codes.
+- [x] 6.2 Add `lint:tests` script to `package.json`.
+- [x] 6.3 Add `lint-tests` target to `Makefile` invoking `bun run lint:tests`.
+- [x] 6.4 Create fixture spec files under `app/tests/fixtures/lint-annotations/` covering happy + offense cases.
+- [x] 6.5 Create `app/tests/lint-test-annotations.test.ts` (Vitest) covering all exit code paths.
 
 ## Implementation Details
 
@@ -84,17 +84,17 @@ See TechSpec "Build Order step 13" and "Known Risks → Lint script regex false 
 ## Tests
 
 - Unit tests:
-  - [ ] Happy path: file with no annotations returns exit 0 + empty offense list.
-  - [ ] `test.skip` with date >48h old returns exit 1 + one offense.
-  - [ ] `test.todo` with date >48h old returns exit 1 + one offense.
-  - [ ] `@flaky` tag with date >48h old returns exit 1 + one offense.
-  - [ ] Annotation missing date comment returns exit 1 + "missing ISO-date comment" message.
-  - [ ] Annotation with date within 48h returns exit 0.
-  - [ ] String literal containing `@flaky` (not as a tag) does NOT trigger offense.
-  - [ ] Multi-line comment containing `test.skip` (not as a call) does NOT trigger offense.
+  - [x] Happy path: file with no annotations returns exit 0 + empty offense list.
+  - [x] `test.skip` with date >48h old returns exit 1 + one offense.
+  - [x] `test.todo` with date >48h old returns exit 1 + one offense.
+  - [x] `@flaky` tag with date >48h old returns exit 1 + one offense.
+  - [x] Annotation missing date comment returns exit 1 + "missing ISO-date comment" message.
+  - [x] Annotation with date within 48h returns exit 0.
+  - [x] String literal containing `@flaky` (not as a tag) does NOT trigger offense.
+  - [x] Multi-line comment containing `test.skip` (not as a call) does NOT trigger offense.
 - Integration tests:
-  - [ ] Run the script directly against `app/tests/fixtures/lint-annotations/` and assert stdout content + exit code.
-  - [ ] Run the script against the real `tests/e2e/` directory and assert exit 0 in normal operation.
+  - [x] Run the script directly against `app/tests/fixtures/lint-annotations/` and assert stdout content + exit code.
+  - [x] Run the script against the real `tests/e2e/` directory and assert exit 0 in normal operation.
 - Test coverage target: >=80%.
 - All tests must pass.
 

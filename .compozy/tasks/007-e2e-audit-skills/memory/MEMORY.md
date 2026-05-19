@@ -23,8 +23,23 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 - `pushSchema` from drizzle-kit/api requires `db as any` cast — type mismatch between `PgDatabase<any>` in drizzle-kit and `PgliteDatabase<FullSchema>` from drizzle-orm.
 - `net.Server.closeAllConnections()` not in @types/node@22 for `net.Server`; use manual socket Set instead.
 
+## Shared Learnings
+
+- `readdir` with `{ withFileTypes: true }` returns `Dirent<string>[]` in TypeScript 6.x; explicit `Awaited<ReturnType<typeof readdir>>` defaults to `Dirent<NonSharedBuffer>[]` — always infer or cast `entry.name as string`.
+- Biome `noExportsInTest` is an ERROR (not warning) — avoidable with `// @ts-nocheck` on fixture files instead of `export {}`.
+- `playwright-report/` is gitignored but left on disk by Playwright test runs; biome includes `**/index.html` which catches it — delete before CI biome check.
+
+## Shared Learnings (cross-task)
+
+- `tests/e2e/` is excluded from biome's `includes` in biome.json — no biome errors from e2e spec files.
+- Login page password label is "Senha" (Portuguese), not "Password" — use `getByLabel("Senha")` in any spec touching `/login`.
+- Better Auth session cookie name: `better-auth.session_token` (default, not overridden in `app/lib/auth.ts`).
+- Logout trigger: no logout button in the header or admin UI — use `page.request.post('/api/auth/sign-out')`.
+
 ## Handoffs
 
 - task_02 complete: site-model module, vite stub, drift test all done. 28 tests pass, 95.45% branch coverage.
 - task_03 complete: PGLite harness done. 18 tests pass, 94%+ statement coverage. State file at `os.tmpdir()/pglite-e2e-state.json`. TCP proxy built from `net.Server` + `PGlite.execProtocolRaw()`.
 - task_04 can start: `E2E_STATE_FILE`, `getActiveTestDb()`, `clearActiveTestDb()` exported from `tests/e2e/global-setup.ts`.
+- task_05 complete: `tests/e2e/auth-flow.spec.ts` with 4 tests (login + wrong-password + session + logout). All tagged `@auth @smoke`.
+- task_06 complete: `scripts/lint-test-annotations.ts` AST-based linter done. `lint:tests` script + `lint-tests` Makefile target added. 22 Vitest tests pass. AC-1 through AC-5 verified.

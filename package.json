@@ -18,7 +18,8 @@
     "db:generate": "drizzle-kit generate",
     "db:migrate": "bun run scripts/migrate.ts",
     "db:seed": "bun run scripts/seed.ts",
-    "sync": "bun run scripts/sync.ts"
+    "sync": "bun run scripts/sync.ts",
+    "lint:tests": "bun run scripts/lint-test-annotations.ts"
   },
   "dependencies": {
     "@mdx-js/mdx": "3.1.1",
