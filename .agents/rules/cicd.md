@@ -13,13 +13,16 @@ cd.yml   — deploy pipeline, triggers after ci.yml passes on main only
 
 Triggers: every `git push` (any branch) and every PR targeting `main`.
 
-Three jobs run in parallel:
+Six quality checks run in parallel:
 
 | Job | Command | Blocks merge if fails |
 |-----|---------|----------------------|
 | quality (test) | `make test` | yes |
 | quality (lint) | `make lint` | yes |
 | quality (check) | `make check` (tsc --noEmit) | yes |
+| quality (build-js) | `make build-js` | yes |
+| quality (e2e) | `make test-e2e` (Playwright) | yes |
+| quality (lint-tests) | `make lint-tests` | yes |
 
 Two additional jobs run on PRs only:
 
@@ -28,7 +31,15 @@ Two additional jobs run on PRs only:
 | commitlint | All commits in PR follow Conventional Commits |
 | branch-check | Branch name matches `TASK-XXXX/slug` or `hotfix/*` |
 
-All five checks must be green before a PR can merge.
+All eight checks must be green before a PR can merge.
+
+### E2E gate behavior
+
+The `e2e` matrix entry:
+- Restores Chromium from cache (key: `playwright-<os>-<bun.lock-hash>`); on the first run it installs and populates the cache, subsequent runs skip the download.
+- Runs `bun run build` (required by `playwright.config.ts` which starts a `vite preview` server).
+- Runs `bunx playwright test` via `make test-e2e`.
+- Uploads `playwright-report/` and `test-results/` as a GHA artifact (7-day retention) regardless of pass/fail.
 
 ## CD workflow (cd.yml)
 
@@ -67,6 +78,8 @@ GHCR package is set to **public** — VPS pulls without credentials. Production 
 
 ## GitHub Secrets required (one-time setup)
 
+### Deploy secrets
+
 | Secret | Value |
 |--------|-------|
 | `VPS_HOST` | VPS IP or hostname |
@@ -74,6 +87,15 @@ GHCR package is set to **public** — VPS pulls without credentials. Production 
 | `VPS_SSH_KEY` | Ed25519 private key (full PEM including header/footer) |
 | `VPS_PORT` | SSH port (usually 22) |
 | `VPS_DEPLOY_PATH` | Absolute path to project on VPS (e.g. `/home/deploy/blog`) |
+
+### E2E secrets
+
+| Secret | Value |
+|--------|-------|
+| `E2E_ADMIN_EMAIL` | Email of the admin user used for Playwright login tests |
+| `E2E_ADMIN_PASSWORD` | Password of the admin user used for Playwright login tests |
+
+**One-time setup**: Go to the GitHub repository → Settings → Secrets and variables → Actions → New repository secret. Add `E2E_ADMIN_EMAIL` and `E2E_ADMIN_PASSWORD` with the credentials of a seeded admin account. These values must match what is seeded in the test database via `global-setup.ts`. The secrets are read by the `e2e` matrix entry and passed to the test process via environment variables.
 
 ## Manual deploy fallback
 
