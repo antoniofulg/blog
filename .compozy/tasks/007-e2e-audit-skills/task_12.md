@@ -1,11 +1,11 @@
 ---
-status: pending
+status: completed
 title: Content-audit checks + reporter
 type: backend
 complexity: medium
 dependencies:
-  - task_02
-  - task_11
+    - task_02
+    - task_11
 feature: audit/checks-reporter
 ---
 
@@ -37,10 +37,10 @@ Implement the content-audit core: orchestrates all check functions (frontmatter 
 
 ## Subtasks
 
-- [ ] 12.1 Create `app/lib/content-audit/checks.server.ts` with the 5 check functions + `runContentAudit()` orchestrator + `Finding` / `Severity` / `FindingCategory` types.
-- [ ] 12.2 Create `app/lib/content-audit/reporter.server.ts` exposing `writeReport(findings, triggerLabel)`.
-- [ ] 12.3 Add both module ids to `vite.config.ts:serverOnlyStubPlugin`.
-- [ ] 12.4 Create `app/tests/content-audit.test.ts` exercising each check function with fixture data and the full `runContentAudit()` orchestration.
+- [x] 12.1 Create `app/lib/content-audit/checks.server.ts` with the 5 check functions + `runContentAudit()` orchestrator + `Finding` / `Severity` / `FindingCategory` types.
+- [x] 12.2 Create `app/lib/content-audit/reporter.server.ts` exposing `writeReport(findings, triggerLabel)`.
+- [x] 12.3 Add both module ids to `vite.config.ts:serverOnlyStubPlugin`.
+- [x] 12.4 Create `app/tests/content-audit.test.ts` exercising each check function with fixture data and the full `runContentAudit()` orchestration.
 
 ## Implementation Details
 
