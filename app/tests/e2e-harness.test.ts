@@ -226,46 +226,70 @@ describe("integration: full lifecycle", () => {
 });
 
 // ── Integration: global-setup/teardown channel ────────────────────────────
+// New architecture: scripts/e2e-server.ts creates the PGLite proxy and writes
+// the initial state file; globalSetup reads that file, seeds data, and updates
+// it with full state; globalTeardown is now a no-op (e2e-server.ts owns cleanup).
 
 describe("integration: global-setup/teardown channel", () => {
-	it("globalSetup writes state file; globalTeardown removes it", async () => {
-		const savedDbUrl = process.env.DATABASE_URL;
+	it("globalSetup seeds data from existing state file; globalTeardown is no-op", async () => {
 		const savedUserId = process.env.E2E_ADMIN_USER_ID;
 
-		const { default: globalSetup, E2E_STATE_FILE } = await import(
+		const { E2E_STATE_FILE, default: globalSetup } = await import(
 			"../../tests/e2e/global-setup"
 		);
 		const { default: globalTeardown } = await import(
 			"../../tests/e2e/global-teardown"
 		);
 
-		await globalSetup();
+		// Simulate what scripts/e2e-server.ts does: create PGLite + write initial state
+		const testDb = await createTestDb();
+		const { join } = await import("node:path");
+		const { tmpdir } = await import("node:os");
+		const { writeFile, unlink } = await import("node:fs/promises");
+		const fixtureFilePath = join(tmpdir(), "e2e-fixture-post.mdx");
+		await writeFile(fixtureFilePath, "# Test fixture", "utf-8");
+		await writeFile(
+			E2E_STATE_FILE,
+			JSON.stringify({
+				connectionString: testDb.connectionString,
+				adminUserId: "",
+				fixturePostId: 0,
+				fixturePostSlug: "",
+				fixturePostTitle: "",
+			}),
+			"utf-8",
+		);
 
-		expect(existsSync(E2E_STATE_FILE)).toBe(true);
-		const raw = readFileSync(E2E_STATE_FILE, "utf-8");
-		const state = JSON.parse(raw) as {
-			connectionString: string;
-			adminUserId: string;
-		};
-		expect(state.connectionString).toMatch(/^postgres:\/\//);
-		expect(typeof state.adminUserId).toBe("string");
-		expect(process.env.DATABASE_URL).toMatch(/^postgres:\/\//);
+		try {
+			// globalSetup finds the file, connects to PGLite via postgres-js, seeds
+			await globalSetup();
 
-		await globalTeardown();
+			expect(existsSync(E2E_STATE_FILE)).toBe(true);
+			const raw = readFileSync(E2E_STATE_FILE, "utf-8");
+			const state = JSON.parse(raw) as {
+				connectionString: string;
+				adminUserId: string;
+				fixturePostId: number;
+			};
+			expect(state.connectionString).toMatch(/^postgres:\/\//);
+			expect(state.adminUserId).toBeTruthy();
+			expect(state.fixturePostId).toBeGreaterThan(0);
+			expect(process.env.E2E_ADMIN_USER_ID).toBeTruthy();
 
-		expect(existsSync(E2E_STATE_FILE)).toBe(false);
-
-		// Restore env
-		process.env.DATABASE_URL = savedDbUrl;
-		process.env.E2E_ADMIN_USER_ID = savedUserId;
+			// globalTeardown is a no-op; state file remains (e2e-server.ts deletes it)
+			await expect(globalTeardown()).resolves.toBeUndefined();
+			expect(existsSync(E2E_STATE_FILE)).toBe(true);
+		} finally {
+			await testDb.close();
+			await unlink(E2E_STATE_FILE).catch(() => {});
+			process.env.E2E_ADMIN_USER_ID = savedUserId;
+		}
 	}, 25_000);
 
-	it("globalTeardown() without prior setup is a no-op (idempotent)", async () => {
-		const { clearActiveTestDb } = await import("../../tests/e2e/global-setup");
+	it("globalTeardown() is always a no-op (idempotent)", async () => {
 		const { default: globalTeardown } = await import(
 			"../../tests/e2e/global-teardown"
 		);
-		clearActiveTestDb();
 		await expect(globalTeardown()).resolves.toBeUndefined();
 	});
 });

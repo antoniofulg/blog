@@ -1,20 +1,4 @@
-import { unlink } from "node:fs/promises";
-import {
-	E2E_STATE_FILE,
-	clearActiveTestDb,
-	getActiveTestDb,
-} from "./global-setup";
-
-// Closes the PGLite client and removes the state file. Idempotent.
-export default async function globalTeardown(): Promise<void> {
-	const testDb = getActiveTestDb();
-	if (testDb) {
-		await testDb.close();
-		clearActiveTestDb();
-	}
-	try {
-		await unlink(E2E_STATE_FILE);
-	} catch {
-		// File may not exist if setup never ran — idempotent
-	}
-}
+// The PGLite proxy lifecycle is owned by scripts/e2e-server.ts (the Playwright
+// webServer process). When Playwright stops the webServer, e2e-server.ts closes
+// the proxy and deletes the state file automatically. Nothing to do here.
+export default async function globalTeardown(): Promise<void> {}

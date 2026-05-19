@@ -28,10 +28,10 @@ export default defineConfig({
 			dependencies: ["setup"],
 		},
 	],
-	// globalSetup sets process.env.DATABASE_URL before webServer starts;
-	// the subprocess inherits it via normal env inheritance.
+	// scripts/e2e-server.ts creates the PGLite proxy and starts the Nitro server.
+	// Playwright starts webServer BEFORE globalSetup, so the server owns the proxy.
 	webServer: {
-		command: "bun run preview",
+		command: "bun run scripts/e2e-server.ts",
 		url: "http://localhost:4173",
 		reuseExistingServer: !process.env.CI,
 		stdout: "pipe",

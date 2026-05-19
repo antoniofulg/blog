@@ -1,43 +1,68 @@
-import { writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
+import { readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
-import type { TestDb } from "./db";
-import { createTestDb } from "./db";
-import { seedAdminUser } from "./seed";
+import { tmpdir } from "node:os";
+import postgres from "postgres";
+import { drizzle } from "drizzle-orm/postgres-js";
+import * as authSchema from "#/db/auth-schema";
+import * as schema from "#/db/schema";
+import { seedAdminUser, seedFixturePost } from "./seed";
 
+// Path written by scripts/e2e-server.ts before Playwright runs global setup.
+// Playwright starts webServer BEFORE globalSetup, so we poll until the file
+// appears (written by e2e-server.ts once the PGLite proxy is ready).
 export const E2E_STATE_FILE = join(tmpdir(), "pglite-e2e-state.json");
 
-type E2EState = {
+export type E2EState = {
 	connectionString: string;
 	adminUserId: string;
+	fixturePostId: number;
+	fixturePostSlug: string;
+	fixturePostTitle: string;
 };
 
-// Module-level handle shared with global-teardown (same process, same module cache)
-let activeTestDb: TestDb | undefined;
-
-export function getActiveTestDb(): TestDb | undefined {
-	return activeTestDb;
-}
-
-export function clearActiveTestDb(): void {
-	activeTestDb = undefined;
+async function waitForStateFile(timeoutMs = 30_000): Promise<E2EState> {
+	const deadline = Date.now() + timeoutMs;
+	while (Date.now() < deadline) {
+		try {
+			const raw = await readFile(E2E_STATE_FILE, "utf-8");
+			const state = JSON.parse(raw) as E2EState;
+			if (state.connectionString) return state;
+		} catch {
+			// not ready yet
+		}
+		await new Promise((r) => setTimeout(r, 250));
+	}
+	throw new Error(
+		`E2E state file not available after ${timeoutMs}ms — is scripts/e2e-server.ts running?`,
+	);
 }
 
 export default async function globalSetup(): Promise<void> {
-	const testDb = await createTestDb();
-	const adminUserId = await seedAdminUser(testDb.db);
+	// Poll until e2e-server.ts has written the proxy connection string
+	const state = await waitForStateFile();
 
-	activeTestDb = testDb;
+	const sql = postgres(state.connectionString, { max: 1 });
+	const db = drizzle(sql, { schema: { ...schema, ...authSchema } });
 
-	const state: E2EState = {
-		connectionString: testDb.connectionString,
-		adminUserId,
-	};
+	const adminUserId = await seedAdminUser(db);
 
-	// Expose connection string for the Playwright webServer subprocess (inherits env)
-	process.env.DATABASE_URL = testDb.connectionString;
+	const fixtureFilePath = join(tmpdir(), "e2e-fixture-post.mdx");
+	const { writeFile: wf } = await import("node:fs/promises");
+	await wf(fixtureFilePath, "This is a fixture post for E2E tests.\n", "utf-8");
+	const fixture = await seedFixturePost(db, fixtureFilePath);
+
+	// Persist env vars for the test worker process
 	process.env.E2E_ADMIN_USER_ID = adminUserId;
 
-	// Write state file for explicit reads (e.g., tests that verify channel)
-	await writeFile(E2E_STATE_FILE, JSON.stringify(state), "utf-8");
+	// Write the full state so specs can verify DB state directly
+	const fullState: E2EState = {
+		connectionString: state.connectionString,
+		adminUserId,
+		fixturePostId: fixture.id,
+		fixturePostSlug: fixture.slug,
+		fixturePostTitle: fixture.title,
+	};
+	await writeFile(E2E_STATE_FILE, JSON.stringify(fullState), "utf-8");
+
+	await sql.end();
 }
