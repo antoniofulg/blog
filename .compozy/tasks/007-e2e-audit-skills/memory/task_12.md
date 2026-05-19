@@ -20,6 +20,7 @@ COMPLETE. Implemented `checks.server.ts` (5 check functions + `runContentAudit()
 - `bun test` is bun's runner; `bunx vitest run` / `bun run test` is vitest — only vitest supports `vi.hoisted`
 - Biome `noNonNullAssertion` is a warning (not error) but still caught by biome.test.ts — use `?.` instead of `!`
 - `access()` from node:fs/promises resolves to `null` not `undefined` in vitest compat — use `.then(() => true).catch(() => false)` instead
+- vitest v8 coverage hides 100% files from default table display — use `--coverage.include=<file>` to verify explicitly
 
 ## Files / Surfaces
 
@@ -28,9 +29,14 @@ COMPLETE. Implemented `checks.server.ts` (5 check functions + `runContentAudit()
 - `app/lib/content-audit/checks.server.ts` — new (5 checks + orchestrator)
 - `app/lib/content-audit/reporter.server.ts` — new (writeReport)
 - `vite.config.ts` — added checks + reporter to SERVER_ONLY_IDS + stub exports
-- `app/tests/fixtures/content-audit/` — 5 MDX fixtures
+- `app/tests/fixtures/content-audit/` — 6 MDX fixtures
 - `app/tests/content-audit.test.ts` — 33 tests passing
 - `docs/audits/SUMMARY.md` — created with header
+
+## Coverage Evidence
+
+- checks.server.ts: 94.11% stmts (96/102), 81.13% branches (43/53) ✅ >80%
+- reporter.server.ts: 100% stmts (46/46), 100% branches (6/6) ✅ >80%
 
 ## Ready for Next Run
 
