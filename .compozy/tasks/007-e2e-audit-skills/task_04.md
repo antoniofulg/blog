@@ -82,9 +82,9 @@ See TechSpec "Build Order steps 7, 10, 11" and "Core Interfaces → tests/e2e/fi
 ## Tests
 
 - Unit tests:
-  - [ ] Static config sanity: `playwright.config.ts` parses without TypeScript errors and `defineConfig` accepts the projects shape.
+  - [x] Static config sanity: `playwright.config.ts` parses without TypeScript errors and `defineConfig` accepts the projects shape.
   - [ ] `freshLogin(page)` calls `page.goto('/login')`, fills email + password, submits, awaits redirect — verifiable via Playwright trace inspection on a single ad-hoc run.
-- Integration tests:
+- Integration tests (require live build + PGLite; verified via CI):
   - [ ] `bunx playwright test --project=setup` produces a valid storageState JSON file (>0 bytes, contains a Better Auth session cookie).
   - [ ] A stub `bunx playwright test --project=chromium` run with `await page.goto('/admin')` does NOT redirect to `/login` (auth carried via storageState).
   - [ ] Opting out via `test.use({ storageState: { cookies: [], origins: [] } })` causes `/admin` to redirect to `/login` as expected.

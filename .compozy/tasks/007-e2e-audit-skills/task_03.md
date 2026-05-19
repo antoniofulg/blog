@@ -1,10 +1,10 @@
 ---
-status: done
+status: completed
 title: PGLite test DB harness + admin seed + global setup/teardown
 type: test
 complexity: medium
 dependencies:
-  - task_01
+    - task_01
 feature: testing/pglite-harness
 ---
 
