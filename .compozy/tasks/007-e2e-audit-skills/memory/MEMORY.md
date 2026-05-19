@@ -5,6 +5,7 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 ## Current State
 
 - task_01 complete: 7 dev deps installed (pinned exact), Chromium ready, 5 .gitignore entries added.
+- task_02 + task_03 complete on branch TASK-0007/e2e-audit-skills.
 
 ## Shared Decisions
 
@@ -18,7 +19,9 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 
 ## Open Risks
 
-- PGLite@0.4.5 is a fast-moving package; downstream tasks (task_05 createTestDb) should confirm API compatibility with drizzle-orm/pglite before implementing.
+- PGLite@0.4.5 is a fast-moving package; downstream tasks should pin and not upgrade without testing.
+- `pushSchema` from drizzle-kit/api requires `db as any` cast — type mismatch between `PgDatabase<any>` in drizzle-kit and `PgliteDatabase<FullSchema>` from drizzle-orm.
+- `net.Server.closeAllConnections()` not in @types/node@22 for `net.Server`; use manual socket Set instead.
 
 ## Handoffs
 

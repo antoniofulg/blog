@@ -1,10 +1,10 @@
 ---
-status: pending
+status: completed
 title: Site-model module + vite stub + drift test
 type: backend
 complexity: medium
 dependencies:
-  - task_01
+    - task_01
 feature: testing/site-model
 ---
 
@@ -34,10 +34,10 @@ Create the single shared producer of route + post knowledge that both `e2e-cover
 
 ## Subtasks
 
-- [ ] 2.1 Create `app/lib/site-model.server.ts` with types, `ROUTE_METADATA` map, `getRouteInventory()`, and `getPostInventory()`.
-- [ ] 2.2 Add `#/lib/site-model.server` (and any unprefixed variant required by the existing stub plugin) to `vite.config.ts:serverOnlyStubPlugin` server-only ID list.
-- [ ] 2.3 Create `app/tests/site-model.test.ts` with drift assertion (walk vs. `ROUTE_METADATA`) plus tests for the `hasTwin` cross-reference logic in `getPostInventory()`.
-- [ ] 2.4 Update `app/types/content.ts` (or create a new types module) if `PostFrontmatter` needs to be re-exported for site-model consumers.
+- [x] 2.1 Create `app/lib/site-model.server.ts` with types, `ROUTE_METADATA` map, `getRouteInventory()`, and `getPostInventory()`.
+- [x] 2.2 Add `#/lib/site-model.server` (and any unprefixed variant required by the existing stub plugin) to `vite.config.ts:serverOnlyStubPlugin` server-only ID list.
+- [x] 2.3 Create `app/tests/site-model.test.ts` with drift assertion (walk vs. `ROUTE_METADATA`) plus tests for the `hasTwin` cross-reference logic in `getPostInventory()`.
+- [x] 2.4 Update `app/types/content.ts` (or create a new types module) if `PostFrontmatter` needs to be re-exported for site-model consumers.
 
 ## Implementation Details
 
