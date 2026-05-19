@@ -1,10 +1,10 @@
 ---
-status: complete
+status: completed
 title: lint-test-annotations script + scripts wiring
 type: infra
 complexity: medium
 dependencies:
-  - task_05
+    - task_05
 feature: testing/lint-test-annotations
 ---
 

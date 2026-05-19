@@ -1,5 +1,5 @@
 ---
-status: completed
+status: pending
 title: content-audit SKILL + slash alias + audit.md + AGENTS updates
 type: docs
 complexity: low

@@ -18,6 +18,7 @@ tests/e2e/.auth/
 tests/e2e/storageState.json
 test-results/
 playwright-report/
+coverage/
 
 # Content audit per-run reports (gitignored; uploaded as GHA artifact)
 docs/_reports/content-audit-*.md

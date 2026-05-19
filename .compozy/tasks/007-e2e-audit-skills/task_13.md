@@ -1,5 +1,5 @@
 ---
-status: completed
+status: pending
 title: audit-content.ts entry + scripts + SUMMARY.md initialization
 type: infra
 complexity: low

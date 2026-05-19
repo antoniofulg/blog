@@ -1,5 +1,5 @@
 ---
-status: completed
+status: pending
 title: public-read capability spec
 type: test
 complexity: low

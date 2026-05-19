@@ -1,5 +1,5 @@
 ---
-status: completed
+status: pending
 title: content-audit GH Action with delta PR comment
 type: infra
 complexity: low

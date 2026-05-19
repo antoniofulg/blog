@@ -1,11 +1,11 @@
 ---
-status: pending
+status: completed
 title: CI gate integration + GitHub Secrets documentation
 type: infra
 complexity: low
 dependencies:
-  - task_05
-  - task_06
+    - task_05
+    - task_06
 feature: testing/ci-gate
 ---
 
@@ -35,12 +35,12 @@ Extend `.github/workflows/ci.yml`'s quality matrix to include `e2e` and `lint-te
 
 ## Subtasks
 
-- [ ] 7.1 Add `test-e2e` and `lint-tests` Makefile targets (each invokes the corresponding `bun run` script).
-- [ ] 7.2 Extend `.github/workflows/ci.yml:jobs.quality.strategy.matrix.check` with `e2e` and `lint-tests`.
-- [ ] 7.3 Add Playwright Chromium cache step in the `e2e` matrix entry only (use `if: matrix.check == 'e2e'`).
-- [ ] 7.4 Add `env:` block injecting `E2E_ADMIN_EMAIL` + `E2E_ADMIN_PASSWORD` for the `e2e` matrix entry only.
-- [ ] 7.5 Add `actions/upload-artifact@v4` step on `e2e` matrix entry with `if: always()`.
-- [ ] 7.6 Update `.agents/rules/cicd.md` with required Secrets, setup procedure, and e2e gate behavior.
+- [x] 7.1 Add `test-e2e` and `lint-tests` Makefile targets (each invokes the corresponding `bun run` script).
+- [x] 7.2 Extend `.github/workflows/ci.yml:jobs.quality.strategy.matrix.check` with `e2e` and `lint-tests`.
+- [x] 7.3 Add Playwright Chromium cache step in the `e2e` matrix entry only (use `if: matrix.check == 'e2e'`).
+- [x] 7.4 Add `env:` block injecting `E2E_ADMIN_EMAIL` + `E2E_ADMIN_PASSWORD` for the `e2e` matrix entry only.
+- [x] 7.5 Add `actions/upload-artifact@v4` step on `e2e` matrix entry with `if: always()`.
+- [x] 7.6 Update `.agents/rules/cicd.md` with required Secrets, setup procedure, and e2e gate behavior.
 
 ## Implementation Details
 
@@ -83,8 +83,8 @@ See TechSpec "Build Order steps 16-17, 22" and PRD-007 High-Level Technical Cons
 ## Tests
 
 - Unit tests:
-  - [ ] Vitest test parses `.github/workflows/ci.yml` (via `yaml` package) and asserts the matrix includes `e2e` and `lint-tests` entries.
-  - [ ] Vitest test parses `Makefile` and asserts `test-e2e:` and `lint-tests:` targets are present.
+  - [x] Vitest test parses `.github/workflows/ci.yml` (via `yaml` package) and asserts the matrix includes `e2e` and `lint-tests` entries.
+  - [x] Vitest test parses `Makefile` and asserts `test-e2e:` and `lint-tests:` targets are present.
 - Integration tests:
   - [ ] First CI run after merge: `e2e` matrix entry shows green (specs pass).
   - [ ] Second CI run: Chromium cache-hit log line present in `e2e` step; install step is skipped or fast-paths.

@@ -1,10 +1,10 @@
 ---
-status: pending
+status: completed
 title: auth-flow capability spec
 type: test
 complexity: low
 dependencies:
-  - task_04
+    - task_04
 feature: testing/auth-flow-spec
 ---
 
@@ -34,11 +34,11 @@ First Playwright capability spec covering the auth surface end-to-end: UI login 
 
 ## Subtasks
 
-- [ ] 5.1 Create `tests/e2e/auth-flow.spec.ts` importing from `./fixtures/auth`.
-- [ ] 5.2 Implement login round-trip test: `/login` → fill credentials → submit → assert redirect → assert session cookie.
-- [ ] 5.3 Implement session-presence test: navigate to `/admin` (storageState applied via project) → assert dashboard renders.
-- [ ] 5.4 Implement logout test: trigger logout (button or `auth.signOut()`) → assert redirect to `/login` on next admin nav.
-- [ ] 5.5 Apply `@auth @smoke` tags to all tests in the file.
+- [x] 5.1 Create `tests/e2e/auth-flow.spec.ts` importing from `./fixtures/auth`.
+- [x] 5.2 Implement login round-trip test: `/login` → fill credentials → submit → assert redirect → assert session cookie.
+- [x] 5.3 Implement session-presence test: navigate to `/admin` (storageState applied via project) → assert dashboard renders.
+- [x] 5.4 Implement logout test: trigger logout (button or `auth.signOut()`) → assert redirect to `/login` on next admin nav.
+- [x] 5.5 Apply `@auth @smoke` tags to all tests in the file.
 
 ## Implementation Details
 

@@ -1,5 +1,5 @@
 ---
-status: completed
+status: pending
 title: admin-write capability spec
 type: test
 complexity: low
