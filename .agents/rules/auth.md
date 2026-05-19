@@ -27,3 +27,11 @@ as its first statement:
 ## DAL pattern
 Authentication is enforced at the data access layer (inside server fns), NOT only
 at the route boundary. beforeLoad redirects are UX; requireSession() is the security gate.
+
+## E2E anti-patterns
+- E2E tests MUST authenticate as the seeded test user via `E2E_ADMIN_EMAIL` /
+  `E2E_ADMIN_PASSWORD` environment variables — never hardcode credentials.
+- Never commit `storageState.json` or any file under `tests/e2e/.auth/` — these
+  contain live session tokens and are gitignored for this reason.
+- Never create a separate user account in tests at runtime — use the seeded user
+  created by `tests/e2e/seed.ts` in `global-setup.ts`.

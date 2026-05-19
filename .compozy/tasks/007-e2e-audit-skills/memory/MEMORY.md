@@ -43,3 +43,5 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 - task_04 can start: `E2E_STATE_FILE`, `getActiveTestDb()`, `clearActiveTestDb()` exported from `tests/e2e/global-setup.ts`.
 - task_05 complete: `tests/e2e/auth-flow.spec.ts` with 4 tests (login + wrong-password + session + logout). All tagged `@auth @smoke`.
 - task_06 complete: `scripts/lint-test-annotations.ts` AST-based linter done. `lint:tests` script + `lint-tests` Makefile target added. 22 Vitest tests pass. AC-1 through AC-5 verified.
+- task_07 complete: CI gate wired up. Matrix extended to 6 entries. Chromium cache, E2E secrets, artifact upload added. `test:e2e` script + `test-e2e` Makefile target added. 11 ci-workflow + 2 makefile tests added. cicd.md updated.
+- task_08 complete: e2e-coverage SKILL + symlink + slash command + testing.md + auth.md + AGENTS.md. 13 Vitest tests pass. `.claude/commands/` dir created (was missing).

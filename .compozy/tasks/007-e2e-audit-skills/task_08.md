@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: e2e-coverage SKILL + slash alias + testing.md + AGENTS updates
 type: docs
 complexity: low
@@ -35,12 +35,12 @@ Ship the `e2e-coverage` agent skill as the canonical entrypoint for bootstrap/ge
 
 ## Subtasks
 
-- [ ] 8.1 Create `.agents/skills/e2e-coverage/SKILL.md` with frontmatter + body.
-- [ ] 8.2 Create symlink `.claude/skills/e2e-coverage -> ../../.agents/skills/e2e-coverage`.
-- [ ] 8.3 Create `.claude/commands/e2e-coverage.md` slash-command file.
-- [ ] 8.4 Create `.agents/rules/testing.md`.
-- [ ] 8.5 Append anti-pattern entry to `.agents/rules/auth.md`.
-- [ ] 8.6 Update `AGENTS.md` File Structure + Skill Map + Rules list blocks.
+- [x] 8.1 Create `.agents/skills/e2e-coverage/SKILL.md` with frontmatter + body.
+- [x] 8.2 Create symlink `.claude/skills/e2e-coverage -> ../../.agents/skills/e2e-coverage`.
+- [x] 8.3 Create `.claude/commands/e2e-coverage.md` slash-command file.
+- [x] 8.4 Create `.agents/rules/testing.md`.
+- [x] 8.5 Append anti-pattern entry to `.agents/rules/auth.md`.
+- [x] 8.6 Update `AGENTS.md` File Structure + Skill Map + Rules list blocks.
 
 ## Implementation Details
 

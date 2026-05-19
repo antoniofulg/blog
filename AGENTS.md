@@ -26,6 +26,7 @@ app/
   types/              — content.ts, auth.ts (shared TypeScript types)
   styles/             — global.css
   tests/              — unit + integration tests
+tests/e2e/            — Playwright E2E specs (fixtures/, .auth/, *.spec.ts)
 
 ## Key Conventions
 - Branch: TASK-XXXX/slug or hotfix/slug
@@ -46,6 +47,7 @@ app/
 | Refactor | no-workarounds, refactoring-analysis, find-rules |
 | Security | better-auth-security-best-practices, no-workarounds |
 | CI/CD | find-rules (see .agents/rules for cicd.md and git-workflow.md) |
+| E2E test write/run | e2e-coverage |
 
 ## Rules
 - Auth: .agents/rules/auth.md
@@ -55,3 +57,4 @@ app/
 - Git workflow: .agents/rules/git-workflow.md
 - CI/CD: .agents/rules/cicd.md
 - Content authoring: CONTENT.md
+- Testing: .agents/rules/testing.md
