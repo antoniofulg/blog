@@ -2,6 +2,7 @@ import "@tanstack/react-start/server-only";
 import { access, appendFile, mkdir, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import type { Finding } from "#/lib/content-audit/checks.server";
+import { formatFingerprint } from "../../../tests/e2e/audit-fingerprint";
 
 const REPORTS_DIR = "docs/_reports";
 const SUMMARY_PATH = "docs/audits/SUMMARY.md";
@@ -13,7 +14,7 @@ function today(): string {
 	return new Date().toISOString().slice(0, 10);
 }
 
-function escapeMarkdownCell(s: string): string {
+export function escapeMarkdownCell(s: string): string {
 	return s
 		.replace(/\|/g, "\\|")
 		.replace(/[\n\r]/g, " ")
@@ -74,6 +75,34 @@ function formatSummaryRow(findings: Finding[], triggerLabel: string): string {
 
 	const pad = (s: string, n: number) => s.padEnd(n);
 	return `| ${pad(date, 10)} | ${pad(escapeMarkdownCell(triggerLabel), 16)} | ${pad(String(blockers), 7)} | ${pad(String(majors), 5)} | ${pad(String(minors), 5)} | ${pad(top, 44)} |\n`;
+}
+
+export function buildPRCommentBody(
+	findings: Finding[],
+	triggerLabel: string,
+): string {
+	const blockers = findings.filter((f) => f.severity === "blocker").length;
+	const majors = findings.filter((f) => f.severity === "major").length;
+	const minors = findings.filter((f) => f.severity === "minor").length;
+	const fingerprint = formatFingerprint("content", {
+		blocker: blockers,
+		major: majors,
+	});
+
+	const lines: string[] = [
+		"## Content Audit Results",
+		"",
+		`**Trigger**: ${escapeMarkdownCell(triggerLabel)}`,
+		"",
+		"| Severity | Count |",
+		"|----------|-------|",
+		`| Blocker | ${blockers} |`,
+		`| Major | ${majors} |`,
+		`| Minor | ${minors} |`,
+		"",
+		fingerprint,
+	];
+	return lines.join("\n");
 }
 
 export async function writeReport(

@@ -34,8 +34,8 @@ describe("unit: .github/workflows/content-audit.yml", () => {
 		expect(yml).toContain("audit-fingerprint");
 	});
 
-	it("comment body embeds fingerprint HTML comment with counts", () => {
-		expect(yml).toContain("<!-- audit-fingerprint:blocker=");
+	it("comment body embeds fingerprint HTML comment with type and counts", () => {
+		expect(yml).toContain("<!-- audit-fingerprint:content:blocker=");
 	});
 
 	it("uses actions/upload-artifact@v4", () => {

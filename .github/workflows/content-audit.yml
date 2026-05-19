@@ -89,14 +89,14 @@ jobs:
 
             const prevComment = comments
               .filter(c => c.user.login === 'github-actions[bot]')
-              .find(c => c.body && c.body.includes('<!-- audit-fingerprint'));
+              .find(c => c.body && c.body.includes('<!-- audit-fingerprint:'));
 
             const currentBlockers = parseInt('${{ steps.audit.outputs.blockers }}') || 0;
             const currentMajors = parseInt('${{ steps.audit.outputs.majors }}') || 0;
 
             let suppress = false;
             if (prevComment) {
-              const match = prevComment.body.match(/<!-- audit-fingerprint:blocker=(\d+) major=(\d+) -->/);
+              const match = prevComment.body.match(/<!-- audit-fingerprint:content:blocker=(\d+) major=(\d+) -->/);
               if (match) {
                 const prevBlockers = parseInt(match[1]);
                 const prevMajors = parseInt(match[2]);
@@ -112,7 +112,7 @@ jobs:
         with:
           issue-number: ${{ github.event.pull_request.number }}
           comment-author: github-actions[bot]
-          body-includes: "<!-- audit-fingerprint"
+          body-includes: "<!-- audit-fingerprint:"
           body: |
             ## Content Audit Results
 
@@ -124,4 +124,4 @@ jobs:
 
             [View full report artifact](https://github.com/${{ github.repository }}/actions/runs/${{ github.run_id }})
 
-            <!-- audit-fingerprint:blocker=${{ steps.audit.outputs.blockers }} major=${{ steps.audit.outputs.majors }} -->
+            <!-- audit-fingerprint:content:blocker=${{ steps.audit.outputs.blockers }} major=${{ steps.audit.outputs.majors }} -->
