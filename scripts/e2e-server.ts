@@ -28,6 +28,8 @@ await writeFile(
 		fixturePostId: 0,
 		fixturePostSlug: "",
 		fixturePostTitle: "",
+		publicFixtureEnId: 0,
+		publicFixturePtBrId: 0,
 	}),
 	"utf-8",
 );

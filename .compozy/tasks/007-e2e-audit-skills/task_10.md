@@ -1,5 +1,5 @@
 ---
-status: pending
+status: complete
 title: public-read capability spec
 type: test
 complexity: low
@@ -34,11 +34,11 @@ Third Playwright capability spec covering the public reader surface end-to-end: 
 
 ## Subtasks
 
-- [ ] 10.1 Create `tests/e2e/public-read.spec.ts` with the `test.use({ storageState: ... })` opt-out.
-- [ ] 10.2 Implement en post render test against a seeded fixture post.
-- [ ] 10.3 Implement pt-br post render test.
-- [ ] 10.4 Implement locale switcher test.
-- [ ] 10.5 Implement 404 test.
+- [x] 10.1 Create `tests/e2e/public-read.spec.ts` with the `test.use({ storageState: ... })` opt-out.
+- [x] 10.2 Implement en post render test against a seeded fixture post.
+- [x] 10.3 Implement pt-br post render test.
+- [x] 10.4 Implement locale switcher test.
+- [x] 10.5 Implement 404 test.
 
 ## Implementation Details
 

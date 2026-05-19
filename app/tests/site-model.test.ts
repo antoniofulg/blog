@@ -165,6 +165,18 @@ describe("drift: ROUTE_METADATA covers all app/routes/**/*.tsx", () => {
 // ─── Unit: getPostInventory — no content dir ─────────────────────────────────
 
 describe("unit: getPostInventory — no content dir", () => {
+	let tmpDir: string;
+
+	beforeAll(async () => {
+		tmpDir = await mkdtemp(join(tmpdir(), "site-model-nodir-"));
+		vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+	});
+
+	afterAll(async () => {
+		vi.restoreAllMocks();
+		await rm(tmpDir, { recursive: true, force: true });
+	});
+
 	beforeEach(resetDbMocks);
 
 	it("returns empty array when app/content/posts does not exist", async () => {

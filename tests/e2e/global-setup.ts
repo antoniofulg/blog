@@ -5,7 +5,11 @@ import postgres from "postgres";
 import { drizzle } from "drizzle-orm/postgres-js";
 import * as authSchema from "#/db/auth-schema";
 import * as schema from "#/db/schema";
-import { seedAdminUser, seedFixturePost } from "./seed";
+import {
+	seedAdminUser,
+	seedFixturePost,
+	seedPublishedFixturePosts,
+} from "./seed";
 
 // Path written by scripts/e2e-server.ts before Playwright runs global setup.
 // Playwright starts webServer BEFORE globalSetup, so we poll until the file
@@ -18,6 +22,8 @@ export type E2EState = {
 	fixturePostId: number;
 	fixturePostSlug: string;
 	fixturePostTitle: string;
+	publicFixtureEnId: number;
+	publicFixturePtBrId: number;
 };
 
 async function waitForStateFile(timeoutMs = 30_000): Promise<E2EState> {
@@ -51,6 +57,8 @@ export default async function globalSetup(): Promise<void> {
 	await wf(fixtureFilePath, "This is a fixture post for E2E tests.\n", "utf-8");
 	const fixture = await seedFixturePost(db, fixtureFilePath);
 
+	const publicFixture = await seedPublishedFixturePosts(db);
+
 	// Persist env vars for the test worker process
 	process.env.E2E_ADMIN_USER_ID = adminUserId;
 
@@ -61,6 +69,8 @@ export default async function globalSetup(): Promise<void> {
 		fixturePostId: fixture.id,
 		fixturePostSlug: fixture.slug,
 		fixturePostTitle: fixture.title,
+		publicFixtureEnId: publicFixture.enId,
+		publicFixturePtBrId: publicFixture.ptBrId,
 	};
 	await writeFile(E2E_STATE_FILE, JSON.stringify(fullState), "utf-8");
 

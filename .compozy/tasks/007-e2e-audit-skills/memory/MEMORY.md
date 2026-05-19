@@ -33,6 +33,7 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 
 - `tests/e2e/` is excluded from biome's `includes` in biome.json — no biome errors from e2e spec files.
 - Login page password label is "Senha" (Portuguese), not "Password" — use `getByLabel("Senha")` in any spec touching `/login`.
+- `useLangSwitcher` en→pt-br is BROKEN for un-prefixed en URLs (e.g., `/<slug>`): falls to home instead of `/pt-br/<slug>`. Only pt-br→en direction works. Known app bug; tests must use pt-br→en direction.
 - Better Auth session cookie name: `better-auth.session_token` (default, not overridden in `app/lib/auth.ts`).
 - Logout trigger: no logout button in the header or admin UI — use `page.request.post('/api/auth/sign-out')`.
 
@@ -45,3 +46,5 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 - task_06 complete: `scripts/lint-test-annotations.ts` AST-based linter done. `lint:tests` script + `lint-tests` Makefile target added. 22 Vitest tests pass. AC-1 through AC-5 verified.
 - task_07 complete: CI gate wired up. Matrix extended to 6 entries. Chromium cache, E2E secrets, artifact upload added. `test:e2e` script + `test-e2e` Makefile target added. 11 ci-workflow + 2 makefile tests added. cicd.md updated.
 - task_08 complete: e2e-coverage SKILL + symlink + slash command + testing.md + auth.md + AGENTS.md. 13 Vitest tests pass. `.claude/commands/` dir created (was missing).
+- task_09 complete: `tests/e2e/admin-write.spec.ts` — 3 tests (admin guard, publish-toggle round-trip, preview). Tagged `@admin` only. `playwright.config.ts` stderr fixed to `"pipe"`.
+- task_10 complete: `tests/e2e/public-read.spec.ts` — 4 tests (en render, pt-br render, locale switcher pt-br→en, 404). Tagged `@public @smoke`. MDX fixtures at `app/content/posts/{en,pt-br}/e2e-public-fixture.mdx`. `seedPublishedFixturePosts` added to seed.ts. **Phase 2 complete — all 3 capability specs exist.**
