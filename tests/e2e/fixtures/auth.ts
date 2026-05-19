@@ -19,12 +19,18 @@ export const test = base.extend<AuthedFixture>({
 export { expect } from "@playwright/test";
 
 export async function freshLogin(page: Page): Promise<void> {
-	const email = process.env.E2E_ADMIN_EMAIL ?? "e2e@test.local";
-	const password = process.env.E2E_ADMIN_PASSWORD ?? "e2e-test-password";
+	const isCI = process.env.CI === "true";
+	const email = process.env.E2E_ADMIN_EMAIL ?? (isCI ? undefined : "e2e@test.local");
+	const password =
+		process.env.E2E_ADMIN_PASSWORD ?? (isCI ? undefined : "e2e-test-password");
+
+	if (!email) throw new Error("Missing credential: E2E_ADMIN_EMAIL is required on CI");
+	if (!password)
+		throw new Error("Missing credential: E2E_ADMIN_PASSWORD is required on CI");
 
 	await page.goto("/login");
-	await page.locator('input[name="email"]').fill(email);
-	await page.locator('input[name="password"]').fill(password);
-	await page.locator('button[type="submit"]').click();
+	await page.getByLabel("Email").fill(email);
+	await page.getByLabel("Senha").fill(password);
+	await page.getByRole("button", { name: /Entrar/i }).click();
 	await page.waitForURL((url) => !url.pathname.startsWith("/login"));
 }

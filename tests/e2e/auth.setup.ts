@@ -18,9 +18,9 @@ setup("authenticate as admin", async ({ page }) => {
 	mkdirSync(AUTH_DIR, { recursive: true });
 
 	await page.goto("/login");
-	await page.locator('input[name="email"]').fill(email);
-	await page.locator('input[name="password"]').fill(password);
-	await page.locator('button[type="submit"]').click();
+	await page.getByLabel("Email").fill(email);
+	await page.getByLabel("Senha").fill(password);
+	await page.getByRole("button", { name: /Entrar/i }).click();
 	await page.waitForURL((url) => !url.pathname.startsWith("/login"));
 
 	await page.context().storageState({ path: STORAGE_STATE });
