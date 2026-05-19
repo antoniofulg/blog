@@ -7,6 +7,7 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import { extractLinks } from "#/lib/content-audit/link-parser.server";
+import { LOCALES } from "#/lib/locale";
 import type { PostEntry } from "#/lib/site-model.server";
 import { getPostInventory, getRouteInventory } from "#/lib/site-model.server";
 
@@ -43,7 +44,7 @@ function stripFragment(href: string): string {
 	return idx === -1 ? href : href.slice(0, idx);
 }
 
-const LOCALE_PREFIXES = ["/en/", "/pt-br/"];
+const LOCALE_PREFIXES = LOCALES.map((l) => `/${l}/`);
 
 function extractSlugFromPath(path: string): string {
 	for (const prefix of LOCALE_PREFIXES) {
@@ -132,6 +133,17 @@ export async function checkBrokenLinks(
 	for (const post of posts) {
 		const links = await extractLinks(post.filePath);
 		for (const link of links) {
+			if (link.kind === "skipped-dynamic") {
+				findings.push({
+					category: "broken-link",
+					severity: "minor",
+					filePath: post.filePath,
+					line: link.line,
+					message: `Dynamic href expression at line ${link.line} could not be statically resolved and was not validated.`,
+					detail: { href: "(dynamic)" },
+				});
+				continue;
+			}
 			if (isExternalOrRelative(link.href)) continue;
 			const path = stripFragment(link.href);
 			if (!path) continue;
@@ -198,18 +210,18 @@ export function checkSeriesGaps(posts: PostEntry[]): Finding[] {
 	for (const [seriesName, entries] of seriesMap) {
 		const sorted = [...entries].sort((a, b) => a.part - b.part);
 		const parts = sorted.map((e) => e.part);
+		const partsSet = new Set(parts);
+		const maxPart = parts[parts.length - 1];
 
-		for (let i = 0; i < parts.length; i++) {
-			const expected = i + 1;
-			if (parts[i] !== expected) {
+		for (let expected = 1; expected < maxPart; expected++) {
+			if (!partsSet.has(expected)) {
 				findings.push({
 					category: "series-gap",
 					severity: "minor",
-					filePath: sorted[i].filePath,
+					filePath: sorted[0].filePath,
 					message: `Series "${seriesName}" has parts [${parts.join(", ")}]; part ${expected} missing or unpublished.`,
 					detail: { series: seriesName, expectedPart: expected },
 				});
-				break;
 			}
 		}
 	}

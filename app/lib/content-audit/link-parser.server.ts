@@ -13,7 +13,7 @@ export type Link = {
 	href: string;
 	line: number;
 	column: number;
-	kind: "markdown" | "jsx";
+	kind: "markdown" | "jsx" | "skipped-dynamic";
 };
 
 function nodeStart(
@@ -25,8 +25,8 @@ function nodeStart(
 
 function extractHrefFromJsxNode(
 	node: MdxJsxFlowElement | MdxJsxTextElement,
-	filePath: string,
-): string | null {
+	_filePath: string,
+): string | null | "dynamic" {
 	const hrefAttr = node.attributes.find(
 		(attr): attr is MdxJsxAttribute =>
 			attr.type === "mdxJsxAttribute" && attr.name === "href",
@@ -44,11 +44,8 @@ function extractHrefFromJsxNode(
 		if (match) {
 			return match[1];
 		}
-		// Dynamic expression — cannot resolve statically
-		console.warn(
-			`[link-parser] dynamic href expression skipped at ${filePath}:${node.position?.start.line ?? 0}`,
-		);
-		return null;
+		// Dynamic expression — cannot resolve statically; surface as skipped-dynamic
+		return "dynamic";
 	}
 
 	return null;
@@ -63,6 +60,10 @@ function collectJsxLink(
 	const href = extractHrefFromJsxNode(node, filePath);
 	if (href === null) return;
 	const { line, column } = nodeStart(node.position);
+	if (href === "dynamic") {
+		links.push({ href: "", line, column, kind: "skipped-dynamic" });
+		return;
+	}
 	links.push({ href, line, column, kind: "jsx" });
 }
 

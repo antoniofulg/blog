@@ -186,6 +186,37 @@ describe("checkBrokenLinks", () => {
 		const broken = findings.find((f) => f.category === "broken-link");
 		expect(broken?.line).toBeGreaterThan(0);
 	});
+
+	it("links with locale prefixes resolve via slug extraction → no finding", async () => {
+		const posts = [
+			makePost({ filePath: fix("locale-link.mdx"), isPublished: true }),
+		];
+		const findings = await checkBrokenLinks(
+			posts,
+			new Set(["existing-post"]),
+			new Set(["/"]),
+		);
+		expect(findings).toHaveLength(0);
+	});
+
+	it("dynamic href in JSX → minor finding (not silently dropped)", async () => {
+		const dynamicPosts = [
+			makePost({
+				filePath: fix("../link-parser/expression-attr.mdx"),
+				isPublished: true,
+			}),
+		];
+		const findings = await checkBrokenLinks(
+			dynamicPosts,
+			new Set<string>(),
+			new Set<string>(),
+		);
+		const skippedFinding = findings.find((f) =>
+			f.message.includes("Dynamic href"),
+		);
+		expect(skippedFinding).toBeDefined();
+		expect(skippedFinding?.severity).toBe("minor");
+	});
 });
 
 // ─── checkMissingAltText ──────────────────────────────────────────────────────
@@ -306,6 +337,30 @@ describe("checkSeriesGaps", () => {
 		const findings = checkSeriesGaps(posts);
 		expect(findings[0].detail?.series).toBe("myser");
 		expect(findings[0].detail?.expectedPart).toBe(2);
+	});
+
+	it("multiple gaps in same series — all reported, not just the first", () => {
+		const posts = [
+			makePost({
+				slug: "p1",
+				isPublished: true,
+				frontmatter: { title: "P1", series: "multi", seriesPart: 1 },
+			}),
+			makePost({
+				slug: "p3",
+				isPublished: true,
+				frontmatter: { title: "P3", series: "multi", seriesPart: 3 },
+			}),
+			makePost({
+				slug: "p5",
+				isPublished: true,
+				frontmatter: { title: "P5", series: "multi", seriesPart: 5 },
+			}),
+		];
+		const findings = checkSeriesGaps(posts);
+		expect(findings).toHaveLength(2);
+		const missingParts = findings.map((f) => f.detail?.expectedPart).sort();
+		expect(missingParts).toEqual([2, 4]);
 	});
 });
 
@@ -464,6 +519,63 @@ describe("writeReport", () => {
 			"utf-8",
 		);
 		expect(content).toMatch(/\|\s*1\s*\|\s*1\s*\|\s*1\s*\|/);
+	});
+
+	it("pipe in triggerLabel is escaped in SUMMARY row (issue 004)", async () => {
+		await writeReport([], "ci|pipe");
+		const content = await readFile(
+			join(tmpDir, "docs/audits/SUMMARY.md"),
+			"utf-8",
+		);
+		const dataRow = content
+			.split("\n")
+			.find((l) => l.startsWith("|") && l.includes("ci"));
+		expect(dataRow).toBeDefined();
+		// Row must not split into extra columns from an unescaped pipe
+		// Use negative lookbehind to not split on escaped \| sequences
+		const cols = dataRow!.split(/(?<!\\)\|/).filter((c) => c.trim() !== "");
+		expect(cols).toHaveLength(6);
+	});
+
+	it("newline in triggerLabel does not break SUMMARY row (issue 004)", async () => {
+		await writeReport([], "line1\nline2");
+		const content = await readFile(
+			join(tmpDir, "docs/audits/SUMMARY.md"),
+			"utf-8",
+		);
+		const rows = content
+			.split("\n")
+			.filter((l) => l.startsWith("|") && l.includes("line1"));
+		expect(rows).toHaveLength(1);
+	});
+
+	it("SUMMARY top-finding reflects highest severity, not insertion order (issue 005)", async () => {
+		const findings: Finding[] = [
+			{
+				category: "translation-gap",
+				severity: "major",
+				filePath: "f.mdx",
+				message: "major finding first in array",
+			},
+			{
+				category: "broken-link",
+				severity: "blocker",
+				filePath: "f.mdx",
+				message: "blocker inserted second",
+			},
+		];
+		await writeReport(findings, "severity-order-test");
+		const date = new Date().toISOString().slice(0, 10);
+		const content = await readFile(
+			join(tmpDir, "docs/audits/SUMMARY.md"),
+			"utf-8",
+		);
+		const dataRow = content
+			.split("\n")
+			.find((l) => l.startsWith("|") && l.includes(date));
+		expect(dataRow).toBeDefined();
+		// Top finding column should reference the blocker, not the major
+		expect(dataRow).toContain("broken-link");
 	});
 });
 

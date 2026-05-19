@@ -198,8 +198,10 @@ export async function getPostInventory(): Promise<PostEntry[]> {
 			const slug = deriveSlug(filePath, frontmatter.slug);
 			slugsByLocale[lang].add(slug);
 			parsed.push({ filePath, slug, lang, frontmatter });
-		} catch {
-			// skip malformed files
+		} catch (err) {
+			process.stderr.write(
+				`[site-model] skipping malformed file: ${filePath}: ${err instanceof Error ? err.message : String(err)}\n`,
+			);
 		}
 	}
 
@@ -211,7 +213,7 @@ export async function getPostInventory(): Promise<PostEntry[]> {
 
 	return parsed.map(({ filePath, slug, lang, frontmatter }) => {
 		const otherLocales = LOCALES.filter((l) => l !== lang);
-		const hasTwin = otherLocales.every((l) => slugsByLocale[l]?.has(slug));
+		const hasTwin = otherLocales.some((l) => slugsByLocale[l]?.has(slug));
 		return {
 			slug,
 			lang,

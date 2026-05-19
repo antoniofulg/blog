@@ -192,6 +192,26 @@ describe("runAuditCli — summary line format", () => {
 		expect(summaryLine).toMatch(/0 major/);
 		expect(summaryLine).toMatch(/0 minor/);
 	});
+
+	it("countsLine uses stable key=value format independent of summaryLine (issue 003)", async () => {
+		mocks.runContentAudit.mockResolvedValue([
+			makeBlockerFinding(),
+			makeMajorFinding(),
+			makeMinorFinding(),
+		]);
+		const { countsLine } = await runAuditCli([]);
+		expect(countsLine).toMatch(/^\[audit-counts\]/);
+		expect(countsLine).toContain("blockers=1");
+		expect(countsLine).toContain("majors=1");
+		expect(countsLine).toContain("minors=1");
+	});
+
+	it("countsLine zero counts when no findings (issue 003)", async () => {
+		const { countsLine } = await runAuditCli([]);
+		expect(countsLine).toContain("blockers=0");
+		expect(countsLine).toContain("majors=0");
+		expect(countsLine).toContain("minors=0");
+	});
 });
 
 // ─── runAuditCli — trigger forwarding ──────────────────────────────────────

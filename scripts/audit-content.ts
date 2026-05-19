@@ -14,6 +14,7 @@ export function parseContentDir(args: string[]): string | undefined {
 export type AuditResult = {
 	exitCode: number;
 	summaryLine: string;
+	countsLine: string;
 	reportPath: string;
 };
 
@@ -29,12 +30,16 @@ export async function runAuditCli(args: string[]): Promise<AuditResult> {
 	const date = new Date().toISOString().slice(0, 10);
 	const reportPath = `docs/_reports/content-audit-${date}.md`;
 	const summaryLine = `[audit] ${blockers} blocker / ${majors} major / ${minors} minor → ${reportPath}`;
+	const countsLine = `[audit-counts] blockers=${blockers} majors=${majors} minors=${minors}`;
 
-	return { exitCode: blockers > 0 ? 1 : 0, summaryLine, reportPath };
+	return { exitCode: blockers > 0 ? 1 : 0, summaryLine, countsLine, reportPath };
 }
 
 if (import.meta.main) {
-	const { exitCode, summaryLine } = await runAuditCli(process.argv.slice(2));
+	const { exitCode, summaryLine, countsLine } = await runAuditCli(
+		process.argv.slice(2),
+	);
 	console.log(summaryLine);
+	console.log(countsLine);
 	process.exit(exitCode);
 }

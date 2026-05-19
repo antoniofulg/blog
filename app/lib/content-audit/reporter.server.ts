@@ -13,6 +13,13 @@ function today(): string {
 	return new Date().toISOString().slice(0, 10);
 }
 
+function escapeMarkdownCell(s: string): string {
+	return s
+		.replace(/\|/g, "\\|")
+		.replace(/[\n\r]/g, " ")
+		.trim();
+}
+
 function formatSection(label: string, group: Finding[]): string {
 	const lines: string[] = [`## ${label}`, ""];
 	if (group.length === 0) {
@@ -36,7 +43,7 @@ function formatReport(findings: Finding[], triggerLabel: string): string {
 	const lines: string[] = [
 		`# Content Audit — ${date}`,
 		"",
-		`**Trigger**: ${triggerLabel}`,
+		`**Trigger**: ${escapeMarkdownCell(triggerLabel)}`,
 		`**Status**: pending  <!-- pending | resolved | acknowledged -->`,
 		`**Findings**: ${findings.length} (${blockers.length} blocker / ${majors.length} major / ${minors.length} minor)`,
 		"",
@@ -54,13 +61,19 @@ function formatSummaryRow(findings: Finding[], triggerLabel: string): string {
 	const majors = findings.filter((f) => f.severity === "major").length;
 	const minors = findings.filter((f) => f.severity === "minor").length;
 
-	const top =
+	const sevRank: Record<string, number> = { blocker: 0, major: 1, minor: 2 };
+	const topFinding =
 		findings.length > 0
-			? `${findings[0].category}: ${findings[0].message.slice(0, 40)}`
-			: "no findings";
+			? [...findings].sort(
+					(a, b) => sevRank[a.severity] - sevRank[b.severity],
+				)[0]
+			: null;
+	const top = topFinding
+		? `${topFinding.category}: ${topFinding.message.slice(0, 40)}`
+		: "no findings";
 
 	const pad = (s: string, n: number) => s.padEnd(n);
-	return `| ${pad(date, 10)} | ${pad(triggerLabel, 16)} | ${pad(String(blockers), 7)} | ${pad(String(majors), 5)} | ${pad(String(minors), 5)} | ${pad(top, 44)} |\n`;
+	return `| ${pad(date, 10)} | ${pad(escapeMarkdownCell(triggerLabel), 16)} | ${pad(String(blockers), 7)} | ${pad(String(majors), 5)} | ${pad(String(minors), 5)} | ${pad(top, 44)} |\n`;
 }
 
 export async function writeReport(

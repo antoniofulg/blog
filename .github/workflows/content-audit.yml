@@ -59,9 +59,10 @@ jobs:
           set -e
           echo "$output"
 
-          blockers=$(echo "$output" | grep -oP '\d+(?= blocker)' | head -1 || echo "0")
-          majors=$(echo "$output" | grep -oP '\d+(?= major)' | head -1 || echo "0")
-          minors=$(echo "$output" | grep -oP '\d+(?= minor)' | head -1 || echo "0")
+          counts_line=$(echo "$output" | grep '^\[audit-counts\]' || echo "[audit-counts] blockers=0 majors=0 minors=0")
+          blockers=$(echo "$counts_line" | grep -oP 'blockers=\K\d+' || echo "0")
+          majors=$(echo "$counts_line" | grep -oP 'majors=\K\d+' || echo "0")
+          minors=$(echo "$counts_line" | grep -oP 'minors=\K\d+' || echo "0")
 
           echo "blockers=${blockers:-0}" >> "$GITHUB_OUTPUT"
           echo "majors=${majors:-0}" >> "$GITHUB_OUTPUT"

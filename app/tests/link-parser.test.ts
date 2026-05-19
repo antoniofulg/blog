@@ -1,6 +1,6 @@
 import { glob } from "node:fs/promises";
 import path from "node:path";
-import { describe, expect, it, vi } from "vitest";
+import { describe, expect, it } from "vitest";
 import { extractLinks } from "#/lib/content-audit/link-parser.server";
 
 const FIXTURES = path.resolve(import.meta.dirname, "fixtures/link-parser");
@@ -89,14 +89,18 @@ describe("link-parser: JSX expression attributes", () => {
 		expect(link?.kind).toBe("jsx");
 	});
 
-	it("skips dynamic expression href={someVar} and emits console.warn", async () => {
-		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+	it("returns skipped-dynamic link for dynamic href={someVar}", async () => {
 		const links = await extractLinks(fix("expression-attr.mdx"));
-		// dynamic someVar should not appear
-		const dynamic = links.find((l) => l.href === "someVar");
-		expect(dynamic).toBeUndefined();
-		expect(warn).toHaveBeenCalledWith(expect.stringContaining("dynamic href"));
-		warn.mockRestore();
+		const dynamic = links.find((l) => l.kind === "skipped-dynamic");
+		expect(dynamic).toBeDefined();
+		expect(dynamic?.href).toBe("");
+		expect(dynamic?.line).toBeGreaterThan(0);
+	});
+
+	it("does not include variable name as href for dynamic expression", async () => {
+		const links = await extractLinks(fix("expression-attr.mdx"));
+		const byVarName = links.find((l) => l.href === "someVar");
+		expect(byVarName).toBeUndefined();
 	});
 });
 
