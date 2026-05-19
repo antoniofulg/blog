@@ -31,7 +31,8 @@ for this skill. That matrix applies to `e2e-coverage` (browser sessions).
 |----------|----------|------------------|
 | `frontmatter-invalid` | blocker | Required field missing or wrong type: `title` (string), `date` (ISO date), `slug` (string), `published` (boolean) |
 | `translation-gap` | major | en post exists with no `app/content/posts/pt-br/<slug>.mdx` twin AND frontmatter lacks `noTranslation: true` |
-| `broken-link` | major | Internal link target (`[text](path)` or JSX `<Link href="">`) has no matching file in `app/content/posts/` |
+| `broken-link` (published) | blocker | Internal link target (`[text](path)` or JSX `<Link href="">`) has no matching file in `app/content/posts/` |
+| `broken-link` (draft) | minor | Internal link target in an unpublished post has no matching file in `app/content/posts/` |
 | `missing-alt-text` | minor | `<img>` element or `![](url)` markdown image has empty or missing `alt` attribute/text |
 | `series-gap` | minor | Posts sharing a `series` frontmatter key have non-contiguous `part` numbers (e.g., parts [1, 3] with no part 2) |
 

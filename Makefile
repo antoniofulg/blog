@@ -92,6 +92,8 @@ lint-tests: ## Lint e2e test annotations for 48h SLA compliance
 	bun run lint:tests
 	@echo "Test annotations clean. Next: make test | git commit"
 
+e2e: test-e2e ## CI matrix alias — delegates to test-e2e
+
 test-e2e: ## Run Playwright e2e test suite
 	bun run test:e2e
 	@echo "E2e tests complete. Next: make lint | git commit"

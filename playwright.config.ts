@@ -33,7 +33,7 @@ export default defineConfig({
 	webServer: {
 		command: "bun run scripts/e2e-server.ts",
 		url: "http://localhost:4173",
-		reuseExistingServer: !process.env.CI,
+		reuseExistingServer: false,
 		stdout: "pipe",
 		stderr: "pipe",
 	},

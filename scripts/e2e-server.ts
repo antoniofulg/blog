@@ -5,11 +5,21 @@
 //
 // Playwright starts webServer BEFORE globalSetup, so this script owns the
 // PGLite lifecycle instead of global-setup.ts.
-import { writeFile, unlink } from "node:fs/promises";
+import { writeFile, unlink, access } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { spawn } from "node:child_process";
 import { createTestDb } from "../tests/e2e/db";
+
+const NITRO_BUNDLE = join(process.cwd(), ".output/server/index.mjs");
+try {
+	await access(NITRO_BUNDLE);
+} catch {
+	process.stderr.write(
+		"[e2e-server] .output/server/index.mjs not found — run `bun run build` first.\n",
+	);
+	process.exit(1);
+}
 
 export const E2E_SERVER_STATE_FILE = join(
 	tmpdir(),

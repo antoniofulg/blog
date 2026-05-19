@@ -105,7 +105,8 @@ function startPgProxy(
 						(res) => {
 							if (!socket.destroyed) socket.write(Buffer.from(res));
 						},
-						() => {
+						(err) => {
+							console.error("[pg-proxy] execProtocolRaw rejected:", err);
 							// On error send ReadyForQuery to keep the connection alive
 							if (!socket.destroyed)
 								socket.write(Buffer.from([0x5a, 0x00, 0x00, 0x00, 0x05, 0x49]));

@@ -53,8 +53,7 @@ export default async function globalSetup(): Promise<void> {
 	const adminUserId = await seedAdminUser(db);
 
 	const fixtureFilePath = join(tmpdir(), "e2e-fixture-post.mdx");
-	const { writeFile: wf } = await import("node:fs/promises");
-	await wf(fixtureFilePath, "This is a fixture post for E2E tests.\n", "utf-8");
+	await writeFile(fixtureFilePath, "This is a fixture post for E2E tests.\n", "utf-8");
 	const fixture = await seedFixturePost(db, fixtureFilePath);
 
 	const publicFixture = await seedPublishedFixturePosts(db);
