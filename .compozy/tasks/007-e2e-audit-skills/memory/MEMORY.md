@@ -29,6 +29,16 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 - Biome `noExportsInTest` is an ERROR (not warning) — avoidable with `// @ts-nocheck` on fixture files instead of `export {}`.
 - `playwright-report/` is gitignored but left on disk by Playwright test runs; biome includes `**/index.html` which catches it — delete before CI biome check.
 
+## Shared Decisions (Phase 4 — app-audit types)
+
+- `app/lib/content-audit/reporter.server.ts` and (future) `app/lib/app-audit/reporter.server.ts` both import from `tests/e2e/audit-fingerprint.ts` via relative path (`../../../tests/e2e/audit-fingerprint` and `../../../../tests/e2e/audit-fingerprint` respectively). Unusual direction but per TechSpec.
+- `escapeMarkdownCell` is now exported from `reporter.server.ts` — app-audit reporter (task_18) should import it from there (not duplicate).
+- Fingerprint format: `<!-- audit-fingerprint:content:blocker=X major=Y -->` (note `:content:` type segment). The `FINGERPRINT_GREP_LITERAL = "<!-- audit-fingerprint:"` matches both types.
+- `AppAuditCategory`, `AppAuditFinding`, `BrowserSweepResult` types are defined in `app/lib/app-audit/browser-sweep.server.ts` (NOT in checks.server.ts as TechSpec says). task_18 checks.server.ts MUST import these from browser-sweep.server.ts or re-export them. This avoids circular deps.
+- `sweepRoute(page, route)` returns `AppAuditFinding[]` (not BrowserSweepResult) — error case returns `[{category:"sweep-error",...}]` per ADR-006; BrowserSweepResult used internally.
+- `runLighthouse(url, runnerOverride?)` — optional `runnerOverride` parameter for test injection (createRequire bypasses Vitest mocks). task_18 calls `runLighthouse(url)` without override; tests pass mock runner.
+- `@lhci/cli` LighthouseRunner: `run(url, {chromePath, settings})` — `chromePath` at top level (NOT inside settings). Returns JSON string. LHR categories key is `"best-practices"` (hyphenated).
+
 ## Shared Learnings (cross-task)
 
 - `tests/e2e/` is excluded from biome's `includes` in biome.json — no biome errors from e2e spec files.
@@ -53,3 +63,5 @@ Keep only durable, cross-task context here. Do not duplicate facts that are obvi
 - task_13 complete: `scripts/audit-content.ts` (CLI entry, parseTrigger/parseContentDir/runAuditCli exported). `audit:content` script + `audit-content` Makefile target. `app/tests/audit-content-cli.test.ts` (24 unit tests). `docs/audits/SUMMARY.md` baseline row committed (2026-05-19 manual 0/0/0). Integration tests append rows to SUMMARY.md when DB is live — clean before committing.
 - task_14 complete: `.github/workflows/content-audit.yml` (workflow_dispatch + pull_request paths filter, delta suppression via github-script, peter-evans/create-or-update-comment@v4, artifact upload). `app/tests/content-audit-workflow.test.ts` (19 structural tests). Delta suppression: suppress=true when blocker=0 AND major unchanged from previous comment fingerprint.
 - task_15 complete: `.agents/skills/content-audit/SKILL.md` (frontmatter + body: 5 categories, severities, output paths, noTranslation opt-out, abort condition, app-audit V2 pivot, a11y-testing non-overlap note). `.claude/skills/content-audit` symlink → `../../.agents/skills/content-audit`. `.claude/commands/content-audit.md` slash-command wrapper. `.agents/rules/audit.md` (coverage matrix, category defs, abort condition, a11y-testing clarification). `AGENTS.md` updated (File Structure, Skill Map, Rules list). `app/tests/content-audit-skill.test.ts` (24 tests). **Phase 3 complete.**
+- task_16 complete: `@axe-core/playwright@4.11.3` + `@lhci/cli@0.15.1` installed (exact pins). `tests/e2e/audit-fingerprint.ts` created (AuditType, formatFingerprint, FINGERPRINT_GREP_LITERAL). `reporter.server.ts` refactored: imports formatFingerprint, exports escapeMarkdownCell + buildPRCommentBody. Workflow `body-includes` updated to `"<!-- audit-fingerprint:"`, fingerprint format updated to `:content:`. `app/tests/audit-fingerprint.test.ts` (20 tests). **Phase 4 deps + fingerprint infra done.**
+- task_17 complete: `app/lib/app-audit/browser-sweep.server.ts` (sweepRoute returns AppAuditFinding[], 7 probes + try/catch), `a11y-adapter.server.ts` (analyzeA11y), `lighthouse.server.ts` (runLighthouse with runnerOverride param for testability). AppAuditCategory + AppAuditFinding + BrowserSweepResult types defined in browser-sweep.server.ts. 62 Vitest tests pass. bun run build passes.
