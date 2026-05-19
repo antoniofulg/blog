@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: Playwright config + auth.setup + auth fixture
 type: test
 complexity: medium
@@ -35,10 +35,10 @@ Wire Playwright's root configuration with the canonical "auth setup project + st
 
 ## Subtasks
 
-- [ ] 4.1 Create `playwright.config.ts` with projects, retries, webServer, globalSetup/Teardown wiring.
-- [ ] 4.2 Create `tests/e2e/auth.setup.ts` performing UI login + `page.context().storageState({ path: '.auth/admin.json' })`.
-- [ ] 4.3 Create `tests/e2e/fixtures/auth.ts` exporting `test` (extended) + `expect` re-export + `freshLogin(page)` helper.
-- [ ] 4.4 Verify `tests/e2e/.auth/` is gitignored (entry from task_01); fail if not.
+- [x] 4.1 Create `playwright.config.ts` with projects, retries, webServer, globalSetup/Teardown wiring.
+- [x] 4.2 Create `tests/e2e/auth.setup.ts` performing UI login + `page.context().storageState({ path: '.auth/admin.json' })`.
+- [x] 4.3 Create `tests/e2e/fixtures/auth.ts` exporting `test` (extended) + `expect` re-export + `freshLogin(page)` helper.
+- [x] 4.4 Verify `tests/e2e/.auth/` is gitignored (entry from task_01); fail if not.
 
 ## Implementation Details
 
