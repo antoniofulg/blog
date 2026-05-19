@@ -1,6 +1,6 @@
 ---
 name: task-06-lint-test-annotations
-description: Execution context for task_06: lint-test-annotations script + scripts wiring
+description: "Execution context for task_06: lint-test-annotations script + scripts wiring"
 metadata:
   type: project
 ---
