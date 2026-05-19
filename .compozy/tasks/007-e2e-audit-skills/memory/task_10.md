@@ -38,6 +38,14 @@ Create `tests/e2e/public-read.spec.ts` with 4 tests covering: en post render, pt
 - `site-model.test.ts` "no content dir" test broke when MDX fixtures were added to `app/content/posts/`. Fixed by adding `beforeAll`/`afterAll` with `vi.spyOn(process, "cwd")` isolation (matches existing fixture posts test pattern).
 - Biome auto-added `exact: true` to `getByRole` heading matchers and removed unused `consoleErrors` variable from 404 test.
 
+## Verification Evidence
+
+- `bunx playwright test tests/e2e/public-read.spec.ts` → 5 passed (setup + 4 spec tests)
+- `make test-e2e` → 12 passed (all 3 specs green)
+- `make lint` → 0 errors (3 pre-existing warnings)
+- `make check` → clean
+- `make test` → 455 passed, 1 pre-existing docker-compose failure (not a regression)
+
 ## Status
 
-COMPLETE. 4 tests passing. Phase 2 done.
+COMPLETE. 4 tests passing. Phase 2 done. Fixes applied: `exact: true` on heading matchers, removed `consoleErrors` from 404 test (404 responses log console errors by design).

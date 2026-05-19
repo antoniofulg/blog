@@ -1,10 +1,10 @@
 ---
-status: pending
+status: completed
 title: admin-write capability spec
 type: test
 complexity: low
 dependencies:
-  - task_08
+    - task_08
 feature: admin/post-publish
 ---
 
