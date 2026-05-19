@@ -152,6 +152,7 @@ function parseMdxFrontmatter(
 				? parseInt(String(data.seriesPart), 10) || undefined
 				: undefined,
 		draft: data.draft as boolean | undefined,
+		noTranslation: data.noTranslation as boolean | undefined,
 	};
 }
 

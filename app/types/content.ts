@@ -7,4 +7,5 @@ export type PostFrontmatter = {
 	series?: string;
 	seriesPart?: number;
 	draft?: boolean;
+	noTranslation?: boolean;
 };
