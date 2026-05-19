@@ -1,10 +1,10 @@
 ---
-status: pending
+status: completed
 title: content-audit GH Action with delta PR comment
 type: infra
 complexity: low
 dependencies:
-  - task_13
+    - task_13
 feature: audit/ci-workflow
 ---
 
@@ -36,10 +36,10 @@ Create `.github/workflows/content-audit.yml` that triggers on `workflow_dispatch
 
 ## Subtasks
 
-- [ ] 14.1 Create `.github/workflows/content-audit.yml` with triggers, jobs, and steps.
-- [ ] 14.2 Implement the delta-comparison logic (read previous comment via `gh api` or `actions/github-script` querying `pulls/<n>/comments`, parse fingerprint, compare).
-- [ ] 14.3 Add fingerprint embedding to the PR comment body.
-- [ ] 14.4 Add Vitest test parsing the YAML workflow file to assert structural invariants.
+- [x] 14.1 Create `.github/workflows/content-audit.yml` with triggers, jobs, and steps.
+- [x] 14.2 Implement the delta-comparison logic (read previous comment via `gh api` or `actions/github-script` querying `pulls/<n>/comments`, parse fingerprint, compare).
+- [x] 14.3 Add fingerprint embedding to the PR comment body.
+- [x] 14.4 Add Vitest test parsing the YAML workflow file to assert structural invariants.
 
 ## Implementation Details
 

@@ -27,6 +27,8 @@ app/
   styles/             — global.css
   tests/              — unit + integration tests
 tests/e2e/            — Playwright E2E specs (fixtures/, .auth/, *.spec.ts)
+docs/_reports/        — per-run content audit reports (gitignored)
+docs/audits/          — committed audit history (SUMMARY.md)
 
 ## Key Conventions
 - Branch: TASK-XXXX/slug or hotfix/slug
@@ -48,6 +50,7 @@ tests/e2e/            — Playwright E2E specs (fixtures/, .auth/, *.spec.ts)
 | Security | better-auth-security-best-practices, no-workarounds |
 | CI/CD | find-rules (see .agents/rules for cicd.md and git-workflow.md) |
 | E2E test write/run | e2e-coverage |
+| App content audit | content-audit (filesystem-only; no browser) |
 
 ## Rules
 - Auth: .agents/rules/auth.md
@@ -58,3 +61,4 @@ tests/e2e/            — Playwright E2E specs (fixtures/, .auth/, *.spec.ts)
 - CI/CD: .agents/rules/cicd.md
 - Content authoring: CONTENT.md
 - Testing: .agents/rules/testing.md
+- Content audit: .agents/rules/audit.md
