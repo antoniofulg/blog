@@ -1,5 +1,5 @@
 ---
-status: pending
+status: completed
 title: audit-content.ts entry + scripts + SUMMARY.md initialization
 type: infra
 complexity: low
@@ -35,12 +35,12 @@ Wire the content-audit CLI surface: create `scripts/audit-content.ts` as the ent
 
 ## Subtasks
 
-- [ ] 13.1 Create `scripts/audit-content.ts` with argv parsing, audit invocation, and exit-code logic.
-- [ ] 13.2 Add `audit:content` script to `package.json`.
-- [ ] 13.3 Add `audit-content` target to `Makefile`.
-- [ ] 13.4 Verify `.gitignore` includes `docs/_reports/content-audit-*.md` (add if task_01 missed it).
-- [ ] 13.5 Run `bun run audit:content` locally to produce the initial `docs/audits/SUMMARY.md` baseline.
-- [ ] 13.6 Add `app/tests/audit-content-cli.test.ts` exercising argv parsing + exit-code logic against a fixture run.
+- [x] 13.1 Create `scripts/audit-content.ts` with argv parsing, audit invocation, and exit-code logic.
+- [x] 13.2 Add `audit:content` script to `package.json`.
+- [x] 13.3 Add `audit-content` target to `Makefile`.
+- [x] 13.4 Verify `.gitignore` includes `docs/_reports/content-audit-*.md` (add if task_01 missed it).
+- [x] 13.5 Run `bun run audit:content` locally to produce the initial `docs/audits/SUMMARY.md` baseline.
+- [x] 13.6 Add `app/tests/audit-content-cli.test.ts` exercising argv parsing + exit-code logic against a fixture run.
 
 ## Implementation Details
 

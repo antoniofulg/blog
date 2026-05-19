@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup dev dev-docker build preview \
-        test lint format check lint-tests test-e2e \
+        test lint format check lint-tests test-e2e audit-content \
         db-migrate db-generate db-seed db-reset \
         stop restart restart-all logs shell deploy
 
@@ -95,6 +95,10 @@ lint-tests: ## Lint e2e test annotations for 48h SLA compliance
 test-e2e: ## Run Playwright e2e test suite
 	bun run test:e2e
 	@echo "E2e tests complete. Next: make lint | git commit"
+
+audit-content: ## Run content audit and write report to docs/_reports/
+	bun run audit:content
+	@echo "Content audit complete. Next: make lint | git commit"
 
 # -- Database ------------------------------------------------------------------
 
