@@ -19,6 +19,7 @@ const SERVER_ONLY_IDS = new Set([
 	"#/lib/auth",
 	"#/lib/session",
 	"#/lib/site-model.server",
+	"#/lib/content-audit/link-parser.server",
 ]);
 // Node built-ins used only in server function bodies — stub for browser.
 const NODE_ONLY_IDS = new Set([
@@ -51,7 +52,8 @@ function serverOnlyStubPlugin(): Plugin {
 					"export default {}; " +
 					"export const db=null,renderMdx=null,parseFrontmatter=null,auth=null,syncAll=null," +
 					"upsertPost=null,removePost=null,startContentWatcher=null," +
-					"indexer=null,closeDb=()=>Promise.resolve(),requireSession=()=>Promise.resolve();"
+					"indexer=null,closeDb=()=>Promise.resolve(),requireSession=()=>Promise.resolve()," +
+					"extractLinks=null;"
 				);
 			}
 		},
