@@ -19,7 +19,9 @@ const NEW_HEADER_ROW =
 const NEW_SEP_ROW =
 	"| ---------- | ------- | ---------------- | ------- | ----- | ----- | -------------------------------------------- |\n";
 
-const ALL_CATEGORIES = [
+const PREFLIGHT_CATEGORY = "preflight-error" as const;
+
+const ROUTE_INSPECTION_CATEGORIES = [
 	"console-error",
 	"hydration-mismatch",
 	"network-fail",
@@ -49,10 +51,11 @@ function sortedByseverity(findings: AppAuditFinding[]): AppAuditFinding[] {
 function formatCategorySection(
 	category: string,
 	group: AppAuditFinding[],
+	aborted = false,
 ): string {
 	const lines: string[] = [`## ${category}`, ""];
 	if (group.length === 0) {
-		lines.push("(none)");
+		lines.push(aborted ? "(not checked — audit aborted)" : "(none)");
 	} else {
 		for (const f of group) {
 			lines.push(`- **${f.category}** (\`${f.filePath}\`)`);
@@ -77,19 +80,29 @@ function formatReport(
 		major: majors,
 	});
 
+	const isAborted = findings.some((f) => f.category === PREFLIGHT_CATEGORY);
+	const statusLine = isAborted
+		? "**Status**: ABORTED AT PREFLIGHT — no route inspections performed"
+		: "**Status**: pending  <!-- pending | resolved | acknowledged -->";
+
 	const lines: string[] = [
 		`# App Audit — ${date}`,
 		"",
 		`**Trigger**: ${escapeMarkdownCell(triggerLabel)}`,
-		"**Status**: pending  <!-- pending | resolved | acknowledged -->",
+		statusLine,
 		`**Findings**: ${findings.length} (${blockers} blocker / ${majors} major / ${minors} minor)`,
 		fingerprint,
 		"",
 	];
 
-	for (const category of ALL_CATEGORIES) {
+	const preflightGroup = findings.filter(
+		(f) => f.category === PREFLIGHT_CATEGORY,
+	);
+	lines.push(formatCategorySection(PREFLIGHT_CATEGORY, preflightGroup));
+
+	for (const category of ROUTE_INSPECTION_CATEGORIES) {
 		const group = findings.filter((f) => f.category === category);
-		lines.push(formatCategorySection(category, group));
+		lines.push(formatCategorySection(category, group, isAborted));
 	}
 
 	return lines.join("\n");

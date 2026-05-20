@@ -57,8 +57,8 @@ export async function runAppAudit(opts: {
 	} catch {
 		return [
 			{
-				category: "sweep-error" as const,
-				severity: "major" as const,
+				category: "preflight-error" as const,
+				severity: "blocker" as const,
 				filePath: "preflight",
 				message: `[app-audit] baseUrl ${baseUrl} unreachable — start preview server first (bun preview) or pass --baseUrl=<url>`,
 			},

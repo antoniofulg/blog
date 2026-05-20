@@ -4,6 +4,7 @@ import type { Severity } from "#/lib/content-audit/checks.server";
 import type { RouteEntry } from "#/lib/site-model.server";
 
 export type AppAuditCategory =
+	| "preflight-error"
 	| "console-error"
 	| "hydration-mismatch"
 	| "network-fail"

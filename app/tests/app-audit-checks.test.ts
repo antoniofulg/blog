@@ -320,7 +320,7 @@ describe("runAppAudit orchestrator", () => {
 
 	// ─── preflight check (issue 002) ─────────────────────────────────────────
 
-	it("preflight: unreachable baseUrl returns single sweep-error with actionable message", async () => {
+	it("preflight: unreachable baseUrl returns single preflight-error blocker", async () => {
 		fetchMock.mockRejectedValue(
 			Object.assign(new Error("fetch failed"), { code: "ECONNREFUSED" }),
 		);
@@ -330,8 +330,8 @@ describe("runAppAudit orchestrator", () => {
 		});
 		expect(findings).toHaveLength(1);
 		expect(findings[0]).toMatchObject({
-			category: "sweep-error",
-			severity: "major",
+			category: "preflight-error",
+			severity: "blocker",
 			filePath: "preflight",
 			message: expect.stringContaining("unreachable"),
 		});

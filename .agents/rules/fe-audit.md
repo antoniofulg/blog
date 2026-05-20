@@ -49,6 +49,7 @@ a content-layer audit — for MDX source validation, use `content-audit` instead
 
 | Category | Severity | Trigger condition |
 |----------|----------|------------------|
+| `preflight-error` | blocker | `baseUrl` unreachable before any route is visited — whole audit aborted; env issue, not site issue |
 | `console-error` | blocker | `page.on("console")` where `msg.type() === "error"` |
 | `hydration-mismatch` | blocker | Console message contains "hydration failed", "did not match", or "Text content does not match" |
 | `network-fail` (5xx) | blocker | `response.status() >= 500` on any request |
@@ -81,7 +82,7 @@ SUMMARY.md row format (append-only; never edit existing rows):
 ## Abort Condition
 
 Evaluate retirement when **3 consecutive** audit runs both produce zero actionable
-findings (blocker + major = 0, `sweep-error` excluded from count). Higher threshold
+findings (blocker + major = 0, `sweep-error` and `preflight-error` excluded from count — env issues are not site quality signals). Higher threshold
 than `content-audit` (2 runs) — fuzzer nature surfaces more findings per run, so
 noise floor is higher.
 

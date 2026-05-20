@@ -85,6 +85,61 @@ describe("writeReport", () => {
 		expect(content).toContain("(none)");
 	});
 
+	it("preflight-error finding: status line shows ABORTED AT PREFLIGHT", async () => {
+		const findings: AppAuditFinding[] = [
+			makeF(
+				"preflight-error",
+				"blocker",
+				"[app-audit] baseUrl http://localhost:4173 unreachable — start preview server first (bun preview) or pass --baseUrl=<url>",
+			),
+		];
+		await writeReport(findings, "manual");
+		const date = new Date().toISOString().slice(0, 10);
+		const content = await readFile(
+			join(tmpDir, "docs/_reports", `app-audit-${date}.md`),
+			"utf-8",
+		);
+		expect(content).toContain(
+			"ABORTED AT PREFLIGHT — no route inspections performed",
+		);
+	});
+
+	it("preflight-error finding: route-inspection categories show (not checked — audit aborted)", async () => {
+		const findings: AppAuditFinding[] = [
+			makeF("preflight-error", "blocker", "unreachable"),
+		];
+		await writeReport(findings, "manual");
+		const date = new Date().toISOString().slice(0, 10);
+		const content = await readFile(
+			join(tmpDir, "docs/_reports", `app-audit-${date}.md`),
+			"utf-8",
+		);
+		expect(content).toContain("(not checked — audit aborted)");
+		expect(content).not.toContain("(none)");
+	});
+
+	it("no preflight-error: status line shows pending, categories show (none)", async () => {
+		await writeReport([], "manual");
+		const date = new Date().toISOString().slice(0, 10);
+		const content = await readFile(
+			join(tmpDir, "docs/_reports", `app-audit-${date}.md`),
+			"utf-8",
+		);
+		expect(content).toContain("**Status**: pending");
+		expect(content).not.toContain("ABORTED AT PREFLIGHT");
+		expect(content).not.toContain("(not checked — audit aborted)");
+	});
+
+	it("report contains preflight-error section", async () => {
+		await writeReport([], "manual");
+		const date = new Date().toISOString().slice(0, 10);
+		const content = await readFile(
+			join(tmpDir, "docs/_reports", `app-audit-${date}.md`),
+			"utf-8",
+		);
+		expect(content).toContain("## preflight-error");
+	});
+
 	it("report embeds audit-fingerprint HTML comment in header", async () => {
 		const findings: AppAuditFinding[] = [
 			makeF("console-error", "blocker"),
