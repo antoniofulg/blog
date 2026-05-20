@@ -7,6 +7,16 @@
 IMAGE_NAME    ?= blog
 CONTAINER_APP ?= blog-app
 
+# -- Build artifacts -----------------------------------------------------------
+
+# Nitro production bundle path; declared here so audit-fe + audit can declare
+# it as a Make-native prerequisite and rebuild only when sources changed.
+NITRO_BUNDLE := .output/server/index.mjs
+# Source set that, when newer than NITRO_BUNDLE, forces a rebuild. Evaluated
+# at parse time via $(shell ...) — a brand-new source file is picked up on the
+# next make invocation, which is the same behavior as `bun run build` itself.
+APP_SOURCES  := $(shell find app scripts -type f \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null)
+
 # -- Discovery -----------------------------------------------------------------
 
 help: ## Show available targets
@@ -102,18 +112,19 @@ audit-content: ## Run content audit and write report to docs/_reports/
 	bun run audit:content
 	@echo "Content audit complete. Next: make lint | git commit"
 
-audit-fe: ## Run app (browser) audit; orchestrates preview server automatically
-	@if [ ! -f .output/server/index.mjs ]; then \
-		echo "[audit-fe] .output not found — running build first..."; \
-		bun run build; \
-	fi
+# Rebuild rule: Nitro bundle is stale when any app/scripts source file or one
+# of the build inputs (package.json, bun.lock, vite.config.ts) is newer.
+$(NITRO_BUNDLE): $(APP_SOURCES) package.json bun.lock vite.config.ts
+	@echo "[audit-fe] sources changed — rebuilding nitro bundle..."
+	bun run build
+
+audit-fe: $(NITRO_BUNDLE) ## Run app (browser) audit; orchestrates preview server (auto-rebuilds when sources changed)
 	bun run scripts/run-audit-fe.ts
 	@echo "App audit complete. Next: make lint | git commit"
 
 app-audit: audit-fe ## Alias for audit-fe
 
-audit: ## Run full audit suite (content + app) sequentially
-	bun run audit
+audit: audit-content audit-fe ## Run full audit suite (content + app) sequentially via Make targets
 	@echo "Full audit complete. Next: make lint | git commit"
 
 # -- Database ------------------------------------------------------------------
