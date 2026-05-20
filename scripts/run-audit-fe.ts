@@ -106,9 +106,25 @@ export type OrchestratorResult = {
 	reportPath: string;
 };
 
+// Map convenience CLI flags (--headed, --slowmo=N) into the env vars that
+// app/lib/app-audit/checks.server.ts reads when launching Chromium. Mutating
+// process.env keeps the rest of the audit pipeline unchanged and lets env
+// vars and CLI flags coexist without precedence surprises.
+function applyDebugFlags(args: string[]): void {
+	if (args.includes("--headed")) {
+		process.env.AUDIT_HEADED = "1";
+	}
+	const slowmoFlag = args.find((a) => a.startsWith("--slowmo="));
+	if (slowmoFlag) {
+		process.env.AUDIT_SLOWMO = slowmoFlag.slice("--slowmo=".length);
+	}
+}
+
 export async function runAuditWithPreview(
 	args: string[],
 ): Promise<OrchestratorResult> {
+	applyDebugFlags(args);
+
 	if (!(await nitroBundleExists())) {
 		process.stderr.write(
 			`[audit-fe] ${NITRO_BUNDLE} not found — run \`bun run build\` first.\n`,

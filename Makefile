@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup dev dev-docker build preview \
-        test lint format check lint-tests test-e2e audit-content audit-fe app-audit audit \
+        test lint format check lint-tests test-e2e audit-content audit-fe app-audit audit audit-watch \
         db-migrate db-generate db-seed db-reset \
         stop restart restart-all logs shell deploy
 
@@ -121,6 +121,10 @@ $(NITRO_BUNDLE): $(APP_SOURCES) package.json bun.lock vite.config.ts
 audit-fe: $(NITRO_BUNDLE) ## Run app (browser) audit; orchestrates preview server (auto-rebuilds when sources changed)
 	bun run scripts/run-audit-fe.ts
 	@echo "App audit complete. Next: make lint | git commit"
+
+audit-watch: $(NITRO_BUNDLE) ## Run app audit with visible browser (headed Chromium, slow, no lighthouse) — for debugging
+	AUDIT_HEADED=1 AUDIT_SLOWMO=200 bun run scripts/run-audit-fe.ts --no-lighthouse
+	@echo "Visual audit complete. Next: make audit-fe (for CI mode)"
 
 app-audit: audit-fe ## Alias for audit-fe
 

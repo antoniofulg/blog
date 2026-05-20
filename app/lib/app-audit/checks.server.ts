@@ -91,7 +91,12 @@ export async function runAppAudit(opts: {
 	}
 
 	const adminStorageState = await getAdminStorageState();
-	const browser = await chromium.launch({ headless: true });
+	// AUDIT_HEADED=1 surfaces the Playwright Chromium window so operators can
+	// watch the sweep live. AUDIT_SLOWMO=<ms> slows each action proportionally
+	// (e.g. 250 = quarter-second between clicks). Both default OFF for CI.
+	const headed = process.env.AUDIT_HEADED === "1";
+	const slowMo = Number(process.env.AUDIT_SLOWMO ?? "0") || undefined;
+	const browser = await chromium.launch({ headless: !headed, slowMo });
 
 	try {
 		const anonContext = await browser.newContext({ baseURL: baseUrl });
