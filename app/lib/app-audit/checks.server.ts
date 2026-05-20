@@ -60,7 +60,7 @@ export async function runAppAudit(opts: {
 				category: "preflight-error" as const,
 				severity: "blocker" as const,
 				filePath: "preflight",
-				message: `[app-audit] baseUrl ${baseUrl} unreachable — start preview server first (bun preview) or pass --baseUrl=<url>`,
+				message: `[app-audit] baseUrl ${baseUrl} unreachable — invoke via 'make audit-fe' (auto-orchestrates the Nitro preview), or start manually with 'bun run build && PORT=4173 bun run .output/server/index.mjs' then re-run, or pass --baseUrl=<url>. Note: 'bun preview' (vite preview) does NOT serve the TanStack Start SSR bundle and will not work.`,
 			},
 		];
 	}

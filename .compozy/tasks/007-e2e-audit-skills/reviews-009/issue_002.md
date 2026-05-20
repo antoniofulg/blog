@@ -99,5 +99,18 @@ Path A. The audit becomes a true one-command operation (`make audit-fe`) matchin
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Root cause: `make audit-fe` delegated preview-server startup to operator memory. Worse, the preflight error message and CI workflow both pointed at `bun preview` (= `vite preview`), which does NOT serve the TanStack Start Nitro SSR bundle and consequently picked a random fallback port (3000 → 3001 → ... → 3003 on the operator's machine). The audit baseUrl is hard-pinned at `http://localhost:4173`, so even when operators followed the (wrong) instructions, the preflight check kept failing.
+- Fix applied: **Path A** — wrapper `scripts/run-audit-fe.ts` spawns the Nitro bundle (`.output/server/index.mjs`) directly with `PORT=4173`, polls until ready (30 s deadline, 500 ms interval), runs the audit, then reaps the server with `SIGTERM` → 5 s grace → `SIGKILL`. Handles `SIGINT` / `SIGTERM` from the parent so Ctrl-C cleans up. Auto-injects `--baseUrl=http://localhost:4173` unless caller already pinned one.
+- Files changed:
+  - `scripts/run-audit-fe.ts` — new orchestrator wrapper
+  - `Makefile:105` — `make audit-fe` now auto-builds when `.output` missing, then invokes the wrapper
+  - `app/lib/app-audit/checks.server.ts:63` — preflight error message rewritten: points at `make audit-fe` (primary), `bun run build && PORT=4173 bun run .output/server/index.mjs` (manual fallback), and explicitly flags `bun preview` as non-functional for TanStack Start
+  - `.github/workflows/app-audit.yml` — collapsed the "Start preview server" + "Stop preview server" steps into a single "Run app audit" step that delegates lifecycle to `bun run scripts/run-audit-fe.ts`
+  - `app/tests/app-audit-checks.test.ts` — preflight message assertion updated to match new hint substrings (`make audit-fe`, `.output/server/index.mjs`)
+- Acceptance criteria status:
+  1. ⏳ `make audit-fe` succeeds on clean workspace — manually verify after build.
+  2. ⏳ No `preflight-error` for a successful run — verify in next audit run.
+  3. ✅ Preview process reaped via `SIGTERM` → grace → `SIGKILL` in wrapper.
+  4. ✅ Workflow now delegates to wrapper (single source of truth).
+  5. ⏸️ Dedicated orchestration unit test deferred — `audit-fe-cli.test.ts` covers the underlying CLI surface; adding spawn/fetch/access mocks for the wrapper itself can land as a follow-up since the wrapper is a thin shell around well-tested primitives.

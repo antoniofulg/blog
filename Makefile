@@ -102,8 +102,12 @@ audit-content: ## Run content audit and write report to docs/_reports/
 	bun run audit:content
 	@echo "Content audit complete. Next: make lint | git commit"
 
-audit-fe: ## Run app (browser) audit and write report to docs/_reports/
-	bun run audit:fe
+audit-fe: ## Run app (browser) audit; orchestrates preview server automatically
+	@if [ ! -f .output/server/index.mjs ]; then \
+		echo "[audit-fe] .output not found — running build first..."; \
+		bun run build; \
+	fi
+	bun run scripts/run-audit-fe.ts
 	@echo "App audit complete. Next: make lint | git commit"
 
 app-audit: audit-fe ## Alias for audit-fe

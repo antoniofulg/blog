@@ -338,14 +338,19 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).not.toHaveBeenCalled();
 	});
 
-	it("preflight: message includes baseUrl and bun preview hint", async () => {
+	it("preflight: message includes baseUrl and orchestration hint", async () => {
 		fetchMock.mockRejectedValue(new Error("fetch failed"));
 		const findings = await runAppAudit({
 			lighthouse: false,
 			baseUrl: "http://localhost:12345",
 		});
 		expect(findings[0].message).toContain("http://localhost:12345");
-		expect(findings[0].message).toContain("bun preview");
+		// New guidance points at `make audit-fe` (the orchestrator entry point)
+		// and the Nitro bundle for manual runs — `bun preview` (vite preview)
+		// does NOT serve the TanStack Start SSR build and is explicitly called
+		// out as non-functional in the message.
+		expect(findings[0].message).toContain("make audit-fe");
+		expect(findings[0].message).toContain(".output/server/index.mjs");
 	});
 
 	it("preflight: reachable baseUrl proceeds to route sweep", async () => {

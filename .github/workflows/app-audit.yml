@@ -60,17 +60,6 @@ jobs:
           DATABASE_URL: postgres://blog:blog@localhost:5432/blog
         run: bun run build
 
-      - name: Start preview server
-        env:
-          DATABASE_URL: postgres://blog:blog@localhost:5432/blog
-        run: |
-          bun run preview &
-          echo $! > /tmp/preview.pid
-          for i in $(seq 1 30); do
-            curl -s http://localhost:4173/ > /dev/null 2>&1 && break
-            sleep 2
-          done
-
       - name: Run app audit
         id: audit
         env:
@@ -87,8 +76,13 @@ jobs:
             LIGHTHOUSE_FLAG="--no-lighthouse"
           fi
 
+          # run-audit-fe.ts orchestrates the Nitro preview server lifecycle —
+          # spawn on PORT=4173, poll until ready, run audit, reap on exit.
+          # Replaces the prior background `bun run preview &` + manual curl
+          # poll which used the wrong command (vite preview cannot serve the
+          # Nitro SSR bundle) and lacked reliable teardown.
           set +e
-          output=$(bun run audit:fe "--trigger=${TRIGGER}" "$LIGHTHOUSE_FLAG" 2>&1)
+          output=$(bun run scripts/run-audit-fe.ts "--trigger=${TRIGGER}" "$LIGHTHOUSE_FLAG" 2>&1)
           set -e
           echo "$output"
 
@@ -100,13 +94,6 @@ jobs:
           echo "blockers=${blockers:-0}" >> "$GITHUB_OUTPUT"
           echo "majors=${majors:-0}" >> "$GITHUB_OUTPUT"
           echo "minors=${minors:-0}" >> "$GITHUB_OUTPUT"
-
-      - name: Stop preview server
-        if: always()
-        run: |
-          if [ -f /tmp/preview.pid ]; then
-            kill $(cat /tmp/preview.pid) || true
-          fi
 
       - name: Upload audit report
         if: always()
