@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 9
 round_created_at: 2026-05-20T13:20:46Z
-status: pending
+status: resolved
 file: Makefile
 line: 105
 severity: medium

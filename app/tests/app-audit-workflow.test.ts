@@ -87,8 +87,8 @@ describe("unit: .github/workflows/app-audit.yml", () => {
 		expect(yml).toContain("bun install --frozen-lockfile");
 	});
 
-	it("runs bun run audit:fe", () => {
-		expect(yml).toContain("bun run audit:fe");
+	it("runs bun run scripts/run-audit-fe.ts (orchestrator wrapper)", () => {
+		expect(yml).toContain("bun run scripts/run-audit-fe.ts");
 	});
 
 	it("delta suppression uses actions/github-script", () => {
