@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 12
 round_created_at: 2026-05-20T21:44:25Z
-status: valid
+status: resolved
 file: app/router.tsx
 line: 1
 severity: high
