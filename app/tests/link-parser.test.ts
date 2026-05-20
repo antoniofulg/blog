@@ -1,7 +1,18 @@
-import { glob } from "node:fs/promises";
+import { readdir } from "node:fs/promises";
 import path from "node:path";
 import { describe, expect, it } from "vitest";
 import { extractLinks } from "#/lib/content-audit/link-parser.server";
+
+async function walkMdx(dir: string): Promise<string[]> {
+	const out: string[] = [];
+	const entries = await readdir(dir, { withFileTypes: true }).catch(() => []);
+	for (const entry of entries) {
+		const full = path.join(dir, entry.name);
+		if (entry.isDirectory()) out.push(...(await walkMdx(full)));
+		else if (entry.name.endsWith(".mdx")) out.push(full);
+	}
+	return out;
+}
 
 const FIXTURES = path.resolve(import.meta.dirname, "fixtures/link-parser");
 
@@ -147,10 +158,7 @@ describe("link-parser: integration — whole tree parse", () => {
 			import.meta.dirname,
 			"../../app/content/posts",
 		);
-		const files: string[] = [];
-		for await (const f of glob("**/*.mdx", { cwd: postsDir })) {
-			files.push(path.join(postsDir, f));
-		}
+		const files = await walkMdx(postsDir);
 		expect(files.length).toBeGreaterThan(0);
 		for (const file of files) {
 			const links = await extractLinks(file);
@@ -163,10 +171,7 @@ describe("link-parser: integration — whole tree parse", () => {
 			import.meta.dirname,
 			"../../app/content/posts",
 		);
-		const files: string[] = [];
-		for await (const f of glob("**/*.mdx", { cwd: postsDir })) {
-			files.push(path.join(postsDir, f));
-		}
+		const files = await walkMdx(postsDir);
 		const start = Date.now();
 		await Promise.all(files.map((f) => extractLinks(f)));
 		const elapsed = Date.now() - start;

@@ -59,42 +59,121 @@ function buildErrorResponse(err: Error): Buffer {
 	return Buffer.concat([header, body]);
 }
 
+// Returns true when the batch contains a Parse message for the unnamed statement ("").
+// Parse format: P(1) + length(4) + stmtName(null-terminated) + ...
+// Unnamed statement: the stmtName field is a single null byte, i.e. byte[5] === 0x00.
+function batchHasParseForUnnamed(batch: Buffer): boolean {
+	let offset = 0;
+	while (offset + 6 <= batch.length) {
+		const type = batch[offset];
+		const len = batch.readInt32BE(offset + 1);
+		if (type === 0x50 && batch[offset + 5] === 0x00) return true;
+		offset += 1 + len;
+	}
+	return false;
+}
+
+// Returns true when the batch contains a Bind message for the unnamed statement ("").
+// Bind format: B(1) + length(4) + portalName(null-term) + stmtName(null-term) + ...
+// For unnamed portal + unnamed stmt: byte[5] === 0x00 (portal) and byte[6] === 0x00 (stmt).
+function batchHasBindForUnnamed(batch: Buffer): boolean {
+	let offset = 0;
+	while (offset + 7 <= batch.length) {
+		const type = batch[offset];
+		const len = batch.readInt32BE(offset + 1);
+		if (type === 0x42 && batch[offset + 5] === 0x00 && batch[offset + 6] === 0x00)
+			return true;
+		offset += 1 + len;
+	}
+	return false;
+}
+
 // Starts a TCP server that proxies PostgreSQL wire protocol messages to PGLite.
 // Handles SSLRequest denial and startup handshake synthesis, then pipes all
 // subsequent messages through PGlite.execProtocolRaw for true wire-protocol fidelity.
 function startPgProxy(
 	pglite: PGlite,
 ): Promise<{ port: number; stop: () => Promise<void> }> {
-	// Serialize all execProtocolRaw calls across connections (PGLite is single-client)
-	let queue: Promise<Uint8Array | undefined> = Promise.resolve(undefined);
-	const enqueue = (fn: () => Promise<Uint8Array>): Promise<Uint8Array> => {
-		const next = queue.then(() => fn()) as Promise<Uint8Array>;
-		queue = next.then(
-			() => undefined,
-			() => undefined,
-		);
-		return next;
-	};
+	// Unnamed-statement lock: PGLite has a single unnamed prepared-statement slot
+	// shared across all connections. The race is:
+	//   A sends Parse(Q_A)+Sync [pipeline 1] → "" = Q_A
+	//   B sends Parse(Q_B)+Sync [pipeline 2] → "" = Q_B   ← corrupts A's slot
+	//   A sends Bind(params for Q_A)+Sync [pipeline 3] → 08P01
+	// Fix: hold the lock from when a connection Parses "" until it Binds "".
+	// During that window, other connections' Parse pipelines queue up.
+	// For the common case (Parse+Bind in one pipeline), the lock is held only
+	// for the duration of that single execProtocolRaw call.
+	let unnamedSlotLock: Promise<void> = Promise.resolve();
 
 	const activeSockets = new Set<net.Socket>();
 
 	const server = net.createServer((socket) => {
 		activeSockets.add(socket);
-		socket.on("close", () => activeSockets.delete(socket));
 
 		let buf = Buffer.alloc(0);
 		let started = false;
-		// Per-connection pipeline buffer: accumulates messages until a pipeline-end
-		// marker (Sync/SimpleQuery/Flush) so they are dispatched atomically to PGLite.
-		// Without this, Parse from one connection can overwrite the unnamed prepared
-		// statement slot before another connection's Bind arrives (08P01 mismatch).
 		let pipelineBuf = Buffer.alloc(0);
+
+		// Whether this connection currently holds the unnamed-statement lock.
+		// Acquired after a Parse('') pipeline; released after the Bind('') pipeline.
+		let lockRelease: (() => void) | null = null;
+		const releaseUnnamedSlotLock = () => {
+			if (lockRelease) {
+				lockRelease();
+				lockRelease = null;
+			}
+		};
+
+		socket.on("close", () => {
+			activeSockets.delete(socket);
+			releaseUnnamedSlotLock();
+		});
+		socket.on("error", () => {
+			releaseUnnamedSlotLock();
+			socket.destroy();
+		});
+
+		// Acquire the unnamed-slot lock if not already held.
+		// Returns a Promise that resolves when it is this connection's turn.
+		const acquireUnnamedSlotLock = (): Promise<void> => {
+			if (lockRelease !== null) return Promise.resolve();
+			let resolve!: () => void;
+			const mySlot = new Promise<void>((r) => {
+				resolve = r;
+			});
+			const prev = unnamedSlotLock;
+			unnamedSlotLock = mySlot;
+			lockRelease = resolve;
+			return prev.then(() => {});
+		};
+
+		// Per-connection pipeline queue: pipelines from THIS connection run in order.
+		let myQueue: Promise<Uint8Array | undefined> = Promise.resolve(undefined);
+		const enqueue = (
+			fn: () => Promise<Uint8Array>,
+			needsLock: boolean,
+			releasesLock: boolean,
+		): Promise<Uint8Array> => {
+			const next = myQueue.then(() => {
+				const run = needsLock
+					? acquireUnnamedSlotLock().then(() => fn())
+					: fn();
+				return run.then((res) => {
+					if (releasesLock) releaseUnnamedSlotLock();
+					return res;
+				});
+			}) as Promise<Uint8Array>;
+			myQueue = next.then(
+				() => undefined,
+				() => undefined,
+			);
+			return next;
+		};
 
 		socket.on("data", (chunk) => {
 			buf = Buffer.concat([buf, chunk]);
 			drain();
 		});
-		socket.on("error", () => socket.destroy());
 
 		function drain() {
 			for (;;) {
@@ -119,27 +198,38 @@ function startPgProxy(
 					if (buf.length < 1 + msgLen) return;
 					const msg = Buffer.from(buf.subarray(0, 1 + msgLen));
 					buf = buf.subarray(1 + msgLen);
-					// Terminate ('X'): close connection
+					// Terminate ('X'): release any held lock then close.
 					if (msgType === 0x58) {
+						releaseUnnamedSlotLock();
 						socket.end();
 						return;
 					}
-					// Append message to the per-connection pipeline buffer.
-					// S=Sync(0x53), Q=SimpleQuery(0x51), H=Flush(0x48) are pipeline-end
-					// markers: flush the accumulated batch to PGLite atomically so that
-					// no other connection's messages can interleave within this pipeline.
+					// Accumulate messages until a pipeline-end marker, then dispatch.
 					pipelineBuf = Buffer.concat([pipelineBuf, msg]);
 					const isPipelineEnd =
 						msgType === 0x53 || msgType === 0x51 || msgType === 0x48;
 					if (isPipelineEnd) {
 						const batch = pipelineBuf;
 						pipelineBuf = Buffer.alloc(0);
-						enqueue(() => pglite.execProtocolRaw(batch)).then(
+						// Acquire the lock on Parse(''): hold it until the matching Bind('').
+						// Release immediately if the same batch also has Bind('').
+						const hasParse = batchHasParseForUnnamed(batch);
+						const hasBind = batchHasBindForUnnamed(batch);
+						// needsLock: true if this batch needs the unnamed slot (Parse or Bind)
+						// releasesLock: true if this batch contains the Bind that "consumes" the slot
+						const needsLock = hasParse || hasBind;
+						const releasesLock = hasBind;
+						enqueue(
+							() => pglite.execProtocolRaw(batch),
+							needsLock,
+							releasesLock,
+						).then(
 							(res) => {
 								if (!socket.destroyed) socket.write(Buffer.from(res));
 							},
 							(err) => {
 								console.error("[pg-proxy] execProtocolRaw rejected:", err);
+								releaseUnnamedSlotLock();
 								if (!socket.destroyed) {
 									socket.write(buildErrorResponse(err as Error));
 									socket.write(

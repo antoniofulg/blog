@@ -179,6 +179,54 @@ describe("PGLite proxy: unnamed prepared statement isolation across connections"
 		}
 	});
 
+	test("high concurrency: 4 connections with separate Parse/Bind pipelines do not produce 08P01", async () => {
+		const port = Number(new URL(testDb.connectionString).port);
+
+		// Different SQL shapes (different param counts) make cross-connection slot
+		// corruption visible: if B's Parse(2 params) overwrites A's Parse(1 param)
+		// before A's Bind(1 param) runs, A gets 08P01.
+		const specs: { sql: string; params: string[] }[] = [
+			{ sql: "SELECT $1::text", params: ["a"] },
+			{ sql: "SELECT $1::text, $2::text", params: ["b", "c"] },
+			{ sql: "SELECT $1::text", params: ["d"] },
+			{ sql: "SELECT $1::text, $2::text", params: ["e", "f"] },
+		];
+
+		const sockets = await Promise.all(specs.map(() => pgConnect(port)));
+
+		try {
+			// All connections send Parse+Sync as a separate pipeline (no Bind yet).
+			// This enqueues 4 Parse pipelines; without connection-level locking the
+			// queue would be [P0, P1, P2, P3, B0, B1, B2, B3] and B0 (1-param Bind)
+			// would run against "" which was last set to 2 params by P3 → 08P01.
+			for (const [i, { sql, params }] of specs.entries()) {
+				sockets[i]?.write(
+					Buffer.concat([
+						buildParse(sql, new Array(params.length).fill(0)),
+						SYNC,
+					]),
+				);
+			}
+
+			// All connections immediately send Bind+Execute+Sync without waiting.
+			for (const [i, { params }] of specs.entries()) {
+				sockets[i]?.write(
+					Buffer.concat([buildBind(params), buildExecute(), SYNC]),
+				);
+			}
+
+			// Wait for all final ReadyForQuery responses; none should contain 08P01.
+			const results = await Promise.all(
+				sockets.map((s) => readUntilReady(s, 10_000)),
+			);
+			for (const r of results) {
+				expect(r.hasError).toBe(false);
+			}
+		} finally {
+			for (const s of sockets) s.destroy();
+		}
+	}, 15_000);
+
 	test("error response includes ErrorResponse (0x45) before ReadyForQuery (0x5a) on Bind param mismatch", async () => {
 		const port = Number(new URL(testDb.connectionString).port);
 		const sock = await pgConnect(port);

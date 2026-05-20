@@ -429,6 +429,49 @@ describe("runAppAudit orchestrator", () => {
 		);
 	});
 
+	// ─── shim route double-prefix guard (round-014 issue 001) ───────────────────
+
+	it("shim route path='/pt-br/' locale='pt-br' walked exactly once — no double-prefix /pt-br/pt-br/", async () => {
+		siteModelMocks.getRouteInventory.mockResolvedValue([
+			{
+				path: "/pt-br/",
+				locale: "pt-br" as const,
+				auth: "public" as const,
+				expectedStatus: 200 as const,
+				intent: "pt-br locale root shim",
+			},
+		]);
+		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
+		// Shim route: path already contains locale prefix → walker uses [DEFAULT_LOCALE]
+		// → 1 locale × 2 auth-states = 2 sweeps (not 4 = 2 locales × 2 auth).
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(2);
+		const paths = probeMocks.sweepRoute.mock.calls.map(
+			([, route]) => (route as RouteEntry).path,
+		);
+		expect(paths.every((p) => p === "/pt-br/")).toBe(true);
+		expect(paths).not.toContain("/pt-br/pt-br/");
+	});
+
+	it("shim route path='/en/' locale='en' walked exactly once — no /pt-br/en/ produced", async () => {
+		siteModelMocks.getRouteInventory.mockResolvedValue([
+			{
+				path: "/en/",
+				locale: "en" as const,
+				auth: "public" as const,
+				expectedStatus: 200 as const,
+				intent: "en locale root shim",
+			},
+		]);
+		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
+		// /en/ starts with a known locale prefix → isShimRoute=true → 1 locale × 2 auth = 2 sweeps.
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(2);
+		const paths = probeMocks.sweepRoute.mock.calls.map(
+			([, route]) => (route as RouteEntry).path,
+		);
+		expect(paths.every((p) => p === "/en/")).toBe(true);
+		expect(paths).not.toContain("/pt-br/en/");
+	});
+
 	// ─── locale:null walk restriction (round-012 issue 001) ──────────────────────
 
 	it("locale:null route walks only DEFAULT_LOCALE, locale:en route walks all locales", async () => {

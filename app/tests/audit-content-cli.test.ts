@@ -268,12 +268,19 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 	const DB_URL = "postgres://blog:blog@localhost:5432/blog";
 
 	it("exit 0 on clean content tree", async () => {
+		const summaryDir = await mkdtemp(join(tmpdir(), "audit-clean-"));
 		await expect(
 			execFileAsync("bun", ["run", scriptPath, "--trigger=test-int-clean"], {
-				env: { ...process.env, DATABASE_URL: DB_URL },
+				env: {
+					...process.env,
+					DATABASE_URL: DB_URL,
+					AUDIT_SUMMARY_PATH: join(summaryDir, "SUMMARY.md"),
+					AUDIT_REPORTS_DIR: join(summaryDir, "_reports"),
+				},
 				timeout: 30000,
 			}),
 		).resolves.toMatchObject({ stderr: "" });
+		await rm(summaryDir, { recursive: true, force: true });
 	}, 35000);
 
 	it("exit 1 when fixture has a blocker (missing title)", async () => {
@@ -294,7 +301,15 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 					"--trigger=test-int-blocker",
 					`--content-dir=${tmpDir}`,
 				],
-				{ env: { ...process.env, DATABASE_URL: DB_URL }, timeout: 30000 },
+				{
+					env: {
+						...process.env,
+						DATABASE_URL: DB_URL,
+						AUDIT_SUMMARY_PATH: join(tmpDir, "SUMMARY.md"),
+						AUDIT_REPORTS_DIR: join(tmpDir, "_reports"),
+					},
+					timeout: 30000,
+				},
 			),
 		).rejects.toMatchObject({ code: 1 });
 	}, 35000);

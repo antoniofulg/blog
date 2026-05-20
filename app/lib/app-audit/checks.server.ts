@@ -31,6 +31,9 @@ export function normalizeRoutePath(p: string): string {
 
 function buildLocalePath(path: string, locale: Locale): string {
 	if (locale === "en") return path;
+	// Skip double-prefixing for shim routes whose path already contains the locale prefix.
+	// e.g. pt-br.index.tsx has path="/pt-br/" and locale="pt-br"; prefixing again → /pt-br/pt-br/.
+	if (path.startsWith("/pt-br/") || path === "/pt-br") return path;
 	return path === "/" ? "/pt-br/" : `/pt-br${path}`;
 }
 
@@ -107,8 +110,16 @@ export async function runAppAudit(opts: {
 
 		try {
 			for (const route of routes) {
+				// Shim routes embed their locale prefix in the path (e.g. /pt-br/, /en/).
+				// Walking across all LOCALES would produce /pt-br/pt-br/ or /pt-br/en/.
+				// Detect by checking whether the route path starts with a locale segment.
+				const isShimRoute =
+					route.locale !== null &&
+					LOCALES.some(
+						(l) => route.path.startsWith(`/${l}/`) || route.path === `/${l}`,
+					);
 				const localesToWalk =
-					route.locale === null ? [DEFAULT_LOCALE] : LOCALES;
+					isShimRoute || route.locale === null ? [DEFAULT_LOCALE] : LOCALES;
 				for (const locale of localesToWalk) {
 					const resolvedPath = resolveRoutePath(route);
 					const localePath = buildLocalePath(resolvedPath, locale);
