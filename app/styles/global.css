@@ -62,8 +62,8 @@
   --foreground-inverse: #FAFAFA;
   --foreground-code: #C8D1DC;
 
-  --accent: #0AA3D6;
-  --accent-hover: #088BB5;
+  --accent: #097098;
+  --accent-hover: #0A5E7E;
   --accent-light: #E0F3FA;
 
   --border: #C2C8CE;
@@ -78,7 +78,7 @@
   --callout-warn: #FDF0EA;
   --callout-error: #FDE9E7;
 
-  --tag-react: #0AA3D6;
+  --tag-react: #097098;
   --tag-typescript: #B377E3;
   --tag-bun: #E39C03;
   --tag-tanstack: #EE5F50;

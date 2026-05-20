@@ -46,46 +46,52 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		const user = await getAuthSession();
 		return { auth: { user } };
 	},
-	head: () => ({
-		meta: [
-			{ charSet: "utf-8" },
-			{
-				name: "viewport",
-				content: "width=device-width, initial-scale=1",
-			},
-			{ title: "Antonio Fulgencio Blog" },
-			{
-				name: "description",
-				content:
-					"Articles about web development, React, TypeScript, Bun and international career.",
-			},
-			{ property: "og:type", content: "website" },
-			{ property: "og:title", content: "Antonio Fulgencio Blog" },
-			{
-				property: "og:description",
-				content:
-					"Articles about web development, React, TypeScript, Bun and international career.",
-			},
-			{
-				property: "og:image",
-				content: `${import.meta.env.VITE_SITE_URL ?? ""}/og-default.png`,
-			},
-			{ name: "twitter:card", content: "summary_large_image" },
-		],
-		links: [
-			{ rel: "stylesheet", href: appCss },
-			{ rel: "preconnect", href: "https://fonts.googleapis.com" },
-			{
-				rel: "preconnect",
-				href: "https://fonts.gstatic.com",
-				crossOrigin: "anonymous",
-			},
-			{
-				rel: "stylesheet",
-				href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
-			},
-		],
-	}),
+	head: ({ matches }) => {
+		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+		const pathname = matches.at(-1)?.pathname ?? "/";
+		const canonicalUrl = `${siteUrl}${pathname}`;
+		return {
+			meta: [
+				{ charSet: "utf-8" },
+				{
+					name: "viewport",
+					content: "width=device-width, initial-scale=1",
+				},
+				{ title: "Antonio Fulgencio Blog" },
+				{
+					name: "description",
+					content:
+						"Articles about web development, React, TypeScript, Bun and international career.",
+				},
+				{ property: "og:type", content: "website" },
+				{ property: "og:title", content: "Antonio Fulgencio Blog" },
+				{
+					property: "og:description",
+					content:
+						"Articles about web development, React, TypeScript, Bun and international career.",
+				},
+				{
+					property: "og:image",
+					content: `${siteUrl}/og-default.png`,
+				},
+				{ name: "twitter:card", content: "summary_large_image" },
+			],
+			links: [
+				{ rel: "canonical", href: canonicalUrl },
+				{ rel: "stylesheet", href: appCss },
+				{ rel: "preconnect", href: "https://fonts.googleapis.com" },
+				{
+					rel: "preconnect",
+					href: "https://fonts.gstatic.com",
+					crossOrigin: "anonymous",
+				},
+				{
+					rel: "stylesheet",
+					href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
+				},
+			],
+		};
+	},
 	component: RootLayout,
 	notFoundComponent: NotFoundPage,
 	shellComponent: RootDocument,

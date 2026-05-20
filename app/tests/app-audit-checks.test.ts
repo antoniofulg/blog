@@ -428,6 +428,43 @@ describe("runAppAudit orchestrator", () => {
 			true,
 		);
 	});
+
+	// ─── locale:null walk restriction (round-012 issue 001) ──────────────────────
+
+	it("locale:null route walks only DEFAULT_LOCALE, locale:en route walks all locales", async () => {
+		// 1 global route (locale:null) + 1 locale-scoped route (locale:"en")
+		siteModelMocks.getRouteInventory.mockResolvedValue([
+			{
+				path: "/admin",
+				locale: null,
+				auth: "admin" as const,
+				expectedStatus: 200 as const,
+				intent: "admin dashboard",
+			},
+			{
+				path: "/",
+				locale: "en",
+				auth: "public" as const,
+				expectedStatus: 200 as const,
+				intent: "blog home",
+			},
+		]);
+		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
+		// locale:null → 1 locale × 2 auth = 2 sweeps
+		// locale:"en" → 2 locales × 2 auth = 4 sweeps
+		// total = 6
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(6);
+
+		const paths = probeMocks.sweepRoute.mock.calls.map(
+			([, route]) => (route as RouteEntry).path,
+		);
+		// Global route MUST NOT be walked with pt-br prefix
+		expect(paths).not.toContain("/pt-br/admin");
+		expect(paths).toContain("/admin");
+		// Locale-scoped route IS walked for pt-br
+		expect(paths).toContain("/");
+		expect(paths).toContain("/pt-br/");
+	});
 });
 
 // ─── normalizeRoutePath unit tests (issue 001) ───────────────────────────────

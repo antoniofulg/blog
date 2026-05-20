@@ -8,7 +8,7 @@ import {
 	lighthouseToFindings,
 	runLighthouse,
 } from "#/lib/app-audit/lighthouse.server";
-import { LOCALES, type Locale } from "#/lib/locale";
+import { DEFAULT_LOCALE, LOCALES, type Locale } from "#/lib/locale";
 import {
 	getRouteInventory,
 	type RouteEntry,
@@ -107,7 +107,9 @@ export async function runAppAudit(opts: {
 
 		try {
 			for (const route of routes) {
-				for (const locale of LOCALES) {
+				const localesToWalk =
+					route.locale === null ? [DEFAULT_LOCALE] : LOCALES;
+				for (const locale of localesToWalk) {
 					const resolvedPath = resolveRoutePath(route);
 					const localePath = buildLocalePath(resolvedPath, locale);
 					const fullUrl = `${baseUrl}${localePath}`;

@@ -1,6 +1,7 @@
 import "@tanstack/react-start/server-only";
 import { readdir, readFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
+import { desc, eq } from "drizzle-orm";
 import matter from "gray-matter";
 import { db } from "#/db/client";
 import { posts } from "#/db/schema";
@@ -61,7 +62,6 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		auth: "public",
 		expectedStatus: 200,
 		intent: "post detail",
-		sampleSlug: "e2e-public-fixture",
 	},
 	"{-$locale}/about.tsx": {
 		path: "/about",
@@ -83,7 +83,6 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		auth: "admin",
 		expectedStatus: 200,
 		intent: "admin preview",
-		sampleSlug: "e2e-fixture-post",
 	},
 	"login.tsx": {
 		path: "/login",
@@ -94,17 +93,48 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 	},
 };
 
+async function getLatestPublishedSlug(): Promise<string | null> {
+	const [row] = await db
+		.select({ slug: posts.slug })
+		.from(posts)
+		.where(eq(posts.isPublished, true))
+		.orderBy(desc(posts.publishedAt))
+		.limit(1);
+	return row?.slug ?? null;
+}
+
 export async function getRouteInventory(): Promise<RouteEntry[]> {
+	const liveSlug = await getLatestPublishedSlug();
 	return Object.entries(ROUTE_METADATA)
 		.filter(([, meta]) => meta.expectedStatus !== null)
-		.map(([, meta]) => ({
-			path: meta.path,
-			locale: meta.locale,
-			auth: meta.auth,
-			expectedStatus: meta.expectedStatus as 200 | 302 | 401 | 404,
-			intent: meta.intent,
-			...(meta.sampleSlug !== undefined ? { sampleSlug: meta.sampleSlug } : {}),
-		}));
+		.flatMap(([, meta]): RouteEntry[] => {
+			const isSlugRoute = meta.path.includes(":slug");
+			if (isSlugRoute) {
+				if (!liveSlug) return [];
+				return [
+					{
+						path: meta.path,
+						locale: meta.locale,
+						auth: meta.auth,
+						expectedStatus: meta.expectedStatus as 200 | 302 | 401 | 404,
+						intent: meta.intent,
+						sampleSlug: liveSlug,
+					},
+				];
+			}
+			return [
+				{
+					path: meta.path,
+					locale: meta.locale,
+					auth: meta.auth,
+					expectedStatus: meta.expectedStatus as 200 | 302 | 401 | 404,
+					intent: meta.intent,
+					...(meta.sampleSlug !== undefined
+						? { sampleSlug: meta.sampleSlug }
+						: {}),
+				},
+			];
+		});
 }
 
 export function resolveRoutePath(entry: RouteEntry): string {

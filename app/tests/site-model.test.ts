@@ -13,8 +13,18 @@ import {
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
+// makeDbChain wraps a real Promise so it can be awaited directly AND supports
+// Drizzle's .where()/.orderBy()/.limit() query builder chain in tests.
+function makeDbChain(rows: unknown[] = []) {
+	return Object.assign(Promise.resolve(rows), {
+		where: () => makeDbChain(rows),
+		orderBy: () => makeDbChain(rows),
+		limit: () => makeDbChain(rows),
+	});
+}
+
 const dbMocks = vi.hoisted(() => {
-	const from = vi.fn().mockResolvedValue([]);
+	const from = vi.fn().mockImplementation(() => makeDbChain());
 	const select = vi.fn().mockReturnValue({ from });
 	return { select, from };
 });
@@ -37,7 +47,7 @@ import {
 
 function resetDbMocks() {
 	vi.clearAllMocks();
-	dbMocks.from.mockResolvedValue([]);
+	dbMocks.from.mockImplementation(() => makeDbChain());
 	dbMocks.select.mockReturnValue({ from: dbMocks.from });
 }
 
@@ -94,7 +104,13 @@ describe("unit: ROUTE_METADATA", () => {
 // ─── Unit: getRouteInventory ──────────────────────────────────────────────────
 
 describe("unit: getRouteInventory", () => {
-	it("returns one RouteEntry per non-null ROUTE_METADATA entry", async () => {
+	// Provide a live slug so slug routes are included in the inventory count
+	beforeEach(() => {
+		dbMocks.from.mockImplementation(() => makeDbChain([{ slug: "test-slug" }]));
+		dbMocks.select.mockReturnValue({ from: dbMocks.from });
+	});
+
+	it("returns one RouteEntry per non-null ROUTE_METADATA entry when DB has posts", async () => {
 		const inventory = await getRouteInventory();
 		const expectedCount = Object.values(ROUTE_METADATA).filter(
 			(m) => m.expectedStatus !== null,
@@ -121,13 +137,20 @@ describe("unit: getRouteInventory", () => {
 		}
 	});
 
-	it("inventory count equals (total route files - excluded - opt-outs)", async () => {
+	it("inventory count equals (total route files - excluded - opt-outs) when DB has posts", async () => {
 		const keys = await walkRouteKeys(ROUTES_DIR);
 		const optOutCount = Object.values(ROUTE_METADATA).filter(
 			(m) => m.expectedStatus === null,
 		).length;
 		const inventory = await getRouteInventory();
 		expect(inventory).toHaveLength(keys.length - optOutCount);
+	});
+
+	it("slug routes excluded from inventory when DB has no published posts", async () => {
+		dbMocks.from.mockImplementation(() => makeDbChain([]));
+		const inventory = await getRouteInventory();
+		const slugRoutes = inventory.filter((e) => e.path.includes(":slug"));
+		expect(slugRoutes).toHaveLength(0);
 	});
 });
 
@@ -179,27 +202,41 @@ describe("unit: resolveRoutePath", () => {
 
 // ─── Unit: ROUTE_METADATA sampleSlug for parameterized routes ─────────────────
 
-describe("unit: ROUTE_METADATA parameterized routes have sampleSlug", () => {
-	it("/:slug entry has sampleSlug set", () => {
+describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", () => {
+	it("/:slug entry has no static sampleSlug — resolved at runtime from DB", () => {
 		const entry = ROUTE_METADATA["{-$locale}/$slug.tsx"];
 		expect(entry).toBeDefined();
-		expect(entry.sampleSlug).toBeTruthy();
+		expect(entry.sampleSlug).toBeUndefined();
 	});
 
-	it("/admin/preview/:slug entry has sampleSlug set", () => {
+	it("/admin/preview/:slug entry has no static sampleSlug — resolved at runtime from DB", () => {
 		const entry = ROUTE_METADATA["admin/preview.$slug.tsx"];
 		expect(entry).toBeDefined();
-		expect(entry.sampleSlug).toBeTruthy();
+		expect(entry.sampleSlug).toBeUndefined();
 	});
 
-	it("getRouteInventory passes sampleSlug through to RouteEntry", async () => {
+	it("getRouteInventory uses live DB slug for parameterized routes", async () => {
+		dbMocks.from.mockImplementation(() =>
+			makeDbChain([{ slug: "my-live-post" }]),
+		);
+		dbMocks.select.mockReturnValue({ from: dbMocks.from });
 		const inventory = await getRouteInventory();
 		const slugRoute = inventory.find((e) => e.path === "/:slug");
-		expect(slugRoute?.sampleSlug).toBe("e2e-public-fixture");
+		expect(slugRoute?.sampleSlug).toBe("my-live-post");
 		const previewRoute = inventory.find(
 			(e) => e.path === "/admin/preview/:slug",
 		);
-		expect(previewRoute?.sampleSlug).toBe("e2e-fixture-post");
+		expect(previewRoute?.sampleSlug).toBe("my-live-post");
+	});
+
+	it("getRouteInventory excludes slug routes when DB returns no published posts", async () => {
+		dbMocks.from.mockImplementation(() => makeDbChain([]));
+		dbMocks.select.mockReturnValue({ from: dbMocks.from });
+		const inventory = await getRouteInventory();
+		expect(inventory.find((e) => e.path === "/:slug")).toBeUndefined();
+		expect(
+			inventory.find((e) => e.path === "/admin/preview/:slug"),
+		).toBeUndefined();
 	});
 });
 
