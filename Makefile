@@ -1,6 +1,6 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup dev dev-docker build preview \
-        test lint format check lint-tests test-e2e audit-content \
+        test lint format check lint-tests test-e2e audit-content audit-fe app-audit audit \
         db-migrate db-generate db-seed db-reset \
         stop restart restart-all logs shell deploy
 
@@ -101,6 +101,16 @@ test-e2e: ## Run Playwright e2e test suite
 audit-content: ## Run content audit and write report to docs/_reports/
 	bun run audit:content
 	@echo "Content audit complete. Next: make lint | git commit"
+
+audit-fe: ## Run app (browser) audit and write report to docs/_reports/
+	bun run audit:fe
+	@echo "App audit complete. Next: make lint | git commit"
+
+app-audit: audit-fe ## Alias for audit-fe
+
+audit: ## Run full audit suite (content + app) sequentially
+	bun run audit
+	@echo "Full audit complete. Next: make lint | git commit"
 
 # -- Database ------------------------------------------------------------------
 
