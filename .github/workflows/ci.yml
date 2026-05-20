@@ -34,8 +34,15 @@ jobs:
         run: bun run build
       - run: make ${{ matrix.check }}
         env:
-          E2E_ADMIN_EMAIL: ${{ matrix.check == 'e2e' && secrets.E2E_ADMIN_EMAIL || '' }}
-          E2E_ADMIN_PASSWORD: ${{ matrix.check == 'e2e' && secrets.E2E_ADMIN_PASSWORD || '' }}
+          # E2E credentials are needed by both:
+          #   - `test` matrix entry → vitest exercises e2e-harness.test.ts which
+          #     invokes tests/e2e/global-setup.ts → seedAdminUser() → requires
+          #     E2E_ADMIN_EMAIL on CI (throws if missing).
+          #   - `e2e` matrix entry → Playwright login fixture uses the same vars.
+          # Inject unconditionally for all matrix entries so the credential is
+          # always available; non-consumers ignore the unused env.
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
       - name: Upload Playwright report
         if: always() && matrix.check == 'e2e'
         uses: actions/upload-artifact@v4

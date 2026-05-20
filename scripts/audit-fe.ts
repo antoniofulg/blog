@@ -22,9 +22,14 @@ export function parseRoutes(args: string[]): string[] | undefined {
 	return routes.length > 0 ? routes : undefined;
 }
 
+// `ciEnv` is required (no default) — JS evaluates default params even when
+// the caller explicitly passes `undefined`, which would cause the unit test
+// `parseLighthouse([], undefined)` to read `process.env.CI` and return the
+// wrong value on CI runners. Forcing the caller to pass it makes the
+// behavior deterministic in both runtime and test contexts.
 export function parseLighthouse(
 	args: string[],
-	ciEnv = process.env.CI,
+	ciEnv: string | undefined,
 ): boolean {
 	if (args.includes("--lighthouse")) return true;
 	if (args.includes("--no-lighthouse")) return false;
