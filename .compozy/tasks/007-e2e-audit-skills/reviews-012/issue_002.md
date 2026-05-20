@@ -86,3 +86,52 @@ Run hypothesis 2 first (`grep -rn 'trailingSlash' app/`) — it's a 30-second co
 
 - Decision: `valid`
 - Notes: Code analysis confirms `trailingSlash: "always"` IS present in `app/router.tsx:7` — the round-010 config change landed correctly. `AssetFnContextOptions` for the `head()` function does NOT include `location` (confirmed from `@tanstack/router-core/dist/esm/route.d.ts:288`); use `matches.at(-1)?.pathname` to get the resolved path instead. The `/pt-br/` 404 may persist due to Nitro's SSR route table not generating an explicit handler for the optional `{-$locale}` segment with trailing slash. No additional change to `app/router.tsx` is possible without running the built server — the router configuration is already correct. The true root cause (if the 404 is real) is at the Nitro/TanStack Start SSR routing layer, not in `app/router.tsx`. Since verification requires a running built server which cannot be done here, this issue is documented as valid but unresolvable within the scope of `app/router.tsx` edits. Acceptance criteria 1–3 require live server testing. The issue stays open pending server-side verification by the operator.
+
+### Recheck (2026-05-20 — empirical against fresh bundle)
+
+Live `curl` against `PORT=4173 bun run .output/server/index.mjs` post-round-012 fix:
+
+```
+GET /                 → 200 OK
+GET /about/           → 200 OK
+GET /pt-br            → 307 → /pt-br/   (trailingSlash:"always" redirect working)
+GET /pt-br/           → 404 Not Found   (THE BUG; still broken)
+GET /pt-br/about/     → 200 OK          (locale layout matches child routes correctly)
+GET /en/              → 404 Not Found   (NEW finding; audit doesn't surface because audit's
+                                          buildLocalePath("/", "en") returns "/" not "/en/")
+GET /en/about/        → 200 OK
+```
+
+Root cause now isolated: the **locale INDEX route** (`{-$locale}/index.tsx`, fullPath `/{-$locale}/`, declared path `/`) fails to match when the optional `{-$locale}` segment is PRESENT with a trailing slash. Child routes (`/about`, `/$slug`) under the same layout match fine. The bug is specifically in TanStack Router's optional-param-as-path-prefix interaction with the index route when the optional segment is non-empty.
+
+`trailingSlash: "always"` is necessary but not sufficient. The router fix alone cannot resolve this — the optional-param syntax `{-$locale}` + index-at-`/` combination produces an unreachable URL form for any non-default locale.
+
+Path B (explicit shim routes) is now the only viable fix:
+- Add `app/routes/pt-br/index.tsx` declaring `createFileRoute("/pt-br/")` — literal route, renders pt-br locale home directly.
+- Add `app/routes/en/index.tsx` declaring `createFileRoute("/en/")` — literal route, renders en locale home (matches `/` behavior).
+- Optional segment `{-$locale}` retained so `/` continues to work via Accept-Language detection.
+
+This is the live-server verification the previous notes were waiting on. Pursuing Path B in the next fix batch.
+
+### Fix landed (2026-05-20 — Path B applied)
+
+Extracted `LocaleBlogPage` from `{-$locale}/index.tsx` into `app/components/layout/locale-blog-page.tsx` (props-driven, no `Route` coupling). Added two literal shim routes via dot-notation:
+
+- `app/routes/pt-br.index.tsx` → `createFileRoute("/pt-br/")` — pt-br locale home; canonical = `<siteUrl>/pt-br/`.
+- `app/routes/en.index.tsx` → `createFileRoute("/en/")` — en locale home; canonical = `<siteUrl>/` (default-locale form).
+
+Both shims share the loader (`getLocalePosts` from `{-$locale}/index.server.ts`) so server-side data behavior is identical to the optional-param path.
+
+Empirical verification after fresh `bun run build`:
+
+```
+GET /                 → 200 OK
+GET /pt-br            → 307 → /pt-br/
+GET /pt-br/           → 200 OK   ✓ (was 404)
+GET /en               → 307 → /en/
+GET /en/              → 200 OK   ✓ (was 404)
+GET /pt-br/about/     → 200 OK
+GET /about/           → 200 OK
+```
+
+All acceptance criteria 1–3 pass. Criterion 4 (e2e spec covering pt-br) and 5 (round-010 issue 001 criterion verification) tracked as follow-ups — the routing fix is the substantive remediation, the spec coverage is a separate concern.

@@ -1,8 +1,5 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
-import { useState } from "react";
-import { EmptyState } from "#/components/ui/empty-state";
-import { Pagination } from "#/components/ui/pagination";
-import { PostCard } from "#/components/ui/post-card";
+import { LocaleBlogPage } from "#/components/layout/locale-blog-page";
 import type { Post } from "#/db/schema";
 import {
 	DEFAULT_LOCALE,
@@ -13,24 +10,6 @@ import {
 	toBcp47,
 } from "#/lib/locale";
 import { getLocalePosts } from "./index.server";
-
-const copy = {
-	en: {
-		subtitle:
-			"Articles about web development, React, TypeScript, Bun and more.",
-		emptyTitle: "No articles found",
-		emptyDesc: "No published articles yet.",
-	},
-	"pt-br": {
-		subtitle:
-			"Artigos sobre desenvolvimento web, React, TypeScript, Bun e mais.",
-		emptyTitle: "Nenhum artigo encontrado",
-		emptyDesc: "Não há artigos publicados ainda.",
-	},
-} satisfies Record<
-	string,
-	{ subtitle: string; emptyTitle: string; emptyDesc: string }
->;
 
 export const Route = createFileRoute("/{-$locale}/")({
 	beforeLoad: async ({ params }) => {
@@ -80,54 +59,12 @@ export const Route = createFileRoute("/{-$locale}/")({
 	},
 	loader: ({ params }) =>
 		getLocalePosts({ data: params.locale ?? DEFAULT_LOCALE }),
-	component: LocaleBlogPage,
+	component: LocaleIndexPage,
 });
 
-const POSTS_PER_PAGE = 9;
-
-function LocaleBlogPage() {
+function LocaleIndexPage() {
 	const allPosts: Post[] = Route.useLoaderData() ?? [];
 	const { locale } = Route.useParams();
 	const lang = (locale ?? DEFAULT_LOCALE) as Locale;
-	const [currentPage, setCurrentPage] = useState(1);
-	const t = copy[lang as keyof typeof copy] ?? copy.en;
-
-	const totalPages = Math.max(1, Math.ceil(allPosts.length / POSTS_PER_PAGE));
-	const paginatedPosts = allPosts.slice(
-		(currentPage - 1) * POSTS_PER_PAGE,
-		currentPage * POSTS_PER_PAGE,
-	);
-
-	return (
-		<div className="px-5 py-12 lg:px-20">
-			<div className="mx-auto max-w-5xl">
-				<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">
-					Blog
-				</h1>
-				<p className="mt-3 text-foreground-secondary">{t.subtitle}</p>
-
-				{paginatedPosts.length === 0 ? (
-					<EmptyState title={t.emptyTitle} description={t.emptyDesc} />
-				) : (
-					<>
-						<div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-							{paginatedPosts.map((post) => (
-								<PostCard key={post.id} post={post} lang={lang} />
-							))}
-						</div>
-
-						{totalPages > 1 && (
-							<div className="mt-12">
-								<Pagination
-									currentPage={currentPage}
-									totalPages={totalPages}
-									onPageChange={setCurrentPage}
-								/>
-							</div>
-						)}
-					</>
-				)}
-			</div>
-		</div>
-	);
+	return <LocaleBlogPage locale={lang} posts={allPosts} />;
 }
