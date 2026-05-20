@@ -65,6 +65,11 @@ function startPgProxy(
 
 		let buf = Buffer.alloc(0);
 		let started = false;
+		// Per-connection pipeline buffer: accumulates messages until a pipeline-end
+		// marker (Sync/SimpleQuery/Flush) so they are dispatched atomically to PGLite.
+		// Without this, Parse from one connection can overwrite the unnamed prepared
+		// statement slot before another connection's Bind arrives (08P01 mismatch).
+		let pipelineBuf = Buffer.alloc(0);
 
 		socket.on("data", (chunk) => {
 			buf = Buffer.concat([buf, chunk]);
@@ -100,18 +105,30 @@ function startPgProxy(
 						socket.end();
 						return;
 					}
-					// Forward all other messages to PGLite
-					enqueue(() => pglite.execProtocolRaw(msg)).then(
-						(res) => {
-							if (!socket.destroyed) socket.write(Buffer.from(res));
-						},
-						(err) => {
-							console.error("[pg-proxy] execProtocolRaw rejected:", err);
-							// On error send ReadyForQuery to keep the connection alive
-							if (!socket.destroyed)
-								socket.write(Buffer.from([0x5a, 0x00, 0x00, 0x00, 0x05, 0x49]));
-						},
-					);
+					// Append message to the per-connection pipeline buffer.
+					// S=Sync(0x53), Q=SimpleQuery(0x51), H=Flush(0x48) are pipeline-end
+					// markers: flush the accumulated batch to PGLite atomically so that
+					// no other connection's messages can interleave within this pipeline.
+					pipelineBuf = Buffer.concat([pipelineBuf, msg]);
+					const isPipelineEnd =
+						msgType === 0x53 || msgType === 0x51 || msgType === 0x48;
+					if (isPipelineEnd) {
+						const batch = pipelineBuf;
+						pipelineBuf = Buffer.alloc(0);
+						enqueue(() => pglite.execProtocolRaw(batch)).then(
+							(res) => {
+								if (!socket.destroyed) socket.write(Buffer.from(res));
+							},
+							(err) => {
+								console.error("[pg-proxy] execProtocolRaw rejected:", err);
+								// On error send ReadyForQuery to keep the connection alive
+								if (!socket.destroyed)
+									socket.write(
+										Buffer.from([0x5a, 0x00, 0x00, 0x00, 0x05, 0x49]),
+									);
+							},
+						);
+					}
 				}
 			}
 		}

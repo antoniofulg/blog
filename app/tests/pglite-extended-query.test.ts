@@ -1,0 +1,152 @@
+import * as net from "node:net";
+import { afterAll, beforeAll, describe, expect, test } from "vitest";
+import { createTestDb, type TestDb } from "../../tests/e2e/db";
+
+// ---- wire protocol helpers ----
+
+function buildParse(query: string, paramOids: number[] = []): Buffer {
+	const stmtName = Buffer.from("\0"); // unnamed statement
+	const queryBuf = Buffer.from(`${query}\0`);
+	const numParams = Buffer.alloc(2);
+	numParams.writeInt16BE(paramOids.length, 0);
+	const oids = Buffer.alloc(paramOids.length * 4);
+	for (let i = 0; i < paramOids.length; i++)
+		oids.writeInt32BE(paramOids[i]!, i * 4);
+	const body = Buffer.concat([stmtName, queryBuf, numParams, oids]);
+	const msgLen = Buffer.alloc(4);
+	msgLen.writeInt32BE(4 + body.length, 0);
+	return Buffer.concat([Buffer.from([0x50]), msgLen, body]);
+}
+
+function buildBind(params: string[]): Buffer {
+	const portalName = Buffer.from("\0");
+	const stmtName = Buffer.from("\0");
+	const numFormatCodes = Buffer.alloc(2); // 0 = all text
+	const numParams = Buffer.alloc(2);
+	numParams.writeInt16BE(params.length, 0);
+	const paramBufs = params.flatMap((p) => {
+		const val = Buffer.from(p);
+		const len = Buffer.alloc(4);
+		len.writeInt32BE(val.length, 0);
+		return [len, val];
+	});
+	const numResultFormats = Buffer.alloc(2); // 0 = default
+	const body = Buffer.concat([
+		portalName,
+		stmtName,
+		numFormatCodes,
+		numParams,
+		...paramBufs,
+		numResultFormats,
+	]);
+	const msgLen = Buffer.alloc(4);
+	msgLen.writeInt32BE(4 + body.length, 0);
+	return Buffer.concat([Buffer.from([0x42]), msgLen, body]);
+}
+
+function buildExecute(): Buffer {
+	const portalName = Buffer.from("\0");
+	const maxRows = Buffer.alloc(4); // 0 = unlimited
+	const body = Buffer.concat([portalName, maxRows]);
+	const msgLen = Buffer.alloc(4);
+	msgLen.writeInt32BE(4 + body.length, 0);
+	return Buffer.concat([Buffer.from([0x45]), msgLen, body]);
+}
+
+const SYNC = Buffer.from([0x53, 0x00, 0x00, 0x00, 0x04]);
+
+async function pgConnect(port: number): Promise<net.Socket> {
+	const socket = new net.Socket();
+	await new Promise<void>((resolve, reject) => {
+		socket.connect(port, "127.0.0.1", resolve);
+		socket.once("error", reject);
+	});
+	const startup = Buffer.alloc(8);
+	startup.writeInt32BE(8, 0);
+	startup.writeInt32BE(196608, 4); // protocol v3.0
+	socket.write(startup);
+	// Wait for ReadyForQuery ('Z' = 0x5a, len field = 5)
+	await new Promise<void>((resolve) => {
+		let acc = Buffer.alloc(0);
+		const onData = (chunk: Buffer) => {
+			acc = Buffer.concat([acc, chunk]);
+			for (let i = 0; i <= acc.length - 6; i++) {
+				if (acc[i] === 0x5a && acc.readInt32BE(i + 1) === 5) {
+					socket.removeListener("data", onData);
+					resolve();
+					return;
+				}
+			}
+		};
+		socket.on("data", onData);
+	});
+	return socket;
+}
+
+async function readUntilReady(
+	socket: net.Socket,
+): Promise<{ hasError: boolean; raw: Buffer }> {
+	return new Promise((resolve) => {
+		let acc = Buffer.alloc(0);
+		const onData = (chunk: Buffer) => {
+			acc = Buffer.concat([acc, chunk]);
+			for (let i = 0; i <= acc.length - 6; i++) {
+				if (acc[i] === 0x5a && acc.readInt32BE(i + 1) === 5) {
+					socket.removeListener("data", onData);
+					const hasError = acc.includes(Buffer.from("08P01")); // bind-param mismatch SQLSTATE
+					resolve({ hasError, raw: acc });
+					return;
+				}
+			}
+		};
+		socket.on("data", onData);
+	});
+}
+
+// ---- tests ----
+
+describe("PGLite proxy: unnamed prepared statement isolation across connections", () => {
+	let testDb: TestDb;
+
+	beforeAll(async () => {
+		testDb = await createTestDb();
+	});
+
+	afterAll(async () => {
+		await testDb.close();
+	});
+
+	test("concurrent connections do not corrupt unnamed prepared statement state (08P01 regression)", async () => {
+		const port = Number(new URL(testDb.connectionString).port);
+		const sockA = await pgConnect(port);
+		const sockB = await pgConnect(port);
+
+		try {
+			// Connection A sends only Parse (no Sync yet) — message stays buffered.
+			sockA.write(buildParse("SELECT $1::text"));
+
+			// Connection B sends a full pipeline with a 2-param query.
+			// Without the fix, B's Parse overwrites the unnamed stmt slot; A's
+			// subsequent Bind (1 param) then fails with 08P01.
+			sockB.write(
+				Buffer.concat([
+					buildParse("SELECT $1::text || ' ' || $2::text"),
+					buildBind(["hello", "world"]),
+					buildExecute(),
+					SYNC,
+				]),
+			);
+			const bResult = await readUntilReady(sockB);
+			expect(bResult.hasError).toBe(false);
+
+			// Connection A flushes its buffered Parse + new Bind/Execute/Sync as
+			// one atomic batch — must not observe B's 2-param unnamed stmt.
+			sockA.write(Buffer.concat([buildBind(["test"]), buildExecute(), SYNC]));
+			const aResult = await readUntilReady(sockA);
+			expect(aResult.hasError).toBe(false);
+		} finally {
+			sockA.destroy();
+			sockB.destroy();
+		}
+	});
+});
