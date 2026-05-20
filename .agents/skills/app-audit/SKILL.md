@@ -93,6 +93,14 @@ bun run audit:fe
 # With Lighthouse enabled explicitly
 bun run audit:fe -- --lighthouse
 
+# Target a specific base URL (staging, custom port, etc.)
+bun run audit:fe -- --baseUrl=http://localhost:4173
+# Equivalent env-var form (useful in CI overrides)
+AUDIT_BASE_URL=http://localhost:4173 bun run audit:fe
+
+# Filter to specific routes (comma-separated; normalizes trailing slash / case)
+bun run audit:fe -- --routes=/,/about
+
 # Composite — runs content-audit then app-audit
 make audit
 
@@ -104,6 +112,17 @@ make app-audit
 # Slash command (agent conversation)
 /app-audit
 ```
+
+### CLI flags
+
+| Flag | Default | Description |
+|------|---------|-------------|
+| `--lighthouse` / `--no-lighthouse` | local: on, CI: off | Enable/disable Lighthouse probes |
+| `--trigger=<label>` | `manual` | Label written to SUMMARY.md row |
+| `--routes=<paths>` | all routes | Comma-separated route paths; normalizes trailing slash and case |
+| `--baseUrl=<url>` | `$AUDIT_BASE_URL` or `http://localhost:3000` | Override the base URL for all route inspections |
+
+`AUDIT_BASE_URL` env var is the env-based equivalent of `--baseUrl` and takes effect when the flag is not provided.
 
 The GH Action `.github/workflows/app-audit.yml` runs automatically on PRs
 touching `app/routes/**`, `app/components/**`, `app/lib/**`, or

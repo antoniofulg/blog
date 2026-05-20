@@ -166,4 +166,28 @@ describe(".agents/rules/cicd.md app-audit updates", () => {
 		const content = readFileSync(cicdPath, "utf8");
 		expect(content).toContain("pull_request.paths");
 	});
+
+	it("documents fork PR behavior", () => {
+		const content = readFileSync(cicdPath, "utf8");
+		expect(content).toContain("Fork PR behavior");
+	});
+});
+
+describe(".agents/rules/fe-audit.md configuration section", () => {
+	const rulePath = join(root, ".agents/rules/fe-audit.md");
+
+	it("documents --baseUrl flag", () => {
+		const content = readFileSync(rulePath, "utf8");
+		expect(content).toContain("--baseUrl");
+	});
+
+	it("documents AUDIT_BASE_URL env var", () => {
+		const content = readFileSync(rulePath, "utf8");
+		expect(content).toContain("AUDIT_BASE_URL");
+	});
+
+	it("documents Lighthouse orphaned-process risk", () => {
+		const content = readFileSync(rulePath, "utf8");
+		expect(content).toContain("orphan");
+	});
 });

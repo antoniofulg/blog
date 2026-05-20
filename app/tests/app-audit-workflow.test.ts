@@ -99,6 +99,12 @@ describe("unit: .github/workflows/app-audit.yml", () => {
 		expect(yml).toContain("github.event_name == 'pull_request'");
 	});
 
+	it("PR comment step guarded against fork PRs", () => {
+		expect(yml).toContain(
+			"github.event.pull_request.head.repo.full_name == github.repository",
+		);
+	});
+
 	it("delta suppress output gates PR comment step", () => {
 		expect(yml).toContain("suppress");
 	});

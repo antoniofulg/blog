@@ -152,6 +152,10 @@ No new GitHub Secrets. App-audit reuses Phase 1 E2E secrets if admin routes are 
 - PR comment posted via `peter-evans/create-or-update-comment@v4` using `body-includes: "<!-- audit-fingerprint:app:"` — delta-suppressed when blocker + major counts unchanged from previous comment on same PR.
 - Exit code 1 from `bun run audit:fe` causes the audit step to fail; workflow continues to post comment and upload artifact (`set +e` before the command).
 
+### Fork PR behavior
+
+The workflow uses `pull_request` (not `pull_request_target`), so fork PRs run **without secrets** — the admin fixture auth walk fails at the seed step, and only public-route findings are collected. The PR comment step is guarded by `github.event.pull_request.head.repo.full_name == github.repository`, so comments are only posted for PRs from branches within this repository. Artifact upload and the audit run itself are unaffected on fork PRs.
+
 ## What agents must not do
 
 - Never push directly to `main` for feature work — always via PR

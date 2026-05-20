@@ -18,6 +18,13 @@ export type {
 
 const AUTH_STATES = ["anon", "admin"] as const;
 
+export function normalizeRoutePath(p: string): string {
+	let s = p.trim();
+	if (!s.startsWith("/")) s = `/${s}`;
+	if (s.length > 1 && s.endsWith("/")) s = s.slice(0, -1);
+	return s.toLowerCase();
+}
+
 function buildLocalePath(path: string, locale: Locale): string {
 	if (locale === "en") return path;
 	return path === "/" ? "/pt-br/" : `/pt-br${path}`;
@@ -42,13 +49,29 @@ export async function runAppAudit(opts: {
 		opts.baseUrl ?? process.env.AUDIT_BASE_URL ?? "http://localhost:3000";
 
 	const allRoutes = await getRouteInventory();
-	const routeFilter = opts.routes;
-	const routes =
-		routeFilter && routeFilter.length > 0
-			? allRoutes.filter((r) => routeFilter.includes(r.path))
-			: allRoutes;
 	const findings: import("#/lib/app-audit/browser-sweep.server").AppAuditFinding[] =
 		[];
+
+	const routeFilter = opts.routes;
+	let routes: RouteEntry[];
+
+	if (routeFilter && routeFilter.length > 0) {
+		const normalizedFilter = routeFilter.map(normalizeRoutePath);
+		routes = allRoutes.filter((r) =>
+			normalizedFilter.includes(normalizeRoutePath(r.path)),
+		);
+		if (routes.length === 0) {
+			findings.push({
+				category: "sweep-error",
+				severity: "major",
+				filePath: "cli",
+				message: `No routes matched filter: ${routeFilter.join(", ")}`,
+			});
+			return findings;
+		}
+	} else {
+		routes = allRoutes;
+	}
 
 	const adminStorageState = await getAdminStorageState();
 	const browser = await chromium.launch({ headless: true });

@@ -191,4 +191,35 @@ describe("analyzeA11y", () => {
 		const page = createMockPage();
 		await expect(analyzeA11y(page)).resolves.toHaveLength(1);
 	});
+
+	it("page.url() throws (page closed) AND analyze() throws → sweep-error with filePath 'unknown'", async () => {
+		axeError = new Error("Target closed");
+		const closedPage = {
+			url: vi.fn(() => {
+				throw new Error("Target closed");
+			}),
+		} as unknown as Page;
+		const findings = await analyzeA11y(closedPage);
+		expect(findings).toHaveLength(1);
+		expect(findings[0]).toMatchObject({
+			category: "sweep-error",
+			severity: "major",
+			filePath: "unknown",
+		});
+	});
+
+	it("page.url() throws before analyze succeeds → violations use filePath 'unknown'", async () => {
+		axeError = null;
+		axeResults = {
+			violations: [makeViolation("image-alt", ["wcag2a"])],
+		};
+		const closedPage = {
+			url: vi.fn(() => {
+				throw new Error("Target closed");
+			}),
+		} as unknown as Page;
+		const findings = await analyzeA11y(closedPage);
+		expect(findings).toHaveLength(1);
+		expect(findings[0].filePath).toBe("unknown");
+	});
 });

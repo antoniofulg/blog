@@ -147,7 +147,10 @@ jobs:
             core.setOutput('suppress', suppress.toString());
 
       - name: Post or update PR comment
-        if: github.event_name == 'pull_request' && steps.delta.outputs.suppress != 'true'
+        if: |
+          github.event_name == 'pull_request' &&
+          github.event.pull_request.head.repo.full_name == github.repository &&
+          steps.delta.outputs.suppress != 'true'
         uses: peter-evans/create-or-update-comment@v4
         with:
           issue-number: ${{ github.event.pull_request.number }}

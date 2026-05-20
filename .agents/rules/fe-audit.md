@@ -14,6 +14,17 @@ a content-layer audit — for MDX source validation, use `content-audit` instead
 > Vitest + jest-axe. `app-audit`'s `a11y-violation` probe is route-level via direct
 > `AxeBuilder` calls. Both can coexist without conflict.
 
+## Configuration
+
+| CLI flag | Env var equivalent | Default | Description |
+|----------|--------------------|---------|-------------|
+| `--lighthouse` / `--no-lighthouse` | — | local: on, CI: off | Enable/disable Lighthouse probes |
+| `--trigger=<label>` | — | `manual` | Label written to SUMMARY.md row |
+| `--routes=<paths>` | — | all routes | Comma-separated route paths; normalizes trailing slash and case |
+| `--baseUrl=<url>` | `AUDIT_BASE_URL` | `http://localhost:3000` | Override base URL for all route inspections |
+
+`AUDIT_BASE_URL` is the environment-variable form of `--baseUrl`. When the flag is not provided, the orchestrator falls back to `AUDIT_BASE_URL`, then to `http://localhost:3000`. The GH Action workflow sets `AUDIT_BASE_URL=http://localhost:4173` to target the Vite preview server.
+
 ## Output Location
 
 | Artifact | Path | Committed |
@@ -107,6 +118,15 @@ failure) that is causing the probe to time out or crash.
   If Playwright Chromium version predates lhci's minimum supported version after a
   Playwright upgrade, fall back to `@lhci/cli`'s own Chrome download by removing
   `chromePath` from the lhci config in `app/lib/app-audit/lighthouse.server.ts`.
+- **Timeout orphan risk**: `lighthouse.server.ts` uses `Promise.race` to enforce a 30 s
+  timeout. On timeout, the rejected promise returns control to the caller, but
+  `@lhci/cli`'s `LighthouseRunner` does not expose a cancellation API — the spawned
+  Chromium child process continues running until the Node process exits. In a short-lived
+  `bun run audit:fe` invocation this is harmless (the child is reaped when the process
+  exits). In a long-lived orchestrator that loops through many audits (CI matrix, cron,
+  repeated local runs), multiple timeout events can accumulate zombie Chromium processes
+  and exhaust file descriptors or RAM. Keep each audit invocation as a separate process
+  rather than running the orchestrator in a long-lived loop.
 
 ## Concurrent Run Safety
 

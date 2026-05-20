@@ -16,6 +16,7 @@ vi.mock("#/lib/app-audit/reporter.server", () => ({
 }));
 
 import {
+	parseBaseUrl,
 	parseLighthouse,
 	parseRoutes,
 	parseTrigger,
@@ -342,6 +343,40 @@ describe("runAppAuditCli — trigger forwarding", () => {
 	});
 });
 
+// ─── parseBaseUrl (issue 005) ──────────────────────────────────────────────
+
+describe("parseBaseUrl", () => {
+	it("extracts --baseUrl=http://localhost:4173", () => {
+		expect(parseBaseUrl(["--baseUrl=http://localhost:4173"])).toBe(
+			"http://localhost:4173",
+		);
+	});
+
+	it("returns undefined when flag absent", () => {
+		expect(parseBaseUrl([])).toBeUndefined();
+	});
+
+	it("returns undefined for unrelated flags", () => {
+		expect(parseBaseUrl(["--trigger=manual", "--lighthouse"])).toBeUndefined();
+	});
+
+	it("preserves equals sign in URL value: --baseUrl=http://host?debug=1", () => {
+		expect(parseBaseUrl(["--baseUrl=http://host:3000?debug=1"])).toBe(
+			"http://host:3000?debug=1",
+		);
+	});
+
+	it("extracts from multi-arg list", () => {
+		expect(
+			parseBaseUrl([
+				"--lighthouse",
+				"--baseUrl=http://staging:8080",
+				"--trigger=ci",
+			]),
+		).toBe("http://staging:8080");
+	});
+});
+
 // ─── runAppAuditCli — routes forwarding (issue 001) ───────────────────────
 
 describe("runAppAuditCli — routes forwarding", () => {
@@ -372,6 +407,33 @@ describe("runAppAuditCli — routes forwarding", () => {
 		await runAppAuditCli(["--routes="]);
 		expect(mocks.runAppAudit).toHaveBeenCalledWith(
 			expect.objectContaining({ routes: undefined }),
+		);
+	});
+});
+
+// ─── runAppAuditCli — baseUrl forwarding (issue 005) ──────────────────────
+
+describe("runAppAuditCli — baseUrl forwarding", () => {
+	beforeEach(() => {
+		mocks.runAppAudit.mockResolvedValue([]);
+		mocks.writeReport.mockResolvedValue(undefined);
+	});
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("passes baseUrl when --baseUrl flag present", async () => {
+		await runAppAuditCli(["--baseUrl=http://localhost:4173"]);
+		expect(mocks.runAppAudit).toHaveBeenCalledWith(
+			expect.objectContaining({ baseUrl: "http://localhost:4173" }),
+		);
+	});
+
+	it("passes baseUrl: undefined when flag absent", async () => {
+		await runAppAuditCli([]);
+		expect(mocks.runAppAudit).toHaveBeenCalledWith(
+			expect.objectContaining({ baseUrl: undefined }),
 		);
 	});
 });

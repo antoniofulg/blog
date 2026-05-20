@@ -1,4 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { normalizeRoutePath } from "#/lib/app-audit/checks.server";
 import type { RouteEntry } from "#/lib/site-model.server";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
@@ -256,5 +257,84 @@ describe("runAppAudit orchestrator", () => {
 			routes: undefined,
 		});
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(8);
+	});
+
+	it("routes filter: trailing slash normalized → matches inventory path without trailing slash", async () => {
+		// inventory has /about; user passes /about/
+		await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+			routes: ["/about/"],
+		});
+		// 1 route × 2 locales × 2 auth-states = 4
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(4);
+	});
+
+	it("routes filter: missing leading slash normalized → matches inventory path", async () => {
+		// inventory has /about; user passes about
+		await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+			routes: ["about"],
+		});
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(4);
+	});
+
+	it("routes filter: case mismatch normalized → matches inventory path", async () => {
+		// inventory has /about; user passes /About
+		await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+			routes: ["/About"],
+		});
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(4);
+	});
+
+	it("routes filter: no match → sweep-error finding returned, no inspections run", async () => {
+		const findings = await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+			routes: ["/nonexistent"],
+		});
+		expect(probeMocks.sweepRoute).not.toHaveBeenCalled();
+		expect(findings).toHaveLength(1);
+		expect(findings[0]).toMatchObject({
+			category: "sweep-error",
+			severity: "major",
+			filePath: "cli",
+			message: expect.stringContaining("/nonexistent"),
+		});
+	});
+});
+
+// ─── normalizeRoutePath unit tests (issue 001) ───────────────────────────────
+
+describe("normalizeRoutePath", () => {
+	it("adds leading slash when missing", () => {
+		expect(normalizeRoutePath("about")).toBe("/about");
+	});
+
+	it("removes trailing slash when path length > 1", () => {
+		expect(normalizeRoutePath("/about/")).toBe("/about");
+	});
+
+	it("keeps root / unchanged", () => {
+		expect(normalizeRoutePath("/")).toBe("/");
+	});
+
+	it("lowercases the path", () => {
+		expect(normalizeRoutePath("/About")).toBe("/about");
+	});
+
+	it("trims whitespace", () => {
+		expect(normalizeRoutePath("  /about  ")).toBe("/about");
+	});
+
+	it("handles missing slash + trailing slash together", () => {
+		expect(normalizeRoutePath("about/")).toBe("/about");
+	});
+
+	it("root with trailing slash → /", () => {
+		expect(normalizeRoutePath("//")).toBe("/");
 	});
 });
