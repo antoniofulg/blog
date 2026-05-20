@@ -34,34 +34,54 @@ async function nitroBundleExists(): Promise<boolean> {
 }
 
 function spawnPreview(): ChildProcess {
-	return spawn("bun", ["run", NITRO_BUNDLE], {
+	const child = spawn("bun", ["run", NITRO_BUNDLE], {
 		env: { ...process.env, PORT },
 		stdio: ["ignore", "inherit", "inherit"],
 	});
+	child.on("error", (err) => {
+		process.stderr.write(
+			`[audit-fe] failed to spawn preview server: ${err.message}\n`,
+		);
+	});
+	return child;
 }
 
 async function waitForReady(child: ChildProcess): Promise<void> {
-	const deadline = Date.now() + READY_TIMEOUT_MS;
-	while (Date.now() < deadline) {
-		if (child.exitCode !== null) {
-			throw new Error(
-				`preview server exited before becoming ready (code=${child.exitCode})`,
-			);
+	let spawnErr: Error | undefined;
+	const onError = (err: Error) => {
+		spawnErr = new Error(
+			`[audit-fe] failed to spawn preview server: ${err.message}`,
+		);
+	};
+	child.once("error", onError);
+
+	try {
+		const deadline = Date.now() + READY_TIMEOUT_MS;
+		while (Date.now() < deadline) {
+			if (spawnErr) throw spawnErr;
+			if (child.exitCode !== null) {
+				throw new Error(
+					`preview server exited before becoming ready (code=${child.exitCode})`,
+				);
+			}
+			try {
+				// Any HTTP response (200, 302, 401) proves the server bound the port
+				// and is processing requests — that's all we need for the preflight
+				// fetch in runAppAudit to succeed.
+				await fetch(BASE_URL, { signal: AbortSignal.timeout(2000) });
+				return;
+			} catch {
+				// not ready yet — retry until deadline
+			}
+			await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
 		}
-		try {
-			// Any HTTP response (200, 302, 401) proves the server bound the port
-			// and is processing requests — that's all we need for the preflight
-			// fetch in runAppAudit to succeed.
-			await fetch(BASE_URL, { signal: AbortSignal.timeout(2000) });
-			return;
-		} catch {
-			// not ready yet — retry until deadline
-		}
-		await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
+		if (spawnErr) throw spawnErr;
+		throw new Error(
+			`preview server did not become ready on ${BASE_URL} within ${READY_TIMEOUT_MS}ms`,
+		);
+	} finally {
+		child.removeListener("error", onError);
 	}
-	throw new Error(
-		`preview server did not become ready on ${BASE_URL} within ${READY_TIMEOUT_MS}ms`,
-	);
 }
 
 async function reap(child: ChildProcess): Promise<void> {

@@ -40,6 +40,25 @@ function buildStartupResponse(): Buffer {
 	]);
 }
 
+function buildErrorResponse(err: Error): Buffer {
+	const fields: Buffer[] = [];
+	const push = (code: string, value: string) => {
+		fields.push(Buffer.from([code.charCodeAt(0)]));
+		fields.push(Buffer.from(value, "utf-8"));
+		fields.push(Buffer.from([0x00]));
+	};
+	push("S", "ERROR");
+	push("V", "ERROR");
+	push("C", "XX000");
+	push("M", err.message || "PGLite execProtocolRaw rejected");
+	fields.push(Buffer.from([0x00])); // terminator
+	const body = Buffer.concat(fields);
+	const header = Buffer.alloc(5);
+	header[0] = 0x45; // 'E'
+	header.writeInt32BE(body.length + 4, 1);
+	return Buffer.concat([header, body]);
+}
+
 // Starts a TCP server that proxies PostgreSQL wire protocol messages to PGLite.
 // Handles SSLRequest denial and startup handshake synthesis, then pipes all
 // subsequent messages through PGlite.execProtocolRaw for true wire-protocol fidelity.
@@ -121,11 +140,12 @@ function startPgProxy(
 							},
 							(err) => {
 								console.error("[pg-proxy] execProtocolRaw rejected:", err);
-								// On error send ReadyForQuery to keep the connection alive
-								if (!socket.destroyed)
+								if (!socket.destroyed) {
+									socket.write(buildErrorResponse(err as Error));
 									socket.write(
 										Buffer.from([0x5a, 0x00, 0x00, 0x00, 0x05, 0x49]),
 									);
+								}
 							},
 						);
 					}

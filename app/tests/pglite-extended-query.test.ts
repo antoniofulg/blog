@@ -85,21 +85,50 @@ async function pgConnect(port: number): Promise<net.Socket> {
 
 async function readUntilReady(
 	socket: net.Socket,
+	timeoutMs = 5_000,
 ): Promise<{ hasError: boolean; raw: Buffer }> {
-	return new Promise((resolve) => {
+	return new Promise((resolve, reject) => {
 		let acc = Buffer.alloc(0);
+		const timer = setTimeout(() => {
+			cleanup();
+			reject(
+				new Error(
+					`[readUntilReady] no ReadyForQuery within ${timeoutMs}ms; accumulated ${acc.length} bytes`,
+				),
+			);
+		}, timeoutMs);
+		const cleanup = () => {
+			clearTimeout(timer);
+			socket.removeListener("data", onData);
+			socket.removeListener("close", onClose);
+			socket.removeListener("error", onError);
+		};
 		const onData = (chunk: Buffer) => {
 			acc = Buffer.concat([acc, chunk]);
 			for (let i = 0; i <= acc.length - 6; i++) {
 				if (acc[i] === 0x5a && acc.readInt32BE(i + 1) === 5) {
-					socket.removeListener("data", onData);
+					cleanup();
 					const hasError = acc.includes(Buffer.from("08P01")); // bind-param mismatch SQLSTATE
 					resolve({ hasError, raw: acc });
 					return;
 				}
 			}
 		};
+		const onClose = () => {
+			cleanup();
+			reject(
+				new Error(
+					`[readUntilReady] socket closed before ReadyForQuery; accumulated ${acc.length} bytes`,
+				),
+			);
+		};
+		const onError = (err: Error) => {
+			cleanup();
+			reject(new Error(`[readUntilReady] socket error: ${err.message}`));
+		};
 		socket.on("data", onData);
+		socket.on("close", onClose);
+		socket.on("error", onError);
 	});
 }
 
@@ -147,6 +176,32 @@ describe("PGLite proxy: unnamed prepared statement isolation across connections"
 		} finally {
 			sockA.destroy();
 			sockB.destroy();
+		}
+	});
+
+	test("error response includes ErrorResponse (0x45) before ReadyForQuery (0x5a) on Bind param mismatch", async () => {
+		const port = Number(new URL(testDb.connectionString).port);
+		const sock = await pgConnect(port);
+		try {
+			// Parse 1-param query, then Bind with 2 params → 08P01 mismatch.
+			// Verifies that an ErrorResponse precedes ReadyForQuery in the wire response.
+			sock.write(
+				Buffer.concat([
+					buildParse("SELECT $1::text"),
+					buildBind(["hello", "world"]), // 2 params for 1-param query
+					buildExecute(),
+					SYNC,
+				]),
+			);
+			const result = await readUntilReady(sock);
+			expect(result.hasError).toBe(true);
+			const errIdx = result.raw.indexOf(0x45); // 'E' = ErrorResponse
+			const rfqIdx = result.raw.lastIndexOf(0x5a); // 'Z' = ReadyForQuery
+			expect(errIdx).toBeGreaterThan(-1);
+			expect(rfqIdx).toBeGreaterThan(-1);
+			expect(errIdx).toBeLessThan(rfqIdx);
+		} finally {
+			sock.destroy();
 		}
 	});
 });
