@@ -3,6 +3,7 @@ import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+	buildLocaleHead,
 	DEFAULT_LOCALE,
 	detectLocaleFromRequest,
 	LocaleProvider,
@@ -154,5 +155,66 @@ describe("unit: LocaleProvider + useLocale", () => {
 		const { result } = renderHook(() => useLocale(), { wrapper });
 		expect(result.current).toHaveProperty("locale");
 		expect(typeof result.current.setLocale).toBe("function");
+	});
+});
+
+// ─── unit: buildLocaleHead ───────────────────────────────────────────────────
+
+describe("unit: buildLocaleHead", () => {
+	it("en → canonical '/'", () => {
+		const { links } = buildLocaleHead("en");
+		const canonical = links.find((l) => l.rel === "canonical");
+		expect(canonical?.href).toBe("/");
+	});
+
+	it("pt-br → canonical '/pt-br/'", () => {
+		const { links } = buildLocaleHead("pt-br");
+		const canonical = links.find((l) => l.rel === "canonical");
+		expect(canonical?.href).toBe("/pt-br/");
+	});
+
+	it("en → og:locale 'en_US'", () => {
+		const { meta } = buildLocaleHead("en");
+		const ogLocale = meta.find(
+			(m) => "property" in m && m.property === "og:locale",
+		);
+		expect(ogLocale && "content" in ogLocale ? ogLocale.content : null).toBe(
+			"en_US",
+		);
+	});
+
+	it("pt-br → og:locale 'pt_BR'", () => {
+		const { meta } = buildLocaleHead("pt-br");
+		const ogLocale = meta.find(
+			(m) => "property" in m && m.property === "og:locale",
+		);
+		expect(ogLocale && "content" in ogLocale ? ogLocale.content : null).toBe(
+			"pt_BR",
+		);
+	});
+
+	it("en → description matches en copy", () => {
+		const { meta } = buildLocaleHead("en");
+		const desc = meta.find((m) => "name" in m && m.name === "description");
+		expect(desc && "content" in desc ? desc.content : null).toContain(
+			"Articles about",
+		);
+	});
+
+	it("pt-br → description matches pt-br copy", () => {
+		const { meta } = buildLocaleHead("pt-br");
+		const desc = meta.find((m) => "name" in m && m.name === "description");
+		expect(desc && "content" in desc ? desc.content : null).toContain(
+			"Artigos sobre",
+		);
+	});
+
+	it("alternate hreflang links present for all locales", () => {
+		const { links } = buildLocaleHead("en");
+		const alternates = links.filter((l) => l.rel === "alternate");
+		expect(alternates).toHaveLength(2);
+		const langs = alternates.map((l) => ("hrefLang" in l ? l.hrefLang : null));
+		expect(langs).toContain("en");
+		expect(langs).toContain("pt-BR");
 	});
 });

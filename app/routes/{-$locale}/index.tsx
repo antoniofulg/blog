@@ -2,12 +2,10 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { LocaleBlogPage } from "#/components/layout/locale-blog-page";
 import type { Post } from "#/db/schema";
 import {
+	buildLocaleHead,
 	DEFAULT_LOCALE,
 	detectLocaleFromRequest,
-	LOCALES,
 	type Locale,
-	localeHref,
-	toBcp47,
 } from "#/lib/locale";
 import { getLocalePosts } from "./index.server";
 
@@ -30,33 +28,8 @@ export const Route = createFileRoute("/{-$locale}/")({
 			});
 		}
 	},
-	head: ({ params }) => {
-		const locale = params.locale ?? DEFAULT_LOCALE;
-		const isPtBr = locale === "pt-br";
-		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
-		const pathname = isPtBr ? "/pt-br/" : "/";
-		const canonicalUrl = `${siteUrl}${pathname}`;
-		const description = isPtBr
-			? "Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional."
-			: "Articles about web development, React, TypeScript, Bun and international career.";
-		return {
-			meta: [
-				{ name: "description", content: description },
-				{ property: "og:title", content: "Antonio Fulgencio Blog" },
-				{ property: "og:description", content: description },
-				{ property: "og:url", content: canonicalUrl },
-				{ property: "og:locale", content: isPtBr ? "pt_BR" : "en_US" },
-			],
-			links: [
-				{ rel: "canonical", href: canonicalUrl },
-				...LOCALES.map((l) => ({
-					rel: "alternate",
-					hrefLang: toBcp47(l),
-					href: localeHref(l),
-				})),
-			],
-		};
-	},
+	head: ({ params }) =>
+		buildLocaleHead((params.locale ?? DEFAULT_LOCALE) as Locale),
 	loader: ({ params }) =>
 		getLocalePosts({ data: params.locale ?? DEFAULT_LOCALE }),
 	component: LocaleIndexPage,

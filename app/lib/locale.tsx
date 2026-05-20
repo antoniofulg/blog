@@ -77,6 +77,45 @@ function preferredLocale(acceptLang: string): Locale {
 	return DEFAULT_LOCALE;
 }
 
+const LOCALE_DESCRIPTIONS: Record<Locale, string> = {
+	en: "Articles about web development, React, TypeScript, Bun and international career.",
+	"pt-br":
+		"Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional.",
+};
+
+const LOCALE_PATHNAME: Record<Locale, string> = {
+	en: "/",
+	"pt-br": "/pt-br/",
+};
+
+const LOCALE_OG_LOCALE: Record<Locale, string> = {
+	en: "en_US",
+	"pt-br": "pt_BR",
+};
+
+export function buildLocaleHead(locale: Locale) {
+	const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+	const canonicalUrl = `${siteUrl}${LOCALE_PATHNAME[locale]}`;
+	const description = LOCALE_DESCRIPTIONS[locale];
+	return {
+		meta: [
+			{ name: "description", content: description },
+			{ property: "og:title", content: "Antonio Fulgencio Blog" },
+			{ property: "og:description", content: description },
+			{ property: "og:url", content: canonicalUrl },
+			{ property: "og:locale", content: LOCALE_OG_LOCALE[locale] },
+		],
+		links: [
+			{ rel: "canonical", href: canonicalUrl },
+			...LOCALES.map((l) => ({
+				rel: "alternate",
+				hrefLang: toBcp47(l),
+				href: localeHref(l),
+			})),
+		],
+	};
+}
+
 export function detectLocaleFromRequest(request: Request): Locale {
 	const cookieHeader = request.headers.get("Cookie") ?? "";
 	const match = cookieHeader.match(/(?:^|;\s*)locale=([^;]+)/);

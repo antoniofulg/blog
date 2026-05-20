@@ -36,3 +36,11 @@
 | 2026-05-20 | app     | test-rebuild     | 2       | 4     | 0     | console-error: Console error: Failed to load resource:  |
 | 2026-05-20 | test-int-clean   | 0       | 0     | 0     | no findings                                  |
 | 2026-05-20 | test-int-blocker | 1       | 0     | 0     | frontmatter-invalid: Missing required frontmatter field: titl |
+| 2026-05-20 | manual           | 0       | 0     | 0     | no findings                                  |
+| 2026-05-20 | app     | manual           | 0       | 0     | 10    | perf-budget-breach: Performance score 72 below threshold (80 |
+| 2026-05-20 | test-int-clean   | 0       | 0     | 0     | no findings                                  |
+| 2026-05-20 | test-int-blocker | 1       | 0     | 0     | frontmatter-invalid: Missing required frontmatter field: titl |
+| 2026-05-20 | test-int-clean   | 0       | 0     | 0     | no findings                                  |
+| 2026-05-20 | test-int-blocker | 1       | 0     | 0     | frontmatter-invalid: Missing required frontmatter field: titl |
+| 2026-05-20 | test-int-clean   | 0       | 0     | 0     | no findings                                  |
+| 2026-05-20 | test-int-blocker | 1       | 0     | 0     | frontmatter-invalid: Missing required frontmatter field: titl |

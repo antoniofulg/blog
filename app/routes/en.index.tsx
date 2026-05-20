@@ -1,7 +1,7 @@
 import { createFileRoute } from "@tanstack/react-router";
 import { LocaleBlogPage } from "#/components/layout/locale-blog-page";
 import type { Post } from "#/db/schema";
-import { LOCALES, localeHref, toBcp47 } from "#/lib/locale";
+import { buildLocaleHead } from "#/lib/locale";
 import { getLocalePosts } from "./{-$locale}/index.server";
 
 // Literal `/en/` shim — companion to `pt-br.index.tsx`. The optional-locale
@@ -13,30 +13,7 @@ import { getLocalePosts } from "./{-$locale}/index.server";
 
 export const Route = createFileRoute("/en/")({
 	loader: () => getLocalePosts({ data: "en" }),
-	head: () => {
-		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
-		// Canonical points to the locale-free root for the default locale.
-		const canonicalUrl = `${siteUrl}/`;
-		const description =
-			"Articles about web development, React, TypeScript, Bun and international career.";
-		return {
-			meta: [
-				{ name: "description", content: description },
-				{ property: "og:title", content: "Antonio Fulgencio Blog" },
-				{ property: "og:description", content: description },
-				{ property: "og:url", content: canonicalUrl },
-				{ property: "og:locale", content: "en_US" },
-			],
-			links: [
-				{ rel: "canonical", href: canonicalUrl },
-				...LOCALES.map((l) => ({
-					rel: "alternate",
-					hrefLang: toBcp47(l),
-					href: localeHref(l),
-				})),
-			],
-		};
-	},
+	head: () => buildLocaleHead("en"),
 	component: EnIndexPage,
 });
 

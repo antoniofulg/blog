@@ -91,6 +91,20 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		expectedStatus: 200,
 		intent: "login",
 	},
+	"pt-br.index.tsx": {
+		path: "/pt-br/",
+		locale: "pt-br",
+		auth: "public",
+		expectedStatus: 200,
+		intent: "pt-br locale root shim",
+	},
+	"en.index.tsx": {
+		path: "/en/",
+		locale: "en",
+		auth: "public",
+		expectedStatus: 200,
+		intent: "en locale root shim",
+	},
 };
 
 async function getLatestPublishedSlug(): Promise<string | null> {

@@ -1,4 +1,4 @@
-import { test, expect } from "@playwright/test";
+import { expect, test } from "@playwright/test";
 
 // Anonymous session — no admin storageState
 test.use({ storageState: { cookies: [], origins: [] } });
@@ -99,6 +99,43 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 			expect(
 				cookies.filter((c) => c.name === "better-auth.session_token"),
 			).toHaveLength(0);
+		},
+	);
+});
+
+test.describe("locale-index routes", { tag: ["@public", "@smoke"] }, () => {
+	for (const { route, expectedLang, expectedCanonical } of [
+		{ route: "/pt-br/", expectedLang: "pt-BR", expectedCanonical: "/pt-br/" },
+		{ route: "/en/", expectedLang: "en", expectedCanonical: "/" },
+		{ route: "/", expectedLang: "en", expectedCanonical: "/" },
+	]) {
+		test(
+			`${route} renders 200, sets html[lang], and canonical contains expected path`,
+			async ({ page }) => {
+				const response = await page.goto(route);
+				await page.waitForLoadState("load");
+
+				expect(response?.status()).toBe(200);
+				await expect(page.locator("html")).toHaveAttribute(
+					"lang",
+					expectedLang,
+				);
+				const canonical = await page
+					.locator('link[rel="canonical"]')
+					.last()
+					.getAttribute("href");
+				expect(canonical).toContain(expectedCanonical);
+			},
+		);
+	}
+
+	test(
+		"/pt-br (no trailing slash) redirects to /pt-br/ with 200",
+		async ({ page }) => {
+			await page.goto("/pt-br");
+			await page.waitForLoadState("load");
+			expect(page.url()).toMatch(/\/pt-br\/$/);
+			expect(await page.evaluate(() => document.readyState)).toBe("complete");
 		},
 	);
 });
