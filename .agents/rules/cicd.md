@@ -124,6 +124,34 @@ git push origin hotfix/description
 
 CD fires within 5 minutes. `--no-verify` bypasses the local commit-msg hook — the bypass is visible in CI commitlint on the PR. Document retroactively with a compozy task.
 
+## App Audit workflow (app-audit.yml)
+
+Informational-only gate — does NOT block merges.
+
+Triggers:
+- `workflow_dispatch` — manual run; exposes `lighthouse` input (type: choice, default `"false"`, options `["false", "true"]`)
+- `pull_request.paths` — fires when any of these change: `app/routes/**`, `app/components/**`, `app/lib/**`, `app/db/schema.ts`
+
+### lighthouse input
+
+The `lighthouse` input controls whether `@lhci/cli` runs Lighthouse probes:
+- Default `"false"` — skips Lighthouse categories (`seo-score-drop`, `perf-budget-breach`, `best-practices-fail`); avoids ±10-point score variance on shared runners
+- `"true"` — enables all 12 categories including Lighthouse; use for explicit perf/SEO investigation
+
+Workflow step: `if: ${{ inputs.lighthouse == 'true' }}` (literal string equality).
+
+### Secrets required
+
+No new GitHub Secrets. App-audit reuses Phase 1 E2E secrets if admin routes are walked:
+- `E2E_ADMIN_EMAIL` — already required for e2e-coverage Playwright suite
+- `E2E_ADMIN_PASSWORD` — already required for e2e-coverage Playwright suite
+
+### Gate behavior
+
+- Workflow uploads `docs/_reports/app-audit-*.md` as a GHA artifact (7-day retention) regardless of pass/fail.
+- PR comment posted via `peter-evans/create-or-update-comment@v4` using `body-includes: "<!-- audit-fingerprint:app:"` — delta-suppressed when blocker + major counts unchanged from previous comment on same PR.
+- Exit code 1 from `bun run audit:fe` causes the audit step to fail; workflow continues to post comment and upload artifact (`set +e` before the command).
+
 ## What agents must not do
 
 - Never push directly to `main` for feature work — always via PR

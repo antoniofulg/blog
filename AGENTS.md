@@ -51,6 +51,7 @@ docs/audits/          — committed audit history (SUMMARY.md)
 | CI/CD | find-rules (see .agents/rules for cicd.md and git-workflow.md) |
 | E2E test write/run | e2e-coverage |
 | App content audit | content-audit (filesystem-only; no browser) |
+| App FE runtime audit | app-audit (fuzzer; browser sweep + a11y + Lighthouse) |
 
 ## Rules
 - Auth: .agents/rules/auth.md
@@ -62,3 +63,4 @@ docs/audits/          — committed audit history (SUMMARY.md)
 - Content authoring: CONTENT.md
 - Testing: .agents/rules/testing.md
 - Content audit: .agents/rules/audit.md
+- Audit (FE runtime): .agents/rules/fe-audit.md
