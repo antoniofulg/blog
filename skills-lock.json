@@ -156,6 +156,12 @@
       "skillPath": "skills/humanizer/SKILL.md",
       "computedHash": "34a38e6acc60d4529612d41ffe740bca0060d3c5e89e2a0d24ae795f67157fbb"
     },
+    "impeccable": {
+      "source": "pbakaus/impeccable",
+      "sourceType": "github",
+      "skillPath": "skill/SKILL.md",
+      "computedHash": "34e59a34b9705187e87039faa5d9585aebe0056ef657f761b905afef276a3362"
+    },
     "no-workarounds": {
       "source": "pedronauck/skills",
       "sourceType": "github",
