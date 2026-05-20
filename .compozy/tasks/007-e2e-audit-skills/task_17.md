@@ -1,10 +1,10 @@
 ---
-status: done
+status: completed
 title: App-audit browser sweep + a11y adapter + Lighthouse adapter
 type: backend
 complexity: high
 dependencies:
-  - task_16
+    - task_16
 feature: audit/app-audit-adapters
 ---
 

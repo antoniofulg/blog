@@ -1,10 +1,10 @@
 ---
-status: complete
+status: completed
 title: App-audit CLI + app-audit.yml workflow + Makefile + gitignore
 type: infra
 complexity: medium
 dependencies:
-  - task_18
+    - task_18
 feature: audit/app-audit-cli
 ---
 

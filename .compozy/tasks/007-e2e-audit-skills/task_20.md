@@ -1,10 +1,10 @@
 ---
-status: complete
+status: completed
 title: App-audit SKILL + slash alias + fe-audit.md + AGENTS + cicd updates
 type: docs
 complexity: low
 dependencies:
-  - task_19
+    - task_19
 feature: audit/app-audit-skill-docs
 ---
 
