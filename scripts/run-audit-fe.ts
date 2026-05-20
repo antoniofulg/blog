@@ -13,7 +13,7 @@
 //   - DATABASE_URL (passed through to the spawned server; required)
 //   - All `audit:fe` CLI flags forwarded after orchestration setup.
 import { spawn, type ChildProcess } from "node:child_process";
-import { access } from "node:fs/promises";
+import { access, rm } from "node:fs/promises";
 import { join } from "node:path";
 import { runAppAuditCli } from "./audit-fe";
 
@@ -84,6 +84,21 @@ async function waitForReady(child: ChildProcess): Promise<void> {
 	}
 }
 
+// lhci writes flags-<uuid>.json (and per-run artifacts) under .lighthouseci/
+// for every Lighthouse spawn. Transient; not committed (.gitignored). Sweep
+// after each audit so the repo working tree stays clean. Best-effort — never
+// surface a removal failure to the caller because cleanup must not gate exit.
+async function rmLighthouseArtifacts(): Promise<void> {
+	try {
+		await rm(join(process.cwd(), ".lighthouseci"), {
+			recursive: true,
+			force: true,
+		});
+	} catch {
+		// ignore — operator can rm manually if needed
+	}
+}
+
 async function reap(child: ChildProcess): Promise<void> {
 	if (child.exitCode !== null || child.killed) return;
 	child.kill("SIGTERM");
@@ -136,6 +151,7 @@ export async function runAuditWithPreview(
 
 	const cleanup = async () => {
 		await reap(child);
+		await rmLighthouseArtifacts();
 	};
 	process.on("SIGTERM", async () => {
 		await cleanup();
