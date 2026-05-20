@@ -54,10 +54,10 @@ type LighthouseRunner = {
 };
 
 export function createLighthouseRunner(): LighthouseRunner {
-	// eslint-disable-next-line @typescript-eslint/no-unsafe-member-access
 	return new (
-		_require("@lhci/cli/src/collect/node-runner.js")
-			.LighthouseRunner as new () => LighthouseRunner
+		_require(
+			"@lhci/cli/src/collect/node-runner.js",
+		) as new () => LighthouseRunner
 	)();
 }
 

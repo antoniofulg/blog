@@ -9,7 +9,11 @@ import {
 	runLighthouse,
 } from "#/lib/app-audit/lighthouse.server";
 import { LOCALES, type Locale } from "#/lib/locale";
-import { getRouteInventory, type RouteEntry } from "#/lib/site-model.server";
+import {
+	getRouteInventory,
+	type RouteEntry,
+	resolveRoutePath,
+} from "#/lib/site-model.server";
 
 export type {
 	AppAuditCategory,
@@ -46,7 +50,20 @@ export async function runAppAudit(opts: {
 	routes?: string[];
 }): Promise<import("#/lib/app-audit/browser-sweep.server").AppAuditFinding[]> {
 	const baseUrl =
-		opts.baseUrl ?? process.env.AUDIT_BASE_URL ?? "http://localhost:3000";
+		opts.baseUrl ?? process.env.AUDIT_BASE_URL ?? "http://localhost:4173";
+
+	try {
+		await fetch(baseUrl, { signal: AbortSignal.timeout(3000) });
+	} catch {
+		return [
+			{
+				category: "sweep-error" as const,
+				severity: "major" as const,
+				filePath: "preflight",
+				message: `[app-audit] baseUrl ${baseUrl} unreachable — start preview server first (bun preview) or pass --baseUrl=<url>`,
+			},
+		];
+	}
 
 	const allRoutes = await getRouteInventory();
 	const findings: import("#/lib/app-audit/browser-sweep.server").AppAuditFinding[] =
@@ -86,7 +103,8 @@ export async function runAppAudit(opts: {
 		try {
 			for (const route of routes) {
 				for (const locale of LOCALES) {
-					const localePath = buildLocalePath(route.path, locale);
+					const resolvedPath = resolveRoutePath(route);
+					const localePath = buildLocalePath(resolvedPath, locale);
 					const fullUrl = `${baseUrl}${localePath}`;
 					const routeWithLocale: RouteEntry = {
 						...route,
@@ -114,8 +132,13 @@ export async function runAppAudit(opts: {
 						try {
 							const sweep = await sweepRoute(page, routeWithLocale);
 							findings.push(...sweep);
-							const a11y = await analyzeA11y(page);
-							findings.push(...a11y);
+							const hasSweepError = sweep.some(
+								(f) => f.category === "sweep-error",
+							);
+							if (!hasSweepError) {
+								const a11y = await analyzeA11y(page);
+								findings.push(...a11y);
+							}
 						} finally {
 							await page.close();
 						}

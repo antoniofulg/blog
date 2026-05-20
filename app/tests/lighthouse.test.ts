@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
+	createLighthouseRunner,
 	lighthouseToFindings,
 	runLighthouse,
 } from "#/lib/app-audit/lighthouse.server";
@@ -44,6 +45,18 @@ function mockRunner(lhrJson: string) {
 	);
 	return { run };
 }
+
+// ──────────────────────────────────────────────────────────────────────────────
+// createLighthouseRunner — import sanity (issue 001)
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe("createLighthouseRunner", () => {
+	it("returns object with run method (module.exports is class, not {LighthouseRunner})", () => {
+		const runner = createLighthouseRunner();
+		expect(runner).toBeDefined();
+		expect(typeof runner.run).toBe("function");
+	});
+});
 
 // ──────────────────────────────────────────────────────────────────────────────
 // lighthouseToFindings — pure classifier (no mocks needed)

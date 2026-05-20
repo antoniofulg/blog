@@ -15,6 +15,7 @@ export type RouteEntry = {
 	auth: RouteAuthLevel;
 	expectedStatus: 200 | 302 | 401 | 404;
 	intent: string;
+	sampleSlug?: string;
 };
 
 export type PostEntry = {
@@ -32,6 +33,7 @@ type RouteMetadataEntry = {
 	auth: RouteAuthLevel;
 	expectedStatus: 200 | 302 | 401 | 404 | null;
 	intent: string;
+	sampleSlug?: string;
 };
 
 // Static metadata map: route file key (relative to app/routes/) → metadata.
@@ -59,6 +61,7 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		auth: "public",
 		expectedStatus: 200,
 		intent: "post detail",
+		sampleSlug: "e2e-public-fixture",
 	},
 	"{-$locale}/about.tsx": {
 		path: "/about",
@@ -80,6 +83,7 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		auth: "admin",
 		expectedStatus: 200,
 		intent: "admin preview",
+		sampleSlug: "e2e-fixture-post",
 	},
 	"login.tsx": {
 		path: "/login",
@@ -99,7 +103,13 @@ export async function getRouteInventory(): Promise<RouteEntry[]> {
 			auth: meta.auth,
 			expectedStatus: meta.expectedStatus as 200 | 302 | 401 | 404,
 			intent: meta.intent,
+			...(meta.sampleSlug !== undefined ? { sampleSlug: meta.sampleSlug } : {}),
 		}));
+}
+
+export function resolveRoutePath(entry: RouteEntry): string {
+	if (!entry.sampleSlug) return entry.path;
+	return entry.path.replace(/:slug/g, entry.sampleSlug);
 }
 
 async function findMdxFiles(dir: string): Promise<string[]> {

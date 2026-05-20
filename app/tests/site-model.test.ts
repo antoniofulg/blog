@@ -29,6 +29,8 @@ import {
 	type PostEntry,
 	ROUTE_METADATA,
 	type RouteAuthLevel,
+	type RouteEntry,
+	resolveRoutePath,
 } from "#/lib/site-model.server";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
@@ -126,6 +128,78 @@ describe("unit: getRouteInventory", () => {
 		).length;
 		const inventory = await getRouteInventory();
 		expect(inventory).toHaveLength(keys.length - optOutCount);
+	});
+});
+
+// ─── Unit: resolveRoutePath ───────────────────────────────────────────────────
+
+describe("unit: resolveRoutePath", () => {
+	const base: RouteEntry = {
+		path: "/",
+		locale: "en",
+		auth: "public",
+		expectedStatus: 200,
+		intent: "test",
+	};
+
+	it("returns path unchanged when no sampleSlug", () => {
+		expect(resolveRoutePath({ ...base, path: "/about" })).toBe("/about");
+	});
+
+	it("returns path unchanged for parameterized route with no sampleSlug", () => {
+		expect(resolveRoutePath({ ...base, path: "/:slug" })).toBe("/:slug");
+	});
+
+	it("replaces :slug with sampleSlug", () => {
+		expect(
+			resolveRoutePath({ ...base, path: "/:slug", sampleSlug: "my-post" }),
+		).toBe("/my-post");
+	});
+
+	it("replaces all :slug occurrences", () => {
+		expect(
+			resolveRoutePath({
+				...base,
+				path: "/admin/preview/:slug",
+				sampleSlug: "draft-post",
+			}),
+		).toBe("/admin/preview/draft-post");
+	});
+
+	it("leaves other path segments unchanged", () => {
+		expect(
+			resolveRoutePath({
+				...base,
+				path: "/about",
+				sampleSlug: "irrelevant",
+			}),
+		).toBe("/about");
+	});
+});
+
+// ─── Unit: ROUTE_METADATA sampleSlug for parameterized routes ─────────────────
+
+describe("unit: ROUTE_METADATA parameterized routes have sampleSlug", () => {
+	it("/:slug entry has sampleSlug set", () => {
+		const entry = ROUTE_METADATA["{-$locale}/$slug.tsx"];
+		expect(entry).toBeDefined();
+		expect(entry.sampleSlug).toBeTruthy();
+	});
+
+	it("/admin/preview/:slug entry has sampleSlug set", () => {
+		const entry = ROUTE_METADATA["admin/preview.$slug.tsx"];
+		expect(entry).toBeDefined();
+		expect(entry.sampleSlug).toBeTruthy();
+	});
+
+	it("getRouteInventory passes sampleSlug through to RouteEntry", async () => {
+		const inventory = await getRouteInventory();
+		const slugRoute = inventory.find((e) => e.path === "/:slug");
+		expect(slugRoute?.sampleSlug).toBe("e2e-public-fixture");
+		const previewRoute = inventory.find(
+			(e) => e.path === "/admin/preview/:slug",
+		);
+		expect(previewRoute?.sampleSlug).toBe("e2e-fixture-post");
 	});
 });
 

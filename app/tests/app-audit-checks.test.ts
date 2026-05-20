@@ -6,7 +6,12 @@ import type { RouteEntry } from "#/lib/site-model.server";
 
 const siteModelMocks = vi.hoisted(() => ({
 	getRouteInventory: vi.fn<() => Promise<RouteEntry[]>>(),
+	resolveRoutePath: vi.fn((route: RouteEntry) => route.path),
 }));
+
+const fetchMock = vi.hoisted(() =>
+	vi.fn<typeof fetch>().mockResolvedValue(new Response("ok", { status: 200 })),
+);
 
 const probeMocks = vi.hoisted(() => ({
 	sweepRoute: vi.fn().mockResolvedValue([]),
@@ -35,7 +40,10 @@ const playwrightMocks = vi.hoisted(() => {
 
 vi.mock("#/lib/site-model.server", () => ({
 	getRouteInventory: siteModelMocks.getRouteInventory,
+	resolveRoutePath: siteModelMocks.resolveRoutePath,
 }));
+
+vi.stubGlobal("fetch", fetchMock);
 
 vi.mock("#/lib/app-audit/browser-sweep.server", () => ({
 	sweepRoute: probeMocks.sweepRoute,
@@ -91,7 +99,11 @@ import { runAppAudit } from "#/lib/app-audit/checks.server";
 describe("runAppAudit orchestrator", () => {
 	beforeEach(() => {
 		vi.clearAllMocks();
+		fetchMock.mockResolvedValue(new Response("ok", { status: 200 }));
 		siteModelMocks.getRouteInventory.mockResolvedValue(FIXTURE_ROUTES);
+		siteModelMocks.resolveRoutePath.mockImplementation(
+			(route: RouteEntry) => route.path,
+		);
 		probeMocks.sweepRoute.mockResolvedValue([]);
 		probeMocks.analyzeA11y.mockResolvedValue([]);
 		probeMocks.runLighthouse.mockResolvedValue({
@@ -304,6 +316,112 @@ describe("runAppAudit orchestrator", () => {
 			filePath: "cli",
 			message: expect.stringContaining("/nonexistent"),
 		});
+	});
+
+	// ─── preflight check (issue 002) ─────────────────────────────────────────
+
+	it("preflight: unreachable baseUrl returns single sweep-error with actionable message", async () => {
+		fetchMock.mockRejectedValue(
+			Object.assign(new Error("fetch failed"), { code: "ECONNREFUSED" }),
+		);
+		const findings = await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://localhost:99999",
+		});
+		expect(findings).toHaveLength(1);
+		expect(findings[0]).toMatchObject({
+			category: "sweep-error",
+			severity: "major",
+			filePath: "preflight",
+			message: expect.stringContaining("unreachable"),
+		});
+		expect(probeMocks.sweepRoute).not.toHaveBeenCalled();
+	});
+
+	it("preflight: message includes baseUrl and bun preview hint", async () => {
+		fetchMock.mockRejectedValue(new Error("fetch failed"));
+		const findings = await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://localhost:12345",
+		});
+		expect(findings[0].message).toContain("http://localhost:12345");
+		expect(findings[0].message).toContain("bun preview");
+	});
+
+	it("preflight: reachable baseUrl proceeds to route sweep", async () => {
+		fetchMock.mockResolvedValue(new Response("ok", { status: 200 }));
+		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
+		expect(probeMocks.sweepRoute).toHaveBeenCalled();
+	});
+
+	// ─── analyzeA11y skip on sweep-error (issue 003) ─────────────────────────
+
+	it("sweep-error from sweepRoute → analyzeA11y NOT called for that page", async () => {
+		probeMocks.sweepRoute.mockResolvedValueOnce([
+			{
+				category: "sweep-error" as const,
+				severity: "major" as const,
+				filePath: "/",
+				message: "goto failed",
+			},
+		]);
+		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
+		// First call had sweep-error → analyzeA11y skipped for it
+		// 8 total inspections, first produced sweep-error, so analyzeA11y called 7 times
+		expect(probeMocks.analyzeA11y).toHaveBeenCalledTimes(7);
+	});
+
+	it("sweep-error route produces exactly one finding (no cascading axe error)", async () => {
+		probeMocks.sweepRoute.mockResolvedValue([
+			{
+				category: "sweep-error" as const,
+				severity: "major" as const,
+				filePath: "/",
+				message: "goto failed",
+			},
+		]);
+		probeMocks.analyzeA11y.mockResolvedValue([]);
+		const findings = await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+		});
+		// All 8 inspections return sweep-error, analyzeA11y skipped → 8 findings (not 16)
+		expect(findings).toHaveLength(8);
+		expect(probeMocks.analyzeA11y).not.toHaveBeenCalled();
+	});
+
+	// ─── resolveRoutePath usage (issue 004) ──────────────────────────────────
+
+	it("resolveRoutePath called for each route before locale expansion", async () => {
+		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
+		// 2 routes × 2 locales = 4 calls to resolveRoutePath
+		expect(siteModelMocks.resolveRoutePath).toHaveBeenCalledTimes(4);
+	});
+
+	it(":slug route expanded to sampleSlug before page.goto", async () => {
+		siteModelMocks.getRouteInventory.mockResolvedValue([
+			{
+				path: "/:slug",
+				locale: "en",
+				auth: "public" as const,
+				expectedStatus: 200 as const,
+				intent: "post detail",
+				sampleSlug: "my-sample-post",
+			},
+		]);
+		siteModelMocks.resolveRoutePath.mockImplementation((route: RouteEntry) =>
+			route.sampleSlug
+				? route.path.replace(/:slug/g, route.sampleSlug)
+				: route.path,
+		);
+		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
+		const calledPaths = probeMocks.sweepRoute.mock.calls.map(
+			([, route]) => (route as RouteEntry).path,
+		);
+		expect(calledPaths.every((p: string) => !p.includes(":slug"))).toBe(true);
+		expect(calledPaths.some((p: string) => p.includes("my-sample-post"))).toBe(
+			true,
+		);
 	});
 });
 
