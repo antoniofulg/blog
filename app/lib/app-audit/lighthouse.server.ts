@@ -22,6 +22,26 @@ type LHR = {
 	};
 };
 
+const DEFAULT_LIGHTHOUSE_TIMEOUT_MS = 30_000;
+
+function getLighthouseTimeoutMs(): number {
+	const raw = process.env.APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS;
+	if (!raw) return DEFAULT_LIGHTHOUSE_TIMEOUT_MS;
+	const parsed = parseInt(raw, 10);
+	return Number.isFinite(parsed) && parsed > 0
+		? parsed
+		: DEFAULT_LIGHTHOUSE_TIMEOUT_MS;
+}
+
+function lighthouseTimeout(ms: number): Promise<never> {
+	return new Promise((_, reject) =>
+		setTimeout(
+			() => reject(new Error(`Lighthouse timed out after ${ms}ms`)),
+			ms,
+		),
+	);
+}
+
 function getScore(cat: LHRCategory | undefined): number {
 	return cat?.score ?? 0;
 }
@@ -47,10 +67,14 @@ export async function runLighthouse(
 ): Promise<LighthouseScores> {
 	const chromePath = chromium.executablePath();
 	const runner = runnerOverride ?? createLighthouseRunner();
-	const lhrJson = await runner.run(url, {
-		chromePath,
-		settings: { chromeFlags: "--headless=new --no-sandbox" },
-	});
+	const timeoutMs = getLighthouseTimeoutMs();
+	const lhrJson = await Promise.race([
+		runner.run(url, {
+			chromePath,
+			settings: { chromeFlags: "--headless=new --no-sandbox" },
+		}),
+		lighthouseTimeout(timeoutMs),
+	]);
 	const lhr = JSON.parse(lhrJson) as LHR;
 	return {
 		performance: getScore(lhr.categories.performance),

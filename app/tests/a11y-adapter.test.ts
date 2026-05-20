@@ -1,5 +1,5 @@
 import type { Page } from "@playwright/test";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 import { analyzeA11y } from "#/lib/app-audit/a11y-adapter.server";
 
 // ──────────────────────────────────────────────────────────────────────────────
@@ -15,11 +15,14 @@ vi.mock("@axe-core/playwright", () => {
 		}
 
 		async analyze() {
+			if (axeError) throw axeError;
 			return axeResults;
 		}
 	}
 	return { AxeBuilder };
 });
+
+let axeError: Error | null = null;
 
 let axeResults = {
 	violations: [] as Array<{
@@ -56,6 +59,10 @@ function createMockPage(): Page {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("analyzeA11y", () => {
+	beforeEach(() => {
+		axeError = null;
+	});
+
 	it("returns empty array when no violations", async () => {
 		axeResults = { violations: [] };
 		const page = createMockPage();
@@ -156,5 +163,32 @@ describe("analyzeA11y", () => {
 		const page = createMockPage();
 		const findings = await analyzeA11y(page);
 		expect(findings.every((f) => f.severity === "major")).toBe(true);
+	});
+
+	// ─── error containment (issue 002) ────────────────────────────────────────
+
+	it("analyze() throw → single sweep-error finding returned instead of throw", async () => {
+		axeError = new Error("page crashed mid-analysis");
+		const page = createMockPage();
+		const findings = await analyzeA11y(page);
+		expect(findings).toHaveLength(1);
+		expect(findings[0]).toMatchObject({
+			category: "sweep-error",
+			severity: "major",
+		});
+		expect(findings[0].message).toContain("page crashed mid-analysis");
+	});
+
+	it("analyze() throw → filePath is page.url()", async () => {
+		axeError = new Error("axe injection failed");
+		const page = createMockPage();
+		const findings = await analyzeA11y(page);
+		expect(findings[0].filePath).toBe("http://localhost:4173/");
+	});
+
+	it("analyze() throw does not propagate; caller gets array not rejection", async () => {
+		axeError = new Error("devtools protocol error");
+		const page = createMockPage();
+		await expect(analyzeA11y(page)).resolves.toHaveLength(1);
 	});
 });

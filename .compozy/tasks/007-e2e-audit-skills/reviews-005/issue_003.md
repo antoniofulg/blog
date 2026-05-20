@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 5
 round_created_at: 2026-05-20T04:06:44Z
-status: pending
+status: resolved
 file: scripts/audit-fe.ts
 line: 12
 severity: medium
@@ -57,5 +57,5 @@ Optional but recommended: validate each route matches `/^\/[\w\-/.]*$/` and reje
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `scripts/audit-fe.ts:12` splits on `,` with no `.trim()` or `.filter(Boolean)`. `--routes=` produces `[""]`, trailing/leading commas produce empty segments, spaces produce whitespace-padded paths. When issue 001's wiring is in place these bad values reach the inventory filter and silently drop routes. Fix: add `.map(s => s.trim()).filter(Boolean)`, return `undefined` when result is empty.

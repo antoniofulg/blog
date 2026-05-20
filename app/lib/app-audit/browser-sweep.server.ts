@@ -101,7 +101,7 @@ async function probe(
 		}
 	});
 
-	await page.goto(route.path, { waitUntil: "load" });
+	await page.goto(route.path, { waitUntil: "networkidle" });
 
 	const metaPresent: Record<string, boolean> = {};
 
@@ -145,7 +145,7 @@ async function probe(
 		.locator("img")
 		.evaluateAll((imgs) =>
 			(imgs as HTMLImageElement[])
-				.filter((img) => img.naturalWidth === 0)
+				.filter((img) => img.complete && img.naturalWidth === 0)
 				.map((img) => img.src),
 		);
 

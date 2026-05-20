@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 5
 round_created_at: 2026-05-20T04:06:44Z
-status: pending
+status: resolved
 file: app/lib/app-audit/reporter.server.ts
 line: 170
 severity: low
@@ -40,5 +40,5 @@ Or — simplest for solo dev — document in `.agents/rules/fe-audit.md`: "Do no
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `appendFile` at reporter.server.ts:170 is not atomic across concurrent processes. However, the issue itself identifies the simplest correct fix for this solo-dev setup: document the "no concurrent audit runs" constraint in `.agents/rules/fe-audit.md`. Adding `proper-lockfile` is over-engineering for a personal blog. No code change to reporter.server.ts — doc-only fix.

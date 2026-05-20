@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 5
 round_created_at: 2026-05-20T04:06:44Z
-status: pending
+status: resolved
 file: app/lib/app-audit/browser-sweep.server.ts
 line: 144
 severity: medium
@@ -47,5 +47,5 @@ Document the change in `.agents/rules/fe-audit.md` so future authors understand 
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `browser-sweep.server.ts:104` uses `waitUntil: "load"` which fires before lazy/JS-injected images load. `:144-150` checks `img.naturalWidth === 0` without `img.complete`, flagging lazy images that haven't been fetched yet as broken. Two fixes needed: change wait strategy to `networkidle` and add `img.complete &&` guard. Note: skip the scroll-to-bottom suggestion — `networkidle` already covers this and the added complexity is not warranted.

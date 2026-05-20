@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 5
 round_created_at: 2026-05-20T04:06:44Z
-status: pending
+status: resolved
 file: app/lib/app-audit/a11y-adapter.server.ts
 line: 8
 severity: medium
@@ -36,5 +36,5 @@ Real-world impact: a single page with a malformed `<iframe>` that axe-core choke
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `a11y-adapter.server.ts:9-11` has bare `await analyze()` with no try/catch. `checks.server.ts:85-92` wraps with `try/finally` (page close) not `try/catch` (error containment). An axe throw kills the whole 28-inspection run. Fix: wrap `analyze()` in try/catch inside `analyzeA11y`, return `sweep-error` finding on catch.

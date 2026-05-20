@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 5
 round_created_at: 2026-05-20T04:06:44Z
-status: pending
+status: resolved
 file: scripts/audit-fe.ts
 line: 36
 severity: high
@@ -25,5 +25,5 @@ This is a high-severity correctness gap: the spec promises route filtering, the 
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `runAppAuditCli` at line 37 calls `runAppAudit({ lighthouse })` without the routes argument. `parseRoutes(args)` is never called. `runAppAudit` in `checks.server.ts:36-39` only accepts `{ lighthouse, baseUrl? }` — no `routes` param exists. Fix: add `routes?: string[]` to `runAppAudit` opts, filter the inventory when provided, and wire `parseRoutes(args)` into `runAppAuditCli`.

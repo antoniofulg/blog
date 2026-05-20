@@ -9,7 +9,12 @@ export function parseTrigger(args: string[]): string {
 export function parseRoutes(args: string[]): string[] | undefined {
 	const flag = args.find((a) => a.startsWith("--routes="));
 	if (!flag) return undefined;
-	return flag.slice("--routes=".length).split(",");
+	const routes = flag
+		.slice("--routes=".length)
+		.split(",")
+		.map((s) => s.trim())
+		.filter(Boolean);
+	return routes.length > 0 ? routes : undefined;
 }
 
 export function parseLighthouse(
@@ -34,7 +39,8 @@ export async function runAppAuditCli(
 ): Promise<AppAuditCliResult> {
 	const trigger = parseTrigger(args);
 	const lighthouse = parseLighthouse(args, env.CI);
-	const findings = await runAppAudit({ lighthouse });
+	const routes = parseRoutes(args);
+	const findings = await runAppAudit({ lighthouse, routes });
 	await writeReport(findings, trigger);
 
 	const blockers = findings.filter((f) => f.severity === "blocker").length;

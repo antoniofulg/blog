@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import {
 	lighthouseToFindings,
 	runLighthouse,
@@ -256,5 +256,55 @@ describe("runLighthouse", () => {
 		await runLighthouse("http://localhost:4173/", runner);
 		const [, opts] = runner.run.mock.calls[0];
 		expect(opts?.chromePath).toBe("/mocked/chromium");
+	});
+});
+
+// ──────────────────────────────────────────────────────────────────────────────
+// runLighthouse — timeout (issue 006)
+// ──────────────────────────────────────────────────────────────────────────────
+
+describe("runLighthouse — timeout", () => {
+	beforeEach(() => {
+		vi.useFakeTimers();
+	});
+
+	afterEach(() => {
+		vi.useRealTimers();
+		delete process.env.APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS;
+	});
+
+	it("rejects with timeout error when runner hangs longer than default 30s", async () => {
+		const hangingRunner = {
+			run: vi.fn(() => new Promise<string>(() => {})),
+		};
+
+		const promise = runLighthouse("http://localhost:4173/", hangingRunner);
+		vi.advanceTimersByTime(30_001);
+
+		await expect(promise).rejects.toThrow(/timed out after 30000ms/);
+	});
+
+	it("respects APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS env var", async () => {
+		process.env.APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS = "5000";
+
+		const hangingRunner = {
+			run: vi.fn(() => new Promise<string>(() => {})),
+		};
+
+		const promise = runLighthouse("http://localhost:4173/", hangingRunner);
+		vi.advanceTimersByTime(5_001);
+
+		await expect(promise).rejects.toThrow(/timed out after 5000ms/);
+	});
+
+	it("resolves normally when runner completes before timeout", async () => {
+		const fastRunner = mockRunner(makeLHR({ performance: 0.9, seo: 0.95 }));
+
+		const promise = runLighthouse("http://localhost:4173/", fastRunner);
+		// Advance time less than 30s — runner already resolved synchronously via mock
+		vi.advanceTimersByTime(100);
+
+		const scores = await promise;
+		expect(scores.performance).toBe(0.9);
 	});
 });

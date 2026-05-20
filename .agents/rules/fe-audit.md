@@ -108,6 +108,14 @@ failure) that is causing the probe to time out or crash.
   Playwright upgrade, fall back to `@lhci/cli`'s own Chrome download by removing
   `chromePath` from the lhci config in `app/lib/app-audit/lighthouse.server.ts`.
 
+## Concurrent Run Safety
+
+Do **not** run `audit-fe` and `audit-content` concurrently against the same
+`docs/audits/SUMMARY.md`. Both tools use `fs.appendFile` (not atomic across
+processes); concurrent writes can produce garbled markdown table rows that
+persist in git history. Sequential invocation via `make audit` is the only
+supported path. V2 may add a lockfile if CI parallelism requires it.
+
 ## Fingerprint Collision Avoidance
 
 App-audit PR comment fingerprint: `<!-- audit-fingerprint:app:blocker=X major=Y -->`

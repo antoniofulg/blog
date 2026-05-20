@@ -105,6 +105,24 @@ describe("parseRoutes", () => {
 			"/blog",
 		]);
 	});
+
+	// ─── parseRoutes normalization (issue 003) ─────────────────────────────
+
+	it("--routes= (empty value) returns undefined", () => {
+		expect(parseRoutes(["--routes="])).toBeUndefined();
+	});
+
+	it("trailing comma stripped: /foo, → ['/foo']", () => {
+		expect(parseRoutes(["--routes=/foo,"])).toEqual(["/foo"]);
+	});
+
+	it("leading comma stripped: ,/foo,/bar → ['/foo', '/bar']", () => {
+		expect(parseRoutes(["--routes=,/foo,/bar"])).toEqual(["/foo", "/bar"]);
+	});
+
+	it("whitespace-padded entries trimmed: '/foo, /bar' → ['/foo', '/bar']", () => {
+		expect(parseRoutes(["--routes=/foo, /bar"])).toEqual(["/foo", "/bar"]);
+	});
 });
 
 // ─── parseLighthouse ───────────────────────────────────────────────────────
@@ -321,5 +339,39 @@ describe("runAppAuditCli — trigger forwarding", () => {
 	it("passes 'manual' to writeReport when no flag", async () => {
 		await runAppAuditCli([]);
 		expect(mocks.writeReport).toHaveBeenCalledWith([], "manual");
+	});
+});
+
+// ─── runAppAuditCli — routes forwarding (issue 001) ───────────────────────
+
+describe("runAppAuditCli — routes forwarding", () => {
+	beforeEach(() => {
+		mocks.runAppAudit.mockResolvedValue([]);
+		mocks.writeReport.mockResolvedValue(undefined);
+	});
+
+	afterEach(() => {
+		vi.clearAllMocks();
+	});
+
+	it("passes routes array when --routes flag present", async () => {
+		await runAppAuditCli(["--routes=/login,/admin"]);
+		expect(mocks.runAppAudit).toHaveBeenCalledWith(
+			expect.objectContaining({ routes: ["/login", "/admin"] }),
+		);
+	});
+
+	it("passes routes: undefined when no --routes flag", async () => {
+		await runAppAuditCli([]);
+		expect(mocks.runAppAudit).toHaveBeenCalledWith(
+			expect.objectContaining({ routes: undefined }),
+		);
+	});
+
+	it("passes routes: undefined when --routes= is empty", async () => {
+		await runAppAuditCli(["--routes="]);
+		expect(mocks.runAppAudit).toHaveBeenCalledWith(
+			expect.objectContaining({ routes: undefined }),
+		);
 	});
 });

@@ -220,4 +220,41 @@ describe("runAppAudit orchestrator", () => {
 		// 8 inspections × 1 close = 8
 		expect(playwrightMocks.mockPage.close).toHaveBeenCalledTimes(8);
 	});
+
+	// ─── routes filter (issue 001) ────────────────────────────────────────────
+
+	it("routes filter: only matching routes swept when routes provided", async () => {
+		// inventory has 2 routes: / and /about; filter to / only
+		await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+			routes: ["/"],
+		});
+		// 1 route × 2 locales × 2 auth-states = 4
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(4);
+
+		const paths = probeMocks.sweepRoute.mock.calls.map(
+			([, route]) => (route as RouteEntry).path,
+		);
+		expect(paths.every((p) => p === "/" || p === "/pt-br/")).toBe(true);
+	});
+
+	it("routes filter: empty routes array sweeps all routes", async () => {
+		await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+			routes: [],
+		});
+		// no filter → 2 routes × 2 locales × 2 auth-states = 8
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(8);
+	});
+
+	it("routes filter: undefined routes sweeps all routes", async () => {
+		await runAppAudit({
+			lighthouse: false,
+			baseUrl: "http://test:3000",
+			routes: undefined,
+		});
+		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(8);
+	});
 });

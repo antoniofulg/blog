@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 5
 round_created_at: 2026-05-20T04:06:44Z
-status: pending
+status: resolved
 file: app/lib/app-audit/lighthouse.server.ts
 line: 48
 severity: low
@@ -27,5 +27,5 @@ Bonus: ensure the lhci child process is terminated on timeout (call `runner.canc
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: Confirmed. `lighthouse.server.ts:50` calls `runner.run(...)` with no timeout. The orchestrator's try/catch at checks.server.ts:69-79 handles rejections but not hangs. Fix: wrap `runner.run` in `Promise.race` with a 30s timeout (tunable via `APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS` env var). On timeout rejection, the orchestrator's existing catch block emits a `sweep-error` finding automatically.

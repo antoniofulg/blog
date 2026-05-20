@@ -36,11 +36,17 @@ async function getAdminStorageState(): Promise<string | undefined> {
 export async function runAppAudit(opts: {
 	lighthouse: boolean;
 	baseUrl?: string;
+	routes?: string[];
 }): Promise<import("#/lib/app-audit/browser-sweep.server").AppAuditFinding[]> {
 	const baseUrl =
 		opts.baseUrl ?? process.env.AUDIT_BASE_URL ?? "http://localhost:3000";
 
-	const routes = await getRouteInventory();
+	const allRoutes = await getRouteInventory();
+	const routeFilter = opts.routes;
+	const routes =
+		routeFilter && routeFilter.length > 0
+			? allRoutes.filter((r) => routeFilter.includes(r.path))
+			: allRoutes;
 	const findings: import("#/lib/app-audit/browser-sweep.server").AppAuditFinding[] =
 		[];
 
