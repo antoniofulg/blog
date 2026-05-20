@@ -300,21 +300,26 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 	}, 35000);
 
 	it("SUMMARY.md row count increases by 1 per invocation", async () => {
-		const summaryPath = resolve(
-			import.meta.dirname,
-			"../../docs/audits/SUMMARY.md",
-		);
+		// Isolate the SUMMARY.md to a tmpdir so tests don't pollute the committed file.
+		const fixtureDir = await mkdtemp(join(tmpdir(), "audit-rowcount-"));
+		const summaryPath = join(fixtureDir, "SUMMARY.md");
+		const reportsDir = join(fixtureDir, "_reports");
+		await mkdir(reportsDir, { recursive: true });
 
 		async function rowCount(): Promise<number> {
-			const content = await readFile(summaryPath, "utf-8");
-			return content
-				.split("\n")
-				.filter(
-					(l) =>
-						l.startsWith("|") &&
-						!l.startsWith("| Date") &&
-						!l.startsWith("| ---"),
-				).length;
+			try {
+				const content = await readFile(summaryPath, "utf-8");
+				return content
+					.split("\n")
+					.filter(
+						(l) =>
+							l.startsWith("|") &&
+							!l.startsWith("| Date") &&
+							!l.startsWith("| ---"),
+					).length;
+			} catch {
+				return 0;
+			}
 		}
 
 		const before = await rowCount();
@@ -322,12 +327,22 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 		await execFileAsync(
 			"bun",
 			["run", scriptPath, "--trigger=test-int-rowcount"],
-			{ env: { ...process.env, DATABASE_URL: DB_URL }, timeout: 30000 },
+			{
+				env: {
+					...process.env,
+					DATABASE_URL: DB_URL,
+					AUDIT_SUMMARY_PATH: summaryPath,
+					AUDIT_REPORTS_DIR: reportsDir,
+				},
+				timeout: 30000,
+			},
 		).catch(() => {
 			// exit 1 is OK if there are blockers — we just care about row count
 		});
 
 		const after = await rowCount();
 		expect(after).toBe(before + 1);
+
+		await rm(fixtureDir, { recursive: true, force: true });
 	}, 35000);
 });

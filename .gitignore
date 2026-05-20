@@ -20,6 +20,9 @@ test-results/
 playwright-report/
 coverage/
 
+# macOS tmpdir leak guard (writes via path.join + absolute tmpdir)
+var/
+
 # Content audit per-run reports (gitignored; uploaded as GHA artifact)
 docs/_reports/content-audit-*.md
 

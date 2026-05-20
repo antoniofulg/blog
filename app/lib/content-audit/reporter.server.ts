@@ -1,11 +1,19 @@
 import "@tanstack/react-start/server-only";
 import { access, appendFile, mkdir, writeFile } from "node:fs/promises";
-import { join } from "node:path";
+import { dirname, isAbsolute, join } from "node:path";
 import type { Finding } from "#/lib/content-audit/checks.server";
 import { formatFingerprint } from "../../../tests/e2e/audit-fingerprint";
 
-const REPORTS_DIR = "docs/_reports";
-const SUMMARY_PATH = "docs/audits/SUMMARY.md";
+const REPORTS_DIR = process.env.AUDIT_REPORTS_DIR ?? "docs/_reports";
+const SUMMARY_PATH = process.env.AUDIT_SUMMARY_PATH ?? "docs/audits/SUMMARY.md";
+
+function resolveReportsDir(cwd: string): string {
+	return isAbsolute(REPORTS_DIR) ? REPORTS_DIR : join(cwd, REPORTS_DIR);
+}
+
+function resolveSummaryFile(cwd: string): string {
+	return isAbsolute(SUMMARY_PATH) ? SUMMARY_PATH : join(cwd, SUMMARY_PATH);
+}
 const SUMMARY_HEADER =
 	"| Date       | Run trigger      | Blocker | Major | Minor | Top finding                                  |\n" +
 	"| ---------- | ---------------- | ------- | ----- | ----- | -------------------------------------------- |\n";
@@ -111,11 +119,12 @@ export async function writeReport(
 ): Promise<void> {
 	const cwd = process.cwd();
 	const date = today();
-	const reportFile = join(cwd, REPORTS_DIR, `content-audit-${date}.md`);
-	const summaryFile = join(cwd, SUMMARY_PATH);
+	const reportsDir = resolveReportsDir(cwd);
+	const reportFile = join(reportsDir, `content-audit-${date}.md`);
+	const summaryFile = resolveSummaryFile(cwd);
 
-	await mkdir(join(cwd, REPORTS_DIR), { recursive: true });
-	await mkdir(join(cwd, "docs", "audits"), { recursive: true });
+	await mkdir(reportsDir, { recursive: true });
+	await mkdir(dirname(summaryFile), { recursive: true });
 
 	await writeFile(reportFile, formatReport(findings, triggerLabel), "utf-8");
 
