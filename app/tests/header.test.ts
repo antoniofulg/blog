@@ -123,7 +123,7 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/{-$locale}/$slug",
+			to: "/{-$locale}/$slug/",
 			params: { locale: "pt-br", slug: "react-suspense" },
 		});
 		expect(localStorage.getItem("locale")).toBe("pt-br");
@@ -140,7 +140,7 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/{-$locale}",
+			to: "/{-$locale}/",
 			params: { locale: "pt-br" },
 		});
 	});
@@ -156,7 +156,7 @@ describe("unit: Header language switcher navigation", () => {
 		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/{-$locale}/about",
+			to: "/{-$locale}/about/",
 			params: { locale: "pt-br" },
 		});
 	});

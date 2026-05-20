@@ -7,7 +7,7 @@ export const Route = createFileRoute("/admin/preview/$slug")({
 	beforeLoad: ({ context, location }) => {
 		if (!context.auth.user) {
 			throw redirect({
-				to: "/login",
+				to: "/login/",
 				search: { redirect: location.href },
 			});
 		}

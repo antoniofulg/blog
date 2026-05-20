@@ -43,32 +43,41 @@ export const Route = createFileRoute("/{-$locale}/")({
 		setResponseHeader("Vary", "Cookie, Accept-Language");
 		const detected = detectLocaleFromRequest(req);
 		if (detected !== DEFAULT_LOCALE) {
-			// href used instead of `to`: TanStack Router excludes "/{-$locale}/"
-			// from the redirect `to` union and does not expose the optional-segment
-			// param in the inferred params type (TS2820/TS2353). See issue_003.md.
 			throw redirect({
-				href: `/${detected}/`,
+				to: "/{-$locale}/",
+				params: { locale: detected },
 				statusCode: 302,
 				headers: { Vary: "Cookie, Accept-Language" },
 			});
 		}
 	},
-	head: ({ params }) => ({
-		meta: [
-			{
-				name: "description",
-				content:
-					params.locale === "pt-br"
-						? "Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional."
-						: "Articles about web development, React, TypeScript, Bun and international career.",
-			},
-		],
-		links: LOCALES.map((l) => ({
-			rel: "alternate",
-			hrefLang: toBcp47(l),
-			href: localeHref(l),
-		})),
-	}),
+	head: ({ params }) => {
+		const locale = params.locale ?? DEFAULT_LOCALE;
+		const isPtBr = locale === "pt-br";
+		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+		const pathname = isPtBr ? "/pt-br/" : "/";
+		const canonicalUrl = `${siteUrl}${pathname}`;
+		const description = isPtBr
+			? "Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional."
+			: "Articles about web development, React, TypeScript, Bun and international career.";
+		return {
+			meta: [
+				{ name: "description", content: description },
+				{ property: "og:title", content: "Antonio Fulgencio Blog" },
+				{ property: "og:description", content: description },
+				{ property: "og:url", content: canonicalUrl },
+				{ property: "og:locale", content: isPtBr ? "pt_BR" : "en_US" },
+			],
+			links: [
+				{ rel: "canonical", href: canonicalUrl },
+				...LOCALES.map((l) => ({
+					rel: "alternate",
+					hrefLang: toBcp47(l),
+					href: localeHref(l),
+				})),
+			],
+		};
+	},
 	loader: ({ params }) =>
 		getLocalePosts({ data: params.locale ?? DEFAULT_LOCALE }),
 	component: LocaleBlogPage,

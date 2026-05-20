@@ -59,6 +59,18 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				content:
 					"Articles about web development, React, TypeScript, Bun and international career.",
 			},
+			{ property: "og:type", content: "website" },
+			{ property: "og:title", content: "Antonio Fulgencio Blog" },
+			{
+				property: "og:description",
+				content:
+					"Articles about web development, React, TypeScript, Bun and international career.",
+			},
+			{
+				property: "og:image",
+				content: `${import.meta.env.VITE_SITE_URL ?? ""}/og-default.png`,
+			},
+			{ name: "twitter:card", content: "summary_large_image" },
 		],
 		links: [
 			{ rel: "stylesheet", href: appCss },
@@ -94,7 +106,7 @@ export function NotFoundPage() {
 			</h1>
 			<p className="max-w-md text-foreground-secondary">{t.body}</p>
 			<Link
-				to="/{-$locale}"
+				to="/{-$locale}/"
 				params={{ locale: undefined }}
 				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
 			>
