@@ -22,6 +22,11 @@ const SERVER_ONLY_IDS = new Set([
 	"#/lib/content-audit/link-parser.server",
 	"#/lib/content-audit/checks.server",
 	"#/lib/content-audit/reporter.server",
+	"#/lib/app-audit/browser-sweep.server",
+	"#/lib/app-audit/a11y-adapter.server",
+	"#/lib/app-audit/lighthouse.server",
+	"#/lib/app-audit/checks.server",
+	"#/lib/app-audit/reporter.server",
 ]);
 // Node built-ins used only in server function bodies — stub for browser.
 const NODE_ONLY_IDS = new Set([
@@ -55,7 +60,9 @@ function serverOnlyStubPlugin(): Plugin {
 					"export const db=null,renderMdx=null,parseFrontmatter=null,auth=null,syncAll=null," +
 					"upsertPost=null,removePost=null,startContentWatcher=null," +
 					"indexer=null,closeDb=()=>Promise.resolve(),requireSession=()=>Promise.resolve()," +
-					"extractLinks=null,runContentAudit=null,writeReport=null;"
+					"extractLinks=null,runContentAudit=null,writeReport=null," +
+					"runAppAudit=null,initSummary=null,sweepRoute=null,analyzeA11y=null," +
+					"runLighthouse=null,lighthouseToFindings=null;"
 				);
 			}
 		},
