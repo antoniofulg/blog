@@ -26,6 +26,8 @@ const mocks = vi.hoisted(() => {
 
 	const readFile = vi.fn().mockResolvedValue("# Test\n\nContent");
 
+	const loadStaticPage = vi.fn().mockResolvedValue(null);
+
 	return {
 		select,
 		selectFrom,
@@ -34,6 +36,7 @@ const mocks = vi.hoisted(() => {
 		set,
 		updateWhere,
 		readFile,
+		loadStaticPage,
 	};
 });
 
@@ -46,6 +49,10 @@ vi.mock("#/db/client", () => ({
 
 vi.mock("node:fs/promises", () => ({
 	readFile: mocks.readFile,
+}));
+
+vi.mock("#/lib/mdx/pages.server", () => ({
+	loadStaticPage: mocks.loadStaticPage,
 }));
 
 vi.mock("@tanstack/react-start", () => ({
@@ -95,6 +102,7 @@ function resetMocks() {
 	mocks.set.mockReturnValue({ where: mocks.updateWhere });
 	mocks.update.mockReturnValue({ set: mocks.set });
 	mocks.readFile.mockResolvedValue("# Test\n\nContent");
+	mocks.loadStaticPage.mockResolvedValue(null);
 }
 
 // ─── Unit: validateLocaleInput ────────────────────────────────────────────────
@@ -136,6 +144,8 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.notTranslated).toBe(false);
 		expect(result.availableLang).toBeNull();
 		expect(result.requestedLang).toBe("en");
@@ -152,6 +162,8 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 			.mockResolvedValueOnce([enPost])
 			.mockResolvedValueOnce([ptPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.alternateLang).toBe("pt-br");
 	});
 
@@ -159,6 +171,8 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.alternateLang).toBeNull();
 	});
 
@@ -185,6 +199,8 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.notTranslated).toBe(true);
 		expect(result.availableLang).toBe("en");
 		expect(result.requestedLang).toBe("pt-br");
@@ -198,6 +214,8 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 		});
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([ptPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.notTranslated).toBe(true);
 		expect(result.availableLang).toBe("pt-br");
 		expect(result.requestedLang).toBe("en");
@@ -298,6 +316,89 @@ describe("unit: TranslationNotice", () => {
 			}),
 		);
 		expect(enHtml.toLowerCase()).not.toContain("post");
+	});
+});
+
+// ─── Unit: discriminated union (kind field) ───────────────────────────────────
+
+describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
+	beforeEach(resetMocks);
+
+	it("exact match → kind is 'post'", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+	});
+
+	it("fallback match → kind is 'post'", async () => {
+		const enPost = makePost({ lang: "en" });
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
+		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
+		expect(result.kind).toBe("post");
+	});
+
+	it("post miss → page found → kind is 'page'", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		const pageResult = {
+			entry: {
+				slug: "about",
+				locale: "en" as const,
+				filePath: "/pages/en/about.mdx",
+				frontmatter: { title: "About", description: "About me" },
+			},
+			html: "<p>About me</p>",
+		};
+		mocks.loadStaticPage.mockResolvedValueOnce(pageResult);
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("page");
+		if (result.kind === "page") {
+			expect(result.entry.frontmatter.title).toBe("About");
+			expect(result.html).toBe("<p>About me</p>");
+			expect(result.requestedLang).toBe("en");
+		}
+	});
+
+	it("post miss → page found pt-br → kind is 'page' with pt-br locale", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		const pageResult = {
+			entry: {
+				slug: "about",
+				locale: "pt-br" as const,
+				filePath: "/pages/pt-br/about.mdx",
+				frontmatter: { title: "Sobre" },
+			},
+			html: "<p>Sobre mim</p>",
+		};
+		mocks.loadStaticPage.mockResolvedValueOnce(pageResult);
+		const result = await getPostBySlugWithLangFn("about", "pt-br");
+		expect(result.kind).toBe("page");
+		if (result.kind === "page") {
+			expect(result.requestedLang).toBe("pt-br");
+		}
+	});
+
+	it("post miss + page miss → notFound()", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		mocks.loadStaticPage.mockResolvedValueOnce(null);
+		const err = await getPostBySlugWithLangFn("nonexistent", "en").catch(
+			(e) => e,
+		);
+		expect(isNotFound(err)).toBe(true);
+	});
+
+	it("collision: post and page both exist → returns post (post wins)", async () => {
+		const enPost = makePost({ slug: "about", lang: "en" });
+		mocks.selectWhere.mockResolvedValueOnce([enPost]);
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("post");
+		expect(mocks.loadStaticPage).not.toHaveBeenCalled();
+	});
+
+	it("loadStaticPage receives correct slug and locale", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		mocks.loadStaticPage.mockResolvedValueOnce(null);
+		await getPostBySlugWithLangFn("uses", "pt-br").catch(() => null);
+		expect(mocks.loadStaticPage).toHaveBeenCalledWith("uses", "pt-br");
 	});
 });
 
@@ -435,3 +536,33 @@ describe.skipIf(port5432Free || port3000Free)(
 		});
 	},
 );
+
+describe.skipIf(port3000Free)("integration: static page routes (about)", () => {
+	const BASE_URL = "http://localhost:3000";
+
+	it("GET /about returns 200 with migrated page content", async () => {
+		const res = await fetch(`${BASE_URL}/about`);
+		expect(res.status).toBe(200);
+		const html = await res.text();
+		expect(html.toLowerCase()).toContain("about");
+	});
+
+	it("GET /pt-br/about returns 200 with pt-br page content", async () => {
+		const res = await fetch(`${BASE_URL}/pt-br/about`);
+		expect(res.status).toBe(200);
+		const html = await res.text();
+		expect(html).toBeTruthy();
+	});
+
+	it("GET /about does not contain published date label (pages have no date)", async () => {
+		const res = await fetch(`${BASE_URL}/about`);
+		const html = await res.text();
+		expect(html).not.toContain("Published on");
+		expect(html).not.toContain("Publicado em");
+	});
+
+	it("GET /__nonexistent_page__ returns 404", async () => {
+		const res = await fetch(`${BASE_URL}/__nonexistent_page_${Date.now()}__`);
+		expect(res.status).toBe(404);
+	});
+});

@@ -1,10 +1,11 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import matter from "gray-matter";
 import type { Post } from "#/db/schema";
 import { LOCALES, type Locale } from "#/lib/locale";
+import type { PageEntry } from "#/lib/mdx/pages.server";
 
 export type PostLoaderResult = {
+	kind: "post";
 	post: Post;
 	html: string;
 	requestedLang: Locale;
@@ -13,15 +14,25 @@ export type PostLoaderResult = {
 	alternateLang: Locale | null;
 };
 
+export type PageLoaderResult = {
+	kind: "page";
+	entry: PageEntry;
+	html: string;
+	requestedLang: Locale;
+	hasTwin: boolean;
+};
+
+export type SlugLoaderResult = PostLoaderResult | PageLoaderResult;
+
 export async function getPostBySlugWithLangFn(
 	slug: string,
 	requestedLang: Locale,
 	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
 	renderFn: (source: string) => Promise<any> = async () => () => null,
-): Promise<PostLoaderResult> {
+): Promise<SlugLoaderResult> {
 	const [
 		{ readFile },
-		{ and, eq },
+		{ and, eq, sql },
 		{ createElement },
 		{ renderToStaticMarkup },
 		{ db },
@@ -37,12 +48,16 @@ export async function getPostBySlugWithLangFn(
 	const [exactPost] = await db
 		.select()
 		.from(posts)
-		.where(and(eq(posts.slug, slug), eq(posts.lang, requestedLang)));
+		.where(
+			and(
+				eq(posts.slug, slug),
+				eq(posts.lang, requestedLang),
+				sql`${posts.draft} IS NOT TRUE`,
+			),
+		);
 
 	if (exactPost) {
-		const { content: source } = matter(
-			await readFile(exactPost.filePath, "utf-8"),
-		);
+		const source = await readFile(exactPost.filePath, "utf-8");
 		const Content = await renderFn(source);
 		const html = renderToStaticMarkup(createElement(Content, {}));
 
@@ -50,9 +65,16 @@ export async function getPostBySlugWithLangFn(
 		const [altPost] = await db
 			.select()
 			.from(posts)
-			.where(and(eq(posts.slug, slug), eq(posts.lang, otherLang)));
+			.where(
+				and(
+					eq(posts.slug, slug),
+					eq(posts.lang, otherLang),
+					sql`${posts.draft} IS NOT TRUE`,
+				),
+			);
 
 		return {
+			kind: "post",
 			post: exactPost,
 			html,
 			requestedLang,
@@ -65,25 +87,40 @@ export async function getPostBySlugWithLangFn(
 	const [fallbackPost] = await db
 		.select()
 		.from(posts)
-		.where(eq(posts.slug, slug));
+		.where(and(eq(posts.slug, slug), sql`${posts.draft} IS NOT TRUE`));
 
-	if (!fallbackPost) {
-		throw notFound();
+	if (fallbackPost) {
+		const source = await readFile(fallbackPost.filePath, "utf-8");
+		const Content = await renderFn(source);
+		const html = renderToStaticMarkup(createElement(Content, {}));
+		return {
+			kind: "post",
+			post: fallbackPost,
+			html,
+			requestedLang,
+			notTranslated: true,
+			availableLang: fallbackPost.lang as Locale,
+			alternateLang: null,
+		};
 	}
 
-	const { content: source } = matter(
-		await readFile(fallbackPost.filePath, "utf-8"),
+	const { loadStaticPage, staticPageHasTwin } = await import(
+		"#/lib/mdx/pages.server"
 	);
-	const Content = await renderFn(source);
-	const html = renderToStaticMarkup(createElement(Content, {}));
-	return {
-		post: fallbackPost,
-		html,
-		requestedLang,
-		notTranslated: true,
-		availableLang: fallbackPost.lang as Locale,
-		alternateLang: null,
-	};
+	const page = await loadStaticPage(slug, requestedLang);
+	if (page) {
+		const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
+		const hasTwin = staticPageHasTwin(slug, otherLang);
+		return {
+			kind: "page",
+			entry: page.entry,
+			html: page.html,
+			requestedLang,
+			hasTwin,
+		};
+	}
+
+	throw notFound();
 }
 
 export async function incrementViewCountFn(id: number): Promise<void> {
