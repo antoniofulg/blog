@@ -71,8 +71,9 @@ export function PostHeader({
 	viewCount,
 	alternateLang,
 }: Props) {
-	const formattedDate = publishedAt
-		? new Date(publishedAt).toLocaleDateString(dateLocale[postLang], {
+	const date = publishedAt ? new Date(publishedAt) : null;
+	const formattedDate = date
+		? date.toLocaleDateString(dateLocale[postLang], {
 				day: "numeric",
 				month: "long",
 				year: "numeric",
@@ -88,7 +89,7 @@ export function PostHeader({
 						locale:
 							requestedLang === DEFAULT_LOCALE ? undefined : requestedLang,
 					}}
-					className="inline-flex items-center gap-1.5 rounded-sm text-sm font-medium text-foreground-secondary transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+					className="inline-flex min-h-[44px] items-center gap-1.5 rounded-sm text-sm font-medium text-foreground-secondary transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
 				>
 					<ArrowLeft className="h-4 w-4" aria-hidden="true" />
 					<span>{allPostsByLocale[requestedLang]}</span>
@@ -98,7 +99,7 @@ export function PostHeader({
 					<a
 						href={localeHref(alternateLang, slug)}
 						hrefLang={toBcp47(alternateLang)}
-						className="inline-flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-xs font-medium text-foreground-secondary transition-colors hover:border-border-strong hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+						className="inline-flex min-h-[44px] items-center gap-1.5 rounded-md border border-border bg-card px-3 text-xs font-medium text-foreground-secondary transition-colors hover:border-border-strong hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					>
 						<span>
 							{readInByLocale[requestedLang](altLangName[alternateLang])}
@@ -132,7 +133,7 @@ export function PostHeader({
 							{publishedByLocale[requestedLang]}{" "}
 						</span>
 						<time
-							dateTime={new Date(publishedAt as string | Date).toISOString()}
+							dateTime={(date as Date).toISOString()}
 							className="text-foreground-secondary"
 						>
 							{formattedDate}
