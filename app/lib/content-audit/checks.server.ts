@@ -7,7 +7,8 @@ import remarkParse from "remark-parse";
 import { unified } from "unified";
 import { visit } from "unist-util-visit";
 import { extractLinks } from "#/lib/content-audit/link-parser.server";
-import { LOCALES } from "#/lib/locale";
+import { LOCALES, type Locale } from "#/lib/locale";
+import { enumerateStaticPages, type PageEntry } from "#/lib/mdx/pages.server";
 import type { PostEntry } from "#/lib/site-model.server";
 import { getPostInventory, getRouteInventory } from "#/lib/site-model.server";
 
@@ -18,7 +19,8 @@ export type FindingCategory =
 	| "translation-gap"
 	| "broken-link"
 	| "missing-alt-text"
-	| "series-gap";
+	| "series-gap"
+	| "slug-collision";
 
 export type Finding = {
 	category: FindingCategory;
@@ -229,6 +231,53 @@ export function checkSeriesGaps(posts: PostEntry[]): Finding[] {
 	return findings;
 }
 
+export function checkPageTranslationGaps(
+	pagesByLocale: Partial<Record<Locale, PageEntry[]>>,
+): Finding[] {
+	const findings: Finding[] = [];
+	const enPages = pagesByLocale["en"] ?? [];
+	const ptBrSlugs = new Set((pagesByLocale["pt-br"] ?? []).map((p) => p.slug));
+
+	for (const page of enPages) {
+		if (!ptBrSlugs.has(page.slug)) {
+			findings.push({
+				category: "translation-gap",
+				severity: "major",
+				filePath: page.filePath,
+				message: `Page "${page.slug}" (en) has no translation twin. Add the translation at app/content/pages/pt-br/${page.slug}.mdx.`,
+			});
+		}
+	}
+	return findings;
+}
+
+export function checkSlugCollisions(
+	posts: PostEntry[],
+	pagesByLocale: Partial<Record<Locale, PageEntry[]>>,
+): Finding[] {
+	const findings: Finding[] = [];
+
+	for (const locale of LOCALES) {
+		const postSlugs = new Set(
+			posts.filter((p) => p.lang === locale).map((p) => p.slug),
+		);
+		const pagesForLocale = pagesByLocale[locale] ?? [];
+
+		for (const page of pagesForLocale) {
+			if (postSlugs.has(page.slug)) {
+				findings.push({
+					category: "slug-collision",
+					severity: "major",
+					filePath: page.filePath,
+					message: `Slug "${page.slug}" (${locale}) is used by both a static page and a post. The post wins at runtime (ADR-005); rename the page or post to resolve the shadow.`,
+					detail: { slug: page.slug, locale },
+				});
+			}
+		}
+	}
+	return findings;
+}
+
 export async function runContentAudit(contentDir?: string): Promise<Finding[]> {
 	const dir = contentDir ?? join(process.cwd(), "app", "content", "posts");
 	const allFilePaths = await findMdxFiles(dir);
@@ -241,6 +290,11 @@ export async function runContentAudit(contentDir?: string): Promise<Finding[]> {
 		routes.map((r) => r.path).filter((p) => !p.includes(":")),
 	);
 
+	const pagesByLocale: Partial<Record<Locale, PageEntry[]>> = {};
+	for (const locale of LOCALES) {
+		pagesByLocale[locale] = await enumerateStaticPages(locale);
+	}
+
 	const findings: Finding[] = [];
 
 	findings.push(...(await checkFrontmatter(allFilePaths)));
@@ -248,6 +302,8 @@ export async function runContentAudit(contentDir?: string): Promise<Finding[]> {
 	findings.push(...(await checkBrokenLinks(posts, knownSlugs, knownPaths)));
 	findings.push(...(await checkMissingAltText(posts)));
 	findings.push(...checkSeriesGaps(posts));
+	findings.push(...checkPageTranslationGaps(pagesByLocale));
+	findings.push(...checkSlugCollisions(posts, pagesByLocale));
 
 	return findings;
 }

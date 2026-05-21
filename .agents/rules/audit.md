@@ -13,6 +13,8 @@ check runtime DOM. For runtime accessibility checks, use `a11y-testing` instead.
 
 ## Coverage Matrix
 
+### Posts
+
 | Check | Locale | Published | Drafts | Opt-out |
 |-------|--------|-----------|--------|---------|
 | `frontmatter-invalid` | en + pt-br | yes | yes | none |
@@ -20,6 +22,13 @@ check runtime DOM. For runtime accessibility checks, use `a11y-testing` instead.
 | `broken-link` | en + pt-br | yes | yes | none |
 | `missing-alt-text` | en + pt-br | yes | yes | none |
 | `series-gap` | en + pt-br | yes | yes | none |
+
+### Pages (`app/content/pages/<locale>/`)
+
+| Check | Locale | Opt-out |
+|-------|--------|---------|
+| `translation-gap` | en only | none |
+| `slug-collision` | en + pt-br | none |
 
 Note: the anonymous × admin × locale × route group matrix from ADR-001 is OBSOLETE
 for this skill. That matrix applies to `e2e-coverage` (browser sessions).
@@ -30,11 +39,13 @@ for this skill. That matrix applies to `e2e-coverage` (browser sessions).
 | Category | Severity | Trigger condition |
 |----------|----------|------------------|
 | `frontmatter-invalid` | blocker | Required field missing or wrong type: `title` (string), `date` (ISO date), `slug` (string), `published` (boolean) |
-| `translation-gap` | major | en post exists with no `app/content/posts/pt-br/<slug>.mdx` twin AND frontmatter lacks `noTranslation: true` |
+| `translation-gap` (post) | major | en post exists with no `app/content/posts/pt-br/<slug>.mdx` twin AND frontmatter lacks `noTranslation: true` |
+| `translation-gap` (page) | major | en page exists in `app/content/pages/en/<slug>.mdx` with no `app/content/pages/pt-br/<slug>.mdx` twin (no opt-out — pages do not carry `noTranslation`) |
 | `broken-link` (published) | blocker | Internal link target (`[text](path)` or JSX `<Link href="">`) has no matching file in `app/content/posts/` |
 | `broken-link` (draft) | minor | Internal link target in an unpublished post has no matching file in `app/content/posts/` |
 | `missing-alt-text` | major | `<img>` element or `![](url)` markdown image has empty or missing `alt` attribute/text |
 | `series-gap` | minor | Posts sharing a `series` frontmatter key have non-contiguous `part` numbers (e.g., parts [1, 3] with no part 2) |
+| `slug-collision` | major | A static page slug in `app/content/pages/<locale>/` matches a post slug in the same locale; the post silently wins at runtime (ADR-005). Rename the page or post to resolve. |
 
 External URLs (starting with `http://` or `https://`) are excluded from `broken-link`
 checks — only internal relative paths are validated.
