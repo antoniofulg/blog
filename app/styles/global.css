@@ -120,6 +120,35 @@
 }
 
 /*
+  Page-load entrance animation.
+  Used for the homepage header cascade and content block reveal.
+  opacity 0 → 1 + translateY 8px → 0, ease-out-expo, 500ms.
+  prefers-reduced-motion: remove animation entirely (no instant-jump
+  substitute — elements are already in their final position via `both`
+  fill mode, so removing the animation leaves them visible immediately).
+*/
+@keyframes fade-up {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-up {
+  animation: fade-up 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-up {
+    animation: none;
+  }
+}
+
+/*
   Shiki dual-theme: light by default, dark when .dark class on <html>.
   Shiki's `themes: { light, dark }` mode emits CSS custom properties
   (--shiki-light, --shiki-dark, --shiki-light-bg, --shiki-dark-bg) on every

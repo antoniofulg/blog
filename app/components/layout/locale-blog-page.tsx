@@ -116,18 +116,27 @@ export function LocaleBlogPage({
 	return (
 		<div className="px-5 py-16 lg:px-20 lg:py-24">
 			<div className="mx-auto max-w-5xl">
-				<p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+				<p className="animate-fade-up text-xs font-semibold uppercase tracking-[0.18em] text-accent">
 					{t.eyebrow}
 				</p>
-				<h1 className="mt-3 font-heading text-[clamp(2rem,5.5vw,3.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
+				<h1
+					className="animate-fade-up mt-3 font-heading text-[clamp(2rem,5.5vw,3.5rem)] font-bold leading-[1.1] tracking-tight text-foreground"
+					style={{ animationDelay: "80ms" }}
+				>
 					{t.heading}
 				</h1>
-				<p className="mt-6 max-w-2xl text-xl leading-relaxed text-foreground-secondary">
+				<p
+					className="animate-fade-up mt-6 max-w-2xl text-xl leading-relaxed text-foreground-secondary"
+					style={{ animationDelay: "160ms" }}
+				>
 					{t.subtitle}
 				</p>
 
 				{groups.length === 0 ? (
-					<div className="mt-16">
+					<div
+						className="animate-fade-up mt-16"
+						style={{ animationDelay: "240ms" }}
+					>
 						<EmptyState title={t.emptyTitle} description={t.emptyDesc} />
 					</div>
 				) : (
@@ -136,7 +145,8 @@ export function LocaleBlogPage({
 						{groups.length > 1 && (
 							<nav
 								aria-label="Jump to year"
-								className="mt-8 flex gap-2 overflow-x-auto lg:hidden"
+								className="animate-fade-up mt-8 flex gap-2 overflow-x-auto lg:hidden"
+								style={{ animationDelay: "220ms" }}
 							>
 								{groups.map(({ year }) => (
 									<a
@@ -157,7 +167,10 @@ export function LocaleBlogPage({
 							</nav>
 						)}
 
-						<div className="mt-16 flex items-start gap-12 lg:gap-20">
+						<div
+							className="animate-fade-up mt-16 flex items-start gap-12 lg:gap-20"
+							style={{ animationDelay: "260ms" }}
+						>
 							{/* Sticky timeline index — desktop only */}
 							<aside className="sticky top-24 hidden w-36 shrink-0 lg:block">
 								<TimelineIndex years={yearEntries} locale={locale} />

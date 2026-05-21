@@ -24,10 +24,14 @@ export function WipBanner() {
 	const locale = LOCALES.includes(segment) ? segment : DEFAULT_LOCALE;
 	const t = COPY[locale];
 
-	const [visible, setVisible] = useState(true);
+	// Default hidden; show after effect confirms not dismissed this session.
+	// sessionStorage resets on tab/session close — banner re-appears naturally.
+	const [visible, setVisible] = useState(false);
 
 	useEffect(() => {
-		if (localStorage.getItem(DISMISS_KEY) === "1") setVisible(false);
+		if (sessionStorage.getItem(DISMISS_KEY) !== "1") {
+			setVisible(true);
+		}
 	}, []);
 
 	if (!visible) return null;
@@ -40,7 +44,7 @@ export function WipBanner() {
 					type="button"
 					aria-label={t.dismissLabel}
 					onClick={() => {
-						localStorage.setItem(DISMISS_KEY, "1");
+						sessionStorage.setItem(DISMISS_KEY, "1");
 						setVisible(false);
 					}}
 					className="-mr-1 rounded p-1 transition-colors hover:bg-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground-inverse focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
