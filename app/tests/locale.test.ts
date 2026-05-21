@@ -334,12 +334,62 @@ describe("unit: buildLocaleHead", () => {
 		);
 	});
 
-	it("alternate hreflang links present for all locales", () => {
+	it("no descriptor → emits zero hreflang links (default = no-twin)", () => {
 		const { links } = buildLocaleHead("en");
+		const alternates = links.filter((l) => l.rel === "alternate");
+		expect(alternates).toHaveLength(0);
+	});
+
+	it("no-twin descriptor → emits zero hreflang links (AC-2)", () => {
+		const { links } = buildLocaleHead("en", { kind: "no-twin" });
+		expect(links.filter((l) => l.rel === "alternate")).toHaveLength(0);
+	});
+
+	it("has-twin descriptor → emits two locale alternates without x-default", () => {
+		const { links } = buildLocaleHead("en", { kind: "has-twin" });
 		const alternates = links.filter((l) => l.rel === "alternate");
 		expect(alternates).toHaveLength(2);
 		const langs = alternates.map((l) => ("hrefLang" in l ? l.hrefLang : null));
 		expect(langs).toContain("en");
 		expect(langs).toContain("pt-BR");
+		expect(langs).not.toContain("x-default");
+	});
+
+	it("homepage descriptor (en) → emits x-default + both locale alternates (AC-3)", () => {
+		const { links } = buildLocaleHead("en", { kind: "homepage" });
+		const alternates = links.filter((l) => l.rel === "alternate");
+		expect(alternates).toHaveLength(3);
+		const langs = alternates.map((l) => ("hrefLang" in l ? l.hrefLang : null));
+		expect(langs).toContain("x-default");
+		expect(langs).toContain("en");
+		expect(langs).toContain("pt-BR");
+	});
+
+	it("homepage descriptor (pt-br) → emits x-default + both locale alternates (AC-3)", () => {
+		const { links } = buildLocaleHead("pt-br", { kind: "homepage" });
+		const alternates = links.filter((l) => l.rel === "alternate");
+		expect(alternates).toHaveLength(3);
+		const langs = alternates.map((l) => ("hrefLang" in l ? l.hrefLang : null));
+		expect(langs).toContain("x-default");
+		expect(langs).toContain("en");
+		expect(langs).toContain("pt-BR");
+	});
+
+	it("homepage descriptor → x-default href points to EN root '/'", () => {
+		const { links } = buildLocaleHead("en", { kind: "homepage" });
+		const xDefault = links.find(
+			(l) => "hrefLang" in l && l.hrefLang === "x-default",
+		);
+		expect(xDefault && "href" in xDefault ? xDefault.href : null).toBe("/");
+	});
+
+	it("homepage descriptor → pt-br locale href is '/pt-br/'", () => {
+		const { links } = buildLocaleHead("en", { kind: "homepage" });
+		const ptBrLink = links.find(
+			(l) => "hrefLang" in l && l.hrefLang === "pt-BR",
+		);
+		expect(ptBrLink && "href" in ptBrLink ? ptBrLink.href : null).toBe(
+			"/pt-br/",
+		);
 	});
 });

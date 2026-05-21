@@ -29,7 +29,9 @@ export const Route = createFileRoute("/{-$locale}/")({
 		}
 	},
 	head: ({ params }) =>
-		buildLocaleHead((params.locale ?? DEFAULT_LOCALE) as Locale),
+		buildLocaleHead((params.locale ?? DEFAULT_LOCALE) as Locale, {
+			kind: "homepage",
+		}),
 	loader: ({ params }) =>
 		getLocalePosts({ data: params.locale ?? DEFAULT_LOCALE }),
 	component: LocaleIndexPage,

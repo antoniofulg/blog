@@ -110,7 +110,15 @@ const LOCALE_OG_LOCALE: Record<Locale, string> = {
 	"pt-br": "pt_BR",
 };
 
-export function buildLocaleHead(locale: Locale) {
+export type HreflangDescriptor =
+	| { kind: "homepage" }
+	| { kind: "has-twin" }
+	| { kind: "no-twin" };
+
+export function buildLocaleHead(
+	locale: Locale,
+	hreflang: HreflangDescriptor = { kind: "no-twin" },
+) {
 	const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
 	const canonicalUrl = `${siteUrl}${LOCALE_PATHNAME[locale]}`;
 	const description = LOCALE_DESCRIPTIONS[locale];
@@ -121,6 +129,26 @@ export function buildLocaleHead(locale: Locale) {
 	// engines saw conflicting canonical URLs (e.g. `/en/` vs `/`). og:url stays
 	// here because it's a meta property, not a link, and does not collide with the
 	// root layout's metadata.
+
+	let links: Array<{ rel: string; hrefLang: string; href: string }> = [];
+
+	if (hreflang.kind === "homepage") {
+		links = [
+			{ rel: "alternate", hrefLang: "x-default", href: `${siteUrl}/` },
+			...LOCALES.map((l) => ({
+				rel: "alternate",
+				hrefLang: toBcp47(l),
+				href: `${siteUrl}${localeHref(l)}`,
+			})),
+		];
+	} else if (hreflang.kind === "has-twin") {
+		links = LOCALES.map((l) => ({
+			rel: "alternate",
+			hrefLang: toBcp47(l),
+			href: `${siteUrl}${localeHref(l)}`,
+		}));
+	}
+
 	return {
 		meta: [
 			{ name: "description", content: description },
@@ -129,11 +157,7 @@ export function buildLocaleHead(locale: Locale) {
 			{ property: "og:url", content: canonicalUrl },
 			{ property: "og:locale", content: LOCALE_OG_LOCALE[locale] },
 		],
-		links: LOCALES.map((l) => ({
-			rel: "alternate",
-			hrefLang: toBcp47(l),
-			href: localeHref(l),
-		})),
+		links,
 	};
 }
 

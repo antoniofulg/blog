@@ -13,7 +13,7 @@ import { getLocalePosts } from "./{-$locale}/index.server";
 
 export const Route = createFileRoute("/pt-br/")({
 	loader: () => getLocalePosts({ data: "pt-br" }),
-	head: () => buildLocaleHead("pt-br"),
+	head: () => buildLocaleHead("pt-br", { kind: "homepage" }),
 	component: PtBrIndexPage,
 });
 
