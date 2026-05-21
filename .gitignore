@@ -31,3 +31,6 @@ docs/_reports/app-audit-*.md
 
 # Lighthouse CI flags + per-run artifacts (transient; not for repo)
 .lighthouseci/
+
+# Claude Code / git worktrees (local-only sibling checkouts)
+.worktrees/
