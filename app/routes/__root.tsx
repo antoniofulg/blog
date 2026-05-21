@@ -16,6 +16,7 @@ import { Header } from "#/components/layout/header";
 import { WipBanner } from "#/components/layout/wip-banner";
 import { strings } from "#/lib/i18n/strings";
 import {
+	collapseDefaultLocalePath,
 	DEFAULT_LOCALE,
 	LOCALES,
 	type Locale,
@@ -46,34 +47,55 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		const user = await getAuthSession();
 		return { auth: { user } };
 	},
-	head: () => ({
-		meta: [
-			{ charSet: "utf-8" },
-			{
-				name: "viewport",
-				content: "width=device-width, initial-scale=1",
-			},
-			{ title: "Antonio Fulgencio Blog" },
-			{
-				name: "description",
-				content:
-					"Articles about web development, React, TypeScript, Bun and international career.",
-			},
-		],
-		links: [
-			{ rel: "stylesheet", href: appCss },
-			{ rel: "preconnect", href: "https://fonts.googleapis.com" },
-			{
-				rel: "preconnect",
-				href: "https://fonts.gstatic.com",
-				crossOrigin: "anonymous",
-			},
-			{
-				rel: "stylesheet",
-				href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
-			},
-		],
-	}),
+	head: ({ matches }) => {
+		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+		const pathname = matches.at(-1)?.pathname ?? "/";
+		// Default-locale collapse: `/<DEFAULT_LOCALE>/<path>` → `/<path>`.
+		// Non-default locales (e.g. /pt-br/...) keep their prefix.
+		const canonicalPath = collapseDefaultLocalePath(pathname);
+		const canonicalUrl = `${siteUrl}${canonicalPath}`;
+		return {
+			meta: [
+				{ charSet: "utf-8" },
+				{
+					name: "viewport",
+					content: "width=device-width, initial-scale=1",
+				},
+				{ title: "Antonio Fulgencio Blog" },
+				{
+					name: "description",
+					content:
+						"Articles about web development, React, TypeScript, Bun and international career.",
+				},
+				{ property: "og:type", content: "website" },
+				{ property: "og:title", content: "Antonio Fulgencio Blog" },
+				{
+					property: "og:description",
+					content:
+						"Articles about web development, React, TypeScript, Bun and international career.",
+				},
+				{
+					property: "og:image",
+					content: `${siteUrl}/og-default.png`,
+				},
+				{ name: "twitter:card", content: "summary_large_image" },
+			],
+			links: [
+				{ rel: "canonical", href: canonicalUrl },
+				{ rel: "stylesheet", href: appCss },
+				{ rel: "preconnect", href: "https://fonts.googleapis.com" },
+				{
+					rel: "preconnect",
+					href: "https://fonts.gstatic.com",
+					crossOrigin: "anonymous",
+				},
+				{
+					rel: "stylesheet",
+					href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
+				},
+			],
+		};
+	},
 	component: RootLayout,
 	notFoundComponent: NotFoundPage,
 	shellComponent: RootDocument,
@@ -94,7 +116,7 @@ export function NotFoundPage() {
 			</h1>
 			<p className="max-w-md text-foreground-secondary">{t.body}</p>
 			<Link
-				to="/{-$locale}"
+				to="/{-$locale}/"
 				params={{ locale: undefined }}
 				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
 			>

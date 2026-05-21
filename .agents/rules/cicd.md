@@ -13,13 +13,16 @@ cd.yml   — deploy pipeline, triggers after ci.yml passes on main only
 
 Triggers: every `git push` (any branch) and every PR targeting `main`.
 
-Three jobs run in parallel:
+Six quality checks run in parallel:
 
 | Job | Command | Blocks merge if fails |
 |-----|---------|----------------------|
 | quality (test) | `make test` | yes |
 | quality (lint) | `make lint` | yes |
 | quality (check) | `make check` (tsc --noEmit) | yes |
+| quality (build-js) | `make build-js` | yes |
+| quality (e2e) | `make test-e2e` (Playwright) | yes |
+| quality (lint-tests) | `make lint-tests` | yes |
 
 Two additional jobs run on PRs only:
 
@@ -28,7 +31,15 @@ Two additional jobs run on PRs only:
 | commitlint | All commits in PR follow Conventional Commits |
 | branch-check | Branch name matches `TASK-XXXX/slug` or `hotfix/*` |
 
-All five checks must be green before a PR can merge.
+All eight checks must be green before a PR can merge.
+
+### E2E gate behavior
+
+The `e2e` matrix entry:
+- Restores Chromium from cache (key: `playwright-<os>-<bun.lock-hash>`); on the first run it installs and populates the cache, subsequent runs skip the download.
+- Runs `bun run build` (required by `playwright.config.ts` which starts a `vite preview` server).
+- Runs `bunx playwright test` via `make test-e2e`.
+- Uploads `playwright-report/` and `test-results/` as a GHA artifact (7-day retention) regardless of pass/fail.
 
 ## CD workflow (cd.yml)
 
@@ -65,6 +76,8 @@ GHCR package is set to **public** — VPS pulls without credentials. Production 
 
 ## GitHub Secrets required (one-time setup)
 
+### Deploy secrets
+
 | Secret | Value |
 |--------|-------|
 | `VPS_HOST` | VPS IP or hostname |
@@ -72,6 +85,15 @@ GHCR package is set to **public** — VPS pulls without credentials. Production 
 | `VPS_SSH_KEY` | Ed25519 private key (full PEM including header/footer) |
 | `VPS_PORT` | SSH port (usually 22) |
 | `VPS_DEPLOY_PATH` | Absolute path to project on VPS (e.g. `/home/deploy/blog`) |
+
+### E2E secrets
+
+| Secret | Value |
+|--------|-------|
+| `E2E_ADMIN_EMAIL` | Email of the admin user used for Playwright login tests |
+| `E2E_ADMIN_PASSWORD` | Password of the admin user used for Playwright login tests |
+
+**One-time setup**: Go to the GitHub repository → Settings → Secrets and variables → Actions → New repository secret. Add `E2E_ADMIN_EMAIL` and `E2E_ADMIN_PASSWORD` with the credentials of a seeded admin account. These values must match what is seeded in the test database via `global-setup.ts`. The secrets are read by the `e2e` matrix entry and passed to the test process via environment variables.
 
 ## Manual deploy fallback
 
@@ -99,6 +121,38 @@ git push origin hotfix/description
 ```
 
 CD fires within 5 minutes. `--no-verify` bypasses the local commit-msg hook — the bypass is visible in CI commitlint on the PR. Document retroactively with a compozy task.
+
+## App Audit workflow (app-audit.yml)
+
+Informational-only gate — does NOT block merges.
+
+Triggers:
+- `workflow_dispatch` — manual run; exposes `lighthouse` input (type: choice, default `"false"`, options `["false", "true"]`)
+- `pull_request.paths` — fires when any of these change: `app/routes/**`, `app/components/**`, `app/lib/**`, `app/db/schema.ts`
+
+### lighthouse input
+
+The `lighthouse` input controls whether `@lhci/cli` runs Lighthouse probes:
+- Default `"false"` — skips Lighthouse categories (`seo-score-drop`, `perf-budget-breach`, `best-practices-fail`); avoids ±10-point score variance on shared runners
+- `"true"` — enables all 12 categories including Lighthouse; use for explicit perf/SEO investigation
+
+Workflow step: `if: ${{ inputs.lighthouse == 'true' }}` (literal string equality).
+
+### Secrets required
+
+No new GitHub Secrets. App-audit reuses Phase 1 E2E secrets if admin routes are walked:
+- `E2E_ADMIN_EMAIL` — already required for e2e-coverage Playwright suite
+- `E2E_ADMIN_PASSWORD` — already required for e2e-coverage Playwright suite
+
+### Gate behavior
+
+- Workflow uploads `docs/_reports/app-audit-*.md` as a GHA artifact (7-day retention) regardless of pass/fail.
+- PR comment posted via `peter-evans/create-or-update-comment@v4` using `body-includes: "<!-- audit-fingerprint:app:"` — delta-suppressed when blocker + major counts unchanged from previous comment on same PR.
+- Exit code 1 from `bun run audit:fe` causes the audit step to fail; workflow continues to post comment and upload artifact (`set +e` before the command).
+
+### Fork PR behavior
+
+The workflow uses `pull_request` (not `pull_request_target`), so fork PRs run **without secrets** — the admin fixture auth walk fails at the seed step, and only public-route findings are collected. The PR comment step is guarded by `github.event.pull_request.head.repo.full_name == github.repository`, so comments are only posted for PRs from branches within this repository. Artifact upload and the audit run itself are unaffected on fork PRs.
 
 ## What agents must not do
 

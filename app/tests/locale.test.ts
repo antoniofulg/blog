@@ -3,6 +3,8 @@ import { act, renderHook } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
+	buildLocaleHead,
+	collapseDefaultLocalePath,
 	DEFAULT_LOCALE,
 	detectLocaleFromRequest,
 	LocaleProvider,
@@ -26,6 +28,36 @@ function makeRequest(acceptLanguage?: string, cookie?: string): Request {
 function wrapper({ children }: { children: React.ReactNode }) {
 	return React.createElement(LocaleProvider, null, children);
 }
+
+// ─── unit: collapseDefaultLocalePath ────────────────────────────────────────
+
+describe("unit: collapseDefaultLocalePath", () => {
+	it("'/' stays '/'", () => {
+		expect(collapseDefaultLocalePath("/")).toBe("/");
+	});
+
+	it(`'/${DEFAULT_LOCALE}/' collapses to '/'`, () => {
+		expect(collapseDefaultLocalePath(`/${DEFAULT_LOCALE}/`)).toBe("/");
+	});
+
+	it(`'/${DEFAULT_LOCALE}/about/' collapses to '/about/'`, () => {
+		expect(collapseDefaultLocalePath(`/${DEFAULT_LOCALE}/about/`)).toBe(
+			"/about/",
+		);
+	});
+
+	it("'/pt-br/' stays '/pt-br/' (non-default locale kept)", () => {
+		expect(collapseDefaultLocalePath("/pt-br/")).toBe("/pt-br/");
+	});
+
+	it("'/pt-br/about/' stays '/pt-br/about/'", () => {
+		expect(collapseDefaultLocalePath("/pt-br/about/")).toBe("/pt-br/about/");
+	});
+
+	it("'/other/' stays '/other/' (arbitrary path untouched)", () => {
+		expect(collapseDefaultLocalePath("/other/")).toBe("/other/");
+	});
+});
 
 // ─── unit: localeHref ───────────────────────────────────────────────────────
 
@@ -154,5 +186,82 @@ describe("unit: LocaleProvider + useLocale", () => {
 		const { result } = renderHook(() => useLocale(), { wrapper });
 		expect(result.current).toHaveProperty("locale");
 		expect(typeof result.current.setLocale).toBe("function");
+	});
+});
+
+// ─── unit: buildLocaleHead ───────────────────────────────────────────────────
+
+describe("unit: buildLocaleHead", () => {
+	it("does not emit a canonical link (single source = __root.tsx)", () => {
+		// Canonical emission was moved to __root.tsx (locale-aware via pathname
+		// collapse) so the rendered HTML has exactly one `<link rel="canonical">`.
+		// Duplicate canonicals confuse the audit's strict-mode getAttribute call
+		// AND search engines.
+		const { links } = buildLocaleHead("en");
+		expect(links.find((l) => l.rel === "canonical")).toBeUndefined();
+	});
+
+	it("og:url still includes locale-specific canonical pathname", () => {
+		// og:url stays in buildLocaleHead because it is a meta property and does
+		// not collide with the root layout's link[rel=canonical]. Keeps the
+		// per-locale canonical intent visible to social-card scrapers.
+		const en = buildLocaleHead("en");
+		const ogUrlEn = en.meta.find(
+			(m) => "property" in m && m.property === "og:url",
+		);
+		expect(ogUrlEn && "content" in ogUrlEn ? ogUrlEn.content : null).toBe("/");
+
+		const ptBr = buildLocaleHead("pt-br");
+		const ogUrlPt = ptBr.meta.find(
+			(m) => "property" in m && m.property === "og:url",
+		);
+		expect(ogUrlPt && "content" in ogUrlPt ? ogUrlPt.content : null).toBe(
+			"/pt-br/",
+		);
+	});
+
+	it("en → og:locale 'en_US'", () => {
+		const { meta } = buildLocaleHead("en");
+		const ogLocale = meta.find(
+			(m) => "property" in m && m.property === "og:locale",
+		);
+		expect(ogLocale && "content" in ogLocale ? ogLocale.content : null).toBe(
+			"en_US",
+		);
+	});
+
+	it("pt-br → og:locale 'pt_BR'", () => {
+		const { meta } = buildLocaleHead("pt-br");
+		const ogLocale = meta.find(
+			(m) => "property" in m && m.property === "og:locale",
+		);
+		expect(ogLocale && "content" in ogLocale ? ogLocale.content : null).toBe(
+			"pt_BR",
+		);
+	});
+
+	it("en → description matches en copy", () => {
+		const { meta } = buildLocaleHead("en");
+		const desc = meta.find((m) => "name" in m && m.name === "description");
+		expect(desc && "content" in desc ? desc.content : null).toContain(
+			"Articles about",
+		);
+	});
+
+	it("pt-br → description matches pt-br copy", () => {
+		const { meta } = buildLocaleHead("pt-br");
+		const desc = meta.find((m) => "name" in m && m.name === "description");
+		expect(desc && "content" in desc ? desc.content : null).toContain(
+			"Artigos sobre",
+		);
+	});
+
+	it("alternate hreflang links present for all locales", () => {
+		const { links } = buildLocaleHead("en");
+		const alternates = links.filter((l) => l.rel === "alternate");
+		expect(alternates).toHaveLength(2);
+		const langs = alternates.map((l) => ("hrefLang" in l ? l.hrefLang : null));
+		expect(langs).toContain("en");
+		expect(langs).toContain("pt-BR");
 	});
 });
