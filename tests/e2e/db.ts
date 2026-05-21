@@ -155,20 +155,32 @@ function startPgProxy(
 			const prev = unnamedSlotLock;
 			unnamedSlotLock = mySlot;
 			lockRelease = resolve;
-			return Promise.race([
-				prev.then(() => {}),
-				new Promise<void>((_, reject) =>
-					setTimeout(
-						() =>
-							reject(
-								new Error(
-									`[pg-proxy] unnamed-slot lock held >${LOCK_ACQUIRE_TIMEOUT_MS}ms; acquire timeout`,
-								),
-							),
-						LOCK_ACQUIRE_TIMEOUT_MS,
-					),
-				),
-			]);
+			return new Promise<void>((resolve, reject) => {
+				let settled = false;
+				const timer = setTimeout(() => {
+					if (settled) return;
+					settled = true;
+					reject(
+						new Error(
+							`[pg-proxy] unnamed-slot lock held >${LOCK_ACQUIRE_TIMEOUT_MS}ms; acquire timeout`,
+						),
+					);
+				}, LOCK_ACQUIRE_TIMEOUT_MS);
+				prev.then(
+					() => {
+						if (settled) return;
+						settled = true;
+						clearTimeout(timer);
+						resolve();
+					},
+					(err: unknown) => {
+						if (settled) return;
+						settled = true;
+						clearTimeout(timer);
+						reject(err);
+					},
+				);
+			});
 		};
 
 		// Per-connection pipeline queue: pipelines from THIS connection run in order.

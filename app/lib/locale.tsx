@@ -16,6 +16,13 @@ export function toBcp47(locale: Locale): string {
 	return BCP47_MAP[locale] ?? locale;
 }
 
+export function collapseDefaultLocalePath(pathname: string): string {
+	const defaultPrefix = `/${DEFAULT_LOCALE}/`;
+	return pathname.startsWith(defaultPrefix)
+		? pathname.slice(defaultPrefix.length - 1) || "/"
+		: pathname;
+}
+
 export function localeHref(locale: Locale, slug?: string): string {
 	if (locale === DEFAULT_LOCALE) {
 		return slug ? `/${slug}` : "/";

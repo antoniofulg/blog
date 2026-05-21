@@ -4,6 +4,7 @@ import React from "react";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
 	buildLocaleHead,
+	collapseDefaultLocalePath,
 	DEFAULT_LOCALE,
 	detectLocaleFromRequest,
 	LocaleProvider,
@@ -27,6 +28,36 @@ function makeRequest(acceptLanguage?: string, cookie?: string): Request {
 function wrapper({ children }: { children: React.ReactNode }) {
 	return React.createElement(LocaleProvider, null, children);
 }
+
+// ─── unit: collapseDefaultLocalePath ────────────────────────────────────────
+
+describe("unit: collapseDefaultLocalePath", () => {
+	it("'/' stays '/'", () => {
+		expect(collapseDefaultLocalePath("/")).toBe("/");
+	});
+
+	it(`'/${DEFAULT_LOCALE}/' collapses to '/'`, () => {
+		expect(collapseDefaultLocalePath(`/${DEFAULT_LOCALE}/`)).toBe("/");
+	});
+
+	it(`'/${DEFAULT_LOCALE}/about/' collapses to '/about/'`, () => {
+		expect(collapseDefaultLocalePath(`/${DEFAULT_LOCALE}/about/`)).toBe(
+			"/about/",
+		);
+	});
+
+	it("'/pt-br/' stays '/pt-br/' (non-default locale kept)", () => {
+		expect(collapseDefaultLocalePath("/pt-br/")).toBe("/pt-br/");
+	});
+
+	it("'/pt-br/about/' stays '/pt-br/about/'", () => {
+		expect(collapseDefaultLocalePath("/pt-br/about/")).toBe("/pt-br/about/");
+	});
+
+	it("'/other/' stays '/other/' (arbitrary path untouched)", () => {
+		expect(collapseDefaultLocalePath("/other/")).toBe("/other/");
+	});
+});
 
 // ─── unit: localeHref ───────────────────────────────────────────────────────
 

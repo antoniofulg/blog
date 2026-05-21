@@ -2,6 +2,59 @@ import * as net from "node:net";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { createTestDb, type TestDb } from "../../tests/e2e/db";
 
+// ---- lock-acquire timer-cleanup tests (round-016 issue-001) ----
+// Verifies that the happy-path acquireUnnamedSlotLock clears its setTimeout
+// so no orphan timer fires after the acquire resolves.
+// Uses PGLITE_LOCK_TIMEOUT_MS=50 so the grace-period wait is short.
+describe("PGLite proxy: lock-acquire timer cleanup", () => {
+	let testDb: TestDb;
+
+	beforeAll(async () => {
+		process.env.PGLITE_LOCK_TIMEOUT_MS = "50";
+		testDb = await createTestDb();
+	});
+
+	afterAll(async () => {
+		delete process.env.PGLITE_LOCK_TIMEOUT_MS;
+		await testDb.close();
+	});
+
+	test("100 fast acquires: no unhandledRejection fires after acquire resolves", async () => {
+		const port = Number(new URL(testDb.connectionString).port);
+		const unhandledErrors: Error[] = [];
+		const onUnhandled = (err: Error) => unhandledErrors.push(err);
+		process.on("unhandledRejection", onUnhandled);
+
+		try {
+			for (let i = 0; i < 100; i++) {
+				const sock = await pgConnect(port);
+				try {
+					// Full pipeline: acquires the unnamed-slot lock, executes, releases.
+					sock.write(
+						Buffer.concat([
+							buildParse("SELECT $1::text"),
+							buildBind(["hello"]),
+							buildExecute(),
+							SYNC,
+						]),
+					);
+					await readUntilReady(sock, 2_000);
+				} finally {
+					sock.destroy();
+				}
+			}
+
+			// Grace period — 4× the lock timeout. With the old code, 100 orphan
+			// timers of 50ms would all fire here and push to unhandledErrors.
+			await new Promise<void>((r) => setTimeout(r, 200));
+
+			expect(unhandledErrors).toHaveLength(0);
+		} finally {
+			process.removeListener("unhandledRejection", onUnhandled);
+		}
+	}, 15_000);
+});
+
 // ---- lock-acquire-timeout stall tests ----
 // Uses PGLITE_LOCK_TIMEOUT_MS=500 so the lock acquire timeout fires quickly.
 // Must be a separate describe block with its own testDb so the env var is read

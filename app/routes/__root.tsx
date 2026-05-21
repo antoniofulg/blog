@@ -16,6 +16,7 @@ import { Header } from "#/components/layout/header";
 import { WipBanner } from "#/components/layout/wip-banner";
 import { strings } from "#/lib/i18n/strings";
 import {
+	collapseDefaultLocalePath,
 	DEFAULT_LOCALE,
 	LOCALES,
 	type Locale,
@@ -49,12 +50,9 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 	head: ({ matches }) => {
 		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
 		const pathname = matches.at(-1)?.pathname ?? "/";
-		// Default-locale collapse: `/en/<path>` canonicalizes to `<siteUrl>/<path>`.
-		// Any new default-locale prefix in `DEFAULT_LOCALE` should be reflected
-		// here. Non-default locales (e.g. /pt-br/...) keep their prefix.
-		const canonicalPath = pathname.startsWith("/en/")
-			? pathname.slice(3) || "/"
-			: pathname;
+		// Default-locale collapse: `/<DEFAULT_LOCALE>/<path>` → `/<path>`.
+		// Non-default locales (e.g. /pt-br/...) keep their prefix.
+		const canonicalPath = collapseDefaultLocalePath(pathname);
 		const canonicalUrl = `${siteUrl}${canonicalPath}`;
 		return {
 			meta: [
