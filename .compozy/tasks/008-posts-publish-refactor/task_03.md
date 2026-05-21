@@ -61,7 +61,11 @@ See TechSpec "Implementation Design → Core Interfaces" for the type definition
 1. AC-1: `app/lib/mdx/pages.server.ts` exists and exports `loadStaticPage`, `staticPageHasTwin`, `enumerateStaticPages`, `PageEntry`, `PageFrontmatter`.
 2. AC-2: `loadStaticPage("about", "en")` returns `{ entry, html }` for the migrated `app/content/pages/en/about.mdx` (handed off by task_04); `loadStaticPage("nope", "en")` returns `null`.
 3. AC-3: `staticPageHasTwin("about", "pt-br")` returns `true` after the migration; `staticPageHasTwin("only-en", "pt-br")` returns `false` for a fixture page without a pt-br twin.
+<<<<<<< HEAD
 4. AC-4: `loadStaticPage("../etc/passwd", "en")` rejects the request (returns `null` or throws a typed error) — path-traversal guard.
+=======
+4. AC-4: `loadStaticPage("../etc/forbidden.txt", "en")` rejects the request (returns `null` or throws a typed error) — path-traversal guard.
+>>>>>>> 385be79 (docs(task-0008): add idea, PRD, TechSpec, task breakdown, and ADRs)
 
 ## Deliverables
 - New `app/lib/mdx/pages.server.ts`.
@@ -73,7 +77,11 @@ See TechSpec "Implementation Design → Core Interfaces" for the type definition
   - [x] `loadStaticPage` happy path: returns parsed frontmatter + rendered html for a fixture page (use `vi.mock("node:fs/promises")` per existing `about.test.ts` pattern).
   - [x] `loadStaticPage` missing-file path: returns `null` (not throws) for a non-existent slug.
   - [x] `loadStaticPage` missing-title path: rejects a fixture page whose frontmatter has no `title`.
+<<<<<<< HEAD
   - [x] `loadStaticPage` path-traversal rejection: `../etc/passwd`, `/etc/passwd`, slugs containing `\0`.
+=======
+  - [x] `loadStaticPage` path-traversal rejection: `../etc/forbidden.txt`, `/etc/forbidden.txt`, slugs containing `\0`.
+>>>>>>> 385be79 (docs(task-0008): add idea, PRD, TechSpec, task breakdown, and ADRs)
   - [x] `staticPageHasTwin`: returns `true` when both locales' files exist; `false` otherwise.
   - [x] `enumerateStaticPages`: returns one `PageEntry` per `.mdx` file in `app/content/pages/<locale>/`; skips non-mdx files.
 - Integration tests:
