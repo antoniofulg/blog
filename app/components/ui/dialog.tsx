@@ -1,6 +1,8 @@
 import * as RadixDialog from "@radix-ui/react-dialog";
 import { X } from "lucide-react";
-import React from "react";
+import type React from "react";
+
+const IS_BROWSER = typeof window !== "undefined";
 
 type DialogProps = React.ComponentProps<typeof RadixDialog.Root>;
 export const Dialog: React.FC<DialogProps> = RadixDialog.Root;
@@ -11,13 +13,7 @@ export const DialogContent: React.FC<{
 	children: React.ReactNode;
 	className?: string;
 }> = ({ children, className }) => {
-	const [mounted, setMounted] = React.useState(false);
-
-	React.useEffect(() => {
-		setMounted(true);
-	}, []);
-
-	if (!mounted) return null;
+	if (!IS_BROWSER) return null;
 
 	return (
 		<RadixDialog.Portal>

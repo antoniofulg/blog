@@ -128,6 +128,40 @@ describe("unit: checkPageTranslationGaps", () => {
 		expect(findings).toHaveLength(1);
 		expect(findings[0].category).toBe("translation-gap");
 	});
+
+	it("emits translation-gap when pt-br page has no en twin", () => {
+		const findings = checkPageTranslationGaps({
+			en: [],
+			"pt-br": [makePageEntry({ slug: "uses", locale: "pt-br" })],
+		});
+
+		expect(findings).toHaveLength(1);
+		expect(findings[0].category).toBe("translation-gap");
+		expect(findings[0].severity).toBe("major");
+		expect(findings[0].message).toContain('"uses"');
+		expect(findings[0].message).toContain("pt-br");
+	});
+
+	it("emits findings for both directions when each locale has unmatched pages", () => {
+		const findings = checkPageTranslationGaps({
+			en: [makePageEntry({ slug: "en-only", locale: "en" })],
+			"pt-br": [makePageEntry({ slug: "ptbr-only", locale: "pt-br" })],
+		});
+
+		expect(findings).toHaveLength(2);
+		const messages = findings.map((f) => f.message);
+		expect(messages.some((m) => m.includes('"en-only"'))).toBe(true);
+		expect(messages.some((m) => m.includes('"ptbr-only"'))).toBe(true);
+	});
+
+	it("emits no findings when both locales have matching pages", () => {
+		const findings = checkPageTranslationGaps({
+			en: [makePageEntry({ slug: "about", locale: "en" })],
+			"pt-br": [makePageEntry({ slug: "about", locale: "pt-br" })],
+		});
+
+		expect(findings).toHaveLength(0);
+	});
 });
 
 // ─── checkSlugCollisions ─────────────────────────────────────────────────────
@@ -291,5 +325,25 @@ describe("integration: runContentAudit with pages", () => {
 		expect(mocks.enumerateStaticPages).toHaveBeenCalledWith("en");
 		expect(mocks.enumerateStaticPages).toHaveBeenCalledWith("pt-br");
 		expect(mocks.enumerateStaticPages).toHaveBeenCalledTimes(2);
+	});
+
+	it("emits frontmatter-invalid when a page MDX file is missing title (issue 006)", async () => {
+		mocks.readdir.mockImplementation(async (dir: unknown) => {
+			if (String(dir).includes("pages")) {
+				return [{ name: "about.mdx", isDirectory: () => false }];
+			}
+			return [];
+		});
+		// Frontmatter without title
+		mocks.readFile.mockResolvedValue("---\ndescription: A page\n---\n# About");
+
+		const findings = await runContentAudit("/tmp/empty-posts");
+
+		const invalid = findings.filter(
+			(f) => f.category === "frontmatter-invalid",
+		);
+		expect(invalid).toHaveLength(1);
+		expect(invalid[0].severity).toBe("blocker");
+		expect(invalid[0].filePath).toContain("about.mdx");
 	});
 });

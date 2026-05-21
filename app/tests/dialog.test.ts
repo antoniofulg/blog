@@ -158,11 +158,33 @@ describe("unit: DialogClose button closes the dialog", () => {
 	});
 });
 
+// ─── unit: Dialog open on mount shows content immediately ─────────────────────
+
+describe("unit: DialogContent visible when Dialog mounts with open=true", () => {
+	it("content is in DOM on first render when open=true (no null first-frame)", async () => {
+		await act(async () => {
+			render(
+				React.createElement(
+					Dialog,
+					{ open: true },
+					React.createElement(
+						DialogContent,
+						null,
+						React.createElement(DialogTitle, null, "Open on mount"),
+					),
+				),
+			);
+		});
+
+		expect(screen.getByText("Open on mount")).toBeDefined();
+	});
+});
+
 // ─── integration: SSR guard — closed dialog emits no portal markup ────────────
 
-describe("integration: SSR guard — closed dialog emits no portal markup before mount", () => {
-	it("DialogContent renders null when dialog is closed (not yet mounted)", () => {
-		// Simulate closed dialog (default state — no open prop)
+describe("integration: SSR guard — closed dialog emits no portal markup (IS_BROWSER gate)", () => {
+	it("DialogContent emits no portal markup when dialog is closed", () => {
+		// Closed dialog: Radix does not render portal content when open=false (default)
 		const { container } = render(
 			React.createElement(
 				Dialog,
@@ -176,7 +198,7 @@ describe("integration: SSR guard — closed dialog emits no portal markup before
 			),
 		);
 
-		// The portal content must not appear before mount / trigger click
+		// Portal content absent: dialog is closed, Radix skips portal render
 		expect(container.querySelector('[role="dialog"]')).toBeNull();
 		expect(screen.queryByText("SSR guard title")).toBeNull();
 	});

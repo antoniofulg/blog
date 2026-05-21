@@ -151,14 +151,39 @@ describe("unit: getSitemapEntriesFn — structural homepage entries", () => {
 		}
 	});
 
-	it("falls back to localhost:3000 when SITE_URL is absent", async () => {
+	it("falls back to localhost:3000 when SITE_URL is absent (non-production)", async () => {
 		vi.stubEnv("SITE_URL", "");
+		vi.stubEnv("NODE_ENV", "test");
 		try {
-			// empty string → falsy → fallback
 			const entries = await getSitemapEntriesFn();
-			// Empty SITE_URL resolves to "" which is falsy, but ?? only checks null/undefined
-			// so this tests the actual conditional
-			expect(entries.length).toBeGreaterThan(0);
+			expect(
+				entries.some((e) => e.loc.startsWith("http://localhost:3000")),
+			).toBe(true);
+		} finally {
+			vi.unstubAllEnvs();
+		}
+	});
+
+	it("throws when SITE_URL is unset in production", async () => {
+		vi.stubEnv("SITE_URL", "");
+		vi.stubEnv("NODE_ENV", "production");
+		try {
+			await expect(getSitemapEntriesFn()).rejects.toThrow(
+				"SITE_URL must be set in production",
+			);
+		} finally {
+			vi.unstubAllEnvs();
+		}
+	});
+
+	it("getSitemapXmlResponse returns 500 when SITE_URL unset in production", async () => {
+		vi.stubEnv("SITE_URL", "");
+		vi.stubEnv("NODE_ENV", "production");
+		try {
+			const res = await getSitemapXmlResponse();
+			expect(res.status).toBe(500);
+			const body = await res.text();
+			expect(body).toContain("SITE_URL");
 		} finally {
 			vi.unstubAllEnvs();
 		}

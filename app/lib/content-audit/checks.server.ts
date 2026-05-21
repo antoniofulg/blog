@@ -235,17 +235,26 @@ export function checkPageTranslationGaps(
 	pagesByLocale: Partial<Record<Locale, PageEntry[]>>,
 ): Finding[] {
 	const findings: Finding[] = [];
-	const enPages = pagesByLocale["en"] ?? [];
-	const ptBrSlugs = new Set((pagesByLocale["pt-br"] ?? []).map((p) => p.slug));
+	const slugsByLocale = Object.fromEntries(
+		LOCALES.map((l) => [
+			l,
+			new Set((pagesByLocale[l] ?? []).map((p) => p.slug)),
+		]),
+	) as Record<Locale, Set<string>>;
 
-	for (const page of enPages) {
-		if (!ptBrSlugs.has(page.slug)) {
-			findings.push({
-				category: "translation-gap",
-				severity: "major",
-				filePath: page.filePath,
-				message: `Page "${page.slug}" (en) has no translation twin. Add the translation at app/content/pages/pt-br/${page.slug}.mdx.`,
-			});
+	for (const locale of LOCALES) {
+		for (const page of pagesByLocale[locale] ?? []) {
+			for (const otherLocale of LOCALES) {
+				if (otherLocale === locale) continue;
+				if (!slugsByLocale[otherLocale].has(page.slug)) {
+					findings.push({
+						category: "translation-gap",
+						severity: "major",
+						filePath: page.filePath,
+						message: `Page "${page.slug}" (${locale}) has no translation twin. Add the translation at app/content/pages/${otherLocale}/${page.slug}.mdx.`,
+					});
+				}
+			}
 		}
 	}
 	return findings;
@@ -279,8 +288,13 @@ export function checkSlugCollisions(
 }
 
 export async function runContentAudit(contentDir?: string): Promise<Finding[]> {
-	const dir = contentDir ?? join(process.cwd(), "app", "content", "posts");
-	const allFilePaths = await findMdxFiles(dir);
+	const postsDir = contentDir ?? join(process.cwd(), "app", "content", "posts");
+	const pagesDir = join(process.cwd(), "app", "content", "pages");
+	const [postPaths, pagePaths] = await Promise.all([
+		findMdxFiles(postsDir),
+		findMdxFiles(pagesDir),
+	]);
+	const allFilePaths = [...postPaths, ...pagePaths];
 
 	const posts = await getPostInventory();
 	const routes = await getRouteInventory();

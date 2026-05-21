@@ -49,7 +49,14 @@ function renderXml(entries: SitemapEntry[]): string {
 }
 
 function getSiteOrigin(): string {
-	return (process.env.SITE_URL ?? "http://localhost:3000").replace(/\/$/, "");
+	const url = process.env.SITE_URL;
+	if (!url) {
+		if (process.env.NODE_ENV === "production") {
+			throw new Error("SITE_URL must be set in production (sitemap origin)");
+		}
+		return "http://localhost:3000";
+	}
+	return url.replace(/\/$/, "");
 }
 
 function buildAlternates(
@@ -129,10 +136,15 @@ export async function getSitemapEntriesFn(): Promise<SitemapEntry[]> {
 }
 
 export async function getSitemapXmlResponse(): Promise<Response> {
-	const entries = await getSitemapEntriesFn();
-	const xml = renderXml(entries);
-	return new Response(xml, {
-		status: 200,
-		headers: { "content-type": "application/xml" },
-	});
+	try {
+		const entries = await getSitemapEntriesFn();
+		const xml = renderXml(entries);
+		return new Response(xml, {
+			status: 200,
+			headers: { "content-type": "application/xml" },
+		});
+	} catch (err) {
+		const message = err instanceof Error ? err.message : String(err);
+		return new Response(message, { status: 500 });
+	}
 }
