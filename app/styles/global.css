@@ -120,6 +120,36 @@
 }
 
 /*
+  Reading progress bar for post pages.
+  CSS scroll-driven animation — zero JS, no layout thrash.
+  Support: Chrome 115+, Firefox 110+, Safari 17.2+ (2026 baseline ~90%).
+  Fallback: bar stays at scaleX(0) (invisible) on unsupported browsers.
+  z-60 sits above the sticky header (z-50) without displacing it.
+*/
+@keyframes reading-fill {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.reading-progress {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 2px;
+  background-color: var(--color-accent);
+  transform-origin: left;
+  transform: scaleX(0);
+  z-index: 60;
+  animation: reading-fill linear both;
+  animation-timeline: scroll(root block);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reading-progress { display: none; }
+}
+
+/*
   Page-load entrance animation.
   Used for the homepage header cascade and content block reveal.
   opacity 0 → 1 + translateY 8px → 0, ease-out-expo, 500ms.

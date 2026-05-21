@@ -8,8 +8,8 @@ const eyebrowByLocale: Record<Locale, string> = {
 };
 
 const allPostsByLocale: Record<Locale, string> = {
-	en: "All posts",
-	"pt-br": "Todos os artigos",
+	en: "Writing",
+	"pt-br": "Escrita",
 };
 
 const publishedByLocale: Record<Locale, string> = {
@@ -112,7 +112,10 @@ export function PostHeader({
 				{eyebrowByLocale[requestedLang]}
 			</p>
 
-			<h1 className="font-heading text-[clamp(2rem,5.5vw,3.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
+			<h1
+				id="post-title"
+				className="font-heading text-[clamp(2rem,5.5vw,3.5rem)] font-bold leading-[1.1] tracking-tight text-foreground"
+			>
 				{title}
 			</h1>
 
@@ -122,7 +125,7 @@ export function PostHeader({
 				</p>
 			)}
 
-			<ul className="flex flex-wrap items-center gap-x-3 gap-y-1 text-xs font-medium uppercase tracking-[0.16em] text-foreground-muted">
+			<ul className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium uppercase tracking-[0.16em] text-foreground-muted">
 				{formattedDate && (
 					<li>
 						<span className="text-foreground-muted">
