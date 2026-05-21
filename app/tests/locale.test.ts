@@ -161,16 +161,32 @@ describe("unit: LocaleProvider + useLocale", () => {
 // ─── unit: buildLocaleHead ───────────────────────────────────────────────────
 
 describe("unit: buildLocaleHead", () => {
-	it("en → canonical '/'", () => {
+	it("does not emit a canonical link (single source = __root.tsx)", () => {
+		// Canonical emission was moved to __root.tsx (locale-aware via pathname
+		// collapse) so the rendered HTML has exactly one `<link rel="canonical">`.
+		// Duplicate canonicals confuse the audit's strict-mode getAttribute call
+		// AND search engines.
 		const { links } = buildLocaleHead("en");
-		const canonical = links.find((l) => l.rel === "canonical");
-		expect(canonical?.href).toBe("/");
+		expect(links.find((l) => l.rel === "canonical")).toBeUndefined();
 	});
 
-	it("pt-br → canonical '/pt-br/'", () => {
-		const { links } = buildLocaleHead("pt-br");
-		const canonical = links.find((l) => l.rel === "canonical");
-		expect(canonical?.href).toBe("/pt-br/");
+	it("og:url still includes locale-specific canonical pathname", () => {
+		// og:url stays in buildLocaleHead because it is a meta property and does
+		// not collide with the root layout's link[rel=canonical]. Keeps the
+		// per-locale canonical intent visible to social-card scrapers.
+		const en = buildLocaleHead("en");
+		const ogUrlEn = en.meta.find(
+			(m) => "property" in m && m.property === "og:url",
+		);
+		expect(ogUrlEn && "content" in ogUrlEn ? ogUrlEn.content : null).toBe("/");
+
+		const ptBr = buildLocaleHead("pt-br");
+		const ogUrlPt = ptBr.meta.find(
+			(m) => "property" in m && m.property === "og:url",
+		);
+		expect(ogUrlPt && "content" in ogUrlPt ? ogUrlPt.content : null).toBe(
+			"/pt-br/",
+		);
 	});
 
 	it("en → og:locale 'en_US'", () => {

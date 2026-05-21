@@ -97,6 +97,13 @@ export function buildLocaleHead(locale: Locale) {
 	const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
 	const canonicalUrl = `${siteUrl}${LOCALE_PATHNAME[locale]}`;
 	const description = LOCALE_DESCRIPTIONS[locale];
+	// Canonical link is emitted by `__root.tsx` (single source of truth, locale-aware
+	// via pathname). Emitting it here too produced duplicate `<link rel="canonical">`
+	// tags in the rendered HTML — Playwright's strict-mode `getAttribute` threw on
+	// the multi-match, the audit caught and reported missing-meta, and search
+	// engines saw conflicting canonical URLs (e.g. `/en/` vs `/`). og:url stays
+	// here because it's a meta property, not a link, and does not collide with the
+	// root layout's metadata.
 	return {
 		meta: [
 			{ name: "description", content: description },
@@ -105,14 +112,11 @@ export function buildLocaleHead(locale: Locale) {
 			{ property: "og:url", content: canonicalUrl },
 			{ property: "og:locale", content: LOCALE_OG_LOCALE[locale] },
 		],
-		links: [
-			{ rel: "canonical", href: canonicalUrl },
-			...LOCALES.map((l) => ({
-				rel: "alternate",
-				hrefLang: toBcp47(l),
-				href: localeHref(l),
-			})),
-		],
+		links: LOCALES.map((l) => ({
+			rel: "alternate",
+			hrefLang: toBcp47(l),
+			href: localeHref(l),
+		})),
 	};
 }
 

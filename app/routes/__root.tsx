@@ -49,7 +49,13 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 	head: ({ matches }) => {
 		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
 		const pathname = matches.at(-1)?.pathname ?? "/";
-		const canonicalUrl = `${siteUrl}${pathname}`;
+		// Default-locale collapse: `/en/<path>` canonicalizes to `<siteUrl>/<path>`.
+		// Any new default-locale prefix in `DEFAULT_LOCALE` should be reflected
+		// here. Non-default locales (e.g. /pt-br/...) keep their prefix.
+		const canonicalPath = pathname.startsWith("/en/")
+			? pathname.slice(3) || "/"
+			: pathname;
+		const canonicalUrl = `${siteUrl}${canonicalPath}`;
 		return {
 			meta: [
 				{ charSet: "utf-8" },
