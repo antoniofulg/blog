@@ -5,6 +5,11 @@ import { afterEach, describe, expect, it, vi } from "vitest";
 import { Footer } from "#/components/layout/footer";
 
 vi.mock("@tanstack/react-router", () => ({
+	useRouterState: ({
+		select,
+	}: {
+		select: (s: { location: { pathname: string } }) => string;
+	}) => select({ location: { pathname: "/en/" } }),
 	Link: ({
 		children,
 		to,

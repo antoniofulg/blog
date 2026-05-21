@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Rss } from "lucide-react";
 import { DEFAULT_LOCALE, type Locale, useCurrentLocale } from "#/lib/locale";
 
@@ -39,8 +39,16 @@ const navEyebrow: Record<Locale, string> = {
 	"pt-br": "Navegação",
 };
 
+function isActiveLink(to: string, pathname: string): boolean {
+	if (to === "/") {
+		return pathname === "/" || pathname === "/en/" || pathname === "/pt-br/";
+	}
+	return pathname.startsWith(to);
+}
+
 export function Footer() {
 	const locale = useCurrentLocale();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
 	const year = new Date().getFullYear();
 	const navLinks = navLinksByLocale[locale];
 
@@ -53,9 +61,10 @@ export function Footer() {
 						params={{
 							locale: locale === DEFAULT_LOCALE ? undefined : locale,
 						}}
+						aria-label="Antonio Fulgencio — home"
 						className="rounded-sm font-heading text-base font-bold text-foreground transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
 					>
-						{AUTHOR}
+						<span aria-hidden="true">{AUTHOR}</span>
 					</Link>
 					<p className="text-sm leading-relaxed text-foreground-secondary">
 						{tagline[locale]}
@@ -67,16 +76,24 @@ export function Footer() {
 						{navEyebrow[locale]}
 					</span>
 					<ul className="flex flex-col gap-2">
-						{navLinks.map((link) => (
-							<li key={link.to}>
-								<Link
-									to={link.to}
-									className="rounded-sm text-sm text-foreground-secondary transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
-								>
-									{link.label}
-								</Link>
-							</li>
-						))}
+						{navLinks.map((link) => {
+							const active = isActiveLink(link.to, pathname);
+							return (
+								<li key={link.to}>
+									<Link
+										to={link.to}
+										aria-current={active ? "page" : undefined}
+										className={`rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-surface ${
+											active
+												? "font-medium text-accent"
+												: "text-foreground-secondary hover:text-accent"
+										}`}
+									>
+										{link.label}
+									</Link>
+								</li>
+							);
+						})}
 					</ul>
 				</nav>
 			</div>
@@ -89,10 +106,10 @@ export function Footer() {
 					<p>{colophon[locale]}</p>
 					<a
 						href="/rss.xml"
-						aria-label="RSS Feed"
-						className="text-foreground-muted transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+						className="inline-flex items-center gap-1.5 text-foreground-muted transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
 					>
 						<Rss className="h-4 w-4" aria-hidden="true" />
+						<span>RSS</span>
 					</a>
 				</div>
 			</div>
