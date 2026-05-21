@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char123LocaleChar125RouteImport } from './routes/{-$locale}'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as LoginRouteImport } from './routes/login'
@@ -24,6 +25,11 @@ import { Route as AdminPreviewSlugRouteImport } from './routes/admin/preview.$sl
 const Char123LocaleChar125Route = Char123LocaleChar125RouteImport.update({
   id: '/{-$locale}',
   path: '/{-$locale}',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RssDotxmlRoute = RssDotxmlRouteImport.update({
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -96,6 +103,7 @@ export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
   '/admin': typeof AdminIndexRoute
   '/en': typeof EnIndexRoute
@@ -109,6 +117,7 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
   '/admin/': typeof AdminIndexRoute
@@ -124,6 +133,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
+    | '/sitemap.xml'
     | '/{-$locale}'
     | '/{-$locale}/$slug'
     | '/admin/'
@@ -137,6 +147,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
+    | '/sitemap.xml'
     | '/{-$locale}/$slug'
     | '/admin'
     | '/en'
@@ -149,6 +160,7 @@ export interface FileRouteTypes {
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
+    | '/sitemap.xml'
     | '/{-$locale}'
     | '/{-$locale}/$slug'
     | '/admin/'
@@ -163,6 +175,7 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   RssDotxmlRoute: typeof RssDotxmlRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   Char123LocaleChar125Route: typeof Char123LocaleChar125RouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   EnIndexRoute: typeof EnIndexRoute
@@ -178,6 +191,13 @@ declare module '@tanstack/react-router' {
       path: '/{-$locale}'
       fullPath: '/{-$locale}'
       preLoaderRoute: typeof Char123LocaleChar125RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rss.xml': {
@@ -270,6 +290,7 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   RssDotxmlRoute: RssDotxmlRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   Char123LocaleChar125Route: Char123LocaleChar125RouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   EnIndexRoute: EnIndexRoute,
