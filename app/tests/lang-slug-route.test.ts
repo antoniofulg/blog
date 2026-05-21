@@ -27,6 +27,7 @@ const mocks = vi.hoisted(() => {
 	const readFile = vi.fn().mockResolvedValue("# Test\n\nContent");
 
 	const loadStaticPage = vi.fn().mockResolvedValue(null);
+	const staticPageHasTwin = vi.fn().mockReturnValue(true);
 
 	return {
 		select,
@@ -37,6 +38,7 @@ const mocks = vi.hoisted(() => {
 		updateWhere,
 		readFile,
 		loadStaticPage,
+		staticPageHasTwin,
 	};
 });
 
@@ -53,6 +55,7 @@ vi.mock("node:fs/promises", () => ({
 
 vi.mock("#/lib/mdx/pages.server", () => ({
 	loadStaticPage: mocks.loadStaticPage,
+	staticPageHasTwin: mocks.staticPageHasTwin,
 }));
 
 vi.mock("@tanstack/react-start", () => ({
@@ -349,12 +352,14 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 			html: "<p>About me</p>",
 		};
 		mocks.loadStaticPage.mockResolvedValueOnce(pageResult);
+		mocks.staticPageHasTwin.mockReturnValueOnce(true);
 		const result = await getPostBySlugWithLangFn("about", "en");
 		expect(result.kind).toBe("page");
 		if (result.kind === "page") {
 			expect(result.entry.frontmatter.title).toBe("About");
 			expect(result.html).toBe("<p>About me</p>");
 			expect(result.requestedLang).toBe("en");
+			expect(result.hasTwin).toBe(true);
 		}
 	});
 
@@ -370,10 +375,12 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 			html: "<p>Sobre mim</p>",
 		};
 		mocks.loadStaticPage.mockResolvedValueOnce(pageResult);
+		mocks.staticPageHasTwin.mockReturnValueOnce(false);
 		const result = await getPostBySlugWithLangFn("about", "pt-br");
 		expect(result.kind).toBe("page");
 		if (result.kind === "page") {
 			expect(result.requestedLang).toBe("pt-br");
+			expect(result.hasTwin).toBe(false);
 		}
 	});
 

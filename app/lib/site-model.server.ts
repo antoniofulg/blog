@@ -62,13 +62,6 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		expectedStatus: 200,
 		intent: "post detail",
 	},
-	"{-$locale}/about.tsx": {
-		path: "/about",
-		locale: "en",
-		auth: "public",
-		expectedStatus: 200,
-		intent: "about page",
-	},
 	"admin/index.tsx": {
 		path: "/admin",
 		locale: null,
