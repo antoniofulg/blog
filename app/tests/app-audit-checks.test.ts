@@ -1,5 +1,8 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { normalizeRoutePath } from "#/lib/app-audit/checks.server";
+import {
+	buildLocalePath,
+	normalizeRoutePath,
+} from "#/lib/app-audit/checks.server";
 import type { RouteEntry } from "#/lib/site-model.server";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
@@ -539,5 +542,36 @@ describe("normalizeRoutePath", () => {
 
 	it("root with trailing slash → /", () => {
 		expect(normalizeRoutePath("//")).toBe("/");
+	});
+});
+
+// ─── buildLocalePath unit tests (round-015 issue 002) ────────────────────────
+
+describe("buildLocalePath", () => {
+	it("en locale: path returned as-is regardless of prefix", () => {
+		expect(buildLocalePath("/", "en")).toBe("/");
+		expect(buildLocalePath("/about", "en")).toBe("/about");
+		expect(buildLocalePath("/pt-br/", "en")).toBe("/pt-br/");
+		expect(buildLocalePath("/en/", "en")).toBe("/en/");
+	});
+
+	it("pt-br locale: non-prefixed root mapped to /pt-br/", () => {
+		expect(buildLocalePath("/", "pt-br")).toBe("/pt-br/");
+	});
+
+	it("pt-br locale: non-prefixed path prefixed with /pt-br", () => {
+		expect(buildLocalePath("/about", "pt-br")).toBe("/pt-br/about");
+	});
+
+	it("idempotent for /pt-br/ prefix — no double-prefix /pt-br/pt-br/", () => {
+		expect(buildLocalePath("/pt-br/", "pt-br")).toBe("/pt-br/");
+		expect(buildLocalePath("/pt-br", "pt-br")).toBe("/pt-br");
+	});
+
+	it("idempotent for /en/ prefix when locale is pt-br — no /pt-br/en/ produced", () => {
+		// This is the bug fixed in round-015: the old hardcoded /pt-br/ check
+		// would silently produce /pt-br/en/ for an already-prefixed /en/ path.
+		expect(buildLocalePath("/en/", "pt-br")).toBe("/en/");
+		expect(buildLocalePath("/en", "pt-br")).toBe("/en");
 	});
 });

@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 15
 round_created_at: 2026-05-20T23:57:31Z
-status: pending
+status: resolved
 file: app/lib/app-audit/checks.server.ts
 line: 33
 severity: low
@@ -94,5 +94,5 @@ Will fail today (will pass after the generalization) — pins the contract.
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: `buildLocalePath` line 36 checks `path.startsWith("/pt-br/") || path === "/pt-br"` — hardcoded to a single locale while the walker's `isShimRoute` uses `LOCALES.some(...)`. The defensive branch is dead in current execution paths (walker handles shims first), but for any future third locale `es`, `buildLocalePath("/es/", "pt-br")` would silently return `/pt-br/es/`. Fix: replace the hardcoded check with `LOCALES.some(l => path.startsWith(\`/${l}/\`) || path === \`/${l}\`)` and export the function so it can be unit-tested.

@@ -2,6 +2,58 @@ import * as net from "node:net";
 import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { createTestDb, type TestDb } from "../../tests/e2e/db";
 
+// ---- lock-acquire-timeout stall tests ----
+// Uses PGLITE_LOCK_TIMEOUT_MS=500 so the lock acquire timeout fires quickly.
+// Must be a separate describe block with its own testDb so the env var is read
+// when startPgProxy is called inside createTestDb.
+describe("PGLite proxy: lock acquire timeout", () => {
+	let testDb: TestDb;
+
+	beforeAll(async () => {
+		process.env.PGLITE_LOCK_TIMEOUT_MS = "500";
+		testDb = await createTestDb();
+	});
+
+	afterAll(async () => {
+		delete process.env.PGLITE_LOCK_TIMEOUT_MS;
+		await testDb.close();
+	});
+
+	test("stall: second connection gets a wire response within 2 s when first holds lock without Bind", async () => {
+		const port = Number(new URL(testDb.connectionString).port);
+		const sockA = await pgConnect(port);
+		const sockB = await pgConnect(port);
+
+		try {
+			// Socket A: Parse+Sync — acquires the unnamed-slot lock.
+			// ReadyForQuery comes back immediately after ParseComplete.
+			sockA.write(Buffer.concat([buildParse("SELECT $1::text"), SYNC]));
+			await readUntilReady(sockA, 3_000);
+
+			// Socket A now holds the lock (lockRelease !== null).
+			// It deliberately sends no Bind and does NOT close.
+
+			// Socket B: Parse+Sync — must wait for A's lock, then timeout at ~500 ms.
+			sockB.write(Buffer.concat([buildParse("SELECT $1::text"), SYNC]));
+			const bResult = await readUntilReady(sockB, 2_000);
+
+			// B must have received ReadyForQuery within 2 s (not hung forever).
+			expect(bResult.raw.length).toBeGreaterThan(0);
+
+			// If an ErrorResponse (0x45) was sent, it must precede ReadyForQuery (0x5a).
+			const errIdx = bResult.raw.indexOf(0x45);
+			const rfqIdx = bResult.raw.lastIndexOf(0x5a);
+			expect(rfqIdx).toBeGreaterThan(-1);
+			if (errIdx !== -1) {
+				expect(errIdx).toBeLessThan(rfqIdx);
+			}
+		} finally {
+			sockA.destroy();
+			sockB.destroy();
+		}
+	}, 5_000);
+});
+
 // ---- wire protocol helpers ----
 
 function buildParse(query: string, paramOids: number[] = []): Buffer {

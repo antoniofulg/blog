@@ -103,6 +103,9 @@ function startPgProxy(
 	// During that window, other connections' Parse pipelines queue up.
 	// For the common case (Parse+Bind in one pipeline), the lock is held only
 	// for the duration of that single execProtocolRaw call.
+	const LOCK_ACQUIRE_TIMEOUT_MS = Number(
+		process.env.PGLITE_LOCK_TIMEOUT_MS ?? "5000",
+	);
 	let unnamedSlotLock: Promise<void> = Promise.resolve();
 
 	const activeSockets = new Set<net.Socket>();
@@ -124,6 +127,8 @@ function startPgProxy(
 			}
 		};
 
+		// Reap half-open TCP connections before kernel keep-alive fires (default: 2 h).
+		socket.setTimeout(60_000);
 		socket.on("close", () => {
 			activeSockets.delete(socket);
 			releaseUnnamedSlotLock();
@@ -132,9 +137,15 @@ function startPgProxy(
 			releaseUnnamedSlotLock();
 			socket.destroy();
 		});
+		socket.on("timeout", () => {
+			console.error("[pg-proxy] socket inactivity timeout; destroying");
+			releaseUnnamedSlotLock();
+			socket.destroy();
+		});
 
 		// Acquire the unnamed-slot lock if not already held.
-		// Returns a Promise that resolves when it is this connection's turn.
+		// Returns a Promise that resolves when it is this connection's turn,
+		// or rejects after LOCK_ACQUIRE_TIMEOUT_MS if the current holder stalls.
 		const acquireUnnamedSlotLock = (): Promise<void> => {
 			if (lockRelease !== null) return Promise.resolve();
 			let resolve!: () => void;
@@ -144,7 +155,20 @@ function startPgProxy(
 			const prev = unnamedSlotLock;
 			unnamedSlotLock = mySlot;
 			lockRelease = resolve;
-			return prev.then(() => {});
+			return Promise.race([
+				prev.then(() => {}),
+				new Promise<void>((_, reject) =>
+					setTimeout(
+						() =>
+							reject(
+								new Error(
+									`[pg-proxy] unnamed-slot lock held >${LOCK_ACQUIRE_TIMEOUT_MS}ms; acquire timeout`,
+								),
+							),
+						LOCK_ACQUIRE_TIMEOUT_MS,
+					),
+				),
+			]);
 		};
 
 		// Per-connection pipeline queue: pipelines from THIS connection run in order.

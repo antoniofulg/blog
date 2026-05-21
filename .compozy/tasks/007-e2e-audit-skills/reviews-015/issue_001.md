@@ -3,7 +3,7 @@ provider: manual
 pr:
 round: 15
 round_created_at: 2026-05-20T23:57:31Z
-status: pending
+status: resolved
 file: tests/e2e/db.ts
 line: 76
 severity: medium
@@ -93,5 +93,5 @@ Also consider: a TCP-level socket-inactivity timeout (`socket.setTimeout(60_000)
 
 ## Triage
 
-- Decision: `UNREVIEWED`
-- Notes:
+- Decision: `valid`
+- Notes: `acquireUnnamedSlotLock` returns `prev.then(() => {})` with no timeout. A connection that sends Parse+Sync and then stalls (half-open TCP, crashed client) holds `lockRelease !== null` forever — every subsequent connection's Parse pipeline queues behind it indefinitely. Fix: `Promise.race([prev.then(() => {}), timeout(LOCK_ACQUIRE_TIMEOUT_MS)])` so the waiting connection gets an ErrorResponse instead of hanging. Also add `socket.setTimeout(60_000)` so the stuck socket itself is eventually reaped at the connection layer.

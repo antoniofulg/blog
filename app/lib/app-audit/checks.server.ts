@@ -29,11 +29,14 @@ export function normalizeRoutePath(p: string): string {
 	return s.toLowerCase();
 }
 
-function buildLocalePath(path: string, locale: Locale): string {
+export function buildLocalePath(path: string, locale: Locale): string {
 	if (locale === "en") return path;
-	// Skip double-prefixing for shim routes whose path already contains the locale prefix.
-	// e.g. pt-br.index.tsx has path="/pt-br/" and locale="pt-br"; prefixing again → /pt-br/pt-br/.
-	if (path.startsWith("/pt-br/") || path === "/pt-br") return path;
+	// Defensive: never double-prefix a path that already starts with a known locale segment.
+	// The walker's isShimRoute detection should make this branch unreachable in practice,
+	// but the helper stays correct even if called directly with an already-prefixed path.
+	if (LOCALES.some((l) => path.startsWith(`/${l}/`) || path === `/${l}`)) {
+		return path;
+	}
 	return path === "/" ? "/pt-br/" : `/pt-br${path}`;
 }
 
