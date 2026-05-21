@@ -1,48 +1,36 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { join, resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 
 const REPO_ROOT = resolve(import.meta.dirname, "../..");
 
-function extractMarkdownLinks(markdown: string): string[] {
-	const linkPattern = /\[([^\]]+)\]\(([^)]+)\)/g;
-	return [...markdown.matchAll(linkPattern)].map((m) => m[2]);
-}
+// ADRs live under `.compozy/` which is gitignored (workflow artifact, local-only).
+// CONTENT.md references ADRs by name/title only — file-existence checks would
+// break on CI (fresh clone has no `.compozy/`). This test asserts the textual
+// cross-references are still present so the doc keeps pointing the reader at
+// the right decisions even though the file targets are local-only.
 
 describe("content-doc-links: CONTENT.md ADR cross-references", () => {
 	const contentMdPath = join(REPO_ROOT, "CONTENT.md");
 	const contentMd = readFileSync(contentMdPath, "utf-8");
-	const allLinks = extractMarkdownLinks(contentMd);
-	const adrLinks = allLinks.filter((l) =>
-		l.includes(".compozy/tasks/008-posts-publish-refactor/adrs/"),
-	);
 
-	it("CONTENT.md contains at least one ADR cross-reference link", () => {
-		expect(adrLinks.length).toBeGreaterThan(0);
-	});
-
-	it("every ADR link in CONTENT.md resolves to an existing file", () => {
-		for (const link of adrLinks) {
-			const absolutePath = join(REPO_ROOT, link);
-			expect(
-				existsSync(absolutePath),
-				`ADR link target not found: ${link} (resolved: ${absolutePath})`,
-			).toBe(true);
-		}
+	it("CONTENT.md mentions at least one ADR by id", () => {
+		expect(contentMd).toMatch(/ADR-\d{3}/);
 	});
 
 	it("ADR-001 is cross-referenced (static pages convention)", () => {
-		const hasAdr001 = adrLinks.some((l) => l.includes("adr-001.md"));
-		expect(hasAdr001).toBe(true);
+		expect(contentMd).toContain("ADR-001");
 	});
 
 	it("ADR-003 is cross-referenced (language switcher UX)", () => {
-		const hasAdr003 = adrLinks.some((l) => l.includes("adr-003.md"));
-		expect(hasAdr003).toBe(true);
+		expect(contentMd).toContain("ADR-003");
 	});
 
 	it("ADR-005 is cross-referenced (slug collision policy)", () => {
-		const hasAdr005 = adrLinks.some((l) => l.includes("adr-005.md"));
-		expect(hasAdr005).toBe(true);
+		expect(contentMd).toContain("ADR-005");
+	});
+
+	it("no CONTENT.md link points at .compozy/ (gitignored)", () => {
+		expect(contentMd).not.toMatch(/\(\.compozy\//);
 	});
 });

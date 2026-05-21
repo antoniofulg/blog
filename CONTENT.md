@@ -29,7 +29,7 @@ The `lang` field is **not** set in frontmatter — it is automatically derived f
 
 No admin toggle, no flag flip, no post-merge step. Write → commit → push → merge → done.
 
-> See [ADR-005: Unified `$slug` loader resolves posts + static pages, posts win on collision](.compozy/tasks/008-posts-publish-refactor/adrs/adr-005.md)
+> See ADR-005: Unified `$slug` loader resolves posts + static pages, posts win on collision.
 
 ## Frontmatter Schema
 
@@ -114,8 +114,8 @@ The same frontmatter schema applies (required: `title`, `description`, `publishe
 
 Posts and static pages share the slug namespace. If a post slug and a page slug match for the same locale, **the post wins at runtime** — the static page is silently unreachable for that locale. The content-audit pipeline flags collisions as a `slug-collision` warning so the author can resolve them before the next deploy.
 
-> See [ADR-001: Static-pages storage = filesystem-only, encapsulated module](.compozy/tasks/008-posts-publish-refactor/adrs/adr-001.md)
-> See [ADR-005: Unified `$slug` loader resolves posts + static pages, posts win on collision](.compozy/tasks/008-posts-publish-refactor/adrs/adr-005.md)
+> See ADR-001: Static-pages storage = filesystem-only, encapsulated module.
+> See ADR-005: Unified `$slug` loader resolves posts + static pages, posts win on collision.
 
 ## Language Switcher
 
@@ -133,7 +133,7 @@ Clicking an unavailable item opens a confirm modal **in the current page's langu
 
 Availability hint logic applies only to content routes (posts and static pages). Structural routes (homepage, tag pages, 404) always render both items as available. The language menu does not render at all on `/admin/*`.
 
-> See [ADR-003: Language-switcher UX = per-menu-item availability hint + confirm modal](.compozy/tasks/008-posts-publish-refactor/adrs/adr-003.md)
+> See ADR-003: Language-switcher UX = per-menu-item availability hint + confirm modal.
 
 ## Branch Naming
 
