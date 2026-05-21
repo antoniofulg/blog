@@ -130,49 +130,75 @@ export function LocaleBlogPage({
 						<EmptyState title={t.emptyTitle} description={t.emptyDesc} />
 					</div>
 				) : (
-					<div className="mt-16 flex items-start gap-12 lg:gap-20">
-						{/* Sticky timeline index — desktop only */}
-						<aside className="sticky top-24 hidden w-36 shrink-0 lg:block">
-							<TimelineIndex years={yearEntries} locale={locale} />
-						</aside>
+					<>
+						{/* Mobile year navigation — hidden on lg+, sidebar handles desktop */}
+						{groups.length > 1 && (
+							<nav
+								aria-label="Jump to year"
+								className="mt-8 flex gap-2 overflow-x-auto lg:hidden"
+							>
+								{groups.map(({ year }) => (
+									<a
+										key={year}
+										href={`#year-${year}`}
+										onClick={(e) => {
+											e.preventDefault();
+											document.getElementById(`year-${year}`)?.scrollIntoView({
+												behavior: "smooth",
+												block: "start",
+											});
+										}}
+										className="shrink-0 rounded-full bg-surface px-3 py-1.5 text-xs font-medium text-foreground-secondary transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+									>
+										{year}
+									</a>
+								))}
+							</nav>
+						)}
 
-						{/* Chronological post list */}
-						<div className="min-w-0 flex-1">
-							{groups.map((yearGroup) => (
-								<section key={yearGroup.year} className="mb-16 last:mb-0">
-									<h2 className="font-heading text-2xl font-bold text-foreground">
-										{yearGroup.year}
-									</h2>
+						<div className="mt-16 flex items-start gap-12 lg:gap-20">
+							{/* Sticky timeline index — desktop only */}
+							<aside className="sticky top-24 hidden w-36 shrink-0 lg:block">
+								<TimelineIndex years={yearEntries} locale={locale} />
+							</aside>
 
-									{yearGroup.months.map((monthGroup) => {
-										const headingId = `${monthGroup.id}-heading`;
-										return (
-											<section
-												key={monthGroup.id}
-												id={monthGroup.id}
-												data-timeline-section=""
-												aria-labelledby={headingId}
-												className="mt-10 scroll-mt-24"
-											>
-												<div className="mb-4 flex items-center gap-4">
-													<h3
-														id={headingId}
-														className="shrink-0 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted"
-													>
-														{monthLabel(monthGroup.month, locale)}
-													</h3>
-													<div
-														className="flex-1 border-t border-border"
-														aria-hidden="true"
-													/>
-												</div>
+							{/* Chronological post list */}
+							<div className="min-w-0 flex-1">
+								{groups.map((yearGroup) => (
+									<section
+										key={yearGroup.year}
+										id={`year-${yearGroup.year}`}
+										className="mb-16 scroll-mt-24 last:mb-0"
+									>
+										<h2 className="font-heading text-2xl font-bold text-foreground">
+											{yearGroup.year}
+										</h2>
 
-												<ul className="flex flex-col">
-													{monthGroup.posts.map((post) => {
-														const day = post.publishedAt
-															? new Date(post.publishedAt).getDate()
-															: null;
-														return (
+										{yearGroup.months.map((monthGroup) => {
+											const headingId = `${monthGroup.id}-heading`;
+											return (
+												<section
+													key={monthGroup.id}
+													id={monthGroup.id}
+													data-timeline-section=""
+													aria-labelledby={headingId}
+													className="mt-10 scroll-mt-24"
+												>
+													<div className="mb-4 flex items-center gap-4">
+														<h3
+															id={headingId}
+															className="shrink-0 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted"
+														>
+															{monthLabel(monthGroup.month, locale)}
+														</h3>
+														<div
+															className="flex-1 border-t border-border"
+															aria-hidden="true"
+														/>
+													</div>
+
+													<ul className="flex flex-col">
+														{monthGroup.posts.map((post) => (
 															<li key={post.id}>
 																<Link
 																	to="/{-$locale}/$slug/"
@@ -185,10 +211,15 @@ export function LocaleBlogPage({
 																	}}
 																	className="group -mx-3 flex items-start gap-5 rounded-sm border-b border-border px-3 py-4 transition-colors last:border-0 hover:bg-surface focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-inset"
 																>
-																	{day !== null && (
-																		<span className="w-7 shrink-0 pt-0.5 text-sm font-medium tabular-nums text-foreground-muted">
-																			{day}
-																		</span>
+																	{post.publishedAt && (
+																		<time
+																			dateTime={new Date(
+																				post.publishedAt,
+																			).toISOString()}
+																			className="w-7 shrink-0 pt-0.5 text-sm font-medium tabular-nums text-foreground-muted"
+																		>
+																			{new Date(post.publishedAt).getDate()}
+																		</time>
 																	)}
 																	<div className="flex min-w-0 flex-col gap-1">
 																		<span className="font-heading text-base font-bold text-foreground transition-colors group-hover:text-accent">
@@ -202,16 +233,16 @@ export function LocaleBlogPage({
 																	</div>
 																</Link>
 															</li>
-														);
-													})}
-												</ul>
-											</section>
-										);
-									})}
-								</section>
-							))}
+														))}
+													</ul>
+												</section>
+											);
+										})}
+									</section>
+								))}
+							</div>
 						</div>
-					</div>
+					</>
 				)}
 			</div>
 		</div>
