@@ -1,8 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { eq } from "drizzle-orm";
-import { drizzle } from "drizzle-orm/postgres-js";
-import postgres from "postgres";
-import { posts } from "#/db/schema";
 import { expect, test } from "./fixtures/auth";
 import { E2E_STATE_FILE } from "./global-setup";
 import type { E2EState } from "./global-setup";
@@ -17,37 +13,8 @@ async function getState(): Promise<E2EState> {
 	return cachedState;
 }
 
-// Each call creates a fresh connection to avoid postgres-js connection-level
-// caching that can return stale results when shared across PGLite proxy queries.
-async function queryPublished(
-	connectionString: string,
-	id: number,
-): Promise<boolean> {
-	const sql = postgres(connectionString, { max: 1, idle_timeout: 0 });
-	const db = drizzle(sql, { schema: { posts } });
-	try {
-		const [row] = await db
-			.select({ publishedAt: posts.publishedAt })
-			.from(posts)
-			.where(eq(posts.id, id));
-		return row.publishedAt != null;
-	} finally {
-		await sql.end();
-	}
-}
-
-async function resetPublished(
-	connectionString: string,
-	id: number,
-): Promise<void> {
-	const sql = postgres(connectionString, { max: 1, idle_timeout: 0 });
-	const db = drizzle(sql, { schema: { posts } });
-	try {
-		await db.update(posts).set({ publishedAt: null }).where(eq(posts.id, id));
-	} finally {
-		await sql.end();
-	}
-}
+// Admin is read-only post-task_13: list + locale filter + view-in-new-tab.
+// Publish toggle and /admin/preview/$slug route were removed.
 
 test.describe("admin write", { tag: ["@admin"] }, () => {
 	test.describe("guard", () => {
@@ -61,56 +28,74 @@ test.describe("admin write", { tag: ["@admin"] }, () => {
 	});
 
 	test(
-		"publish toggle: published state flips in UI and DB (round-trip)",
+		"/admin renders Admin Dashboard heading + post-list table",
 		async ({ authedPage }) => {
 			const state = await getState();
-			await resetPublished(state.connectionString, state.fixturePostId);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
+
 			await expect(
 				authedPage.getByRole("heading", { name: /Admin Dashboard/i }),
 			).toBeVisible();
-
-			const row = authedPage
-				.getByRole("row")
-				.filter({ hasText: state.fixturePostTitle });
-
-			// Publish
-			await row.getByRole("button", { name: /Publicar/i }).click();
 			await expect(
-				row.getByRole("button", { name: /Despublicar/i }),
+				authedPage
+					.getByRole("row")
+					.filter({ hasText: state.fixturePostTitle }),
 			).toBeVisible();
-
-			expect(
-				await queryPublished(state.connectionString, state.fixturePostId),
-				"DB must reflect published=true",
-			).toBe(true);
-
-			// Unpublish — verifies double-toggle leaves DB in original state
-			await row.getByRole("button", { name: /Despublicar/i }).click();
-			await expect(
-				row.getByRole("button", { name: /Publicar/i }),
-			).toBeVisible();
-
-			expect(
-				await queryPublished(state.connectionString, state.fixturePostId),
-				"DB must revert to published=false",
-			).toBe(false);
 		},
 	);
 
 	test(
-		"preview: unpublished post renders fixture title",
+		"locale filter ?locale=pt-br shows only pt-br rows",
+		async ({ authedPage }) => {
+			await authedPage.goto("/admin/?locale=pt-br");
+			await authedPage.waitForLoadState("load");
+
+			// Filter chip for PT-BR carries aria-current="page".
+			await expect(
+				authedPage.getByRole("link", { name: "PT-BR" }),
+			).toHaveAttribute("aria-current", "page");
+
+			// Every visible body row's language column reads pt-br.
+			const langCells = authedPage.locator("tbody tr td:nth-child(3)");
+			const count = await langCells.count();
+			expect(count).toBeGreaterThan(0);
+			for (let i = 0; i < count; i++) {
+				await expect(langCells.nth(i)).toHaveText("pt-br");
+			}
+		},
+	);
+
+	test(
+		"View button opens public URL in a new tab (target=_blank + rel=noopener)",
 		async ({ authedPage }) => {
 			const state = await getState();
-			await resetPublished(state.connectionString, state.fixturePostId);
 
-			await authedPage.goto(`/admin/preview/${state.fixturePostSlug}`);
+			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
-			await expect(
-				authedPage.getByRole("heading", { name: state.fixturePostTitle }),
-			).toBeVisible();
+
+			const row = authedPage
+				.getByRole("row")
+				.filter({ hasText: state.fixturePostTitle });
+			const viewLink = row.getByRole("link", { name: /View/i });
+
+			await expect(viewLink).toHaveAttribute("target", "_blank");
+			await expect(viewLink).toHaveAttribute("rel", /noopener/);
+			const href = await viewLink.getAttribute("href");
+			expect(href).toMatch(new RegExp(`/${state.fixturePostSlug}$`));
+		},
+	);
+
+	test(
+		"/admin/preview/<slug> returns 404 (deleted route)",
+		async ({ authedPage }) => {
+			const state = await getState();
+
+			const response = await authedPage.goto(
+				`/admin/preview/${state.fixturePostSlug}`,
+			);
+			expect(response?.status()).toBe(404);
 		},
 	);
 });
