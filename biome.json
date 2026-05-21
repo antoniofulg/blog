@@ -16,7 +16,9 @@
 			"!**/app/routeTree.gen.ts",
 			"!**/app/styles",
 			"!**/playwright-report",
-			"!**/coverage"
+			"!**/coverage",
+			"!**/.worktrees",
+			"!**/.claude/worktrees"
 		]
 	},
 	"formatter": {

@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import { SearchX } from "lucide-react";
+import { FileText } from "lucide-react";
 
 export function EmptyState({
-	icon: Icon = SearchX,
+	icon: Icon = FileText,
 	title = "Nenhum resultado encontrado",
 	description = "Tente ajustar seus filtros ou buscar por outro termo.",
 }: {
@@ -12,7 +12,7 @@ export function EmptyState({
 }) {
 	return (
 		<div className="flex flex-col items-center gap-4 py-16 text-center">
-			<Icon className="h-12 w-12 text-foreground-muted" />
+			<Icon className="h-12 w-12 text-foreground-muted" aria-hidden="true" />
 			<h2 className="font-heading text-lg font-semibold text-foreground">
 				{title}
 			</h2>

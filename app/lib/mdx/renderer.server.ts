@@ -11,7 +11,10 @@ let highlighterPromise: ReturnType<typeof createHighlighterCore> | null = null;
 function getHighlighter() {
 	if (!highlighterPromise) {
 		highlighterPromise = createHighlighterCore({
-			themes: [import("@shikijs/themes/github-dark")],
+			themes: [
+				import("@shikijs/themes/github-light"),
+				import("@shikijs/themes/github-dark"),
+			],
 			langs: [
 				import("@shikijs/langs/typescript"),
 				import("@shikijs/langs/javascript"),
@@ -37,7 +40,10 @@ export async function renderMdx(source: string): Promise<ComponentType> {
 		outputFormat: "function-body",
 		remarkPlugins: [remarkGfm],
 		rehypePlugins: [
-			() => rehypeShikiFromHighlighter(highlighter, { theme: "github-dark" }),
+			() =>
+				rehypeShikiFromHighlighter(highlighter, {
+					themes: { light: "github-light", dark: "github-dark" },
+				}),
 		],
 	});
 	const { default: Content } = await run(compiled, {

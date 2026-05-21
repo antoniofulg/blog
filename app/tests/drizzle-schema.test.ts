@@ -127,7 +127,9 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 				cwd: root,
 				env: {
 					...process.env,
-					DATABASE_URL: "postgres://blog:blog@localhost:5432/blog",
+					DATABASE_URL:
+						process.env.DATABASE_URL ??
+						"postgres://blog:blog@localhost:5432/blog",
 				},
 				stdio: "pipe",
 			}),
@@ -136,7 +138,9 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 
 	it("posts table has all 14 expected columns", async () => {
 		const pg = await import("postgres");
-		const sql = pg.default("postgres://blog:blog@localhost:5432/blog");
+		const sql = pg.default(
+			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
+		);
 		postgres = sql;
 		const rows = await sql<{ column_name: string }[]>`
       SELECT column_name
@@ -164,7 +168,9 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 
 	it("duplicate file_path insert throws unique constraint error", async () => {
 		const pg = await import("postgres");
-		const sql = pg.default("postgres://blog:blog@localhost:5432/blog");
+		const sql = pg.default(
+			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
+		);
 		postgres = sql;
 		const unique = `test-dup-fp-${Date.now()}`;
 		try {
@@ -179,7 +185,9 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 
 	it("duplicate (slug, lang) insert throws composite unique constraint error", async () => {
 		const pg = await import("postgres");
-		const sql = pg.default("postgres://blog:blog@localhost:5432/blog");
+		const sql = pg.default(
+			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
+		);
 		postgres = sql;
 		const unique = `test-dup-slug-${Date.now()}`;
 		try {
@@ -195,7 +203,9 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 
 	it("same slug with different lang is allowed (composite unique)", async () => {
 		const pg = await import("postgres");
-		const sql = pg.default("postgres://blog:blog@localhost:5432/blog");
+		const sql = pg.default(
+			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
+		);
 		postgres = sql;
 		const unique = `test-bilingual-${Date.now()}`;
 		try {

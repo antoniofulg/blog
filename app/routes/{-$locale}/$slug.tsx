@@ -1,11 +1,11 @@
-import { createFileRoute } from "@tanstack/react-router";
-import { useEffect } from "react";
+import { createFileRoute, Link } from "@tanstack/react-router";
+import { useEffect, useMemo } from "react";
+import { PostFooter } from "#/components/ui/post-footer";
+import { PostHeader } from "#/components/ui/post-header";
 import { TranslationNotice } from "#/components/ui/translation-notice";
-import { strings } from "#/lib/i18n/strings";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
+import { readingTimeMinutes } from "#/lib/reading-time";
 import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
-
-const dateLocale: Record<Locale, string> = { en: "en-US", "pt-br": "pt-BR" };
 
 export const Route = createFileRoute("/{-$locale}/$slug")({
 	loader: async ({ params }) => {
@@ -58,67 +58,107 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 		const { locale } = Route.useParams();
 		const lang = (locale ?? DEFAULT_LOCALE) as Locale;
 		const copy = {
-			en: "Post not found",
-			"pt-br": "Post não encontrado",
-		} satisfies Record<Locale, string>;
-		const message = copy[lang] ?? copy.en;
+			en: {
+				title: "Post not found",
+				body: "This post doesn't exist or was removed.",
+				cta: "← Writing",
+			},
+			"pt-br": {
+				title: "Post não encontrado",
+				body: "Este post não existe ou foi removido.",
+				cta: "← Escrita",
+			},
+		} satisfies Record<Locale, { title: string; body: string; cta: string }>;
+		const t = copy[lang] ?? copy.en;
 		return (
-			<main>
-				<h1>{message}</h1>
-			</main>
+			<div className="flex flex-col items-center justify-center gap-6 px-5 py-20 text-center">
+				<h1 className="animate-fade-up font-heading text-2xl font-bold text-foreground lg:text-3xl">
+					{t.title}
+				</h1>
+				<p
+					className="animate-fade-up max-w-md text-foreground-secondary"
+					style={{ animationDelay: "80ms" }}
+				>
+					{t.body}
+				</p>
+				<Link
+					to="/{-$locale}/"
+					params={{ locale: lang === DEFAULT_LOCALE ? undefined : lang }}
+					className="animate-fade-up inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+					style={{ animationDelay: "160ms" }}
+				>
+					{t.cta}
+				</Link>
+			</div>
 		);
 	},
 });
 
 export function LocalePostDetail() {
-	const { post, html, notTranslated, requestedLang, availableLang } =
-		Route.useLoaderData();
+	const {
+		post,
+		html,
+		notTranslated,
+		requestedLang,
+		availableLang,
+		alternateLang,
+	} = Route.useLoaderData();
+
 	useEffect(() => {
+		// Session guard prevents repeated increments on refresh or dev reload.
+		const key = `viewed-${post.id}`;
+		if (sessionStorage.getItem(key)) return;
+		sessionStorage.setItem(key, "1");
 		incrementViewCount({ data: post.id });
 	}, [post.id]);
+
+	const readingTime = useMemo(() => readingTimeMinutes(html), [html]);
+
 	return (
-		<div className="px-5 py-12 lg:px-20">
+		<div className="px-5 py-16 lg:px-20 lg:py-24">
+			<div className="reading-progress" aria-hidden="true" />
 			<article
 				className="mx-auto max-w-3xl"
 				lang={toBcp47(post.lang as Locale)}
+				aria-labelledby="post-title"
 			>
 				{notTranslated && availableLang && (
-					<div className="mb-6">
+					<div className="mb-10">
 						<TranslationNotice
 							requestedLang={requestedLang}
 							availableLang={availableLang}
 						/>
 					</div>
 				)}
-				<header className="mb-8 flex flex-col gap-4">
-					{post.publishedAt && (
-						<p className="text-sm text-foreground-muted">
-							<span>{strings[requestedLang].postMeta.publishedOn}</span>{" "}
-							<time dateTime={new Date(post.publishedAt).toISOString()}>
-								{new Date(post.publishedAt).toLocaleDateString(
-									dateLocale[requestedLang],
-									{
-										day: "numeric",
-										month: "long",
-										year: "numeric",
-									},
-								)}
-							</time>
-						</p>
-					)}
-					<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">
-						{post.title}
-					</h1>
-					{post.description && (
-						<p className="text-lg leading-relaxed text-foreground-secondary">
-							{post.description}
-						</p>
-					)}
-				</header>
+
+				<PostHeader
+					title={post.title}
+					description={post.description}
+					publishedAt={post.publishedAt}
+					postLang={post.lang as Locale}
+					requestedLang={requestedLang}
+					slug={post.slug}
+					readingTime={readingTime}
+					viewCount={post.viewCount}
+					alternateLang={alternateLang}
+				/>
+
+				<hr
+					className="animate-fade-up my-8 border-border lg:my-12"
+					style={{ animationDelay: "300ms" }}
+				/>
+
 				<div
-					className="prose prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-accent prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:text-foreground-code prose-pre:bg-code-bg prose-pre:text-foreground-code"
+					className="animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover focus-visible:prose-a:outline-none focus-visible:prose-a:ring-2 focus-visible:prose-a:ring-accent focus-visible:prose-a:ring-offset-4 focus-visible:prose-a:ring-offset-background prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border"
+					style={{ animationDelay: "300ms" }}
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
 					dangerouslySetInnerHTML={{ __html: html }}
+				/>
+
+				<PostFooter
+					publishedAt={post.publishedAt}
+					postLang={post.lang as Locale}
+					requestedLang={requestedLang}
 				/>
 			</article>
 		</div>

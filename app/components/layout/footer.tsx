@@ -1,59 +1,117 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
+import { Rss } from "lucide-react";
+import { DEFAULT_LOCALE, type Locale, useCurrentLocale } from "#/lib/locale";
 
-const navLinks = [{ label: "Home", to: "/" }];
+const AUTHOR = "Antonio Fulgencio";
 
-const resourceLinks = [{ label: "Sobre", to: "/about" }];
+const navLinksByLocale: Record<
+	Locale,
+	readonly { label: string; to: string }[]
+> = {
+	en: [
+		{ label: "Home", to: "/" },
+		{ label: "About", to: "/en/about" },
+	],
+	"pt-br": [
+		{ label: "Home", to: "/" },
+		{ label: "Sobre", to: "/pt-br/about" },
+	],
+};
+
+const tagline: Record<Locale, string> = {
+	en: "Notes on web development, React, TypeScript, and modern tooling.",
+	"pt-br":
+		"Notas sobre desenvolvimento web, React, TypeScript e ferramentas modernas.",
+};
+
+const rightsReserved: Record<Locale, string> = {
+	en: "All rights reserved.",
+	"pt-br": "Todos os direitos reservados.",
+};
+
+const colophon: Record<Locale, string> = {
+	en: "Built with Bun, TanStack Start, and PostgreSQL.",
+	"pt-br": "Feito com Bun, TanStack Start e PostgreSQL.",
+};
+
+const navEyebrow: Record<Locale, string> = {
+	en: "Sitemap",
+	"pt-br": "Navegação",
+};
+
+function isActiveLink(to: string, pathname: string): boolean {
+	if (to === "/") {
+		return pathname === "/" || pathname === "/en/" || pathname === "/pt-br/";
+	}
+	return pathname.startsWith(to);
+}
 
 export function Footer() {
+	const locale = useCurrentLocale();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	const year = new Date().getFullYear();
+	const navLinks = navLinksByLocale[locale];
+
 	return (
-		<footer className="bg-surface px-6 py-12 lg:px-20">
-			<div className="mx-auto flex max-w-7xl flex-col gap-10 lg:flex-row lg:justify-between">
-				<div className="flex max-w-xs flex-col gap-3">
-					<span className="font-heading text-base font-bold text-foreground">
-						Antonio Fulgencio Blog
-					</span>
+		<footer className="border-t border-border bg-surface px-6 py-14 lg:px-20 lg:py-20">
+			<div className="mx-auto flex max-w-5xl flex-col gap-12 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
+				<div className="flex max-w-md flex-col gap-3">
+					<Link
+						to="/{-$locale}/"
+						params={{
+							locale: locale === DEFAULT_LOCALE ? undefined : locale,
+						}}
+						aria-label="Antonio Fulgencio — home"
+						className="rounded-sm font-heading text-base font-bold text-foreground transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-surface"
+					>
+						<span aria-hidden="true">{AUTHOR}</span>
+					</Link>
 					<p className="text-sm leading-relaxed text-foreground-secondary">
-						Artigos sobre desenvolvimento web, React, TypeScript e carreira
-						internacional.
+						{tagline[locale]}
 					</p>
 				</div>
 
-				<div className="flex gap-16">
-					<div className="flex flex-col gap-3">
-						<span className="text-sm font-semibold text-foreground">
-							Navegação
-						</span>
-						{navLinks.map((link) => (
-							<Link
-								key={link.to}
-								to={link.to}
-								className="text-sm text-foreground-secondary transition-colors hover:text-accent"
-							>
-								{link.label}
-							</Link>
-						))}
-					</div>
-					<div className="flex flex-col gap-3">
-						<span className="text-sm font-semibold text-foreground">
-							Recursos
-						</span>
-						{resourceLinks.map((link) => (
-							<Link
-								key={link.to}
-								to={link.to}
-								className="text-sm text-foreground-secondary transition-colors hover:text-accent"
-							>
-								{link.label}
-							</Link>
-						))}
-					</div>
-				</div>
+				<nav aria-label={navEyebrow[locale]} className="flex flex-col gap-3">
+					<span className="text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted">
+						{navEyebrow[locale]}
+					</span>
+					<ul className="flex flex-col gap-2">
+						{navLinks.map((link) => {
+							const active = isActiveLink(link.to, pathname);
+							return (
+								<li key={link.to}>
+									<Link
+										to={link.to}
+										aria-current={active ? "page" : undefined}
+										className={`rounded-sm text-sm transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-surface ${
+											active
+												? "font-medium text-accent"
+												: "text-foreground-secondary hover:text-accent"
+										}`}
+									>
+										{link.label}
+									</Link>
+								</li>
+							);
+						})}
+					</ul>
+				</nav>
 			</div>
 
-			<div className="mx-auto mt-10 max-w-7xl border-t border-border pt-6">
-				<p className="text-center text-xs text-foreground-muted">
-					© 2026 Antonio Fulgencio. Todos os direitos reservados.
+			<div className="mx-auto mt-12 flex max-w-5xl flex-col gap-2 border-t border-border pt-6 text-xs text-foreground-muted sm:flex-row sm:items-center sm:justify-between">
+				<p>
+					© {year} {AUTHOR}. {rightsReserved[locale]}
 				</p>
+				<div className="flex items-center gap-4">
+					<p>{colophon[locale]}</p>
+					<a
+						href="/rss.xml"
+						className="inline-flex items-center gap-1.5 text-foreground-muted transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+					>
+						<Rss className="h-4 w-4" aria-hidden="true" />
+						<span>RSS</span>
+					</a>
+				</div>
 			</div>
 		</footer>
 	);

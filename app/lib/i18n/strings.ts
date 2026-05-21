@@ -27,8 +27,8 @@ export const strings: Record<Locale, UIStrings> = {
 		},
 		notFound: {
 			title: "Page not found",
-			body: "The page you are looking for does not exist.",
-			homeCta: "Go home",
+			body: "Nothing here. Check the URL or head back to the writing.",
+			homeCta: "← Writing",
 		},
 	},
 	"pt-br": {
@@ -39,8 +39,8 @@ export const strings: Record<Locale, UIStrings> = {
 		},
 		notFound: {
 			title: "Página não encontrada",
-			body: "A página que você está procurando não existe.",
-			homeCta: "Ir para o início",
+			body: "Nada aqui. Verifique o URL ou volte para os artigos.",
+			homeCta: "← Escrita",
 		},
 	},
 };

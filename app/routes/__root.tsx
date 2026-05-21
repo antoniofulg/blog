@@ -10,7 +10,7 @@ import {
 import { TanStackRouterDevtoolsPanel } from "@tanstack/react-router-devtools";
 import { createServerFn } from "@tanstack/react-start";
 import { getRequest } from "@tanstack/react-start/server";
-import { Home } from "lucide-react";
+import { ArrowLeft } from "lucide-react";
 import { Footer } from "#/components/layout/footer";
 import { Header } from "#/components/layout/header";
 import { WipBanner } from "#/components/layout/wip-banner";
@@ -65,14 +65,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				{
 					name: "description",
 					content:
-						"Articles about web development, React, TypeScript, Bun and international career.",
+						"Notes on web development, React, TypeScript, Bun, and modern tooling.",
 				},
 				{ property: "og:type", content: "website" },
 				{ property: "og:title", content: "Antonio Fulgencio Blog" },
 				{
 					property: "og:description",
 					content:
-						"Articles about web development, React, TypeScript, Bun and international career.",
+						"Notes on web development, React, TypeScript, Bun, and modern tooling.",
 				},
 				{
 					property: "og:image",
@@ -82,6 +82,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			],
 			links: [
 				{ rel: "canonical", href: canonicalUrl },
+				{
+					rel: "alternate",
+					type: "application/rss+xml",
+					title: "Antonio Fulgencio — Writing",
+					href: `${siteUrl}/rss.xml`,
+				},
 				{ rel: "stylesheet", href: appCss },
 				{ rel: "preconnect", href: "https://fonts.googleapis.com" },
 				{
@@ -91,7 +97,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				},
 				{
 					rel: "stylesheet",
-					href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&display=swap",
+					href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap",
 				},
 			],
 		};
@@ -108,19 +114,28 @@ export function NotFoundPage() {
 	const t = strings[lang].notFound;
 	return (
 		<div className="flex flex-col items-center justify-center gap-6 px-5 py-20 text-center">
-			<span className="font-heading text-7xl font-extrabold text-accent lg:text-9xl">
+			<span className="animate-fade-up font-heading text-7xl font-bold text-accent lg:text-9xl">
 				404
 			</span>
-			<h1 className="font-heading text-2xl font-bold text-foreground lg:text-3xl">
+			<h1
+				className="animate-fade-up font-heading text-2xl font-bold text-foreground lg:text-3xl"
+				style={{ animationDelay: "80ms" }}
+			>
 				{t.title}
 			</h1>
-			<p className="max-w-md text-foreground-secondary">{t.body}</p>
+			<p
+				className="animate-fade-up max-w-md text-foreground-secondary"
+				style={{ animationDelay: "80ms" }}
+			>
+				{t.body}
+			</p>
 			<Link
 				to="/{-$locale}/"
 				params={{ locale: undefined }}
-				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
+				className="animate-fade-up inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+				style={{ animationDelay: "80ms" }}
 			>
-				<Home className="h-4 w-4" />
+				<ArrowLeft className="h-4 w-4" aria-hidden="true" />
 				{t.homeCta}
 			</Link>
 		</div>

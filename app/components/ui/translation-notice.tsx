@@ -1,3 +1,4 @@
+import { Info } from "lucide-react";
 import type { Locale } from "#/lib/locale";
 
 type Props = {
@@ -12,9 +13,9 @@ const localeNames: Record<Locale, string> = {
 
 const messages: Record<Locale, (availableName: string) => string> = {
 	en: (availableName) =>
-		`This content is not yet available in English — showing the ${availableName} version`,
+		`This content is not yet available in English. Showing the ${availableName} version.`,
 	"pt-br": (availableName) =>
-		`Este conteúdo ainda não está disponível em Português — exibindo a versão em ${availableName}`,
+		`Este conteúdo ainda não está disponível em Português. Exibindo a versão em ${availableName}.`,
 };
 
 export function TranslationNotice({ requestedLang, availableLang }: Props) {
@@ -22,9 +23,13 @@ export function TranslationNotice({ requestedLang, availableLang }: Props) {
 	return (
 		<div
 			role="note"
-			className="rounded-md border border-accent/20 bg-accent/5 px-4 py-3 text-sm text-foreground-secondary"
+			className="flex items-start gap-3 rounded-lg bg-callout-info p-4 text-sm text-foreground-secondary"
 		>
-			{message}
+			<Info
+				className="mt-0.5 h-4 w-4 shrink-0 text-accent"
+				aria-hidden="true"
+			/>
+			<span>{message}</span>
 		</div>
 	);
 }

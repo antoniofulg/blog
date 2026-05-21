@@ -64,3 +64,8 @@ docs/audits/          — committed audit history (SUMMARY.md)
 - Testing: .agents/rules/testing.md
 - Content audit: .agents/rules/audit.md
 - Audit (FE runtime): .agents/rules/fe-audit.md
+
+## Design Context
+- Strategic (register, users, principles, anti-references): PRODUCT.md
+- Visual system (palette, typography, components): DESIGN.md (when present)
+- Loader: `node .agents/skills/impeccable/scripts/load-context.mjs`

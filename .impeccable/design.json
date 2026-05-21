@@ -1,0 +1,314 @@
+{
+  "schemaVersion": 2,
+  "generatedAt": "2026-05-20T00:00:00.000Z",
+  "title": "Design System: Antonio Fulgencio Blog",
+  "extensions": {
+    "colorMeta": {
+      "background": {
+        "role": "neutral",
+        "displayName": "Sky Paper",
+        "canonical": "oklch(97% 0.005 240)",
+        "dark": "#1C2433",
+        "tonalRamp": ["#0E141E", "#1C2433", "#2D3A52", "#4A5A78", "#6A7C9E", "#9AAAC6", "#C8D2E2", "#F5F8FC"]
+      },
+      "surface": {
+        "role": "neutral",
+        "displayName": "Mist",
+        "canonical": "oklch(94% 0.003 240)",
+        "dark": "#171D2A",
+        "tonalRamp": ["#0B0F18", "#171D2A", "#252E42", "#3D4A66", "#5D6E8E", "#8D9DB8", "#BDC6D5", "#EAECEE"]
+      },
+      "muted": {
+        "role": "neutral",
+        "displayName": "Stone",
+        "canonical": "oklch(89% 0.003 240)",
+        "dark": "#232D3E",
+        "tonalRamp": ["#0E141E", "#232D3E", "#37445D", "#52617F", "#7281A0", "#9CAAC5", "#C5CDDA", "#DDE0E3"]
+      },
+      "card": {
+        "role": "neutral",
+        "displayName": "Card White",
+        "canonical": "oklch(100% 0 0)",
+        "dark": "#1E2838",
+        "tonalRamp": ["#0F141E", "#1E2838", "#2F3B52", "#4A5A76", "#6E7E9C", "#9CAAC1", "#CCD3DD", "#FFFFFF"]
+      },
+      "code-bg": {
+        "role": "neutral",
+        "displayName": "Ink Block",
+        "canonical": "oklch(25% 0.015 240)",
+        "dark": "#141A26",
+        "tonalRamp": ["#0A0E14", "#141A26", "#272D34", "#3D4550", "#5C6675", "#838FA1", "#B1BAC8", "#E3E6EC"]
+      },
+      "foreground": {
+        "role": "neutral",
+        "displayName": "Ink",
+        "canonical": "oklch(25% 0.015 240)",
+        "dark": "#C8D1DC",
+        "tonalRamp": ["#0F1318", "#1A1F26", "#272D34", "#3F4750", "#666666", "#9AA3AE", "#C8D1DC", "#E5E9EE"]
+      },
+      "foreground-secondary": {
+        "role": "neutral",
+        "displayName": "Slate",
+        "canonical": "oklch(37% 0.015 240)",
+        "dark": "#8196B5",
+        "tonalRamp": ["#1A1F26", "#272D34", "#3F4750", "#5A6470", "#7A8595", "#A3AEBC", "#C8D1DC", "#E5E9EE"]
+      },
+      "foreground-muted": {
+        "role": "neutral",
+        "displayName": "Graphite",
+        "canonical": "oklch(48% 0 0)",
+        "dark": "#8FA5C0",
+        "tonalRamp": ["#1F1F1F", "#3A3A3A", "#525252", "#666666", "#858585", "#A8A8A8", "#CCCCCC", "#E8E8E8"]
+      },
+      "foreground-inverse": {
+        "role": "neutral",
+        "displayName": "Paper",
+        "canonical": "oklch(98% 0 0)",
+        "dark": "#1C2433",
+        "tonalRamp": ["#1F1F1F", "#3A3A3A", "#666666", "#8C8C8C", "#B0B0B0", "#D4D4D4", "#FAFAFA", "#FFFFFF"]
+      },
+      "foreground-code": {
+        "role": "neutral",
+        "displayName": "Code Paper",
+        "canonical": "oklch(84% 0.015 240)",
+        "tonalRamp": ["#272D34", "#3F4750", "#5C6675", "#838FA1", "#A3AEBC", "#C8D1DC", "#DCE3EC", "#EAEFF5"]
+      },
+      "accent": {
+        "role": "primary",
+        "displayName": "Workshop Cyan",
+        "canonical": "oklch(49% 0.12 220)",
+        "dark": "#69C3FF",
+        "tonalRamp": ["#03313F", "#054559", "#0A5E7E", "#097098", "#1E89B5", "#54B0D6", "#9CD2EC", "#E0F3FA"]
+      },
+      "accent-hover": {
+        "role": "primary",
+        "displayName": "Workshop Cyan — Hover",
+        "canonical": "oklch(42% 0.10 220)",
+        "dark": "#8BD3FF"
+      },
+      "accent-light": {
+        "role": "primary",
+        "displayName": "Workshop Cyan — Wash",
+        "canonical": "oklch(94% 0.025 220)",
+        "dark": "#1A2A3D"
+      },
+      "border": {
+        "role": "neutral",
+        "displayName": "Pencil Line",
+        "canonical": "oklch(80% 0.005 240)",
+        "dark": "#151B27",
+        "tonalRamp": ["#0E141E", "#1F2630", "#3C4452", "#5D6776", "#8089A0", "#A8B0BD", "#C2C8CE", "#E0E4E8"]
+      },
+      "border-strong": {
+        "role": "neutral",
+        "displayName": "Heavier Pencil",
+        "canonical": "oklch(72% 0.005 240)",
+        "dark": "#2A3545"
+      },
+      "success": {
+        "role": "tertiary",
+        "displayName": "Tip Green",
+        "canonical": "oklch(64% 0.16 145)",
+        "dark": "#3CEC85"
+      },
+      "warning": {
+        "role": "tertiary",
+        "displayName": "Caution Amber",
+        "canonical": "oklch(74% 0.13 55)",
+        "dark": "#FF955C"
+      },
+      "error": {
+        "role": "tertiary",
+        "displayName": "Alert Coral",
+        "canonical": "oklch(66% 0.20 25)",
+        "dark": "#E35535"
+      },
+      "callout-tip": {
+        "role": "tertiary",
+        "displayName": "Tip Wash",
+        "canonical": "oklch(95% 0.04 145)",
+        "dark": "#152D1E"
+      },
+      "callout-info": {
+        "role": "tertiary",
+        "displayName": "Info Wash",
+        "canonical": "oklch(95% 0.03 220)",
+        "dark": "#1A2A3D"
+      },
+      "callout-warn": {
+        "role": "tertiary",
+        "displayName": "Caution Wash",
+        "canonical": "oklch(95% 0.03 55)",
+        "dark": "#2D2218"
+      },
+      "callout-error": {
+        "role": "tertiary",
+        "displayName": "Alert Wash",
+        "canonical": "oklch(95% 0.03 25)",
+        "dark": "#2D1818"
+      },
+      "tag-react": {
+        "role": "tertiary",
+        "displayName": "React Cyan",
+        "canonical": "oklch(49% 0.12 220)",
+        "dark": "#69C3FF"
+      },
+      "tag-typescript": {
+        "role": "tertiary",
+        "displayName": "TypeScript Violet",
+        "canonical": "oklch(63% 0.20 305)",
+        "dark": "#B78AFF"
+      },
+      "tag-bun": {
+        "role": "tertiary",
+        "displayName": "Bun Amber",
+        "canonical": "oklch(73% 0.15 75)",
+        "dark": "#EACD61"
+      },
+      "tag-tanstack": {
+        "role": "tertiary",
+        "displayName": "TanStack Coral",
+        "canonical": "oklch(66% 0.20 25)",
+        "dark": "#E35535"
+      }
+    },
+    "typographyMeta": {
+      "display": { "displayName": "Display", "purpose": "Post title at top of post; hero headlines on landing. One per page." },
+      "headline": { "displayName": "Headline", "purpose": "Second-tier headings (h2) and section titles." },
+      "title": { "displayName": "Title", "purpose": "PostCard titles, callout titles, in-page h3." },
+      "body": { "displayName": "Body", "purpose": "Long-form prose. Capped 65–75ch." },
+      "label": { "displayName": "Label", "purpose": "Buttons, badges, navigation, metadata. UI voice." },
+      "code": { "displayName": "Code", "purpose": "Inline and block code. JetBrains Mono only here." }
+    },
+    "shadows": [
+      { "name": "postcard-hover", "value": "0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10)", "purpose": "The only sanctioned shadow. Applied on PostCard hover to signal clickability." }
+    ],
+    "motion": [
+      { "name": "ease-standard", "value": "cubic-bezier(0.4, 0, 0.2, 1)", "purpose": "Default easing for transition-colors and transition-shadow." },
+      { "name": "duration-fast", "value": "150ms", "purpose": "Color shifts on buttons, nav links, ghost utilities." },
+      { "name": "duration-base", "value": "200ms", "purpose": "PostCard hover-shadow transition." }
+    ],
+    "breakpoints": [
+      { "name": "sm", "value": "640px" },
+      { "name": "md", "value": "768px" },
+      { "name": "lg", "value": "1024px" },
+      { "name": "xl", "value": "1280px" }
+    ]
+  },
+  "components": [
+    {
+      "name": "Primary Button",
+      "kind": "button",
+      "refersTo": "button-primary",
+      "description": "The one primary action per surface. Used on Newsletter subscribe and primary CTAs.",
+      "html": "<button class=\"ds-btn-primary\" type=\"button\">Subscribe</button>",
+      "css": ".ds-btn-primary { display: inline-flex; align-items: center; justify-content: center; gap: 8px; height: 44px; padding: 0 20px; background: #097098; color: #FAFAFA; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; letter-spacing: 0; border: none; border-radius: 8px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-primary:hover { background: #0A5E7E; } .ds-btn-primary:focus-visible { outline: 2px solid #097098; outline-offset: 2px; }"
+    },
+    {
+      "name": "Ghost Icon Button",
+      "kind": "button",
+      "refersTo": "button-ghost",
+      "description": "Header utility buttons: theme toggle, language toggle. Square 40px, surface-tinted.",
+      "html": "<button class=\"ds-btn-ghost\" type=\"button\" aria-label=\"Toggle theme\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><path d=\"M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79z\"/></svg></button>",
+      "css": ".ds-btn-ghost { display: inline-flex; align-items: center; justify-content: center; width: 40px; height: 40px; background: #EAECEE; color: #272D34; border: none; border-radius: 8px; cursor: pointer; transition: background-color 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-btn-ghost:hover { background: #DDE0E3; } .ds-btn-ghost:focus-visible { outline: 2px solid #097098; outline-offset: 2px; }"
+    },
+    {
+      "name": "Tag Badge (React)",
+      "kind": "chip",
+      "refersTo": "tag-badge",
+      "description": "Topic chip on post lists. React variant; other topics swap hue but keep shape.",
+      "html": "<span class=\"ds-tag-badge\">React</span>",
+      "css": ".ds-tag-badge { display: inline-flex; align-items: center; padding: 6px 12px; background: #E0F3FA; color: #097098; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; border-radius: 9999px; line-height: 1.4; }"
+    },
+    {
+      "name": "Post Card",
+      "kind": "card",
+      "refersTo": "post-card",
+      "description": "Public blog post preview. Flat at rest; lifts on hover. Title shifts to accent on group-hover.",
+      "html": "<article class=\"ds-post-card\"><div class=\"ds-post-card-image\"></div><div class=\"ds-post-card-body\"><time class=\"ds-post-card-time\">Mar 5, 2026</time><h3 class=\"ds-post-card-title\">Why React component re-render</h3><p class=\"ds-post-card-description\">Inline object props create new references each render. Wrap in useMemo to fix.</p></div></article>",
+      "css": ".ds-post-card { display: block; overflow: hidden; background: #FFFFFF; border: 1px solid #C2C8CE; border-radius: 12px; transition: box-shadow 200ms cubic-bezier(0.4, 0, 0.2, 1); cursor: pointer; } .ds-post-card:hover { box-shadow: 0 4px 6px -1px rgba(0,0,0,0.10), 0 2px 4px -2px rgba(0,0,0,0.10); } .ds-post-card:hover .ds-post-card-title { color: #097098; } .ds-post-card-image { height: 192px; background: #DDE0E3; } .ds-post-card-body { display: flex; flex-direction: column; gap: 12px; padding: 20px; } .ds-post-card-time { color: #666666; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; line-height: 1.4; } .ds-post-card-title { margin: 0; color: #272D34; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 1.125rem; font-weight: 700; line-height: 1.35; transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-post-card-description { margin: 0; color: #3F4750; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.625; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }"
+    },
+    {
+      "name": "Callout — Info",
+      "kind": "custom",
+      "refersTo": "callout-info",
+      "description": "In-prose pause block. Tint is the boundary — no border. Other variants swap bg, icon, icon color.",
+      "html": "<div class=\"ds-callout-info\"><svg class=\"ds-callout-icon\" xmlns=\"http://www.w3.org/2000/svg\" width=\"20\" height=\"20\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><circle cx=\"12\" cy=\"12\" r=\"10\"/><path d=\"M12 16v-4M12 8h.01\"/></svg><div class=\"ds-callout-body\"><span class=\"ds-callout-title\">Heads-up</span><p class=\"ds-callout-text\">Inline object props create a new reference every render. Wrap them in useMemo.</p></div></div>",
+      "css": ".ds-callout-info { display: flex; gap: 12px; padding: 16px; background: #E5F5FB; border-radius: 12px; } .ds-callout-icon { flex-shrink: 0; color: #097098; } .ds-callout-body { display: flex; flex-direction: column; gap: 4px; } .ds-callout-title { color: #272D34; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 600; } .ds-callout-text { margin: 0; color: #3F4750; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; line-height: 1.625; }"
+    },
+    {
+      "name": "Code Block",
+      "kind": "custom",
+      "refersTo": "code-block",
+      "description": "Signature in-prose component. Dark in both themes. Header strip shows filename + language chip; copy button top-right.",
+      "html": "<div class=\"ds-code-block\"><div class=\"ds-code-header\"><span class=\"ds-code-filename\">app/lib/auth.ts</span><span class=\"ds-code-lang\">typescript</span></div><div class=\"ds-code-body\"><pre class=\"ds-code-pre\"><code>const session = await requireSession();\nif (!session) throw redirect({ to: '/login' });</code></pre><button class=\"ds-code-copy\" type=\"button\" aria-label=\"Copy\"><svg xmlns=\"http://www.w3.org/2000/svg\" width=\"16\" height=\"16\" viewBox=\"0 0 24 24\" fill=\"none\" stroke=\"currentColor\" stroke-width=\"2\" stroke-linecap=\"round\" stroke-linejoin=\"round\"><rect width=\"14\" height=\"14\" x=\"8\" y=\"8\" rx=\"2\" ry=\"2\"/><path d=\"M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2\"/></svg></button></div></div>",
+      "css": ".ds-code-block { overflow: hidden; background: #272D34; border: 1px solid #C2C8CE; border-radius: 12px; } .ds-code-header { display: flex; align-items: center; justify-content: space-between; padding: 8px 16px; border-bottom: 1px solid #3F4750; } .ds-code-filename { color: #8FA5C0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; font-weight: 500; } .ds-code-lang { padding: 2px 8px; background: #3F4750; color: #8FA5C0; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.75rem; border-radius: 4px; } .ds-code-body { position: relative; } .ds-code-pre { overflow-x: auto; margin: 0; padding: 16px; color: #C8D1DC; font-family: 'JetBrains Mono', ui-monospace, monospace; font-size: 0.875rem; line-height: 1.625; } .ds-code-copy { position: absolute; top: 12px; right: 12px; display: inline-flex; align-items: center; justify-content: center; width: 32px; height: 32px; background: #3F4750; color: #8FA5C0; border: none; border-radius: 8px; cursor: pointer; transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-code-copy:hover { color: #C8D1DC; }"
+    },
+    {
+      "name": "Input Field",
+      "kind": "input",
+      "refersTo": "input-field",
+      "description": "Text input. 44px height, 1px pencil-line border, focus ring in Workshop Cyan.",
+      "html": "<label class=\"ds-input-label\">Email<input class=\"ds-input\" type=\"email\" placeholder=\"you@example.com\" /></label>",
+      "css": ".ds-input-label { display: flex; flex-direction: column; gap: 6px; color: #272D34; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; } .ds-input { height: 44px; padding: 0 14px; background: #FFFFFF; color: #272D34; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 1rem; line-height: 1.4; border: 1px solid #C2C8CE; border-radius: 8px; transition: border-color 150ms cubic-bezier(0.4, 0, 0.2, 1), box-shadow 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-input::placeholder { color: #666666; } .ds-input:focus-visible { outline: none; border-color: #A8B0B8; box-shadow: 0 0 0 2px rgba(9, 112, 152, 0.6); }"
+    },
+    {
+      "name": "Header Nav Link",
+      "kind": "nav",
+      "refersTo": "nav-link",
+      "description": "Sticky-header navigation link. Rests in slate, shifts to Workshop Cyan on hover.",
+      "html": "<a class=\"ds-nav-link\" href=\"/en/about\">About</a>",
+      "css": ".ds-nav-link { color: #3F4750; font-family: Inter, ui-sans-serif, system-ui, sans-serif; font-size: 0.875rem; font-weight: 500; text-decoration: none; transition: color 150ms cubic-bezier(0.4, 0, 0.2, 1); } .ds-nav-link:hover { color: #097098; } .ds-nav-link:focus-visible { outline: 2px solid #097098; outline-offset: 4px; border-radius: 2px; }"
+    }
+  ],
+  "narrative": {
+    "northStar": "The Engineer's Notebook",
+    "overview": "A reading surface that feels like a working engineer's bound notebook: ruled, lightly cool, full of precise marks rather than decoration. The grid is felt but never drawn. Type is the architecture; color is a small set of deliberate marks on a calm page. Code blocks sit in the layout with the same weight as a paragraph — they are part of the argument, not an interruption. The page assumes the reader came to think. Nothing competes with the prose: no sidebars on post pages, no related-grid distraction, no engagement bait. The author's voice is patient, precise, generous; the surface matches it. Light theme is the writer's daylight desk; dark theme is the same notebook under a desk lamp at 11pm. Neither is the real theme.",
+    "keyCharacteristics": [
+      "Tonal layering, not shadow drama: depth comes from stepping background → surface → muted → card, not from box-shadows.",
+      "One steady accent — Workshop Cyan — used sparingly on links, focus, tags, and primary action only.",
+      "Inter for everything readable; JetBrains Mono for everything executable. No third typeface.",
+      "Generous body line-height (1.7) and 65–75ch measure on long-form prose.",
+      "Quiet borders (1px, border token) do the structural work that shadows would in a softer system.",
+      "Restrained motion: transition-colors and transition-shadow only. No parallax, no choreography, no springs."
+    ],
+    "rules": [
+      { "name": "The Workshop Cyan Rule", "body": "Workshop Cyan is the only saturated color a reader meets on a typical page. It appears on links, focus rings, the primary button, and the React tag. It does not fill large areas, does not gradient, and does not appear on hero backgrounds. Its rarity is what makes it read as the brand.", "section": "colors" },
+      { "name": "The Tonal-Step Rule", "body": "Depth is achieved by stepping through background → surface → muted → card, in that order. Shadows are a separate, optional tool used only on PostCard hover. A panel that needs to sit above the page steps one neutral lighter (light theme) or one neutral darker (dark theme). Never both.", "section": "colors" },
+      { "name": "The Pencil-Line Rule", "body": "Borders are 1px and use border (or border-strong for interactive emphasis). Any border heavier than 1px on a card or list item is a defect, not a design choice. Side-stripe colored borders are forbidden everywhere.", "section": "colors" },
+      { "name": "The Single-Family Rule", "body": "Inter carries every readable character on the site. Adding a third typeface is a brief-level decision and must be justified by PRODUCT.md, not introduced at the component level.", "section": "typography" },
+      { "name": "The 65-Character Rule", "body": "Long-form prose lives between 65 and 75 characters per line. Posts that exceed 75ch get harder to read in both languages; pt-br's longer average word makes 70ch the practical sweet spot.", "section": "typography" },
+      { "name": "The Monospace-Earned Rule", "body": "JetBrains Mono is for executable text only — code, kbd, file paths. It does not appear in headings, captions, eyebrows, or anywhere to look technical.", "section": "typography" },
+      { "name": "The Flat-By-Default Rule", "body": "Surfaces sit flat at rest. The only sanctioned shadow is the PostCard hover lift, and only because it answers a real affordance question. Any other shadow needs a written justification.", "section": "elevation" },
+      { "name": "The Layer-Don't-Lift Rule", "body": "When a panel needs to feel separate from its parent, step it one tonal level. Don't reach for a shadow.", "section": "elevation" }
+    ],
+    "dos": [
+      "Do use Workshop Cyan (#097098) as the only saturated color on a typical page — links, primary button, focus rings, the Terminal mark.",
+      "Do lead with type. Hierarchy is built with Inter weight contrast (400 / 500 / 700) and scale steps ≥1.25; never reach for a second display family.",
+      "Do cap body prose at 65–75ch on every long-form layout. Test in pt-br first; if it works there, it works in en.",
+      "Do layer with tonal steps (background → surface → muted → card) when something needs to feel separate from its parent.",
+      "Do keep code blocks dark in both light and dark themes. The dark slab is part of the rhythm.",
+      "Do respect prefers-reduced-motion. Every transition-colors and transition-shadow must degrade to instant.",
+      "Do use real <pre><code> for code, real <h1>–<h3> for hierarchy, real <button> for buttons. Semantic HTML is the accessibility floor.",
+      "Do use callouts to surface tradeoffs and caveats the author wants the reader to slow down on. They are pedagogical, not decorative.",
+      "Do keep visible focus rings on every interactive element."
+    ],
+    "donts": [
+      "Don't ship anything that resembles a Medium-style SaaS blog post: centered hero title, AI-gradient banner, stock photo, clap counter, reading-time chip.",
+      "Don't ship anything that resembles Dev.to / Hashnode chrome: sidebars on post pages, reaction bars, follow buttons, related-post grids around the article.",
+      "Don't ship portfolio brutalism: neon-on-black, monospace headings, ASCII decoration, deliberately broken layout.",
+      "Don't ship corporate engineering-blog gloss: all-caps eyebrows, perfect 12-column grid with no fingerprint, dot-matrix backgrounds, lifeless polish.",
+      "Don't use side-stripe colored borders on cards, list items, callouts, or alerts. The TOC's 2px left rail is the only sanctioned use.",
+      "Don't use gradient text. Emphasis comes from weight or size.",
+      "Don't use glassmorphism — no backdrop-filter: blur decorative use, no frosted cards.",
+      "Don't introduce shadows beyond the PostCard hover lift without a written justification.",
+      "Don't use bouncy or elastic easing. Motion is ease-out-quart or simpler.",
+      "Don't animate CSS layout properties (width, height, padding, margin). Animate opacity and transform only.",
+      "Don't use a sidebar on a post page. Posts are uninterrupted.",
+      "Don't reach for a modal as the first thought. Inline disclosure and progressive forms come first.",
+      "Don't invent a second accent color to add variety. The Workshop Cyan Rule is non-negotiable.",
+      "Don't use em dashes in UI copy. Use commas, colons, semicolons, periods, or parentheses.",
+      "Don't treat pt-br as a degraded en. If a layout breaks in pt-br because the word is longer, fix the layout, not the translation."
+    ]
+  }
+}

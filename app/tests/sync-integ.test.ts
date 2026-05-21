@@ -9,7 +9,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { runSync } from "../../scripts/sync";
 
 const execFileAsync = promisify(execFile);
-const DB_URL = "postgres://blog:blog@localhost:5432/blog";
+const DB_URL =
+	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 
 function isPortFree(port: number): Promise<boolean> {
 	return new Promise((res) => {
@@ -29,6 +30,7 @@ describe.skipIf(port5432Free)("integration: sync script", () => {
 		const pg = await import("postgres");
 		sql = pg.default(DB_URL);
 		tmpDir = await mkdtemp(join(tmpdir(), "sync-integ-"));
+		await sql`DELETE FROM posts WHERE file_path LIKE ${tmpdir() + "/%"}`;
 	});
 
 	afterAll(async () => {

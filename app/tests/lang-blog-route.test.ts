@@ -170,7 +170,8 @@ describe.skipIf(port5432Free || port3000Free)(
 	"integration: locale blog routes",
 	() => {
 		let sql: import("postgres").Sql;
-		const DB_URL = "postgres://blog:blog@localhost:5432/blog";
+		const DB_URL =
+			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 		const BASE_URL = "http://localhost:3000";
 		const SLUG = `integ-lang-blog-${Date.now()}`;
 
