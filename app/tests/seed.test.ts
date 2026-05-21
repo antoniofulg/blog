@@ -5,7 +5,8 @@ import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { seedAdmin } from "../../scripts/seed";
 
 const root = join(import.meta.dirname, "../..");
-const DB_URL = "postgres://blog:blog@localhost:5432/blog";
+const DB_URL =
+	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 const TEST_EMAIL = `seed-test-${Date.now()}@example.com`;
 const TEST_PASSWORD = "Test1234!";
 

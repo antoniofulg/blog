@@ -6,7 +6,8 @@ import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { removePost, syncAll, upsertPost } from "#/db/indexer";
 
-const DB_URL = "postgres://blog:blog@localhost:5432/blog";
+const DB_URL =
+	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 
 function isPortFree(port: number): Promise<boolean> {
 	return new Promise((resolve) => {
@@ -27,6 +28,9 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		const pg = await import("postgres");
 		sql = pg.default(DB_URL);
 		tmpDir = await mkdtemp(join(tmpdir(), "indexer-integ-"));
+		// Remove orphaned rows from previous runs (different tmpDirs) to prevent
+		// slug-lang unique constraint violations across runs.
+		await sql`DELETE FROM posts WHERE file_path LIKE ${tmpdir() + "/%"}`;
 	});
 
 	afterAll(async () => {

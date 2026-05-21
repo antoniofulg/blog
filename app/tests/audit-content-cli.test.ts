@@ -265,7 +265,8 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 		import.meta.dirname,
 		"../../scripts/audit-content.ts",
 	);
-	const DB_URL = "postgres://blog:blog@localhost:5432/blog";
+	const DB_URL =
+		process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 
 	it("exit 0 on clean content tree", async () => {
 		const summaryDir = await mkdtemp(join(tmpdir(), "audit-clean-"));

@@ -149,7 +149,7 @@ describe("unit: Makefile", () => {
 
 	it("make setup runs DB startup and migration steps regardless of DATABASE_URL value", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
-			"postgres://blog:blog@localhost:5432/blog",
+			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
 		);
 
 		runMake(["setup"], workspace, {

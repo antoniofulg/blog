@@ -28,7 +28,9 @@ describe.skipIf(port5432Free)("integration: auth round trip", () => {
 
 	beforeAll(async () => {
 		const pg = await import("postgres");
-		sql = pg.default("postgres://blog:blog@localhost:5432/blog");
+		sql = pg.default(
+			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
+		);
 		const { auth } = await import("#/lib/auth");
 		authHandler = (req) => auth.handler(req) as Promise<Response>;
 		getSession = (opts) =>
