@@ -45,11 +45,10 @@ The `e2e` matrix entry:
 
 Triggers: `workflow_run` on CI completion with `conclusion == 'success'` for pushes to `main` only. CD never fires if CI failed or was cancelled.
 
-Three jobs run in sequence (each needs the previous):
+Two jobs run in sequence (deploy needs build-push):
 
 1. **build-push** — builds Docker image (`target: runner` from multi-stage Dockerfile), tags with `:latest` and `:<short-sha>`, pushes to GHCR
-2. **deploy** — `scp`s `docker-compose.prod.yml` → `$DEPLOY_PATH/docker-compose.yml` on the VPS, SSHes in, brings up `db` and waits healthy, runs `bun run db:migrate`, then `docker compose up -d --no-deps app`. The compose file on the VPS is **CD-managed** — hand-edits get overwritten on the next deploy.
-3. **changelog** — runs `conventional-changelog-cli`, commits updated `CHANGELOG.md` back to `main` with `[skip ci]`
+2. **deploy** — `scp`s `docker-compose.prod.yml` → `$DEPLOY_PATH/docker-compose.yml` on the VPS, SSHes in, brings up `db` and waits healthy, runs `bun run db:migrate`, then `bun run sync`, then `docker compose up -d --no-deps app`. The compose file on the VPS is **CD-managed** — hand-edits get overwritten on the next deploy.
 
 Migration runs before container restart — this ordering is non-negotiable. If `make db-migrate` fails, the deploy aborts and the VPS keeps serving the previous container.
 
@@ -61,8 +60,7 @@ PR merged → push to main
   → ci.yml passes
   → cd.yml fires (workflow_run gate)
       → build-push: image at ghcr.io/<owner>/blog:<sha> and :latest
-      → deploy: VPS pulls :latest, runs migrations, restarts app
-      → changelog: CHANGELOG.md updated, committed with [skip ci]
+      → deploy: VPS pulls :latest, runs migrations, runs content sync, restarts app
   → blog live at new version (~5 min total)
 ```
 
@@ -160,5 +158,4 @@ The workflow uses `pull_request` (not `pull_request_target`), so fork PRs run **
 
 - Never push directly to `main` for feature work — always via PR
 - Never skip CI checks with `git push --force` to main
-- Never add `[skip ci]` to non-changelog commits — that token is reserved for the automated changelog bot commit
 - Never hardcode secrets in workflow files — all credentials go in GitHub Secrets
