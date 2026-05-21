@@ -25,7 +25,7 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
-import { getPublishedPostsFn } from "#/db/queries";
+import { listPostsFn } from "#/db/queries";
 import type { posts } from "#/db/schema";
 import { validateLocaleFn } from "#/routes/{-$locale}/index.server";
 
@@ -40,7 +40,6 @@ function makePost(overrides: Partial<Post> = {}): Post {
 		title: "Hello World",
 		description: "A short intro post.",
 		publishedAt: new Date("2026-05-02"),
-		isPublished: true,
 		viewCount: 0,
 		indexedAt: new Date(),
 		category: null,
@@ -94,15 +93,15 @@ describe("unit: pagination logic", () => {
 	});
 });
 
-// ─── Unit: getPublishedPostsFn with lang param ────────────────────────────────
+// ─── Unit: listPostsFn with lang param ────────────────────────────────────────
 
-describe("unit: getPublishedPostsFn — locale filtering", () => {
+describe("unit: listPostsFn — locale filtering", () => {
 	beforeEach(resetMocks);
 
 	it("passes 'en' to the query and returns English posts", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectOrderBy.mockResolvedValue([enPost]);
-		const result = await getPublishedPostsFn("en");
+		const result = await listPostsFn("en");
 		expect(mocks.select).toHaveBeenCalledTimes(1);
 		expect(result).toHaveLength(1);
 		expect(result[0].lang).toBe("en");
@@ -114,7 +113,7 @@ describe("unit: getPublishedPostsFn — locale filtering", () => {
 			filePath: "/content/pt-br/hello.mdx",
 		});
 		mocks.selectOrderBy.mockResolvedValue([ptPost]);
-		const result = await getPublishedPostsFn("pt-br");
+		const result = await listPostsFn("pt-br");
 		expect(mocks.select).toHaveBeenCalledTimes(1);
 		expect(result).toHaveLength(1);
 		expect(result[0].lang).toBe("pt-br");
@@ -122,13 +121,13 @@ describe("unit: getPublishedPostsFn — locale filtering", () => {
 
 	it("returns empty array when no posts match the locale", async () => {
 		mocks.selectOrderBy.mockResolvedValue([]);
-		const result = await getPublishedPostsFn("pt-br");
+		const result = await listPostsFn("pt-br");
 		expect(result).toHaveLength(0);
 	});
 
 	it("does not mix locales — empty when no posts in lang", async () => {
 		mocks.selectOrderBy.mockResolvedValue([]);
-		const result = await getPublishedPostsFn("en");
+		const result = await listPostsFn("en");
 		expect(result).toHaveLength(0);
 	});
 });

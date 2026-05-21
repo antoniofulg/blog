@@ -94,7 +94,6 @@ export async function upsertPost(filePath: string): Promise<void> {
 				title: fm.title,
 				description: fm.description ?? null,
 				publishedAt: fm.publishedAt ?? null,
-				isPublished: false,
 				indexedAt: now,
 				category: fm.category ?? null,
 				series: fm.series ?? null,

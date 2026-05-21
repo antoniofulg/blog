@@ -153,7 +153,7 @@ export async function checkBrokenLinks(
 			if (!isKnown) {
 				findings.push({
 					category: "broken-link",
-					severity: post.isPublished ? "blocker" : "minor",
+					severity: !post.frontmatter.draft ? "blocker" : "minor",
 					filePath: post.filePath,
 					line: link.line,
 					message: `Broken internal link: ${link.href}`,
@@ -200,7 +200,7 @@ export function checkSeriesGaps(posts: PostEntry[]): Finding[] {
 	const seriesMap = new Map<string, SeriesEntry[]>();
 
 	for (const post of posts) {
-		if (!post.isPublished) continue;
+		if (post.frontmatter.draft) continue;
 		const { series, seriesPart } = post.frontmatter;
 		if (!series || seriesPart == null) continue;
 		if (!seriesMap.has(series)) seriesMap.set(series, []);

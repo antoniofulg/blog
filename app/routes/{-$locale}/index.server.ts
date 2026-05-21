@@ -11,8 +11,8 @@ export function validateLocaleFn(lang: string): Locale {
 }
 
 export async function getLocalePostsFn(lang: Locale) {
-	const { getPublishedPostsFn } = await import("#/db/queries");
-	return getPublishedPostsFn(lang);
+	const { listPostsFn } = await import("#/db/queries");
+	return listPostsFn(lang);
 }
 
 export const getLocalePosts = createServerFn({ method: "GET" })

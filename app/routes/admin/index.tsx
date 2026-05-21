@@ -21,14 +21,14 @@ export const Route = createFileRoute("/admin/")({
 // ─── Components ───────────────────────────────────────────────────────────────
 
 function PostRow({ post }: { post: Post }) {
-	const [isPublished, setIsPublished] = useState(post.isPublished);
+	const [published, setPublished] = useState(post.publishedAt != null);
 	const [successMsg, setSuccessMsg] = useState<string | null>(null);
 
 	const handleToggle = async () => {
-		const next = !isPublished;
+		const next = !published;
 		try {
-			await togglePublished({ data: { id: post.id, isPublished: next } });
-			setIsPublished(next);
+			await togglePublished({ data: { id: post.id, publish: next } });
+			setPublished(next);
 			setSuccessMsg(next ? "Publicado" : "Rascunho");
 			setTimeout(() => setSuccessMsg(null), 2000);
 		} catch {
@@ -48,12 +48,12 @@ function PostRow({ post }: { post: Post }) {
 			<td className="px-4 py-3">
 				<span
 					className={`inline-flex items-center rounded-full px-2.5 py-1 text-xs font-semibold ${
-						isPublished
+						published
 							? "bg-callout-tip text-success"
 							: "bg-surface text-foreground-muted"
 					}`}
 				>
-					{isPublished ? "Publicado" : "Rascunho"}
+					{published ? "Publicado" : "Rascunho"}
 				</span>
 				{successMsg && (
 					<span
@@ -74,7 +74,7 @@ function PostRow({ post }: { post: Post }) {
 						onClick={handleToggle}
 						className="rounded-md bg-surface px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
 					>
-						{isPublished ? "Despublicar" : "Publicar"}
+						{published ? "Despublicar" : "Publicar"}
 					</button>
 					<Link
 						to="/admin/preview/$slug/"

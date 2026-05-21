@@ -87,7 +87,6 @@ function makePost(overrides: Partial<(typeof posts)["_"]["inferSelect"]> = {}) {
 		title: "Hello World",
 		description: "A short intro post.",
 		publishedAt: new Date("2026-05-02"),
-		isPublished: true,
 		viewCount: 5,
 		indexedAt: new Date(),
 		...overrides,
@@ -124,9 +123,9 @@ function resetMocks() {
 describe("unit: getAllPostsFn", () => {
 	beforeEach(resetMocks);
 
-	it("returns both draft and published posts (no is_published filter)", async () => {
-		const draft = makePost({ id: 1, slug: "draft", isPublished: false });
-		const published = makePost({ id: 2, slug: "published", isPublished: true });
+	it("returns all posts regardless of draft state (no is_published filter)", async () => {
+		const draft = makePost({ id: 1, slug: "draft" });
+		const published = makePost({ id: 2, slug: "published" });
 		mocks.selectChain._resolve([draft, published]);
 		const result = await getAllPostsFn();
 		// Exactly one db.select() call — no .where() filtering by is_published
@@ -156,13 +155,12 @@ describe("unit: getAllPostsFn", () => {
 describe("unit: togglePublishedFn", () => {
 	beforeEach(resetMocks);
 
-	it("sets is_published=true and published_at=now() when published_at is null", async () => {
+	it("sets published_at=now() when published_at is null", async () => {
 		mocks.selectChain._resolve([{ publishedAt: null }]);
 		await togglePublishedFn(1, true);
 		expect(mocks.db.update).toHaveBeenCalledTimes(1);
 		const setArg = (mocks.updateChain.set as ReturnType<typeof vi.fn>).mock
 			.calls[0][0] as Record<string, unknown>;
-		expect(setArg.isPublished).toBe(true);
 		expect(setArg.publishedAt).toBeInstanceOf(Date);
 	});
 
@@ -172,17 +170,15 @@ describe("unit: togglePublishedFn", () => {
 		await togglePublishedFn(1, true);
 		const setArg = (mocks.updateChain.set as ReturnType<typeof vi.fn>).mock
 			.calls[0][0] as Record<string, unknown>;
-		expect(setArg.isPublished).toBe(true);
 		expect(setArg.publishedAt).toBe(existingDate);
 	});
 
-	it("sets is_published=false and does not change published_at when unpublishing", async () => {
+	it("clears published_at when unpublishing", async () => {
 		await togglePublishedFn(1, false);
 		// No SELECT needed when unpublishing
 		const setArg = (mocks.updateChain.set as ReturnType<typeof vi.fn>).mock
 			.calls[0][0] as Record<string, unknown>;
-		expect(setArg.isPublished).toBe(false);
-		expect("publishedAt" in setArg).toBe(false);
+		expect(setArg.publishedAt).toBeNull();
 	});
 });
 
@@ -191,18 +187,16 @@ describe("unit: togglePublishedFn", () => {
 describe("unit: getAdminPreviewFn", () => {
 	beforeEach(resetMocks);
 
-	it("returns post regardless of is_published=false (draft post)", async () => {
-		const draft = makePost({ slug: "draft-slug", isPublished: false });
-		mocks.selectChain._resolve([draft]);
+	it("returns post regardless of draft state", async () => {
+		const post = makePost({ slug: "draft-slug" });
+		mocks.selectChain._resolve([post]);
 		const result = await getAdminPreviewFn("draft-slug");
 		expect(result.post.slug).toBe("draft-slug");
-		expect(result.post.isPublished).toBe(false);
 	});
 
-	it("returns post regardless of is_published=true (published post)", async () => {
+	it("returns post by slug", async () => {
 		const published = makePost({
 			slug: "published-slug",
-			isPublished: true,
 		});
 		mocks.selectChain._resolve([published]);
 		const result = await getAdminPreviewFn("published-slug");

@@ -76,7 +76,6 @@ function makePost(overrides: Partial<Post> = {}): Post {
 		title: "React Suspense with TypeScript",
 		description: "A deep dive into React Suspense.",
 		publishedAt: new Date("2026-05-02"),
-		isPublished: true,
 		viewCount: 0,
 		indexedAt: new Date(),
 		category: null,
@@ -329,8 +328,8 @@ describe.skipIf(port5432Free || port3000Free)(
 			const pg = await import("postgres");
 			sql = pg.default(DB_URL);
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'en', 'Integration Lang Slug Test', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'en', 'Integration Lang Slug Test', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 		});
@@ -377,8 +376,8 @@ describe.skipIf(port5432Free || port3000Free)(
 		it("GET /<slug> head contains hreflang pair for pt-br alternate", async () => {
 			// Insert pt-br version of the post so alternateLang is populated
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
@@ -392,8 +391,8 @@ describe.skipIf(port5432Free || port3000Free)(
 
 		it("GET /pt-br/<slug> head contains hreflang pair for en alternate", async () => {
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
@@ -407,8 +406,8 @@ describe.skipIf(port5432Free || port3000Free)(
 
 		it("GET /<slug> hreflang hrefs contain no /en/ prefix", async () => {
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
@@ -425,8 +424,8 @@ describe.skipIf(port5432Free || port3000Free)(
 
 		it("GET /pt-br/<slug> SSR contains pt-br postMeta.publishedOn label before the date", async () => {
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);

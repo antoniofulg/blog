@@ -19,7 +19,7 @@ async function getState(): Promise<E2EState> {
 
 // Each call creates a fresh connection to avoid postgres-js connection-level
 // caching that can return stale results when shared across PGLite proxy queries.
-async function queryIsPublished(
+async function queryPublished(
 	connectionString: string,
 	id: number,
 ): Promise<boolean> {
@@ -27,23 +27,23 @@ async function queryIsPublished(
 	const db = drizzle(sql, { schema: { posts } });
 	try {
 		const [row] = await db
-			.select({ isPublished: posts.isPublished })
+			.select({ publishedAt: posts.publishedAt })
 			.from(posts)
 			.where(eq(posts.id, id));
-		return row.isPublished;
+		return row.publishedAt != null;
 	} finally {
 		await sql.end();
 	}
 }
 
-async function resetIsPublished(
+async function resetPublished(
 	connectionString: string,
 	id: number,
 ): Promise<void> {
 	const sql = postgres(connectionString, { max: 1, idle_timeout: 0 });
 	const db = drizzle(sql, { schema: { posts } });
 	try {
-		await db.update(posts).set({ isPublished: false }).where(eq(posts.id, id));
+		await db.update(posts).set({ publishedAt: null }).where(eq(posts.id, id));
 	} finally {
 		await sql.end();
 	}
@@ -61,10 +61,10 @@ test.describe("admin write", { tag: ["@admin"] }, () => {
 	});
 
 	test(
-		"publish toggle: isPublished flips in UI and DB (round-trip)",
+		"publish toggle: published state flips in UI and DB (round-trip)",
 		async ({ authedPage }) => {
 			const state = await getState();
-			await resetIsPublished(state.connectionString, state.fixturePostId);
+			await resetPublished(state.connectionString, state.fixturePostId);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
@@ -83,7 +83,7 @@ test.describe("admin write", { tag: ["@admin"] }, () => {
 			).toBeVisible();
 
 			expect(
-				await queryIsPublished(state.connectionString, state.fixturePostId),
+				await queryPublished(state.connectionString, state.fixturePostId),
 				"DB must reflect published=true",
 			).toBe(true);
 
@@ -94,7 +94,7 @@ test.describe("admin write", { tag: ["@admin"] }, () => {
 			).toBeVisible();
 
 			expect(
-				await queryIsPublished(state.connectionString, state.fixturePostId),
+				await queryPublished(state.connectionString, state.fixturePostId),
 				"DB must revert to published=false",
 			).toBe(false);
 		},
@@ -104,7 +104,7 @@ test.describe("admin write", { tag: ["@admin"] }, () => {
 		"preview: unpublished post renders fixture title",
 		async ({ authedPage }) => {
 			const state = await getState();
-			await resetIsPublished(state.connectionString, state.fixturePostId);
+			await resetPublished(state.connectionString, state.fixturePostId);
 
 			await authedPage.goto(`/admin/preview/${state.fixturePostSlug}`);
 			await authedPage.waitForLoadState("load");

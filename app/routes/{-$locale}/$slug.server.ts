@@ -37,13 +37,7 @@ export async function getPostBySlugWithLangFn(
 	const [exactPost] = await db
 		.select()
 		.from(posts)
-		.where(
-			and(
-				eq(posts.slug, slug),
-				eq(posts.lang, requestedLang),
-				eq(posts.isPublished, true),
-			),
-		);
+		.where(and(eq(posts.slug, slug), eq(posts.lang, requestedLang)));
 
 	if (exactPost) {
 		const { content: source } = matter(
@@ -56,13 +50,7 @@ export async function getPostBySlugWithLangFn(
 		const [altPost] = await db
 			.select()
 			.from(posts)
-			.where(
-				and(
-					eq(posts.slug, slug),
-					eq(posts.lang, otherLang),
-					eq(posts.isPublished, true),
-				),
-			);
+			.where(and(eq(posts.slug, slug), eq(posts.lang, otherLang)));
 
 		return {
 			post: exactPost,
@@ -77,7 +65,7 @@ export async function getPostBySlugWithLangFn(
 	const [fallbackPost] = await db
 		.select()
 		.from(posts)
-		.where(and(eq(posts.slug, slug), eq(posts.isPublished, true)));
+		.where(eq(posts.slug, slug));
 
 	if (!fallbackPost) {
 		throw notFound();

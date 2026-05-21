@@ -13,26 +13,23 @@ export async function getAllPostsFn(): Promise<Post[]> {
 
 export async function togglePublishedFn(
 	id: number,
-	isPublished: boolean,
+	publish: boolean,
 ): Promise<void> {
 	const [{ db }, { posts }, { eq }] = await Promise.all([
 		import("#/db/client"),
 		import("#/db/schema"),
 		import("drizzle-orm"),
 	]);
-	if (isPublished) {
+	if (publish) {
 		const [post] = await db
 			.select({ publishedAt: posts.publishedAt })
 			.from(posts)
 			.where(eq(posts.id, id));
 		const publishedAt =
 			post?.publishedAt != null ? post.publishedAt : new Date();
-		await db
-			.update(posts)
-			.set({ isPublished: true, publishedAt })
-			.where(eq(posts.id, id));
+		await db.update(posts).set({ publishedAt }).where(eq(posts.id, id));
 	} else {
-		await db.update(posts).set({ isPublished: false }).where(eq(posts.id, id));
+		await db.update(posts).set({ publishedAt: null }).where(eq(posts.id, id));
 	}
 }
 
@@ -44,8 +41,8 @@ export const getAllPosts = createServerFn({ method: "GET" }).handler(
 );
 
 export const togglePublished = createServerFn({ method: "POST" })
-	.inputValidator((input: { id: number; isPublished: boolean }) => input)
+	.inputValidator((input: { id: number; publish: boolean }) => input)
 	.handler(async ({ data }) => {
 		await requireSession();
-		return togglePublishedFn(data.id, data.isPublished);
+		return togglePublishedFn(data.id, data.publish);
 	});

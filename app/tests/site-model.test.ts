@@ -146,7 +146,7 @@ describe("unit: getRouteInventory", () => {
 		expect(inventory).toHaveLength(keys.length - optOutCount);
 	});
 
-	it("slug routes excluded from inventory when DB has no published posts", async () => {
+	it("slug routes excluded from inventory when DB has no posts", async () => {
 		dbMocks.from.mockImplementation(() => makeDbChain([]));
 		const inventory = await getRouteInventory();
 		const slugRoutes = inventory.filter((e) => e.path.includes(":slug"));
@@ -229,7 +229,7 @@ describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", ()
 		expect(previewRoute?.sampleSlug).toBe("my-live-post");
 	});
 
-	it("getRouteInventory excludes slug routes when DB returns no published posts", async () => {
+	it("getRouteInventory excludes slug routes when DB returns no posts", async () => {
 		dbMocks.from.mockImplementation(() => makeDbChain([]));
 		dbMocks.select.mockReturnValue({ from: dbMocks.from });
 		const inventory = await getRouteInventory();
@@ -345,7 +345,6 @@ describe("unit: getPostInventory — fixture posts", () => {
 			expect(["en", "pt-br"]).toContain(entry.lang);
 			expect(typeof entry.filePath).toBe("string");
 			expect(typeof entry.frontmatter.title).toBe("string");
-			expect(typeof entry.isPublished).toBe("boolean");
 			expect(typeof entry.hasTwin).toBe("boolean");
 		}
 	});
@@ -391,50 +390,6 @@ describe("unit: getPostInventory — fixture posts", () => {
 			e.filePath.endsWith("solo-post.mdx"),
 		);
 		expect(solo?.slug).toBe("solo-post");
-	});
-
-	it("isPublished=true when post appears as published in DB", async () => {
-		const enTwinPath = join(
-			tmpDir,
-			"app",
-			"content",
-			"posts",
-			"en",
-			"twin-post.mdx",
-		);
-		dbMocks.from.mockResolvedValue([
-			{ filePath: enTwinPath, isPublished: true },
-		]);
-		const result = await getPostInventory();
-		const enTwin = result.find(
-			(e: PostEntry) => e.slug === "twin-post" && e.lang === "en",
-		);
-		expect(enTwin?.isPublished).toBe(true);
-	});
-
-	it("isPublished=false for posts not found in DB", async () => {
-		dbMocks.from.mockResolvedValue([]);
-		const result = await getPostInventory();
-		for (const entry of result) {
-			expect(entry.isPublished).toBe(false);
-		}
-	});
-
-	it("isPublished=false when DB row exists but isPublished=false", async () => {
-		const soloPath = join(
-			tmpDir,
-			"app",
-			"content",
-			"posts",
-			"en",
-			"solo-post.mdx",
-		);
-		dbMocks.from.mockResolvedValue([
-			{ filePath: soloPath, isPublished: false },
-		]);
-		const result = await getPostInventory();
-		const solo = result.find((e: PostEntry) => e.slug === "solo-post");
-		expect(solo?.isPublished).toBe(false);
 	});
 });
 
