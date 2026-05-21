@@ -1,4 +1,4 @@
-import { Link } from "@tanstack/react-router";
+import { Link, useRouterState } from "@tanstack/react-router";
 import { Menu, Moon, Sun, Terminal, X } from "lucide-react";
 import { useState } from "react";
 import { LanguageMenu } from "#/components/ui/language-menu";
@@ -32,40 +32,64 @@ const HEADER_STRINGS: Record<
 	},
 };
 
+function isActiveLink(to: string, pathname: string): boolean {
+	if (to === "/") {
+		return pathname === "/" || pathname === "/en/" || pathname === "/pt-br/";
+	}
+	return pathname.startsWith(to);
+}
+
+function usePathname() {
+	return useRouterState({ select: (s) => s.location.pathname });
+}
+
 export function Header() {
 	const { theme, toggle } = useTheme();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const currentLocale = useCurrentLocale();
+	const pathname = usePathname();
 	const navLinks = NAV_LABELS[currentLocale];
 	const headerStrings = HEADER_STRINGS[currentLocale];
 
 	return (
 		<>
-			<header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-background px-6 lg:px-20">
+			<header className="animate-fade-down sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-background px-6 lg:px-20">
 				<Link
 					to="/{-$locale}/"
 					params={{
 						locale:
 							currentLocale === DEFAULT_LOCALE ? undefined : currentLocale,
 					}}
+					aria-label="Antonio Fulgencio — home"
 					className="flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
 				>
 					<Terminal className="h-6 w-6 text-accent" aria-hidden="true" />
-					<span className="font-heading text-lg font-bold text-foreground">
+					<span
+						className="font-heading text-lg font-bold text-foreground"
+						aria-hidden="true"
+					>
 						Antonio Fulgencio
 					</span>
 				</Link>
 
 				<nav className="hidden items-center gap-8 lg:flex">
-					{navLinks.map((link) => (
-						<Link
-							key={link.to}
-							to={link.to}
-							className="rounded-sm text-sm font-medium text-foreground-secondary transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
-						>
-							{link.label}
-						</Link>
-					))}
+					{navLinks.map((link) => {
+						const active = isActiveLink(link.to, pathname);
+						return (
+							<Link
+								key={link.to}
+								to={link.to}
+								aria-current={active ? "page" : undefined}
+								className={`rounded-sm text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background ${
+									active
+										? "text-accent"
+										: "text-foreground-secondary hover:text-accent"
+								}`}
+							>
+								{link.label}
+							</Link>
+						);
+					})}
 				</nav>
 
 				<div className="flex items-center gap-2">
@@ -75,7 +99,7 @@ export function Header() {
 						onClick={toggle}
 						aria-label={headerStrings.toggleTheme}
 						aria-pressed={theme === "dark"}
-						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+						className="flex h-11 w-11 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					>
 						{theme === "dark" ? (
 							<Sun className="h-5 w-5" aria-hidden="true" />
@@ -89,7 +113,7 @@ export function Header() {
 						aria-label={headerStrings.openMenu}
 						aria-expanded={mobileMenuOpen}
 						aria-controls="mobile-menu"
-						className="flex h-10 w-10 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
+						className="flex h-11 w-11 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
 					>
 						<Menu className="h-5 w-5" aria-hidden="true" />
 					</button>
@@ -114,6 +138,7 @@ function MobileMenu({
 	onClose: () => void;
 }) {
 	const { theme, toggle } = useTheme();
+	const pathname = usePathname();
 	const navLinks = NAV_LABELS[locale];
 	const headerStrings = HEADER_STRINGS[locale];
 
@@ -133,23 +158,31 @@ function MobileMenu({
 					type="button"
 					onClick={onClose}
 					aria-label={headerStrings.closeMenu}
-					className="flex h-10 w-10 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+					className="flex h-11 w-11 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				>
 					<X className="h-5 w-5" aria-hidden="true" />
 				</button>
 			</div>
 
 			<nav aria-label="Primary" className="flex flex-col px-5 py-2">
-				{navLinks.map((link) => (
-					<Link
-						key={link.to}
-						to={link.to}
-						onClick={onClose}
-						className="flex h-13 items-center border-b border-border text-base font-medium text-foreground-secondary transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-					>
-						{link.label}
-					</Link>
-				))}
+				{navLinks.map((link) => {
+					const active = isActiveLink(link.to, pathname);
+					return (
+						<Link
+							key={link.to}
+							to={link.to}
+							onClick={onClose}
+							aria-current={active ? "page" : undefined}
+							className={`flex h-13 items-center border-b border-border text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+								active
+									? "text-accent"
+									: "text-foreground-secondary hover:text-foreground"
+							}`}
+						>
+							{link.label}
+						</Link>
+					);
+				})}
 			</nav>
 
 			<LanguageMenu variant="list" onAfterChange={onClose} />
@@ -160,7 +193,7 @@ function MobileMenu({
 					onClick={toggle}
 					aria-label={headerStrings.toggleTheme}
 					aria-pressed={theme === "dark"}
-					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+					className="flex h-11 w-11 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				>
 					{theme === "dark" ? (
 						<Sun className="h-5 w-5" aria-hidden="true" />

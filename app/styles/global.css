@@ -150,6 +150,32 @@
 }
 
 /*
+  Navbar entrance animation.
+  Header descends from translateY(-8px) — opposite direction to page content
+  which rises from translateY(8px). Creates "frame drops in, content rises up"
+  on first page load. Component persists across client navigation so the
+  animation only fires once per hard load.
+*/
+@keyframes fade-down {
+  from {
+    opacity: 0;
+    transform: translateY(-8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-fade-down {
+  animation: fade-down 500ms cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .animate-fade-down { animation: none; }
+}
+
+/*
   Page-load entrance animation.
   Used for the homepage header cascade and content block reveal.
   opacity 0 → 1 + translateY 8px → 0, ease-out-expo, 500ms.

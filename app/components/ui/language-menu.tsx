@@ -237,7 +237,7 @@ function LanguageDropdown({
 				aria-controls={menuId}
 				aria-label={triggerLabelByLocale[currentLocale]}
 				onClick={() => setOpen((o) => !o)}
-				className="flex h-10 items-center gap-1.5 rounded-md bg-surface px-2.5 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="flex h-11 items-center gap-1.5 rounded-md bg-surface px-2.5 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			>
 				<Languages className="h-4 w-4" aria-hidden="true" />
 				<span className="text-xs font-semibold">
