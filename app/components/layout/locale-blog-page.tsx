@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { useMemo } from "react";
 import { EmptyState } from "#/components/ui/empty-state";
 import { TimelineIndex, type YearEntry } from "#/components/ui/timeline-index";
 import type { Post } from "#/db/schema";
@@ -109,8 +110,8 @@ export function LocaleBlogPage({
 	posts: Post[];
 }) {
 	const t = copy[locale] ?? copy.en;
-	const groups = groupByYearMonth(posts);
-	const yearEntries = toYearEntries(groups);
+	const groups = useMemo(() => groupByYearMonth(posts), [posts]);
+	const yearEntries = useMemo(() => toYearEntries(groups), [groups]);
 
 	return (
 		<div className="px-5 py-16 lg:px-20 lg:py-24">
@@ -148,7 +149,7 @@ export function LocaleBlogPage({
 												block: "start",
 											});
 										}}
-										className="shrink-0 rounded-full bg-surface px-3 py-1.5 text-xs font-medium text-foreground-secondary transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+										className="inline-flex min-h-[44px] shrink-0 items-center rounded-full bg-surface px-3 text-xs font-medium text-foreground-secondary transition-colors hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 									>
 										{year}
 									</a>
@@ -168,9 +169,13 @@ export function LocaleBlogPage({
 									<section
 										key={yearGroup.year}
 										id={`year-${yearGroup.year}`}
+										aria-labelledby={`year-${yearGroup.year}-heading`}
 										className="mb-16 scroll-mt-24 last:mb-0"
 									>
-										<h2 className="font-heading text-2xl font-bold text-foreground">
+										<h2
+											id={`year-${yearGroup.year}-heading`}
+											className="font-heading text-2xl font-bold text-foreground"
+										>
 											{yearGroup.year}
 										</h2>
 
