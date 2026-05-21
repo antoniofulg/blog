@@ -189,8 +189,8 @@ describe("unit: Header language menu navigation", () => {
 		await selectMenuItem("Português");
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
-			to: "/{-$locale}/about/",
-			params: { locale: "pt-br" },
+			to: "/{-$locale}/$slug/",
+			params: { locale: "pt-br", slug: "about" },
 		});
 	});
 

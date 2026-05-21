@@ -17,7 +17,6 @@ import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$local
 import { Route as PtBrIndexRouteImport } from './routes/pt-br.index'
 import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as Char123LocaleChar125AboutRouteImport } from './routes/{-$locale}/about'
 import { Route as Char123LocaleChar125SlugRouteImport } from './routes/{-$locale}/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 import { Route as AdminPreviewSlugRouteImport } from './routes/admin/preview.$slug'
@@ -63,12 +62,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char123LocaleChar125AboutRoute =
-  Char123LocaleChar125AboutRouteImport.update({
-    id: '/about',
-    path: '/about',
-    getParentRoute: () => Char123LocaleChar125Route,
-  } as any)
 const Char123LocaleChar125SlugRoute =
   Char123LocaleChar125SlugRouteImport.update({
     id: '/$slug',
@@ -92,7 +85,6 @@ export interface FileRoutesByFullPath {
   '/rss.xml': typeof RssDotxmlRoute
   '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
-  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
   '/en/': typeof EnIndexRoute
   '/pt-br/': typeof PtBrIndexRoute
@@ -105,7 +97,6 @@ export interface FileRoutesByTo {
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
-  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin': typeof AdminIndexRoute
   '/en': typeof EnIndexRoute
   '/pt-br': typeof PtBrIndexRoute
@@ -120,7 +111,6 @@ export interface FileRoutesById {
   '/rss.xml': typeof RssDotxmlRoute
   '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
-  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
   '/en/': typeof EnIndexRoute
   '/pt-br/': typeof PtBrIndexRoute
@@ -136,7 +126,6 @@ export interface FileRouteTypes {
     | '/rss.xml'
     | '/{-$locale}'
     | '/{-$locale}/$slug'
-    | '/{-$locale}/about'
     | '/admin/'
     | '/en/'
     | '/pt-br/'
@@ -149,7 +138,6 @@ export interface FileRouteTypes {
     | '/robots.txt'
     | '/rss.xml'
     | '/{-$locale}/$slug'
-    | '/{-$locale}/about'
     | '/admin'
     | '/en'
     | '/pt-br'
@@ -163,7 +151,6 @@ export interface FileRouteTypes {
     | '/rss.xml'
     | '/{-$locale}'
     | '/{-$locale}/$slug'
-    | '/{-$locale}/about'
     | '/admin/'
     | '/en/'
     | '/pt-br/'
@@ -242,13 +229,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/{-$locale}/about': {
-      id: '/{-$locale}/about'
-      path: '/about'
-      fullPath: '/{-$locale}/about'
-      preLoaderRoute: typeof Char123LocaleChar125AboutRouteImport
-      parentRoute: typeof Char123LocaleChar125Route
-    }
     '/{-$locale}/$slug': {
       id: '/{-$locale}/$slug'
       path: '/$slug'
@@ -275,13 +255,11 @@ declare module '@tanstack/react-router' {
 
 interface Char123LocaleChar125RouteChildren {
   Char123LocaleChar125SlugRoute: typeof Char123LocaleChar125SlugRoute
-  Char123LocaleChar125AboutRoute: typeof Char123LocaleChar125AboutRoute
   Char123LocaleChar125IndexRoute: typeof Char123LocaleChar125IndexRoute
 }
 
 const Char123LocaleChar125RouteChildren: Char123LocaleChar125RouteChildren = {
   Char123LocaleChar125SlugRoute: Char123LocaleChar125SlugRoute,
-  Char123LocaleChar125AboutRoute: Char123LocaleChar125AboutRoute,
   Char123LocaleChar125IndexRoute: Char123LocaleChar125IndexRoute,
 }
 

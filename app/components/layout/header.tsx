@@ -32,15 +32,49 @@ const HEADER_STRINGS: Record<
 	},
 };
 
-function isActiveLink(to: string, pathname: string): boolean {
-	if (to === "/") {
-		return pathname === "/" || pathname === "/en/" || pathname === "/pt-br/";
-	}
-	return pathname.startsWith(to);
-}
+function useLangSwitcher() {
+	const { setLocale } = useLocale();
+	const navigate = useNavigate();
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
 
-function usePathname() {
-	return useRouterState({ select: (s) => s.location.pathname });
+	const currentLocale: Locale =
+		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
+			| Locale
+			| undefined) ?? DEFAULT_LOCALE;
+	const targetLocale = LOCALES.find((l) => l !== currentLocale) as Locale;
+	const label = strings[targetLocale].localeSwitcher.label;
+
+	function switchLang() {
+		setLocale(targetLocale);
+		const prefix = `/${currentLocale}/`;
+		const localeParam =
+			targetLocale === DEFAULT_LOCALE ? undefined : targetLocale;
+		if (pathname.startsWith(prefix)) {
+			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
+			if (rest === "" || rest === "blog") {
+				navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
+			} else if (rest === "about") {
+				navigate({
+					to: "/{-$locale}/$slug/",
+					params: { locale: localeParam, slug: "about" },
+				});
+			} else {
+				navigate({
+					to: "/{-$locale}/$slug/",
+					params: { locale: localeParam, slug: rest },
+				});
+			}
+		} else if (pathname === "/about") {
+			navigate({
+				to: "/{-$locale}/$slug/",
+				params: { locale: localeParam, slug: "about" },
+			});
+		} else {
+			navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
+		}
+	}
+
+	return { label, switchLang, currentLocale };
 }
 
 export function Header() {
