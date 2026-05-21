@@ -1,4 +1,4 @@
-import { createFileRoute } from "@tanstack/react-router";
+import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { PostFooter } from "#/components/ui/post-footer";
 import { PostHeader } from "#/components/ui/post-header";
@@ -58,18 +58,38 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 		const { locale } = Route.useParams();
 		const lang = (locale ?? DEFAULT_LOCALE) as Locale;
 		const copy = {
-			en: "Post not found",
-			"pt-br": "Post não encontrado",
-		} satisfies Record<Locale, string>;
-		const message = copy[lang] ?? copy.en;
+			en: {
+				title: "Post not found",
+				body: "This post doesn't exist or was removed.",
+				cta: "← Writing",
+			},
+			"pt-br": {
+				title: "Post não encontrado",
+				body: "Este post não existe ou foi removido.",
+				cta: "← Escrita",
+			},
+		} satisfies Record<Locale, { title: string; body: string; cta: string }>;
+		const t = copy[lang] ?? copy.en;
 		return (
-			<main className="px-5 py-24 lg:px-20">
-				<div className="mx-auto max-w-3xl">
-					<h1 className="font-heading text-3xl font-bold text-foreground">
-						{message}
-					</h1>
-				</div>
-			</main>
+			<div className="flex flex-col items-center justify-center gap-6 px-5 py-20 text-center">
+				<h1 className="animate-fade-up font-heading text-2xl font-bold text-foreground lg:text-3xl">
+					{t.title}
+				</h1>
+				<p
+					className="animate-fade-up max-w-md text-foreground-secondary"
+					style={{ animationDelay: "80ms" }}
+				>
+					{t.body}
+				</p>
+				<Link
+					to="/{-$locale}/"
+					params={{ locale: lang === DEFAULT_LOCALE ? undefined : lang }}
+					className="animate-fade-up inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
+					style={{ animationDelay: "160ms" }}
+				>
+					{t.cta}
+				</Link>
+			</div>
 		);
 	},
 });
