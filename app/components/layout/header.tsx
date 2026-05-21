@@ -18,15 +18,17 @@ const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 
 const MOBILE_STRINGS: Record<
 	Locale,
-	{ closeMenu: string; toggleTheme: string; language: string }
+	{ closeMenu: string; openMenu: string; toggleTheme: string; language: string }
 > = {
 	en: {
 		closeMenu: "Close menu",
+		openMenu: "Open menu",
 		toggleTheme: "Toggle theme",
 		language: "Language",
 	},
 	"pt-br": {
 		closeMenu: "Fechar menu",
+		openMenu: "Abrir menu",
 		toggleTheme: "Alternar tema",
 		language: "Idioma",
 	},
@@ -52,19 +54,19 @@ function useLangSwitcher() {
 		if (pathname.startsWith(prefix)) {
 			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
 			if (rest === "" || rest === "blog") {
-				navigate({ to: "/{-$locale}", params: { locale: localeParam } });
+				navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
 			} else if (rest === "about") {
-				navigate({ to: "/{-$locale}/about", params: { locale: localeParam } });
+				navigate({ to: "/{-$locale}/about/", params: { locale: localeParam } });
 			} else {
 				navigate({
-					to: "/{-$locale}/$slug",
+					to: "/{-$locale}/$slug/",
 					params: { locale: localeParam, slug: rest },
 				});
 			}
 		} else if (pathname === "/about") {
-			navigate({ to: "/{-$locale}/about", params: { locale: localeParam } });
+			navigate({ to: "/{-$locale}/about/", params: { locale: localeParam } });
 		} else {
-			navigate({ to: "/{-$locale}", params: { locale: localeParam } });
+			navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
 		}
 	}
 
@@ -76,12 +78,13 @@ export function Header() {
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const { label, switchLang, currentLocale } = useLangSwitcher();
 	const navLinks = NAV_LABELS[currentLocale];
+	const headerStrings = MOBILE_STRINGS[currentLocale];
 
 	return (
 		<>
 			<header className="sticky top-0 z-50 flex h-16 items-center justify-between border-b border-border bg-background px-6 lg:px-20">
 				<Link
-					to="/{-$locale}"
+					to="/{-$locale}/"
 					params={{
 						locale:
 							currentLocale === DEFAULT_LOCALE ? undefined : currentLocale,
@@ -118,6 +121,8 @@ export function Header() {
 					<button
 						type="button"
 						onClick={toggle}
+						aria-label={headerStrings.toggleTheme}
+						aria-pressed={theme === "dark"}
 						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
 					>
 						{theme === "dark" ? (
@@ -129,6 +134,9 @@ export function Header() {
 					<button
 						type="button"
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+						aria-label={headerStrings.openMenu}
+						aria-expanded={mobileMenuOpen}
+						aria-controls="mobile-menu"
 						className="flex h-10 w-10 items-center justify-center rounded-md text-foreground-secondary lg:hidden"
 					>
 						<Menu className="h-5 w-5" />
@@ -155,7 +163,10 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 	}
 
 	return (
-		<div className="fixed inset-0 z-50 bg-background lg:hidden">
+		<div
+			id="mobile-menu"
+			className="fixed inset-0 z-50 bg-background lg:hidden"
+		>
 			<div className="flex h-14 items-center justify-between border-b border-border px-5">
 				<span className="font-heading text-base font-bold text-foreground">
 					AF Blog
@@ -180,6 +191,8 @@ function MobileMenu({ onClose }: { onClose: () => void }) {
 				<button
 					type="button"
 					onClick={toggle}
+					aria-label={mobileStrings.toggleTheme}
+					aria-pressed={theme === "dark"}
 					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface"
 				>
 					{theme === "dark" ? (

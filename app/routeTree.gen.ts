@@ -13,6 +13,8 @@ import { Route as Char123LocaleChar125RouteImport } from './routes/{-$locale}'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as LoginRouteImport } from './routes/login'
 import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
+import { Route as PtBrIndexRouteImport } from './routes/pt-br.index'
+import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as Char123LocaleChar125AboutRouteImport } from './routes/{-$locale}/about'
 import { Route as Char123LocaleChar125SlugRouteImport } from './routes/{-$locale}/$slug'
@@ -40,6 +42,16 @@ const Char123LocaleChar125IndexRoute =
     path: '/',
     getParentRoute: () => Char123LocaleChar125Route,
   } as any)
+const PtBrIndexRoute = PtBrIndexRouteImport.update({
+  id: '/pt-br/',
+  path: '/pt-br/',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const EnIndexRoute = EnIndexRouteImport.update({
+  id: '/en/',
+  path: '/en/',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
   id: '/admin/',
   path: '/admin/',
@@ -75,6 +87,8 @@ export interface FileRoutesByFullPath {
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
   '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
+  '/en/': typeof EnIndexRoute
+  '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -85,6 +99,8 @@ export interface FileRoutesByTo {
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
   '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin': typeof AdminIndexRoute
+  '/en': typeof EnIndexRoute
+  '/pt-br': typeof PtBrIndexRoute
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -97,6 +113,8 @@ export interface FileRoutesById {
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
   '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
+  '/en/': typeof EnIndexRoute
+  '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
@@ -110,6 +128,8 @@ export interface FileRouteTypes {
     | '/{-$locale}/$slug'
     | '/{-$locale}/about'
     | '/admin/'
+    | '/en/'
+    | '/pt-br/'
     | '/{-$locale}/'
     | '/admin/preview/$slug'
     | '/api/auth/$'
@@ -120,6 +140,8 @@ export interface FileRouteTypes {
     | '/{-$locale}/$slug'
     | '/{-$locale}/about'
     | '/admin'
+    | '/en'
+    | '/pt-br'
     | '/{-$locale}'
     | '/admin/preview/$slug'
     | '/api/auth/$'
@@ -131,6 +153,8 @@ export interface FileRouteTypes {
     | '/{-$locale}/$slug'
     | '/{-$locale}/about'
     | '/admin/'
+    | '/en/'
+    | '/pt-br/'
     | '/{-$locale}/'
     | '/admin/preview/$slug'
     | '/api/auth/$'
@@ -141,6 +165,8 @@ export interface RootRouteChildren {
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   Char123LocaleChar125Route: typeof Char123LocaleChar125RouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
+  EnIndexRoute: typeof EnIndexRoute
+  PtBrIndexRoute: typeof PtBrIndexRoute
   AdminPreviewSlugRoute: typeof AdminPreviewSlugRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
@@ -174,6 +200,20 @@ declare module '@tanstack/react-router' {
       fullPath: '/{-$locale}/'
       preLoaderRoute: typeof Char123LocaleChar125IndexRouteImport
       parentRoute: typeof Char123LocaleChar125Route
+    }
+    '/pt-br/': {
+      id: '/pt-br/'
+      path: '/pt-br'
+      fullPath: '/pt-br/'
+      preLoaderRoute: typeof PtBrIndexRouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/en/': {
+      id: '/en/'
+      path: '/en'
+      fullPath: '/en/'
+      preLoaderRoute: typeof EnIndexRouteImport
+      parentRoute: typeof rootRouteImport
     }
     '/admin/': {
       id: '/admin/'
@@ -233,6 +273,8 @@ const rootRouteChildren: RootRouteChildren = {
   RobotsDottxtRoute: RobotsDottxtRoute,
   Char123LocaleChar125Route: Char123LocaleChar125RouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
+  EnIndexRoute: EnIndexRoute,
+  PtBrIndexRoute: PtBrIndexRoute,
   AdminPreviewSlugRoute: AdminPreviewSlugRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }

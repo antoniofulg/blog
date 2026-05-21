@@ -1,11 +1,21 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup dev dev-docker build preview \
-        test lint format check \
+        test lint format check lint-tests test-e2e audit-content audit-fe app-audit audit audit-watch \
         db-migrate db-generate db-seed db-reset \
         stop restart restart-all logs shell deploy
 
 IMAGE_NAME    ?= blog
 CONTAINER_APP ?= blog-app
+
+# -- Build artifacts -----------------------------------------------------------
+
+# Nitro production bundle path; declared here so audit-fe + audit can declare
+# it as a Make-native prerequisite and rebuild only when sources changed.
+NITRO_BUNDLE := .output/server/index.mjs
+# Source set that, when newer than NITRO_BUNDLE, forces a rebuild. Evaluated
+# at parse time via $(shell ...) — a brand-new source file is picked up on the
+# next make invocation, which is the same behavior as `bun run build` itself.
+APP_SOURCES  := $(shell find app scripts -type f \( -name '*.ts' -o -name '*.tsx' \) 2>/dev/null)
 
 # -- Discovery -----------------------------------------------------------------
 
@@ -87,6 +97,39 @@ format: ## Run Biome formatter
 check: ## Run TypeScript type check (tsc --noEmit)
 	bunx tsc --noEmit
 	@echo "Types valid. Next: make test | git commit"
+
+lint-tests: ## Lint e2e test annotations for 48h SLA compliance
+	bun run lint:tests
+	@echo "Test annotations clean. Next: make test | git commit"
+
+e2e: test-e2e ## CI matrix alias — delegates to test-e2e
+
+test-e2e: ## Run Playwright e2e test suite
+	bun run test:e2e
+	@echo "E2e tests complete. Next: make lint | git commit"
+
+audit-content: ## Run content audit and write report to docs/_reports/
+	bun run audit:content
+	@echo "Content audit complete. Next: make lint | git commit"
+
+# Rebuild rule: Nitro bundle is stale when any app/scripts source file or one
+# of the build inputs (package.json, bun.lock, vite.config.ts) is newer.
+$(NITRO_BUNDLE): $(APP_SOURCES) package.json bun.lock vite.config.ts
+	@echo "[audit-fe] sources changed — rebuilding nitro bundle..."
+	bun run build
+
+audit-fe: $(NITRO_BUNDLE) ## Run app (browser) audit; orchestrates preview server (auto-rebuilds when sources changed)
+	bun run scripts/run-audit-fe.ts
+	@echo "App audit complete. Next: make lint | git commit"
+
+audit-watch: $(NITRO_BUNDLE) ## Run app audit with visible browser (headed Chromium, slow, no lighthouse) — for debugging
+	AUDIT_HEADED=1 AUDIT_SLOWMO=200 bun run scripts/run-audit-fe.ts --no-lighthouse
+	@echo "Visual audit complete. Next: make audit-fe (for CI mode)"
+
+app-audit: audit-fe ## Alias for audit-fe
+
+audit: audit-content audit-fe ## Run full audit suite (content + app) sequentially via Make targets
+	@echo "Full audit complete. Next: make lint | git commit"
 
 # -- Database ------------------------------------------------------------------
 

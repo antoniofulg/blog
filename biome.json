@@ -14,7 +14,9 @@
 			"**/vite.config.ts",
 			"**/tailwind.config.ts",
 			"!**/app/routeTree.gen.ts",
-			"!**/app/styles"
+			"!**/app/styles",
+			"!**/playwright-report",
+			"!**/coverage"
 		]
 	},
 	"formatter": {

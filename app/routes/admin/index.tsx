@@ -9,7 +9,7 @@ export const Route = createFileRoute("/admin/")({
 	beforeLoad: ({ context, location }) => {
 		if (!context.auth.user) {
 			throw redirect({
-				to: "/login",
+				to: "/login/",
 				search: { redirect: location.href },
 			});
 		}
@@ -77,7 +77,7 @@ function PostRow({ post }: { post: Post }) {
 						{isPublished ? "Despublicar" : "Publicar"}
 					</button>
 					<Link
-						to="/admin/preview/$slug"
+						to="/admin/preview/$slug/"
 						params={{ slug: post.slug }}
 						className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-foreground-inverse"
 					>

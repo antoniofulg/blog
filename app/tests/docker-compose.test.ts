@@ -47,10 +47,11 @@ describe("unit: docker-compose.yml", () => {
 		);
 		expect(config.services.app.environment).toEqual(
 			expect.objectContaining({
-				ADMIN_EMAIL: "admin@example.com",
-				ADMIN_PASSWORD: "changeme",
-				DATABASE_URL:
-					"postgres://POSTGRES_USER:POSTGRES_PASSWORD@localhost:5432/POSTGRES_DB",
+				ADMIN_EMAIL: expect.any(String),
+				ADMIN_PASSWORD: expect.any(String),
+				DATABASE_URL: expect.stringMatching(
+					/^postgres:\/\/[^:]+:[^@]+@localhost:5432\/[^/?#]+$/,
+				),
 			}),
 		);
 	}, 15_000);

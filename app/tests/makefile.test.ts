@@ -287,6 +287,32 @@ describe("unit: Makefile", () => {
 		expect(output).toContain("Create scripts/deploy.sh");
 	});
 
+	it("e2e quality targets are declared in .PHONY", () => {
+		const content = readFileSync(makefilePath, "utf8");
+		const phonyBlock = content.match(/\.PHONY:[\s\S]*?\n\n/);
+
+		expect(phonyBlock?.[0]).toBeDefined();
+		expect(phonyBlock?.[0]).toContain("test-e2e");
+		expect(phonyBlock?.[0]).toContain("lint-tests");
+	});
+
+	it("test-e2e and lint-tests targets delegate to expected bun scripts", () => {
+		const { binDir, logPath, workspace } = makeSetupWorkspace(
+			"postgres://blog:custom@localhost:5432/blog",
+		);
+
+		for (const target of ["test-e2e", "lint-tests"]) {
+			runMake([target], workspace, {
+				FAKE_COMMAND_LOG: logPath,
+				PATH: `${binDir}:${process.env.PATH}`,
+			});
+		}
+
+		const commands = readFileSync(logPath, "utf8");
+		expect(commands).toContain("bun run test:e2e");
+		expect(commands).toContain("bun run lint:tests");
+	});
+
 	it("make deploy runs scripts/deploy.sh when present", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",

@@ -12,3 +12,22 @@ dist-ssr
 __unconfig*
 todos.json
 docker-compose.override.yml
+
+# Playwright / e2e
+tests/e2e/.auth/
+tests/e2e/storageState.json
+test-results/
+playwright-report/
+coverage/
+
+# macOS tmpdir leak guard (writes via path.join + absolute tmpdir)
+var/
+
+# Content audit per-run reports (gitignored; uploaded as GHA artifact)
+docs/_reports/content-audit-*.md
+
+# App audit per-run reports (gitignored; uploaded as GHA artifact)
+docs/_reports/app-audit-*.md
+
+# Lighthouse CI flags + per-run artifacts (transient; not for repo)
+.lighthouseci/

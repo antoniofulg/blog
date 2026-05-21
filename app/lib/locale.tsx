@@ -16,6 +16,13 @@ export function toBcp47(locale: Locale): string {
 	return BCP47_MAP[locale] ?? locale;
 }
 
+export function collapseDefaultLocalePath(pathname: string): string {
+	const defaultPrefix = `/${DEFAULT_LOCALE}/`;
+	return pathname.startsWith(defaultPrefix)
+		? pathname.slice(defaultPrefix.length - 1) || "/"
+		: pathname;
+}
+
 export function localeHref(locale: Locale, slug?: string): string {
 	if (locale === DEFAULT_LOCALE) {
 		return slug ? `/${slug}` : "/";
@@ -75,6 +82,49 @@ function preferredLocale(acceptLang: string): Locale {
 		if (tag.startsWith("en")) return "en";
 	}
 	return DEFAULT_LOCALE;
+}
+
+const LOCALE_DESCRIPTIONS: Record<Locale, string> = {
+	en: "Articles about web development, React, TypeScript, Bun and international career.",
+	"pt-br":
+		"Artigos sobre desenvolvimento web, React, TypeScript, Bun e carreira internacional.",
+};
+
+const LOCALE_PATHNAME: Record<Locale, string> = {
+	en: "/",
+	"pt-br": "/pt-br/",
+};
+
+const LOCALE_OG_LOCALE: Record<Locale, string> = {
+	en: "en_US",
+	"pt-br": "pt_BR",
+};
+
+export function buildLocaleHead(locale: Locale) {
+	const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+	const canonicalUrl = `${siteUrl}${LOCALE_PATHNAME[locale]}`;
+	const description = LOCALE_DESCRIPTIONS[locale];
+	// Canonical link is emitted by `__root.tsx` (single source of truth, locale-aware
+	// via pathname). Emitting it here too produced duplicate `<link rel="canonical">`
+	// tags in the rendered HTML — Playwright's strict-mode `getAttribute` threw on
+	// the multi-match, the audit caught and reported missing-meta, and search
+	// engines saw conflicting canonical URLs (e.g. `/en/` vs `/`). og:url stays
+	// here because it's a meta property, not a link, and does not collide with the
+	// root layout's metadata.
+	return {
+		meta: [
+			{ name: "description", content: description },
+			{ property: "og:title", content: "Antonio Fulgencio Blog" },
+			{ property: "og:description", content: description },
+			{ property: "og:url", content: canonicalUrl },
+			{ property: "og:locale", content: LOCALE_OG_LOCALE[locale] },
+		],
+		links: LOCALES.map((l) => ({
+			rel: "alternate",
+			hrefLang: toBcp47(l),
+			href: localeHref(l),
+		})),
+	};
 }
 
 export function detectLocaleFromRequest(request: Request): Locale {
