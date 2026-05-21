@@ -82,7 +82,7 @@ export function PostHeader({
 
 	return (
 		<header className="flex flex-col gap-6">
-			<div className="flex flex-wrap items-center justify-between gap-3">
+			<div className="animate-fade-up flex flex-wrap items-center justify-between gap-3">
 				<Link
 					to="/{-$locale}/"
 					params={{
@@ -109,24 +109,34 @@ export function PostHeader({
 				)}
 			</div>
 
-			<p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+			<p
+				className="animate-fade-up text-xs font-semibold uppercase tracking-[0.18em] text-accent"
+				style={{ animationDelay: "60ms" }}
+			>
 				{eyebrowByLocale[requestedLang]}
 			</p>
 
 			<h1
 				id="post-title"
-				className="font-heading text-[clamp(2rem,5.5vw,3.5rem)] font-bold leading-[1.1] tracking-tight text-foreground"
+				className="animate-fade-up font-heading text-[clamp(2rem,5.5vw,3.5rem)] font-bold leading-[1.1] tracking-tight text-foreground"
+				style={{ animationDelay: "120ms" }}
 			>
 				{title}
 			</h1>
 
 			{description && (
-				<p className="max-w-2xl text-xl leading-relaxed text-foreground-secondary lg:text-2xl">
+				<p
+					className="animate-fade-up max-w-2xl text-xl leading-relaxed text-foreground-secondary lg:text-2xl"
+					style={{ animationDelay: "180ms" }}
+				>
 					{description}
 				</p>
 			)}
 
-			<ul className="flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium uppercase tracking-[0.16em] text-foreground-muted">
+			<ul
+				className="animate-fade-up flex flex-wrap items-center gap-x-3 gap-y-2 text-xs font-medium uppercase tracking-[0.16em] text-foreground-muted"
+				style={{ animationDelay: "240ms" }}
+			>
 				{formattedDate && (
 					<li>
 						<span className="text-foreground-muted">
