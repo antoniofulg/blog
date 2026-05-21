@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { SocialLink } from "#/components/ui/social-link";
 import { TranslationNotice } from "#/components/ui/translation-notice";
 import {
 	DEFAULT_LOCALE,
@@ -9,6 +10,23 @@ import {
 } from "#/lib/locale";
 import { loadAboutFn } from "./about.server";
 
+const AUTHOR_NAME = "Antonio Fulgencio";
+
+const eyebrowByLocale: Record<Locale, string> = {
+	en: "About",
+	"pt-br": "Sobre",
+};
+
+const nowLabelByLocale: Record<Locale, string> = {
+	en: "Updated",
+	"pt-br": "Atualizado em",
+};
+
+const dateLocale: Record<Locale, string> = {
+	en: "en-US",
+	"pt-br": "pt-BR",
+};
+
 export const Route = createFileRoute("/{-$locale}/about")({
 	loader: async ({ params }) => {
 		const locale = (params.locale ?? DEFAULT_LOCALE) as Locale;
@@ -17,7 +35,7 @@ export const Route = createFileRoute("/{-$locale}/about")({
 	head: ({ loaderData }) => ({
 		meta: [
 			{
-				title: `${loaderData?.frontmatter?.title ?? "About"} — Antonio Fulgencio`,
+				title: `${loaderData?.frontmatter?.title ?? "About"} · ${AUTHOR_NAME}`,
 			},
 		],
 		links: LOCALES.map((l) => ({
@@ -34,40 +52,79 @@ function AboutPage() {
 	const { locale: requestedLocale } = Route.useParams();
 	const requestedLang = (requestedLocale ?? DEFAULT_LOCALE) as Locale;
 
+	const updatedDate = frontmatter.nowUpdatedAt
+		? new Date(frontmatter.nowUpdatedAt).toLocaleDateString(
+				dateLocale[locale],
+				{ month: "long", year: "numeric" },
+			)
+		: null;
+
 	return (
-		<div className="px-5 py-12 lg:px-20">
+		<div className="px-5 py-16 lg:px-20 lg:py-24">
 			<article className="mx-auto max-w-3xl" lang={toBcp47(locale)}>
 				{fallbackLocale && (
-					<div className="mb-6">
+					<div className="mb-10">
 						<TranslationNotice
 							requestedLang={requestedLang}
 							availableLang={fallbackLocale}
 						/>
 					</div>
 				)}
-				<header className="mb-8">
-					<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">
-						{frontmatter.title}
-					</h1>
-				</header>
+
+				<p className="text-xs font-medium uppercase tracking-[0.18em] text-accent">
+					{eyebrowByLocale[locale]}
+				</p>
+
+				<h1 className="mt-3 font-heading text-[clamp(2.5rem,7vw,4.5rem)] font-bold leading-[1.05] tracking-tight text-foreground">
+					{AUTHOR_NAME}
+				</h1>
+
+				{frontmatter.tagline && (
+					<p className="mt-6 max-w-2xl text-xl leading-relaxed text-foreground-secondary lg:text-2xl">
+						{frontmatter.tagline}
+					</p>
+				)}
+
+				{frontmatter.avatar && (
+					<figure className="mt-12">
+						<img
+							src={frontmatter.avatar}
+							alt={`Portrait of ${AUTHOR_NAME}`}
+							width={192}
+							height={192}
+							className="h-48 w-48 rounded-lg border border-border bg-muted object-cover"
+						/>
+					</figure>
+				)}
+
+				<hr className="mt-16 border-border" />
+
 				<div
-					className="prose prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-a:text-accent prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:text-foreground-code prose-pre:bg-code-bg prose-pre:text-foreground-code"
+					className="prose prose-lg prose-neutral mt-12 max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code"
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
 					dangerouslySetInnerHTML={{ __html: html }}
 				/>
+
+				{updatedDate && (
+					<p className="mt-6 text-xs font-medium uppercase tracking-[0.18em] text-foreground-muted">
+						{nowLabelByLocale[locale]} {updatedDate}
+					</p>
+				)}
+
 				{frontmatter.links.length > 0 && (
-					<div className="mt-8 flex flex-wrap gap-4">
-						{frontmatter.links.map((link) => (
-							<a
-								key={link.url}
-								href={link.url}
-								className="inline-flex items-center gap-2 rounded-md border border-border px-4 py-2 text-sm font-medium text-foreground-secondary hover:text-foreground"
-								rel="noopener noreferrer"
-							>
-								{link.label}
-							</a>
-						))}
-					</div>
+					<>
+						<hr className="mt-16 border-border" />
+						<div className="mt-12 flex flex-wrap gap-3">
+							{frontmatter.links.map((link) => (
+								<SocialLink
+									key={link.url}
+									label={link.label}
+									url={link.url}
+									kind={link.kind}
+								/>
+							))}
+						</div>
+					</>
 				)}
 			</article>
 		</div>

@@ -8,13 +8,30 @@ vi.mock("@tanstack/react-router", () => ({
 	Link: ({
 		children,
 		to,
+		params,
 		className,
 	}: {
 		children: React.ReactNode;
 		to: string;
+		params?: { locale?: string };
 		className?: string;
-	}) => React.createElement("a", { href: to, className }, children),
+	}) => {
+		let href = String(to ?? "");
+		const localeVal = params?.locale;
+		if (localeVal === undefined || localeVal === null) {
+			href = href.replace("/{-$locale}/", "/");
+		} else {
+			href = href.replace("/{-$locale}/", `/${localeVal}/`);
+		}
+		return React.createElement("a", { href, className }, children);
+	},
 }));
+
+vi.mock("#/lib/locale", async () => {
+	const actual =
+		await vi.importActual<typeof import("#/lib/locale")>("#/lib/locale");
+	return { ...actual, useCurrentLocale: () => "en" };
+});
 
 function renderFooter() {
 	return render(React.createElement(Footer));
@@ -37,7 +54,7 @@ describe("unit: Footer navLinks absent entries", () => {
 		expect(document.querySelector('a[href="/projects"]')).toBeNull();
 	});
 
-	it("no link to /blog — deleted route, listing moved to /", () => {
+	it("no link to /blog (deleted route, listing moved to /)", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/blog"]')).toBeNull();
 	});
@@ -88,14 +105,44 @@ describe("unit: Footer social links absent", () => {
 
 // ─── unit: valid remaining links ──────────────────────────────────────────────
 
-describe("unit: Footer valid remaining links", () => {
+describe("unit: Footer valid remaining links (locale=en)", () => {
 	it("renders link to /", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/"]')).not.toBeNull();
 	});
 
-	it("renders link to /about", () => {
+	it("renders link to /en/about (locale-aware About)", () => {
 		renderFooter();
-		expect(document.querySelector('a[href="/about"]')).not.toBeNull();
+		expect(document.querySelector('a[href="/en/about"]')).not.toBeNull();
+	});
+
+	it("no unprefixed /about link (replaced by /en/about for bilingual parity)", () => {
+		renderFooter();
+		expect(document.querySelector('a[href="/about"]')).toBeNull();
+	});
+});
+
+// ─── unit: bilingual copy ─────────────────────────────────────────────────────
+
+describe("unit: Footer copy (locale=en)", () => {
+	it("renders English tagline", () => {
+		renderFooter();
+		expect(
+			document.body.textContent?.includes("Notes on web development"),
+		).toBe(true);
+	});
+
+	it("renders English rights-reserved string", () => {
+		renderFooter();
+		expect(document.body.textContent?.includes("All rights reserved")).toBe(
+			true,
+		);
+	});
+
+	it("renders dynamic copyright year", () => {
+		renderFooter();
+		expect(
+			document.body.textContent?.includes(String(new Date().getFullYear())),
+		).toBe(true);
 	});
 });

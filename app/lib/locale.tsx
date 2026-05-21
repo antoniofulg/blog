@@ -1,3 +1,4 @@
+import { useRouterState } from "@tanstack/react-router";
 import {
 	createContext,
 	useCallback,
@@ -60,6 +61,15 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 
 export function useLocale() {
 	return useContext(LocaleContext);
+}
+
+export function useCurrentLocale(): Locale {
+	const pathname = useRouterState({ select: (s) => s.location.pathname });
+	return (
+		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
+			| Locale
+			| undefined) ?? DEFAULT_LOCALE
+	);
 }
 
 function preferredLocale(acceptLang: string): Locale {

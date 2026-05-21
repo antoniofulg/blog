@@ -1,5 +1,6 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
+import matter from "gray-matter";
 import type { Post } from "#/db/schema";
 import { LOCALES, type Locale } from "#/lib/locale";
 
@@ -45,7 +46,9 @@ export async function getPostBySlugWithLangFn(
 		);
 
 	if (exactPost) {
-		const source = await readFile(exactPost.filePath, "utf-8");
+		const { content: source } = matter(
+			await readFile(exactPost.filePath, "utf-8"),
+		);
 		const Content = await renderFn(source);
 		const html = renderToStaticMarkup(createElement(Content, {}));
 
@@ -80,7 +83,9 @@ export async function getPostBySlugWithLangFn(
 		throw notFound();
 	}
 
-	const source = await readFile(fallbackPost.filePath, "utf-8");
+	const { content: source } = matter(
+		await readFile(fallbackPost.filePath, "utf-8"),
+	);
 	const Content = await renderFn(source);
 	const html = renderToStaticMarkup(createElement(Content, {}));
 	return {

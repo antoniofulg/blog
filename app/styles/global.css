@@ -119,6 +119,49 @@
   --tag-tanstack: #E35535;
 }
 
+/*
+  Shiki dual-theme: light by default, dark when .dark class on <html>.
+  Shiki's `themes: { light, dark }` mode emits CSS custom properties
+  (--shiki-light, --shiki-dark, --shiki-light-bg, --shiki-dark-bg) on every
+  token span and the <pre> element. The default color value is `var(--shiki-light)`.
+  This rule swaps to the dark variables when ThemeProvider adds `.dark` to <html>.
+*/
+html.dark .shiki,
+html.dark .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--shiki-dark-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/*
+  MDX prose code blocks: apply rounded corners and border to match the
+  hand-rolled CodeBlock component in code-block.tsx. Shiki renders raw <pre>
+  with inline background styles; Tailwind Typography doesn't add shape or border.
+  Only the light-theme <pre> needs a border for contrast (dark theme has enough
+  contrast from the dark slab against the dark page).
+*/
+.prose pre {
+  border-radius: 12px; /* rounded-lg */
+  border: 1px solid var(--border);
+  overflow-x: auto;
+}
+
+/*
+  Reset prose inline-code styles inside <pre> blocks.
+  prose-code:* modifiers apply to ALL <code> elements, including those Shiki
+  wraps inside <pre>. Without this, each code line gets a redundant background,
+  padding, and border-radius on top of Shiki's own block-level styling —
+  causing per-line darker backgrounds that fight the code block's color scheme.
+*/
+.prose pre code {
+  background-color: transparent;
+  padding: 0;
+  border-radius: 0;
+  font-size: inherit;
+}
+
 * {
   box-sizing: border-box;
 }

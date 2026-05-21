@@ -1,8 +1,8 @@
-import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Menu, Moon, Sun, Terminal } from "lucide-react";
+import { Link } from "@tanstack/react-router";
+import { Menu, Moon, Sun, Terminal, X } from "lucide-react";
 import { useState } from "react";
-import { strings } from "#/lib/i18n/strings";
-import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
+import { LanguageMenu } from "#/components/ui/language-menu";
+import { DEFAULT_LOCALE, type Locale, useCurrentLocale } from "#/lib/locale";
 import { useTheme } from "#/lib/theme";
 
 const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
@@ -16,69 +16,28 @@ const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 	],
 };
 
-const MOBILE_STRINGS: Record<
+const HEADER_STRINGS: Record<
 	Locale,
-	{ closeMenu: string; openMenu: string; toggleTheme: string; language: string }
+	{ closeMenu: string; openMenu: string; toggleTheme: string }
 > = {
 	en: {
 		closeMenu: "Close menu",
 		openMenu: "Open menu",
 		toggleTheme: "Toggle theme",
-		language: "Language",
 	},
 	"pt-br": {
 		closeMenu: "Fechar menu",
 		openMenu: "Abrir menu",
 		toggleTheme: "Alternar tema",
-		language: "Idioma",
 	},
 };
-
-function useLangSwitcher() {
-	const { setLocale } = useLocale();
-	const navigate = useNavigate();
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
-
-	const currentLocale: Locale =
-		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
-			| Locale
-			| undefined) ?? DEFAULT_LOCALE;
-	const targetLocale = LOCALES.find((l) => l !== currentLocale) as Locale;
-	const label = strings[targetLocale].localeSwitcher.label;
-
-	function switchLang() {
-		setLocale(targetLocale);
-		const prefix = `/${currentLocale}/`;
-		const localeParam =
-			targetLocale === DEFAULT_LOCALE ? undefined : targetLocale;
-		if (pathname.startsWith(prefix)) {
-			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
-			if (rest === "" || rest === "blog") {
-				navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
-			} else if (rest === "about") {
-				navigate({ to: "/{-$locale}/about/", params: { locale: localeParam } });
-			} else {
-				navigate({
-					to: "/{-$locale}/$slug/",
-					params: { locale: localeParam, slug: rest },
-				});
-			}
-		} else if (pathname === "/about") {
-			navigate({ to: "/{-$locale}/about/", params: { locale: localeParam } });
-		} else {
-			navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
-		}
-	}
-
-	return { label, switchLang, currentLocale };
-}
 
 export function Header() {
 	const { theme, toggle } = useTheme();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-	const { label, switchLang, currentLocale } = useLangSwitcher();
+	const currentLocale = useCurrentLocale();
 	const navLinks = NAV_LABELS[currentLocale];
-	const headerStrings = MOBILE_STRINGS[currentLocale];
+	const headerStrings = HEADER_STRINGS[currentLocale];
 
 	return (
 		<>
@@ -89,9 +48,9 @@ export function Header() {
 						locale:
 							currentLocale === DEFAULT_LOCALE ? undefined : currentLocale,
 					}}
-					className="flex items-center gap-2"
+					className="flex items-center gap-2 rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
 				>
-					<Terminal className="h-6 w-6 text-accent" />
+					<Terminal className="h-6 w-6 text-accent" aria-hidden="true" />
 					<span className="font-heading text-lg font-bold text-foreground">
 						Antonio Fulgencio
 					</span>
@@ -102,118 +61,115 @@ export function Header() {
 						<Link
 							key={link.to}
 							to={link.to}
-							className="text-sm font-medium text-foreground-secondary transition-colors hover:text-accent"
+							className="rounded-sm text-sm font-medium text-foreground-secondary transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
 						>
 							{link.label}
 						</Link>
 					))}
 				</nav>
 
-				<div className="flex items-center gap-3">
-					<button
-						type="button"
-						onClick={switchLang}
-						aria-label="Switch language"
-						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
-					>
-						<span className="text-xs font-semibold">{label}</span>
-					</button>
+				<div className="flex items-center gap-2">
+					<LanguageMenu variant="dropdown" />
 					<button
 						type="button"
 						onClick={toggle}
 						aria-label={headerStrings.toggleTheme}
 						aria-pressed={theme === "dark"}
-						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
+						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					>
 						{theme === "dark" ? (
-							<Sun className="h-5 w-5" />
+							<Sun className="h-5 w-5" aria-hidden="true" />
 						) : (
-							<Moon className="h-5 w-5" />
+							<Moon className="h-5 w-5" aria-hidden="true" />
 						)}
 					</button>
 					<button
 						type="button"
-						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+						onClick={() => setMobileMenuOpen(true)}
 						aria-label={headerStrings.openMenu}
 						aria-expanded={mobileMenuOpen}
 						aria-controls="mobile-menu"
-						className="flex h-10 w-10 items-center justify-center rounded-md text-foreground-secondary lg:hidden"
+						className="flex h-10 w-10 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background lg:hidden"
 					>
-						<Menu className="h-5 w-5" />
+						<Menu className="h-5 w-5" aria-hidden="true" />
 					</button>
 				</div>
 			</header>
 
 			{mobileMenuOpen && (
-				<MobileMenu onClose={() => setMobileMenuOpen(false)} />
+				<MobileMenu
+					locale={currentLocale}
+					onClose={() => setMobileMenuOpen(false)}
+				/>
 			)}
 		</>
 	);
 }
 
-function MobileMenu({ onClose }: { onClose: () => void }) {
+function MobileMenu({
+	locale,
+	onClose,
+}: {
+	locale: Locale;
+	onClose: () => void;
+}) {
 	const { theme, toggle } = useTheme();
-	const { label, switchLang, currentLocale } = useLangSwitcher();
-	const navLinks = NAV_LABELS[currentLocale];
-	const mobileStrings = MOBILE_STRINGS[currentLocale];
-
-	function handleLangSwitch() {
-		switchLang();
-		onClose();
-	}
+	const navLinks = NAV_LABELS[locale];
+	const headerStrings = HEADER_STRINGS[locale];
 
 	return (
 		<div
 			id="mobile-menu"
+			role="dialog"
+			aria-modal="true"
+			aria-label={headerStrings.openMenu}
 			className="fixed inset-0 z-50 bg-background lg:hidden"
 		>
-			<div className="flex h-14 items-center justify-between border-b border-border px-5">
+			<div className="flex h-16 items-center justify-between border-b border-border px-5">
 				<span className="font-heading text-base font-bold text-foreground">
-					AF Blog
+					Antonio Fulgencio
 				</span>
-				<button type="button" onClick={onClose} className="text-foreground">
-					<span className="sr-only">{mobileStrings.closeMenu}</span>✕
+				<button
+					type="button"
+					onClick={onClose}
+					aria-label={headerStrings.closeMenu}
+					className="flex h-10 w-10 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				>
+					<X className="h-5 w-5" aria-hidden="true" />
 				</button>
 			</div>
-			<nav className="flex flex-col px-5 py-2">
+
+			<nav aria-label="Primary" className="flex flex-col px-5 py-2">
 				{navLinks.map((link) => (
 					<Link
 						key={link.to}
 						to={link.to}
 						onClick={onClose}
-						className="flex h-13 items-center border-b border-border text-base font-medium text-foreground-secondary"
+						className="flex h-13 items-center border-b border-border text-base font-medium text-foreground-secondary transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					>
 						{link.label}
 					</Link>
 				))}
 			</nav>
-			<div className="flex items-center gap-3 px-5 py-4">
+
+			<LanguageMenu variant="list" onAfterChange={onClose} />
+
+			<div className="mt-6 flex items-center gap-3 px-5">
 				<button
 					type="button"
 					onClick={toggle}
-					aria-label={mobileStrings.toggleTheme}
+					aria-label={headerStrings.toggleTheme}
 					aria-pressed={theme === "dark"}
-					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface"
+					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				>
 					{theme === "dark" ? (
-						<Sun className="h-5 w-5 text-foreground" />
+						<Sun className="h-5 w-5" aria-hidden="true" />
 					) : (
-						<Moon className="h-5 w-5 text-foreground" />
+						<Moon className="h-5 w-5" aria-hidden="true" />
 					)}
 				</button>
 				<span className="text-sm text-foreground-secondary">
-					{mobileStrings.toggleTheme}
-				</span>
-				<button
-					type="button"
-					onClick={handleLangSwitch}
-					aria-label="Switch language"
-					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground"
-				>
-					<span className="text-xs font-semibold">{label}</span>
-				</button>
-				<span className="text-sm text-foreground-secondary">
-					{mobileStrings.language}
+					{headerStrings.toggleTheme}
 				</span>
 			</div>
 		</div>

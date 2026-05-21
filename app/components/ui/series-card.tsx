@@ -1,3 +1,10 @@
+import type { Locale } from "#/lib/locale";
+
+const partsLabelByLocale: Record<Locale, (n: number) => string> = {
+	en: (n) => `${n} ${n === 1 ? "part" : "parts"}`,
+	"pt-br": (n) => `${n} ${n === 1 ? "parte" : "partes"}`,
+};
+
 export function SeriesCard({
 	title,
 	description,
@@ -5,6 +12,7 @@ export function SeriesCard({
 	parts,
 	progress,
 	status,
+	locale = "en",
 }: {
 	title: string;
 	description: string;
@@ -12,6 +20,7 @@ export function SeriesCard({
 	parts: number;
 	progress: number;
 	status: string;
+	locale?: Locale;
 }) {
 	return (
 		<div className="flex flex-col gap-4 rounded-lg border border-border bg-card p-6">
@@ -29,8 +38,17 @@ export function SeriesCard({
 			<p className="text-sm leading-relaxed text-foreground-secondary">
 				{description}
 			</p>
-			<span className="text-xs text-foreground-muted">{parts} partes</span>
-			<div className="h-1 overflow-hidden rounded-full bg-muted">
+			<span className="text-xs text-foreground-muted">
+				{partsLabelByLocale[locale](parts)}
+			</span>
+			<div
+				className="h-1 overflow-hidden rounded-full bg-muted"
+				role="progressbar"
+				aria-valuenow={progress}
+				aria-valuemin={0}
+				aria-valuemax={100}
+				aria-label={`${progress}%`}
+			>
 				<div
 					className="h-full rounded-full bg-accent"
 					style={{ width: `${progress}%` }}

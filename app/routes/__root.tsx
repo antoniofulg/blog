@@ -65,14 +65,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				{
 					name: "description",
 					content:
-						"Articles about web development, React, TypeScript, Bun and international career.",
+						"Notes on web development, React, TypeScript, Bun, and modern tooling.",
 				},
 				{ property: "og:type", content: "website" },
 				{ property: "og:title", content: "Antonio Fulgencio Blog" },
 				{
 					property: "og:description",
 					content:
-						"Articles about web development, React, TypeScript, Bun and international career.",
+						"Notes on web development, React, TypeScript, Bun, and modern tooling.",
 				},
 				{
 					property: "og:image",
@@ -108,7 +108,7 @@ export function NotFoundPage() {
 	const t = strings[lang].notFound;
 	return (
 		<div className="flex flex-col items-center justify-center gap-6 px-5 py-20 text-center">
-			<span className="font-heading text-7xl font-extrabold text-accent lg:text-9xl">
+			<span className="font-heading text-7xl font-bold text-accent lg:text-9xl">
 				404
 			</span>
 			<h1 className="font-heading text-2xl font-bold text-foreground lg:text-3xl">
@@ -118,9 +118,9 @@ export function NotFoundPage() {
 			<Link
 				to="/{-$locale}/"
 				params={{ locale: undefined }}
-				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover"
+				className="inline-flex items-center gap-2 rounded-md bg-accent px-6 py-3 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-4 focus-visible:ring-offset-background"
 			>
-				<Home className="h-4 w-4" />
+				<Home className="h-4 w-4" aria-hidden="true" />
 				{t.homeCta}
 			</Link>
 		</div>

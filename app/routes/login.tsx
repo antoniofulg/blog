@@ -68,7 +68,8 @@ function LoginPage() {
 							type="email"
 							name="email"
 							required
-							className="h-11 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent focus:outline-none"
+							autoComplete="email"
+							className="h-11 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus-visible:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 						/>
 					</div>
 					<div className="flex flex-col gap-1.5">
@@ -83,7 +84,8 @@ function LoginPage() {
 							type="password"
 							name="password"
 							required
-							className="h-11 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus:border-accent focus:outline-none"
+							autoComplete="current-password"
+							className="h-11 rounded-md border border-border bg-background px-3.5 text-sm text-foreground placeholder:text-foreground-muted focus-visible:border-border-strong focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 						/>
 					</div>
 					{error && (
@@ -97,7 +99,7 @@ function LoginPage() {
 					<button
 						type="submit"
 						disabled={pending}
-						className="mt-2 h-11 rounded-md bg-accent text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover disabled:opacity-60"
+						className="mt-2 h-11 rounded-md bg-accent text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover disabled:opacity-60 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 					>
 						{pending ? "Entrando…" : "Entrar"}
 					</button>

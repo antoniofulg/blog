@@ -6,12 +6,12 @@ import { DEFAULT_LOCALE, LOCALES, type Locale } from "#/lib/locale";
 const COPY: Record<Locale, { message: string; dismissLabel: string }> = {
 	en: {
 		message:
-			"🚧 This blog is a work in progress — content and features are still being added.",
+			"This blog is a work in progress. Content and features are still being added.",
 		dismissLabel: "Dismiss work-in-progress notice",
 	},
 	"pt-br": {
 		message:
-			"🚧 Este blog está em desenvolvimento — conteúdo e recursos ainda estão sendo adicionados.",
+			"Este blog está em desenvolvimento. Conteúdo e recursos ainda estão sendo adicionados.",
 		dismissLabel: "Dispensar aviso de blog em desenvolvimento",
 	},
 };
@@ -33,7 +33,7 @@ export function WipBanner() {
 	if (!visible) return null;
 
 	return (
-		<div className="bg-orange-700 text-white">
+		<div className="bg-accent text-foreground-inverse">
 			<div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-2 text-sm font-medium">
 				<span>{t.message}</span>
 				<button
@@ -43,9 +43,9 @@ export function WipBanner() {
 						localStorage.setItem(DISMISS_KEY, "1");
 						setVisible(false);
 					}}
-					className="-mr-1 rounded p-1 transition-colors hover:bg-black/15 focus:outline-none focus:ring-2 focus:ring-white/60"
+					className="-mr-1 rounded p-1 transition-colors hover:bg-black/15 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-foreground-inverse focus-visible:ring-offset-2 focus-visible:ring-offset-accent"
 				>
-					<X className="h-4 w-4" />
+					<X className="h-4 w-4" aria-hidden="true" />
 				</button>
 			</div>
 		</div>

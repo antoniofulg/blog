@@ -72,14 +72,14 @@ function PostRow({ post }: { post: Post }) {
 					<button
 						type="button"
 						onClick={handleToggle}
-						className="rounded-md bg-surface px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted"
+						className="rounded-md bg-surface px-3 py-1.5 text-xs font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
 					>
 						{isPublished ? "Despublicar" : "Publicar"}
 					</button>
 					<Link
 						to="/admin/preview/$slug/"
 						params={{ slug: post.slug }}
-						className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-foreground-inverse"
+						className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
 					>
 						Preview
 					</Link>
@@ -93,9 +93,9 @@ function AdminDashboard() {
 	const postList = Route.useLoaderData();
 
 	return (
-		<div className="px-5 py-12 lg:px-20">
+		<div className="px-5 py-16 lg:px-20">
 			<div className="mx-auto max-w-5xl">
-				<h1 className="font-heading text-3xl font-extrabold text-foreground">
+				<h1 className="font-heading text-3xl font-bold text-foreground">
 					Admin Dashboard
 				</h1>
 				<p className="mt-2 text-foreground-secondary">

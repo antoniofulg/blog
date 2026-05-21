@@ -269,7 +269,7 @@ describe("unit: TranslationNotice", () => {
 		expect(html).toContain(
 			"Este conteúdo ainda não está disponível em Português",
 		);
-		expect(html).toContain("exibindo a versão");
+		expect(html).toContain("Exibindo a versão");
 	});
 
 	it("en → pt-br message is in English", () => {
@@ -280,7 +280,7 @@ describe("unit: TranslationNotice", () => {
 			}),
 		);
 		expect(html).toContain("This content is not yet available in English");
-		expect(html).toContain("showing");
+		expect(html).toContain("Showing");
 	});
 
 	it("banner copy does not contain the word 'post' (content-neutral for About)", () => {

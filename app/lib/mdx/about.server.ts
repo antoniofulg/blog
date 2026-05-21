@@ -15,6 +15,12 @@ const linkSchema = z.object({
 export const aboutFrontmatterSchema = z.object({
 	title: z.string(),
 	locale: z.enum(LOCALES),
+	tagline: z.string().optional(),
+	avatar: z.string().optional(),
+	nowUpdatedAt: z
+		.union([z.string(), z.date()])
+		.transform((v) => (v instanceof Date ? v.toISOString().slice(0, 10) : v))
+		.optional(),
 	links: z.array(linkSchema).optional().default([]),
 });
 

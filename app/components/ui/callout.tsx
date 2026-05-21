@@ -5,25 +5,21 @@ const variants = {
 		bg: "bg-callout-tip",
 		icon: CheckCircle,
 		iconColor: "text-success",
-		label: "Dica",
 	},
 	info: {
 		bg: "bg-callout-info",
 		icon: Info,
 		iconColor: "text-accent",
-		label: "Info",
 	},
 	warn: {
 		bg: "bg-callout-warn",
 		icon: AlertTriangle,
 		iconColor: "text-warning",
-		label: "Atenção",
 	},
 	error: {
 		bg: "bg-callout-error",
 		icon: XCircle,
 		iconColor: "text-error",
-		label: "Erro",
 	},
 } as const;
 
@@ -41,7 +37,10 @@ export function Callout({
 
 	return (
 		<div className={`flex gap-3 rounded-lg ${v.bg} p-4`}>
-			<Icon className={`h-5 w-5 shrink-0 ${v.iconColor}`} />
+			<Icon
+				className={`mt-0.5 h-5 w-5 shrink-0 ${v.iconColor}`}
+				aria-hidden="true"
+			/>
 			<div className="flex flex-col gap-1">
 				{title && (
 					<span className="text-sm font-semibold text-foreground">{title}</span>

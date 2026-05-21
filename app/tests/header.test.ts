@@ -71,9 +71,16 @@ function renderHeader() {
 	);
 }
 
-// ─── unit: language switcher label ────────────────────────────────────────────
+function openLanguageMenu(locale: "en" | "pt-br") {
+	const triggerLabel = locale === "en" ? "Change language" : "Trocar idioma";
+	const trigger = screen.getByRole("button", { name: triggerLabel });
+	fireEvent.click(trigger);
+	return trigger;
+}
 
-describe("unit: Header language switcher label", () => {
+// ─── unit: language menu trigger ──────────────────────────────────────────────
+
+describe("unit: Header language menu trigger", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		mocks.navigate.mockClear();
@@ -84,25 +91,44 @@ describe("unit: Header language switcher label", () => {
 		cleanup();
 	});
 
-	it("renders 'Português' label when locale is 'en'", async () => {
+	it("renders 'Change language' aria-label trigger and EN code when locale is en", async () => {
 		renderHeader();
 		await act(async () => {});
-		const btn = screen.getByRole("button", { name: "Switch language" });
-		expect(btn.textContent).toBe("Português");
+		const trigger = screen.getByRole("button", { name: "Change language" });
+		expect(trigger.textContent).toContain("EN");
 	});
 
-	it("renders 'English' label when on /pt-br/blog", async () => {
+	it("renders 'Trocar idioma' aria-label trigger and PT code when locale is pt-br", async () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
-		const btn = screen.getByRole("button", { name: "Switch language" });
-		expect(btn.textContent).toBe("English");
+		const trigger = screen.getByRole("button", { name: "Trocar idioma" });
+		expect(trigger.textContent).toContain("PT");
+	});
+
+	it("trigger has aria-haspopup=menu and aria-expanded=false at rest", async () => {
+		renderHeader();
+		await act(async () => {});
+		const trigger = screen.getByRole("button", { name: "Change language" });
+		expect(trigger.getAttribute("aria-haspopup")).toBe("menu");
+		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+	});
+
+	it("clicking trigger opens the menu (aria-expanded=true, menu visible)", async () => {
+		renderHeader();
+		await act(async () => {});
+		const trigger = screen.getByRole("button", { name: "Change language" });
+		await act(async () => {
+			fireEvent.click(trigger);
+		});
+		expect(trigger.getAttribute("aria-expanded")).toBe("true");
+		expect(screen.getByRole("menu")).toBeDefined();
 	});
 });
 
-// ─── unit: language switcher navigation ───────────────────────────────────────
+// ─── unit: language menu navigation ───────────────────────────────────────────
 
-describe("unit: Header language switcher navigation", () => {
+describe("unit: Header language menu navigation", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		mocks.navigate.mockClear();
@@ -112,15 +138,22 @@ describe("unit: Header language switcher navigation", () => {
 		cleanup();
 	});
 
-	it("on '/en/react-suspense' navigates to '/{-$locale}/$slug' with pt-br and react-suspense", async () => {
+	function selectMenuItem(name: RegExp | string) {
+		const item = screen.getByRole("menuitemradio", { name });
+		return act(async () => {
+			fireEvent.click(item);
+		});
+	}
+
+	it("on '/en/react-suspense' selecting Português navigates to slug route with pt-br", async () => {
 		mocks.setPathname("/en/react-suspense");
 		renderHeader();
 		await act(async () => {});
 
-		const btn = screen.getByRole("button", { name: "Switch language" });
 		await act(async () => {
-			fireEvent.click(btn);
+			openLanguageMenu("en");
 		});
+		await selectMenuItem("Português");
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
 			to: "/{-$locale}/$slug/",
@@ -129,15 +162,15 @@ describe("unit: Header language switcher navigation", () => {
 		expect(localStorage.getItem("locale")).toBe("pt-br");
 	});
 
-	it("on '/en/blog' navigates to '/{-$locale}' with pt-br", async () => {
+	it("on '/en/blog' selecting Português navigates to index with pt-br", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
 
-		const btn = screen.getByRole("button", { name: "Switch language" });
 		await act(async () => {
-			fireEvent.click(btn);
+			openLanguageMenu("en");
 		});
+		await selectMenuItem("Português");
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
 			to: "/{-$locale}/",
@@ -145,26 +178,39 @@ describe("unit: Header language switcher navigation", () => {
 		});
 	});
 
-	it("on '/about' navigates to '/{-$locale}/about' with pt-br", async () => {
+	it("on '/about' selecting Português navigates to about with pt-br", async () => {
 		mocks.setPathname("/about");
 		renderHeader();
 		await act(async () => {});
 
-		const btn = screen.getByRole("button", { name: "Switch language" });
 		await act(async () => {
-			fireEvent.click(btn);
+			openLanguageMenu("en");
 		});
+		await selectMenuItem("Português");
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
 			to: "/{-$locale}/about/",
 			params: { locale: "pt-br" },
 		});
 	});
+
+	it("selecting the current locale is a no-op (no navigate, no localStorage write)", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+
+		await act(async () => {
+			openLanguageMenu("en");
+		});
+		await selectMenuItem("English");
+
+		expect(mocks.navigate).not.toHaveBeenCalled();
+	});
 });
 
 // ─── integration: localStorage persistence ────────────────────────────────────
 
-describe("integration: language switcher localStorage", () => {
+describe("integration: language menu localStorage", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		mocks.navigate.mockClear();
@@ -175,25 +221,27 @@ describe("integration: language switcher localStorage", () => {
 		cleanup();
 	});
 
-	it("after clicking switcher, localStorage.getItem('locale') returns 'pt-br'", async () => {
+	it("after selecting Português, localStorage.getItem('locale') returns 'pt-br'", async () => {
 		renderHeader();
 		await act(async () => {});
 
-		const btn = screen.getByRole("button", { name: "Switch language" });
 		await act(async () => {
-			fireEvent.click(btn);
+			openLanguageMenu("en");
+		});
+		await act(async () => {
+			fireEvent.click(screen.getByRole("menuitemradio", { name: "Português" }));
 		});
 
 		expect(localStorage.getItem("locale")).toBe("pt-br");
 	});
 
-	it("switcher button is visible on rendered header on '/en/blog'", async () => {
+	it("language trigger is present in rendered header on '/en/blog'", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
 
-		const btn = screen.getByRole("button", { name: "Switch language" });
-		expect(btn).toBeDefined();
+		const trigger = screen.getByRole("button", { name: "Change language" });
+		expect(trigger).toBeDefined();
 	});
 });
 
@@ -237,12 +285,12 @@ describe("unit: Header removed nav entries", () => {
 		expect(document.querySelector('a[href="/projects"]')).toBeNull();
 	});
 
-	it("locale switcher button still renders", async () => {
+	it("language menu trigger still renders", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
 		expect(
-			screen.getByRole("button", { name: "Switch language" }),
+			screen.getByRole("button", { name: "Change language" }),
 		).toBeDefined();
 	});
 
@@ -250,8 +298,8 @@ describe("unit: Header removed nav entries", () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
-		const themeBtn = document.querySelectorAll('button[type="button"]');
-		const hasToggle = Array.from(themeBtn).some((b) => b.querySelector("svg"));
+		const buttons = document.querySelectorAll('button[type="button"]');
+		const hasToggle = Array.from(buttons).some((b) => b.querySelector("svg"));
 		expect(hasToggle).toBe(true);
 	});
 });

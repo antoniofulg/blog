@@ -15,20 +15,30 @@ import type { Locale } from "#/lib/locale";
 
 const copy = {
 	en: {
+		eyebrow: "Articles",
+		heading: "Blog",
 		subtitle:
-			"Articles about web development, React, TypeScript, Bun and more.",
+			"Notes on web development, React, TypeScript, Bun, and modern tooling.",
 		emptyTitle: "No articles found",
 		emptyDesc: "No published articles yet.",
 	},
 	"pt-br": {
+		eyebrow: "Artigos",
+		heading: "Blog",
 		subtitle:
-			"Artigos sobre desenvolvimento web, React, TypeScript, Bun e mais.",
+			"Notas sobre desenvolvimento web, React, TypeScript, Bun e ferramentas modernas.",
 		emptyTitle: "Nenhum artigo encontrado",
 		emptyDesc: "Não há artigos publicados ainda.",
 	},
 } satisfies Record<
 	Locale,
-	{ subtitle: string; emptyTitle: string; emptyDesc: string }
+	{
+		eyebrow: string;
+		heading: string;
+		subtitle: string;
+		emptyTitle: string;
+		emptyDesc: string;
+	}
 >;
 
 const POSTS_PER_PAGE = 9;
@@ -50,18 +60,25 @@ export function LocaleBlogPage({
 	);
 
 	return (
-		<div className="px-5 py-12 lg:px-20">
+		<div className="px-5 py-16 lg:px-20 lg:py-24">
 			<div className="mx-auto max-w-5xl">
-				<h1 className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl">
-					Blog
+				<p className="text-xs font-semibold uppercase tracking-[0.18em] text-accent">
+					{t.eyebrow}
+				</p>
+				<h1 className="mt-3 font-heading text-[clamp(2rem,5.5vw,3.5rem)] font-bold leading-[1.1] tracking-tight text-foreground">
+					{t.heading}
 				</h1>
-				<p className="mt-3 text-foreground-secondary">{t.subtitle}</p>
+				<p className="mt-6 max-w-2xl text-xl leading-relaxed text-foreground-secondary">
+					{t.subtitle}
+				</p>
 
 				{paginatedPosts.length === 0 ? (
-					<EmptyState title={t.emptyTitle} description={t.emptyDesc} />
+					<div className="mt-16">
+						<EmptyState title={t.emptyTitle} description={t.emptyDesc} />
+					</div>
 				) : (
 					<>
-						<div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+						<div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
 							{paginatedPosts.map((post) => (
 								<PostCard key={post.id} post={post} lang={locale} />
 							))}
@@ -73,6 +90,7 @@ export function LocaleBlogPage({
 									currentPage={currentPage}
 									totalPages={totalPages}
 									onPageChange={setCurrentPage}
+									locale={locale}
 								/>
 							</div>
 						)}
