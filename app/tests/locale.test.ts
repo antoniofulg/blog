@@ -7,6 +7,7 @@ import {
 	collapseDefaultLocalePath,
 	DEFAULT_LOCALE,
 	detectLocaleFromRequest,
+	getTwinAvailabilityForCurrentRoute,
 	LocaleProvider,
 	localeHref,
 	useLocale,
@@ -28,6 +29,83 @@ function makeRequest(acceptLanguage?: string, cookie?: string): Request {
 function wrapper({ children }: { children: React.ReactNode }) {
 	return React.createElement(LocaleProvider, null, children);
 }
+
+// ─── unit: getTwinAvailabilityForCurrentRoute ────────────────────────────────
+
+describe("unit: getTwinAvailabilityForCurrentRoute", () => {
+	it("post with twin → available: true, renderSwitcher: true", () => {
+		expect(
+			getTwinAvailabilityForCurrentRoute(
+				{ kind: "post", slug: "my-post", hasTwin: true },
+				"pt-br",
+			),
+		).toEqual({ available: true, renderSwitcher: true });
+	});
+
+	it("post without twin → available: false, renderSwitcher: true (AC-1)", () => {
+		expect(
+			getTwinAvailabilityForCurrentRoute(
+				{ kind: "post", slug: "x", hasTwin: false },
+				"pt-br",
+			),
+		).toEqual({ available: false, renderSwitcher: true });
+	});
+
+	it("page with twin → available: true, renderSwitcher: true", () => {
+		expect(
+			getTwinAvailabilityForCurrentRoute(
+				{ kind: "page", slug: "about", hasTwin: true },
+				"pt-br",
+			),
+		).toEqual({ available: true, renderSwitcher: true });
+	});
+
+	it("page without twin → available: false, renderSwitcher: true", () => {
+		expect(
+			getTwinAvailabilityForCurrentRoute(
+				{ kind: "page", slug: "about", hasTwin: false },
+				"pt-br",
+			),
+		).toEqual({ available: false, renderSwitcher: true });
+	});
+
+	it("structural → available: true, renderSwitcher: true (AC-2)", () => {
+		expect(
+			getTwinAvailabilityForCurrentRoute({ kind: "structural" }, "pt-br"),
+		).toEqual({ available: true, renderSwitcher: true });
+	});
+
+	it("structural → same result for en target", () => {
+		expect(
+			getTwinAvailabilityForCurrentRoute({ kind: "structural" }, "en"),
+		).toEqual({ available: true, renderSwitcher: true });
+	});
+
+	it("admin → renderSwitcher: false (AC-3)", () => {
+		const result = getTwinAvailabilityForCurrentRoute(
+			{ kind: "admin" },
+			"pt-br",
+		);
+		expect(result.renderSwitcher).toBe(false);
+	});
+
+	it("admin → available: false", () => {
+		const result = getTwinAvailabilityForCurrentRoute(
+			{ kind: "admin" },
+			"pt-br",
+		);
+		expect(result.available).toBe(false);
+	});
+
+	it("post with twin targeting en → available: true", () => {
+		expect(
+			getTwinAvailabilityForCurrentRoute(
+				{ kind: "post", slug: "hello", hasTwin: true },
+				"en",
+			),
+		).toEqual({ available: true, renderSwitcher: true });
+	});
+});
 
 // ─── unit: collapseDefaultLocalePath ────────────────────────────────────────
 

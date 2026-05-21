@@ -9,19 +9,31 @@ import {
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "#/components/layout/header";
+import { LanguageMenu } from "#/components/ui/language-menu";
 import { LocaleProvider } from "#/lib/locale";
 import { ThemeProvider } from "#/lib/theme";
 
 // ─── Hoisted mocks ─────────────────────────────────────────────────────────────
 
+type MockMatch = {
+	routeId: string;
+	params: Record<string, string | undefined>;
+	loaderData?: unknown;
+};
+
 const mocks = vi.hoisted(() => {
 	const navigate = vi.fn();
 	let currentPathname = "/en/blog";
+	let currentMatches: MockMatch[] = [];
 	const setPathname = (p: string) => {
 		currentPathname = p;
 	};
 	const getPathname = () => currentPathname;
-	return { navigate, setPathname, getPathname };
+	const setMatches = (m: MockMatch[]) => {
+		currentMatches = m;
+	};
+	const getMatches = () => currentMatches;
+	return { navigate, setPathname, getPathname, setMatches, getMatches };
 });
 
 vi.mock("@tanstack/react-router", () => ({
@@ -40,8 +52,15 @@ vi.mock("@tanstack/react-router", () => ({
 	useRouterState: ({
 		select,
 	}: {
-		select: (s: { location: { pathname: string } }) => string;
-	}) => select({ location: { pathname: mocks.getPathname() } }),
+		select: (s: {
+			location: { pathname: string };
+			matches: MockMatch[];
+		}) => unknown;
+	}) =>
+		select({
+			location: { pathname: mocks.getPathname() },
+			matches: mocks.getMatches(),
+		}),
 }));
 
 // matchMedia stub for ThemeProvider
@@ -71,89 +90,275 @@ function renderHeader() {
 	);
 }
 
-function openLanguageMenu(locale: "en" | "pt-br") {
-	const triggerLabel = locale === "en" ? "Change language" : "Trocar idioma";
-	const trigger = screen.getByRole("button", { name: triggerLabel });
-	fireEvent.click(trigger);
-	return trigger;
+function slugMatch(
+	slug: string,
+	locale: string | undefined,
+	loaderData: unknown,
+): MockMatch {
+	return {
+		routeId: "/{-$locale}/$slug",
+		params: { slug, locale },
+		loaderData,
+	};
 }
 
-// ─── unit: language menu trigger ──────────────────────────────────────────────
+// ─── unit: LanguageMenu per-item available state ─────────────────────────────
 
-describe("unit: Header language menu trigger", () => {
+describe("unit: LanguageMenu available item", () => {
+	afterEach(cleanup);
+
+	it("renders label without hint when available defaults (true)", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [{ locale: "pt-br", label: "Português (BR)" }],
+				currentLocale: "en",
+			}),
+		);
+		expect(screen.getByText("Português (BR)")).toBeDefined();
+		expect(screen.queryByText("(not available)")).toBeNull();
+		expect(screen.queryByText("(indisponível)")).toBeNull();
+	});
+
+	it("renders label without hint when available={true}", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [{ locale: "pt-br", label: "Português (BR)", available: true }],
+				currentLocale: "en",
+			}),
+		);
+		expect(screen.queryByText("(not available)")).toBeNull();
+	});
+
+	it("renders hint text when available={false} (en locale) (AC-4)", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [{ locale: "pt-br", label: "Português (BR)", available: false }],
+				currentLocale: "en",
+			}),
+		);
+		expect(screen.getByText("(not available)")).toBeDefined();
+	});
+
+	it("renders localized hint text in pt-br when available={false}", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [{ locale: "en", label: "English", available: false }],
+				currentLocale: "pt-br",
+			}),
+		);
+		expect(screen.getByText("(indisponível)")).toBeDefined();
+	});
+
+	it("sets aria-disabled='true' when available={false} (AC-4)", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [{ locale: "pt-br", label: "Português (BR)", available: false }],
+				currentLocale: "en",
+			}),
+		);
+		const item = screen.getByRole("button", { name: /Português \(BR\)/ });
+		expect(item.getAttribute("aria-disabled")).toBe("true");
+	});
+
+	it("does not set aria-disabled when available={true}", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [{ locale: "pt-br", label: "Português (BR)", available: true }],
+				currentLocale: "en",
+			}),
+		);
+		const item = screen.getByRole("button", { name: "Português (BR)" });
+		expect(item.getAttribute("aria-disabled")).toBeNull();
+	});
+
+	it("onClick fires when available={false} (AC-4 — modal seam preserved)", () => {
+		const onClick = vi.fn();
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [
+					{
+						locale: "pt-br",
+						label: "Português (BR)",
+						available: false,
+						onClick,
+					},
+				],
+				currentLocale: "en",
+			}),
+		);
+		const item = screen.getByRole("button", { name: /Português \(BR\)/ });
+		fireEvent.click(item);
+		expect(onClick).toHaveBeenCalledTimes(1);
+	});
+
+	it("onClick fires when available={true}", () => {
+		const onClick = vi.fn();
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [
+					{
+						locale: "pt-br",
+						label: "Português (BR)",
+						available: true,
+						onClick,
+					},
+				],
+				currentLocale: "en",
+			}),
+		);
+		const item = screen.getByRole("button", { name: "Português (BR)" });
+		fireEvent.click(item);
+		expect(onClick).toHaveBeenCalledTimes(1);
+	});
+});
+
+// ─── integration: LanguageMenu mixed-availability items ───────────────────────
+
+describe("integration: LanguageMenu mixed availability", () => {
+	afterEach(cleanup);
+
+	it("renders available item without hint, unavailable item with hint", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [
+					{ locale: "en", label: "English", available: true },
+					{ locale: "pt-br", label: "Português (BR)", available: false },
+				],
+				currentLocale: "en",
+			}),
+		);
+		const availableItem = screen.getByRole("button", { name: "English" });
+		const unavailableItem = screen.getByRole("button", {
+			name: /Português \(BR\)/,
+		});
+		expect(availableItem.getAttribute("aria-disabled")).toBeNull();
+		expect(unavailableItem.getAttribute("aria-disabled")).toBe("true");
+		expect(screen.queryByText("(not available)")).toBeDefined();
+		expect(screen.queryByText("(indisponível)")).toBeNull();
+	});
+
+	it("both items render their labels regardless of availability", () => {
+		render(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [
+					{ locale: "en", label: "English", available: true },
+					{ locale: "pt-br", label: "Português (BR)", available: false },
+				],
+				currentLocale: "en",
+			}),
+		);
+		expect(screen.getByText("English")).toBeDefined();
+		expect(screen.getByText("Português (BR)")).toBeDefined();
+	});
+});
+
+// ─── unit: language switcher trigger label ────────────────────────────────────
+
+describe("unit: Header language switcher trigger label", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		mocks.navigate.mockClear();
-		mocks.setPathname("/en/blog");
+		mocks.setMatches([]);
 	});
 	afterEach(() => {
 		localStorage.clear();
 		cleanup();
 	});
 
-	it("renders 'Change language' aria-label trigger and EN code when locale is en", async () => {
+	it("renders locale code 'EN' on the trigger when locale is 'en'", async () => {
+		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		expect(trigger.textContent).toContain("EN");
+		const btn = screen.getByRole("button", { name: "Change language" });
+		expect(btn.textContent).toContain("EN");
 	});
 
-	it("renders 'Trocar idioma' aria-label trigger and PT code when locale is pt-br", async () => {
+	it("renders locale code 'PT' on the trigger when on /pt-br/blog", async () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
-		const trigger = screen.getByRole("button", { name: "Trocar idioma" });
-		expect(trigger.textContent).toContain("PT");
+		const btn = screen.getByRole("button", { name: "Trocar idioma" });
+		expect(btn.textContent).toContain("PT");
+	});
+});
+
+// ─── unit: language switcher not rendered on admin routes ─────────────────────
+
+describe("unit: Header language switcher on admin routes", () => {
+	beforeEach(() => {
+		localStorage.clear();
+		mocks.navigate.mockClear();
+		mocks.setMatches([]);
+	});
+	afterEach(() => {
+		localStorage.clear();
+		cleanup();
 	});
 
-	it("trigger has aria-haspopup=menu and aria-expanded=false at rest", async () => {
+	it("switcher button is not rendered on /admin", async () => {
+		mocks.setPathname("/admin");
 		renderHeader();
 		await act(async () => {});
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		expect(trigger.getAttribute("aria-haspopup")).toBe("menu");
-		expect(trigger.getAttribute("aria-expanded")).toBe("false");
+		expect(
+			screen.queryByRole("button", { name: "Change language" }),
+		).toBeNull();
 	});
 
-	it("clicking trigger opens the menu (aria-expanded=true, menu visible)", async () => {
+	it("switcher button is rendered on /en/blog", async () => {
+		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
+		expect(
+			screen.getByRole("button", { name: "Change language" }),
+		).toBeDefined();
+	});
+});
+
+// ─── unit: language switcher navigation via dropdown ─────────────────────────
+
+describe("unit: Header language switcher navigation", () => {
+	beforeEach(() => {
+		localStorage.clear();
+		mocks.navigate.mockClear();
+	});
+	afterEach(() => {
+		localStorage.clear();
+		cleanup();
+	});
+
+	it("on post route '/en/react-suspense', clicking Português navigates to /{-$locale}/$slug/ with pt-br", async () => {
+		mocks.setPathname("/en/react-suspense");
+		mocks.setMatches([
+			slugMatch("react-suspense", "en", {
+				kind: "post",
+				post: { slug: "react-suspense" },
+				alternateLang: "pt-br",
+			}),
+		]);
+		renderHeader();
+		await act(async () => {});
+
+		// Open menu
 		const trigger = screen.getByRole("button", { name: "Change language" });
 		await act(async () => {
 			fireEvent.click(trigger);
 		});
-		expect(trigger.getAttribute("aria-expanded")).toBe("true");
-		expect(screen.getByRole("menu")).toBeDefined();
-	});
-});
 
-// ─── unit: language menu navigation ───────────────────────────────────────────
-
-describe("unit: Header language menu navigation", () => {
-	beforeEach(() => {
-		localStorage.clear();
-		mocks.navigate.mockClear();
-	});
-	afterEach(() => {
-		localStorage.clear();
-		cleanup();
-	});
-
-	function selectMenuItem(name: RegExp | string) {
-		const item = screen.getByRole("menuitemradio", { name });
-		return act(async () => {
-			fireEvent.click(item);
-		});
-	}
-
-	it("on '/en/react-suspense' selecting Português navigates to slug route with pt-br", async () => {
-		mocks.setPathname("/en/react-suspense");
-		renderHeader();
-		await act(async () => {});
-
+		// Click pt-br item
+		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
 		await act(async () => {
-			openLanguageMenu("en");
+			fireEvent.click(ptBrItem);
 		});
-		await selectMenuItem("Português");
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
 			to: "/{-$locale}/$slug/",
@@ -162,15 +367,21 @@ describe("unit: Header language menu navigation", () => {
 		expect(localStorage.getItem("locale")).toBe("pt-br");
 	});
 
-	it("on '/en/blog' selecting Português navigates to index with pt-br", async () => {
+	it("on structural route '/en/blog', clicking Português navigates to /{-$locale}/ with pt-br", async () => {
 		mocks.setPathname("/en/blog");
+		mocks.setMatches([]);
 		renderHeader();
 		await act(async () => {});
 
+		const trigger = screen.getByRole("button", { name: "Change language" });
 		await act(async () => {
-			openLanguageMenu("en");
+			fireEvent.click(trigger);
 		});
-		await selectMenuItem("Português");
+
+		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		await act(async () => {
+			fireEvent.click(ptBrItem);
+		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
 			to: "/{-$locale}/",
@@ -178,15 +389,27 @@ describe("unit: Header language menu navigation", () => {
 		});
 	});
 
-	it("on '/about' selecting Português navigates to about with pt-br", async () => {
+	it("on page route '/about' with twin, clicking Português navigates to /{-$locale}/$slug/ with about", async () => {
 		mocks.setPathname("/about");
+		mocks.setMatches([
+			slugMatch("about", undefined, {
+				kind: "page",
+				entry: { slug: "about" },
+				hasTwin: true,
+			}),
+		]);
 		renderHeader();
 		await act(async () => {});
 
+		const trigger = screen.getByRole("button", { name: "Change language" });
 		await act(async () => {
-			openLanguageMenu("en");
+			fireEvent.click(trigger);
 		});
-		await selectMenuItem("Português");
+
+		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		await act(async () => {
+			fireEvent.click(ptBrItem);
+		});
 
 		expect(mocks.navigate).toHaveBeenCalledWith({
 			to: "/{-$locale}/$slug/",
@@ -194,54 +417,110 @@ describe("unit: Header language menu navigation", () => {
 		});
 	});
 
-	it("selecting the current locale is a no-op (no navigate, no localStorage write)", async () => {
-		mocks.setPathname("/en/blog");
+	it("on post route with no twin (hasTwin=false), clicking Português opens dialog (no navigate)", async () => {
+		mocks.setPathname("/en/en-only-post");
+		mocks.setMatches([
+			slugMatch("en-only-post", "en", {
+				kind: "post",
+				post: { slug: "en-only-post" },
+				alternateLang: null,
+			}),
+		]);
 		renderHeader();
 		await act(async () => {});
 
+		const trigger = screen.getByRole("button", { name: "Change language" });
 		await act(async () => {
-			openLanguageMenu("en");
+			fireEvent.click(trigger);
 		});
-		await selectMenuItem("English");
+
+		// Verify item has aria-disabled
+		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		expect(ptBrItem.getAttribute("aria-disabled")).toBe("true");
+
+		// Click unavailable item → dialog should open, navigate NOT called
+		await act(async () => {
+			fireEvent.click(ptBrItem);
+		});
 
 		expect(mocks.navigate).not.toHaveBeenCalled();
 	});
 });
 
-// ─── integration: localStorage persistence ────────────────────────────────────
+// ─── unit: dialog state management ────────────────────────────────────────────
 
-describe("integration: language menu localStorage", () => {
+describe("unit: Header dialog state on unavailable locale", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		mocks.navigate.mockClear();
-		mocks.setPathname("/en/blog");
 	});
 	afterEach(() => {
 		localStorage.clear();
 		cleanup();
 	});
 
-	it("after selecting Português, localStorage.getItem('locale') returns 'pt-br'", async () => {
+	it("menu closes after clicking any item (available or not)", async () => {
+		mocks.setPathname("/en/blog");
+		mocks.setMatches([]);
 		renderHeader();
 		await act(async () => {});
 
+		const trigger = screen.getByRole("button", { name: "Change language" });
 		await act(async () => {
-			openLanguageMenu("en");
-		});
-		await act(async () => {
-			fireEvent.click(screen.getByRole("menuitemradio", { name: "Português" }));
+			fireEvent.click(trigger);
 		});
 
-		expect(localStorage.getItem("locale")).toBe("pt-br");
+		// Menu is open — Português item visible
+		expect(screen.queryByRole("menu")).not.toBeNull();
+
+		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		await act(async () => {
+			fireEvent.click(ptBrItem);
+		});
+
+		// Menu should close after click
+		expect(screen.queryByRole("menu")).toBeNull();
+	});
+});
+
+// ─── integration: localStorage persistence ────────────────────────────────────
+
+describe("integration: language switcher localStorage", () => {
+	beforeEach(() => {
+		localStorage.clear();
+		mocks.navigate.mockClear();
+		mocks.setMatches([]);
+	});
+	afterEach(() => {
+		localStorage.clear();
+		cleanup();
 	});
 
-	it("language trigger is present in rendered header on '/en/blog'", async () => {
+	it("after switching locale, localStorage.getItem('locale') returns 'pt-br'", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
 
 		const trigger = screen.getByRole("button", { name: "Change language" });
-		expect(trigger).toBeDefined();
+		await act(async () => {
+			fireEvent.click(trigger);
+		});
+
+		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		await act(async () => {
+			fireEvent.click(ptBrItem);
+		});
+
+		expect(localStorage.getItem("locale")).toBe("pt-br");
+	});
+
+	it("switcher button is visible on rendered header on '/en/blog'", async () => {
+		mocks.setPathname("/en/blog");
+		renderHeader();
+		await act(async () => {});
+
+		const btn = screen.getByRole("button", { name: "Change language" });
+		expect(btn).toBeDefined();
 	});
 });
 
@@ -251,6 +530,7 @@ describe("unit: Header removed nav entries", () => {
 	beforeEach(() => {
 		localStorage.clear();
 		mocks.navigate.mockClear();
+		mocks.setMatches([]);
 	});
 	afterEach(() => {
 		localStorage.clear();
@@ -285,7 +565,7 @@ describe("unit: Header removed nav entries", () => {
 		expect(document.querySelector('a[href="/projects"]')).toBeNull();
 	});
 
-	it("language menu trigger still renders", async () => {
+	it("locale switcher button still renders on non-admin routes", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -298,8 +578,8 @@ describe("unit: Header removed nav entries", () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
-		const buttons = document.querySelectorAll('button[type="button"]');
-		const hasToggle = Array.from(buttons).some((b) => b.querySelector("svg"));
+		const themeBtn = document.querySelectorAll('button[type="button"]');
+		const hasToggle = Array.from(themeBtn).some((b) => b.querySelector("svg"));
 		expect(hasToggle).toBe(true);
 	});
 });

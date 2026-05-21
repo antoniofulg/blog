@@ -1,7 +1,13 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
 import { Check, ChevronDown, Languages } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
-import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
+import {
+	forwardRef,
+	useCallback,
+	useEffect,
+	useId,
+	useRef,
+	useState,
+} from "react";
+import { LOCALES, type Locale } from "#/lib/locale";
 
 const localeLabel: Record<Locale, string> = {
 	en: "English",
@@ -23,120 +29,141 @@ const sectionLabelByLocale: Record<Locale, string> = {
 	"pt-br": "Idioma",
 };
 
-type Variant = "dropdown" | "list";
-
-type Props = {
-	variant?: Variant;
-	onAfterChange?: () => void;
+const NOT_AVAILABLE_HINT: Record<Locale, string> = {
+	en: "(not available)",
+	"pt-br": "(indisponível)",
 };
 
-function useSwitchLocale() {
-	const { setLocale } = useLocale();
-	const navigate = useNavigate();
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
+export type LanguageMenuItemConfig = {
+	locale: Locale;
+	label?: string;
+	available?: boolean;
+	onClick?: () => void;
+};
 
-	const currentLocale: Locale =
-		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
-			| Locale
-			| undefined) ?? DEFAULT_LOCALE;
+type Variant = "dropdown" | "list";
 
-	function switchTo(target: Locale) {
-		if (target === currentLocale) return;
-		setLocale(target);
-		const prefix = `/${currentLocale}/`;
-		const localeParam = target === DEFAULT_LOCALE ? undefined : target;
-		if (pathname.startsWith(prefix)) {
-			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
-			if (rest === "" || rest === "blog") {
-				navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
-			} else if (rest === "about") {
-				navigate({
-					to: "/{-$locale}/about/",
-					params: { locale: localeParam },
-				});
-			} else {
-				navigate({
-					to: "/{-$locale}/$slug/",
-					params: { locale: localeParam, slug: rest },
-				});
-			}
-		} else if (pathname === "/about") {
-			navigate({
-				to: "/{-$locale}/about/",
-				params: { locale: localeParam },
-			});
-		} else {
-			navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
-		}
-	}
+export type LanguageMenuProps = {
+	variant?: Variant;
+	items: LanguageMenuItemConfig[];
+	currentLocale: Locale;
+};
 
-	return { currentLocale, switchTo };
+function getItemFor(
+	items: LanguageMenuItemConfig[],
+	locale: Locale,
+): LanguageMenuItemConfig | undefined {
+	return items.find((i) => i.locale === locale);
 }
 
-export function LanguageMenu({ variant = "dropdown", onAfterChange }: Props) {
-	const { currentLocale, switchTo } = useSwitchLocale();
-
-	function handleSelect(locale: Locale) {
-		switchTo(locale);
-		onAfterChange?.();
-	}
-
-	if (variant === "list") {
+export const LanguageMenu = forwardRef<HTMLButtonElement, LanguageMenuProps>(
+	function LanguageMenu({ variant = "dropdown", items, currentLocale }, ref) {
+		if (variant === "list") {
+			return <LanguageList items={items} currentLocale={currentLocale} />;
+		}
 		return (
-			<div className="flex flex-col">
-				<span
-					id={`lang-section-${currentLocale}`}
-					className="px-5 pt-6 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted"
-				>
-					{sectionLabelByLocale[currentLocale]}
-				</span>
-				<ul
-					aria-labelledby={`lang-section-${currentLocale}`}
-					className="flex flex-col px-5"
-				>
-					{LOCALES.map((locale) => {
-						const isActive = locale === currentLocale;
-						return (
-							<li key={locale}>
-								<button
-									type="button"
-									onClick={() => handleSelect(locale)}
-									aria-current={isActive ? "true" : undefined}
-									className={`flex h-13 w-full items-center justify-between border-b border-border text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-										isActive
-											? "text-foreground"
-											: "text-foreground-secondary hover:text-foreground"
-									}`}
-								>
-									<span>{localeLabel[locale]}</span>
-									{isActive && (
-										<Check className="h-5 w-5 text-accent" aria-hidden="true" />
-									)}
-								</button>
-							</li>
-						);
-					})}
-				</ul>
-			</div>
+			<LanguageDropdown ref={ref} items={items} currentLocale={currentLocale} />
 		);
-	}
+	},
+);
 
+function LanguageList({
+	items,
+	currentLocale,
+}: {
+	items: LanguageMenuItemConfig[];
+	currentLocale: Locale;
+}) {
+	const hint = NOT_AVAILABLE_HINT[currentLocale];
 	return (
-		<LanguageDropdown currentLocale={currentLocale} onSelect={handleSelect} />
+		<div className="flex flex-col">
+			<span
+				id={`lang-section-${currentLocale}`}
+				className="px-5 pt-6 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted"
+			>
+				{sectionLabelByLocale[currentLocale]}
+			</span>
+			<ul
+				aria-labelledby={`lang-section-${currentLocale}`}
+				className="flex flex-col px-5"
+			>
+				{LOCALES.map((locale) => {
+					const isActive = locale === currentLocale;
+					const item = getItemFor(items, locale);
+					const isAvailable = isActive || item?.available !== false;
+					const label = item?.label ?? localeLabel[locale];
+					const accessibleLabel = !isAvailable ? `${label} ${hint}` : label;
+					return (
+						<li key={locale}>
+							<button
+								type="button"
+								onClick={isActive ? undefined : item?.onClick}
+								onKeyDown={(e) => {
+									if (isActive) return;
+									if (e.key === "Enter" || e.key === " ") {
+										e.preventDefault();
+										item?.onClick?.();
+									}
+								}}
+								aria-current={isActive ? "true" : undefined}
+								aria-disabled={!isAvailable ? "true" : undefined}
+								aria-label={accessibleLabel}
+								className={`flex h-13 w-full items-center justify-between border-b border-border text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+									isActive
+										? "text-foreground"
+										: isAvailable
+											? "text-foreground-secondary hover:text-foreground"
+											: "text-foreground-muted hover:text-foreground-secondary"
+								}`}
+							>
+								<span>
+									<span>{label}</span>
+									{!isActive && !isAvailable && (
+										<span
+											aria-hidden="true"
+											className="ml-1.5 text-xs text-foreground-muted"
+										>
+											{hint}
+										</span>
+									)}
+								</span>
+								{isActive && (
+									<Check className="h-5 w-5 text-accent" aria-hidden="true" />
+								)}
+							</button>
+						</li>
+					);
+				})}
+			</ul>
+		</div>
 	);
 }
 
-function LanguageDropdown({
-	currentLocale,
-	onSelect,
-}: {
-	currentLocale: Locale;
-	onSelect: (locale: Locale) => void;
-}) {
+const LanguageDropdown = forwardRef<
+	HTMLButtonElement,
+	{
+		items: LanguageMenuItemConfig[];
+		currentLocale: Locale;
+	}
+>(function LanguageDropdown({ items, currentLocale }, ref) {
 	const [open, setOpen] = useState(false);
 	const triggerRef = useRef<HTMLButtonElement>(null);
 	const menuRef = useRef<HTMLDivElement>(null);
 	const menuId = useId();
+	const hint = NOT_AVAILABLE_HINT[currentLocale];
+
+	// Ref callback: sets both internal and parent ref synchronously during commit,
+	// and clears the parent ref on unmount (React calls with null).
+	const setTriggerRef = useCallback(
+		(node: HTMLButtonElement | null) => {
+			triggerRef.current = node;
+			if (typeof ref === "function") ref(node);
+			else if (ref)
+				(ref as React.MutableRefObject<HTMLButtonElement | null>).current =
+					node;
+		},
+		[ref],
+	);
 
 	// Close on outside pointer down.
 	useEffect(() => {
@@ -186,51 +213,58 @@ function LanguageDropdown({
 	// Focus the active item when the menu opens.
 	useEffect(() => {
 		if (!open) return;
-		const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
+		const elements = menuRef.current?.querySelectorAll<HTMLButtonElement>(
 			'[role="menuitemradio"]',
 		);
-		if (!items || items.length === 0) return;
-		const active = Array.from(items).find(
+		if (!elements || elements.length === 0) return;
+		const active = Array.from(elements).find(
 			(el) => el.getAttribute("aria-checked") === "true",
 		);
-		(active ?? items[0])?.focus();
+		(active ?? elements[0])?.focus();
 	}, [open]);
 
-	function handleSelect(locale: Locale) {
-		onSelect(locale);
+	function handleItemClick(locale: Locale) {
+		const isActive = locale === currentLocale;
+		if (isActive) {
+			setOpen(false);
+			triggerRef.current?.focus();
+			return;
+		}
+		const item = getItemFor(items, locale);
+		item?.onClick?.();
 		setOpen(false);
 		triggerRef.current?.focus();
 	}
 
 	function handleMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-		const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
+		const elements = menuRef.current?.querySelectorAll<HTMLButtonElement>(
 			'[role="menuitemradio"]',
 		);
-		if (!items || items.length === 0) return;
-		const active = document.activeElement as HTMLElement | null;
-		const idx = Array.from(items).indexOf(active as HTMLButtonElement);
+		if (!elements || elements.length === 0) return;
+		const activeEl = document.activeElement as HTMLElement | null;
+		const idx = Array.from(elements).indexOf(activeEl as HTMLButtonElement);
 
 		if (event.key === "ArrowDown") {
 			event.preventDefault();
-			const next = (idx + 1 + items.length) % items.length;
-			items[next]?.focus();
+			const next = (idx + 1 + elements.length) % elements.length;
+			elements[next]?.focus();
 		} else if (event.key === "ArrowUp") {
 			event.preventDefault();
-			const prev = (idx - 1 + items.length) % items.length;
-			items[prev]?.focus();
+			const prev = (idx - 1 + elements.length) % elements.length;
+			elements[prev]?.focus();
 		} else if (event.key === "Home") {
 			event.preventDefault();
-			items[0]?.focus();
+			elements[0]?.focus();
 		} else if (event.key === "End") {
 			event.preventDefault();
-			items[items.length - 1]?.focus();
+			elements[elements.length - 1]?.focus();
 		}
 	}
 
 	return (
 		<div className="relative">
 			<button
-				ref={triggerRef}
+				ref={setTriggerRef}
 				type="button"
 				aria-haspopup="menu"
 				aria-expanded={open}
@@ -261,20 +295,44 @@ function LanguageDropdown({
 					<ul className="py-1">
 						{LOCALES.map((locale) => {
 							const isActive = locale === currentLocale;
+							const item = getItemFor(items, locale);
+							const isAvailable = isActive || item?.available !== false;
+							const label = item?.label ?? localeLabel[locale];
+							const accessibleLabel = !isAvailable ? `${label} ${hint}` : label;
 							return (
 								<li key={locale} role="none">
 									<button
 										type="button"
 										role="menuitemradio"
 										aria-checked={isActive}
-										onClick={() => handleSelect(locale)}
+										aria-disabled={!isAvailable ? "true" : undefined}
+										aria-label={accessibleLabel}
+										onClick={() => handleItemClick(locale)}
+										onKeyDown={(e) => {
+											if (e.key === "Enter" || e.key === " ") {
+												e.preventDefault();
+												handleItemClick(locale);
+											}
+										}}
 										className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-surface focus-visible:bg-surface focus-visible:outline-none ${
 											isActive
 												? "font-medium text-foreground"
-												: "text-foreground-secondary"
+												: isAvailable
+													? "text-foreground-secondary"
+													: "text-foreground-muted"
 										}`}
 									>
-										<span>{localeLabel[locale]}</span>
+										<span>
+											<span>{label}</span>
+											{!isActive && !isAvailable && (
+												<span
+													aria-hidden="true"
+													className="ml-1.5 text-xs text-foreground-muted"
+												>
+													{hint}
+												</span>
+											)}
+										</span>
 										{isActive && (
 											<Check
 												className="h-4 w-4 text-accent"
@@ -290,4 +348,4 @@ function LanguageDropdown({
 			)}
 		</div>
 	);
-}
+});

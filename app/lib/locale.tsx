@@ -137,6 +137,23 @@ export function buildLocaleHead(locale: Locale) {
 	};
 }
 
+export type RouteKind =
+	| { kind: "post"; slug: string; hasTwin: boolean }
+	| { kind: "page"; slug: string; hasTwin: boolean }
+	| { kind: "structural" }
+	| { kind: "admin" };
+
+export function getTwinAvailabilityForCurrentRoute(
+	route: RouteKind,
+	_targetLocale: Locale,
+): { available: boolean; renderSwitcher: boolean } {
+	if (route.kind === "admin")
+		return { available: false, renderSwitcher: false };
+	if (route.kind === "structural")
+		return { available: true, renderSwitcher: true };
+	return { available: route.hasTwin, renderSwitcher: true };
+}
+
 export function detectLocaleFromRequest(request: Request): Locale {
 	const cookieHeader = request.headers.get("Cookie") ?? "";
 	const match = cookieHeader.match(/(?:^|;\s*)locale=([^;]+)/);
