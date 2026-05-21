@@ -1,7 +1,15 @@
 import "@tanstack/react-start/server-only";
 import { readdir, readFile } from "node:fs/promises";
-import { basename, dirname, extname, join, normalize } from "node:path";
-import { eq, like } from "drizzle-orm";
+import {
+	basename,
+	dirname,
+	extname,
+	isAbsolute,
+	join,
+	normalize,
+	relative,
+} from "node:path";
+import { eq } from "drizzle-orm";
 import matter from "gray-matter";
 import { LOCALES, type Locale } from "#/lib/locale";
 import { db } from "./client";
@@ -50,6 +58,22 @@ function deriveSlug(filePath: string, frontmatterSlug?: string): string {
 	return basename(filePath, extname(filePath));
 }
 
+// Normalize any incoming path (absolute or relative) to cwd-relative form so
+// rows are stored consistently regardless of caller (watcher = absolute via
+// `join(process.cwd(), ...)`, sync.ts = absolute via `resolve()`, dev-boot =
+// "./content" → relative). Without this the unique(file_path) constraint
+// matches one caller's format but not another's, breaking upsert-on-conflict.
+function toRelativePath(filePath: string): string {
+	const normalized = normalize(filePath);
+	if (!isAbsolute(normalized)) return normalized;
+	const rel = relative(process.cwd(), normalized);
+	// Only collapse to cwd-relative when the path is INSIDE the repo. Paths
+	// under system tmp dirs (integration tests) produce `../../...` which is
+	// brittle for DB rows — keep those absolute so each caller stays consistent.
+	if (rel.startsWith("..")) return normalized;
+	return rel;
+}
+
 function deriveLang(filePath: string): Locale {
 	const dir = basename(dirname(filePath));
 	if (!(LOCALES as readonly string[]).includes(dir)) {
@@ -82,6 +106,10 @@ export async function upsertPost(filePath: string): Promise<void> {
 	try {
 		const source = await readFile(filePath, "utf8");
 		const fm = parseFrontmatterBlock(source, filePath);
+		// Normalize to cwd-relative for DB storage — keeps rows portable and
+		// lets repeat upserts hit the same unique(file_path) row regardless of
+		// whether the caller passed an absolute or a relative path.
+		filePath = toRelativePath(filePath);
 		const slug = deriveSlug(filePath, fm.slug);
 		lang = deriveLang(filePath);
 		const now = new Date();
@@ -141,6 +169,7 @@ export async function upsertPost(filePath: string): Promise<void> {
 
 export async function removePost(filePath: string): Promise<void> {
 	try {
+		filePath = toRelativePath(filePath);
 		await db.delete(posts).where(eq(posts.filePath, filePath));
 		console.log(JSON.stringify({ level: "INFO", action: "removed", filePath }));
 	} catch (err) {
@@ -158,18 +187,25 @@ export async function removePost(filePath: string): Promise<void> {
 
 export async function syncAll(contentDir: string): Promise<void> {
 	const files = await findMdxFiles(contentDir);
-	const fileSet = new Set(files);
+	// Normalize walked files to the same cwd-relative form upsertPost stores
+	// so the cleanup `fileSet.has()` check below compares apples-to-apples.
+	const fileSet = new Set(files.map((p) => toRelativePath(p)));
 
-	// `findMdxFiles` returns paths produced via `join()`, which strips leading
-	// `./`. Normalize the LIKE pattern to match, so the cleanup actually fires
-	// against stored rows (otherwise `./content/%` never matches `content/...`).
-	const normalizedDir = normalize(contentDir);
+	// Scan ALL rows (no LIKE filter). A scoped LIKE would orphan rows whose
+	// filePath sits outside the current contentDir — e.g. when the content
+	// root moves from `content/` → `app/content/posts/`, the old paths would
+	// never be cleaned by a syncAll rooted at the new dir. For this blog's
+	// scale (single-author, <100 posts) a full table scan is cheap.
+	// `.where(undefined)` is a no-op filter — keeps the call shape uniform for
+	// mocks that expect the full select→from→where chain.
 	const rows = await db
 		.select({ filePath: posts.filePath })
 		.from(posts)
-		.where(like(posts.filePath, `${normalizedDir}/%`));
+		.where(undefined);
 	for (const row of rows) {
-		if (!fileSet.has(row.filePath)) {
+		// Stored rows are cwd-relative post-fix, but legacy DBs and test mocks
+		// may still carry absolute paths — normalize before comparing.
+		if (!fileSet.has(toRelativePath(row.filePath))) {
 			await removePost(row.filePath);
 		}
 	}

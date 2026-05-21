@@ -150,12 +150,12 @@ This is an advisory pattern. The GitHub Ruleset does not enforce it, but agents 
 
 | URL | Content |
 |---|---|
-| `/en/blog` | English post listing |
-| `/pt-br/blog` | Portuguese post listing |
-| `/en/<slug>` | English post or static page |
+| `/` | English homepage (post listing) — default locale, no prefix |
+| `/en/` | English homepage — explicit-prefix alias of `/` |
+| `/pt-br/` | Portuguese homepage (post listing) |
+| `/<slug>` | English post or static page (default locale, no prefix) |
+| `/en/<slug>` | English post or static page — explicit-prefix alias of `/<slug>` |
 | `/pt-br/<slug>` | Portuguese post or static page |
-| `/blog` | Redirects to `/en/blog` (backward compat) |
-| `/<slug>` | Redirects to `/en/<slug>` (backward compat) |
 
 When a translation is missing, the reader sees the language menu with an availability hint — see [Language Switcher](#language-switcher).
 

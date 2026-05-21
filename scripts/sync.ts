@@ -13,7 +13,7 @@ export function parseDir(args: string[]): string {
 	if (idx !== -1 && args[idx + 1]) {
 		return resolve(args[idx + 1] as string);
 	}
-	return resolve("content");
+	return resolve("app/content/posts");
 }
 
 export async function runSync(
