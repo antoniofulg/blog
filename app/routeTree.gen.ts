@@ -20,7 +20,6 @@ import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as Char123LocaleChar125SlugRouteImport } from './routes/{-$locale}/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AdminPreviewSlugRouteImport } from './routes/admin/preview.$slug'
 
 const Char123LocaleChar125Route = Char123LocaleChar125RouteImport.update({
   id: '/{-$locale}',
@@ -79,11 +78,6 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminPreviewSlugRoute = AdminPreviewSlugRouteImport.update({
-  id: '/admin/preview/$slug',
-  path: '/admin/preview/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
@@ -96,7 +90,6 @@ export interface FileRoutesByFullPath {
   '/en/': typeof EnIndexRoute
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
-  '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
@@ -109,7 +102,6 @@ export interface FileRoutesByTo {
   '/en': typeof EnIndexRoute
   '/pt-br': typeof PtBrIndexRoute
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
-  '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -124,7 +116,6 @@ export interface FileRoutesById {
   '/en/': typeof EnIndexRoute
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
-  '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -140,7 +131,6 @@ export interface FileRouteTypes {
     | '/en/'
     | '/pt-br/'
     | '/{-$locale}/'
-    | '/admin/preview/$slug'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -153,7 +143,6 @@ export interface FileRouteTypes {
     | '/en'
     | '/pt-br'
     | '/{-$locale}'
-    | '/admin/preview/$slug'
     | '/api/auth/$'
   id:
     | '__root__'
@@ -167,7 +156,6 @@ export interface FileRouteTypes {
     | '/en/'
     | '/pt-br/'
     | '/{-$locale}/'
-    | '/admin/preview/$slug'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -180,7 +168,6 @@ export interface RootRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
   EnIndexRoute: typeof EnIndexRoute
   PtBrIndexRoute: typeof PtBrIndexRoute
-  AdminPreviewSlugRoute: typeof AdminPreviewSlugRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -263,13 +250,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/preview/$slug': {
-      id: '/admin/preview/$slug'
-      path: '/admin/preview/$slug'
-      fullPath: '/admin/preview/$slug'
-      preLoaderRoute: typeof AdminPreviewSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
@@ -295,7 +275,6 @@ const rootRouteChildren: RootRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
   EnIndexRoute: EnIndexRoute,
   PtBrIndexRoute: PtBrIndexRoute,
-  AdminPreviewSlugRoute: AdminPreviewSlugRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

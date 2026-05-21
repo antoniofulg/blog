@@ -209,12 +209,6 @@ describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", ()
 		expect(entry.sampleSlug).toBeUndefined();
 	});
 
-	it("/admin/preview/:slug entry has no static sampleSlug — resolved at runtime from DB", () => {
-		const entry = ROUTE_METADATA["admin/preview.$slug.tsx"];
-		expect(entry).toBeDefined();
-		expect(entry.sampleSlug).toBeUndefined();
-	});
-
 	it("getRouteInventory uses live DB slug for parameterized routes", async () => {
 		dbMocks.from.mockImplementation(() =>
 			makeDbChain([{ slug: "my-live-post" }]),
@@ -223,10 +217,6 @@ describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", ()
 		const inventory = await getRouteInventory();
 		const slugRoute = inventory.find((e) => e.path === "/:slug");
 		expect(slugRoute?.sampleSlug).toBe("my-live-post");
-		const previewRoute = inventory.find(
-			(e) => e.path === "/admin/preview/:slug",
-		);
-		expect(previewRoute?.sampleSlug).toBe("my-live-post");
 	});
 
 	it("getRouteInventory excludes slug routes when DB returns no posts", async () => {
@@ -234,9 +224,6 @@ describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", ()
 		dbMocks.select.mockReturnValue({ from: dbMocks.from });
 		const inventory = await getRouteInventory();
 		expect(inventory.find((e) => e.path === "/:slug")).toBeUndefined();
-		expect(
-			inventory.find((e) => e.path === "/admin/preview/:slug"),
-		).toBeUndefined();
 	});
 });
 

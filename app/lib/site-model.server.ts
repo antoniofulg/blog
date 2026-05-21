@@ -69,13 +69,6 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		expectedStatus: 200,
 		intent: "admin dashboard",
 	},
-	"admin/preview.$slug.tsx": {
-		path: "/admin/preview/:slug",
-		locale: null,
-		auth: "admin",
-		expectedStatus: 200,
-		intent: "admin preview",
-	},
 	"login.tsx": {
 		path: "/login",
 		locale: null,

@@ -97,7 +97,6 @@ const config = defineConfig({
 						"app/routes/{-$locale}/$slug.server.ts",
 						"app/routes/{-$locale}/index.server.ts",
 						"app/routes/admin/index.server.ts",
-						"app/routes/admin/preview.$slug.server.ts",
 						"app/routes/sitemap[.]xml.server.ts",
 					],
 				},
