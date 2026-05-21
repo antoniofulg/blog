@@ -163,36 +163,38 @@ describe("unit: locale filter logic", () => {
 // ─── Unit: postUrl (View button href) ────────────────────────────────────────
 
 // Mirrors the postUrl logic from app/routes/admin/index.tsx.
-function postUrl(slug: string, enSlugs: Set<string>): string {
-	return enSlugs.has(slug) ? `/${slug}` : `/pt-br/${slug}`;
+function postUrl(slug: string, lang: string): string {
+	return lang === "en" ? `/${slug}` : `/pt-br/${slug}`;
 }
 
 describe("unit: postUrl (View button href)", () => {
-	const allPosts = [
-		makePost({ id: 1, slug: "hello", lang: "en" }),
-		makePost({ id: 2, slug: "hello", lang: "pt-br" }),
-		makePost({ id: 3, slug: "only-en", lang: "en" }),
-		makePost({ id: 4, slug: "only-pt", lang: "pt-br" }),
-	];
-	const enSlugs = new Set(
-		allPosts.filter((p) => p.lang === "en").map((p) => p.slug),
-	);
-
-	it("links to EN URL when EN twin exists (Q-O5: EN wins)", () => {
-		expect(postUrl("hello", enSlugs)).toBe("/hello");
+	it("links to EN URL for EN post", () => {
+		expect(postUrl("hello", "en")).toBe("/hello");
 	});
 
 	it("links to EN URL for EN-only post", () => {
-		expect(postUrl("only-en", enSlugs)).toBe("/only-en");
+		expect(postUrl("only-en", "en")).toBe("/only-en");
 	});
 
-	it("links to PT-BR URL when no EN twin exists", () => {
-		expect(postUrl("only-pt", enSlugs)).toBe("/pt-br/only-pt");
+	it("links to PT-BR URL for PT-BR-only post", () => {
+		expect(postUrl("only-pt", "pt-br")).toBe("/pt-br/only-pt");
 	});
 
-	it("PT-BR post with EN twin links to EN URL", () => {
-		// The PT-BR row for 'hello' still links to /hello because EN twin exists
-		expect(postUrl("hello", enSlugs)).toBe("/hello");
+	it("PT-BR row links to PT-BR URL even when EN twin exists", () => {
+		// Row's own lang wins — locale filter context demands the correct URL.
+		expect(postUrl("hello", "pt-br")).toBe("/pt-br/hello");
+	});
+
+	it("under locale=pt-br filter, all shown rows produce /pt-br/... hrefs", () => {
+		const allPosts = [
+			makePost({ id: 1, slug: "hello", lang: "en" }),
+			makePost({ id: 2, slug: "hello", lang: "pt-br" }),
+			makePost({ id: 3, slug: "only-en", lang: "en" }),
+			makePost({ id: 4, slug: "only-pt", lang: "pt-br" }),
+		];
+		const shown = allPosts.filter((p) => p.lang === "pt-br");
+		const hrefs = shown.map((p) => postUrl(p.slug, p.lang));
+		expect(hrefs.every((h) => h.startsWith("/pt-br/"))).toBe(true);
 	});
 });
 
