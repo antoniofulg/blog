@@ -407,6 +407,81 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 		await getPostBySlugWithLangFn("uses", "pt-br").catch(() => null);
 		expect(mocks.loadStaticPage).toHaveBeenCalledWith("uses", "pt-br");
 	});
+
+	it("stale post row (ENOENT on filePath) falls through to static page", async () => {
+		// Simulate the /about regression: DB has a ghost post row pointing at a
+		// moved/deleted MDX file. Loader must not crash — fall through to the
+		// static-page branch and return the page result.
+		const stalePost = makePost({
+			slug: "about",
+			lang: "en",
+			filePath: "content/en/about.mdx", // file no longer exists
+		});
+		mocks.selectWhere.mockResolvedValueOnce([stalePost]);
+		mocks.readFile.mockRejectedValueOnce(
+			Object.assign(new Error("ENOENT: no such file"), { code: "ENOENT" }),
+		);
+		mocks.loadStaticPage.mockResolvedValueOnce({
+			entry: {
+				slug: "about",
+				locale: "en" as const,
+				filePath: "/pages/en/about.mdx",
+				frontmatter: { title: "About" },
+			},
+			html: "<p>About me</p>",
+		});
+		mocks.staticPageHasTwin.mockReturnValueOnce(true);
+
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("page");
+		if (result.kind === "page") {
+			expect(result.entry.frontmatter.title).toBe("About");
+		}
+		expect(mocks.loadStaticPage).toHaveBeenCalledWith("about", "en");
+	});
+
+	it("stale fallback row (ENOENT) falls through to static page", async () => {
+		// Variant: exact-match query returns nothing; fallback query returns a
+		// ghost row (e.g. slug=about, lang=pt-br pointing at old `content/pt-br/about.mdx`).
+		// Loader must not crash — fall through to static-page branch.
+		const stalePtBr = makePost({
+			slug: "about",
+			lang: "pt-br",
+			filePath: "content/pt-br/about.mdx",
+		});
+		mocks.selectWhere
+			.mockResolvedValueOnce([]) // exact-match miss
+			.mockResolvedValueOnce([stalePtBr]); // fallback hit (ghost row)
+		mocks.readFile.mockRejectedValueOnce(
+			Object.assign(new Error("ENOENT: no such file"), { code: "ENOENT" }),
+		);
+		mocks.loadStaticPage.mockResolvedValueOnce({
+			entry: {
+				slug: "about",
+				locale: "en" as const,
+				filePath: "/pages/en/about.mdx",
+				frontmatter: { title: "About" },
+			},
+			html: "<p>About me</p>",
+		});
+		mocks.staticPageHasTwin.mockReturnValueOnce(false);
+
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("page");
+	});
+
+	it("non-ENOENT readFile error still propagates", async () => {
+		// Permission errors etc. should NOT be swallowed — only ENOENT means
+		// "file missing, try next branch".
+		const enPost = makePost({ slug: "react-suspense", lang: "en" });
+		mocks.selectWhere.mockResolvedValueOnce([enPost]);
+		mocks.readFile.mockRejectedValueOnce(
+			Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }),
+		);
+		await expect(
+			getPostBySlugWithLangFn("react-suspense", "en"),
+		).rejects.toThrow(/permission denied/);
+	});
 });
 
 // ─── Integration: locale post detail routes ──────────────────────────────────

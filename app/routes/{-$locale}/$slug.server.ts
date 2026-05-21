@@ -56,32 +56,47 @@ export async function getPostBySlugWithLangFn(
 			),
 		);
 
+	// Read the post's MDX file; on ENOENT (stale DB row pointing at a moved/deleted
+	// file) fall through to the next lookup branch instead of crashing the route.
+	async function safeReadMdx(filePath: string): Promise<string | null> {
+		try {
+			return await readFile(filePath, "utf-8");
+		} catch (err) {
+			const code = (err as NodeJS.ErrnoException).code;
+			if (code === "ENOENT") return null;
+			throw err;
+		}
+	}
+
 	if (exactPost) {
-		const source = await readFile(exactPost.filePath, "utf-8");
-		const Content = await renderFn(source);
-		const html = renderToStaticMarkup(createElement(Content, {}));
+		const source = await safeReadMdx(exactPost.filePath);
+		if (source !== null) {
+			const Content = await renderFn(source);
+			const html = renderToStaticMarkup(createElement(Content, {}));
 
-		const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
-		const [altPost] = await db
-			.select()
-			.from(posts)
-			.where(
-				and(
-					eq(posts.slug, slug),
-					eq(posts.lang, otherLang),
-					sql`${posts.draft} IS NOT TRUE`,
-				),
-			);
+			const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
+			const [altPost] = await db
+				.select()
+				.from(posts)
+				.where(
+					and(
+						eq(posts.slug, slug),
+						eq(posts.lang, otherLang),
+						sql`${posts.draft} IS NOT TRUE`,
+					),
+				);
 
-		return {
-			kind: "post",
-			post: exactPost,
-			html,
-			requestedLang,
-			notTranslated: false,
-			availableLang: null,
-			alternateLang: altPost ? otherLang : null,
-		};
+			return {
+				kind: "post",
+				post: exactPost,
+				html,
+				requestedLang,
+				notTranslated: false,
+				availableLang: null,
+				alternateLang: altPost ? otherLang : null,
+			};
+		}
+		// Stale DB row — drop through to fallback / page lookup.
 	}
 
 	const [fallbackPost] = await db
@@ -90,18 +105,21 @@ export async function getPostBySlugWithLangFn(
 		.where(and(eq(posts.slug, slug), sql`${posts.draft} IS NOT TRUE`));
 
 	if (fallbackPost) {
-		const source = await readFile(fallbackPost.filePath, "utf-8");
-		const Content = await renderFn(source);
-		const html = renderToStaticMarkup(createElement(Content, {}));
-		return {
-			kind: "post",
-			post: fallbackPost,
-			html,
-			requestedLang,
-			notTranslated: true,
-			availableLang: fallbackPost.lang as Locale,
-			alternateLang: null,
-		};
+		const source = await safeReadMdx(fallbackPost.filePath);
+		if (source !== null) {
+			const Content = await renderFn(source);
+			const html = renderToStaticMarkup(createElement(Content, {}));
+			return {
+				kind: "post",
+				post: fallbackPost,
+				html,
+				requestedLang,
+				notTranslated: true,
+				availableLang: fallbackPost.lang as Locale,
+				alternateLang: null,
+			};
+		}
+		// Stale DB row — drop through to static-page lookup.
 	}
 
 	const { loadStaticPage, staticPageHasTwin } = await import(

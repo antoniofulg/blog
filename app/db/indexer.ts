@@ -1,6 +1,6 @@
 import "@tanstack/react-start/server-only";
 import { readdir, readFile } from "node:fs/promises";
-import { basename, dirname, extname, join } from "node:path";
+import { basename, dirname, extname, join, normalize } from "node:path";
 import { eq, like } from "drizzle-orm";
 import matter from "gray-matter";
 import { LOCALES, type Locale } from "#/lib/locale";
@@ -160,10 +160,14 @@ export async function syncAll(contentDir: string): Promise<void> {
 	const files = await findMdxFiles(contentDir);
 	const fileSet = new Set(files);
 
+	// `findMdxFiles` returns paths produced via `join()`, which strips leading
+	// `./`. Normalize the LIKE pattern to match, so the cleanup actually fires
+	// against stored rows (otherwise `./content/%` never matches `content/...`).
+	const normalizedDir = normalize(contentDir);
 	const rows = await db
 		.select({ filePath: posts.filePath })
 		.from(posts)
-		.where(like(posts.filePath, `${contentDir}/%`));
+		.where(like(posts.filePath, `${normalizedDir}/%`));
 	for (const row of rows) {
 		if (!fileSet.has(row.filePath)) {
 			await removePost(row.filePath);
