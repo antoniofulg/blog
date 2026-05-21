@@ -74,7 +74,9 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 				page.getByRole("heading", { name: FIXTURE_PTBR_TITLE, exact: true }),
 			).toBeVisible();
 
-			await page.getByRole("button", { name: "Switch language" }).click();
+			// LanguageMenu dropdown: open trigger then select English menu item.
+			await page.getByRole("button", { name: "Trocar idioma" }).click();
+			await page.getByRole("menuitemradio", { name: "English" }).click();
 			await page.waitForURL((url) => !url.pathname.startsWith("/pt-br"));
 
 			expect(page.url()).toContain(`/${FIXTURE_SLUG}`);
