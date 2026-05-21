@@ -1,14 +1,21 @@
 import { createServer } from "node:net";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import type { Post } from "#/db/schema";
+import type { Locale } from "#/lib/locale";
+import type { PageEntry } from "#/lib/mdx/pages.server";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
 const mocks = vi.hoisted(() => {
 	const listPostsFn = vi
-		.fn<[string], Promise<Array<{ slug: string; lang: string }>>>()
+		.fn<(lang: Locale) => Promise<Post[]>>()
 		.mockResolvedValue([]);
-	const enumerateStaticPages = vi.fn().mockResolvedValue([]);
-	const staticPageHasTwin = vi.fn().mockReturnValue(false);
+	const enumerateStaticPages = vi
+		.fn<(locale: Locale) => Promise<PageEntry[]>>()
+		.mockResolvedValue([]);
+	const staticPageHasTwin = vi
+		.fn<(slug: string, targetLocale: Locale) => boolean>()
+		.mockReturnValue(false);
 	return { listPostsFn, enumerateStaticPages, staticPageHasTwin };
 });
 
