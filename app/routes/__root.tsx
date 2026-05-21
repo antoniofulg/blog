@@ -82,6 +82,12 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 			],
 			links: [
 				{ rel: "canonical", href: canonicalUrl },
+				{
+					rel: "alternate",
+					type: "application/rss+xml",
+					title: "Antonio Fulgencio — Writing",
+					href: `${siteUrl}/rss.xml`,
+				},
 				{ rel: "stylesheet", href: appCss },
 				{ rel: "preconnect", href: "https://fonts.googleapis.com" },
 				{

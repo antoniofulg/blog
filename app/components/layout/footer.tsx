@@ -1,4 +1,5 @@
 import { Link } from "@tanstack/react-router";
+import { Rss } from "lucide-react";
 import { DEFAULT_LOCALE, type Locale, useCurrentLocale } from "#/lib/locale";
 
 const AUTHOR = "Antonio Fulgencio";
@@ -84,7 +85,16 @@ export function Footer() {
 				<p>
 					© {year} {AUTHOR}. {rightsReserved[locale]}
 				</p>
-				<p>{colophon[locale]}</p>
+				<div className="flex items-center gap-4">
+					<p>{colophon[locale]}</p>
+					<a
+						href="/rss.xml"
+						aria-label="RSS Feed"
+						className="text-foreground-muted transition-colors hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-surface"
+					>
+						<Rss className="h-4 w-4" aria-hidden="true" />
+					</a>
+				</div>
 			</div>
 		</footer>
 	);

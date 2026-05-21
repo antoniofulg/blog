@@ -36,7 +36,7 @@ export function Pagination({
 				type="button"
 				onClick={() => onPageChange(currentPage - 1)}
 				disabled={currentPage === 1}
-				className="flex h-9 w-9 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="flex h-11 w-11 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				aria-label={s.prev}
 			>
 				<ChevronLeft className="h-4 w-4" aria-hidden="true" />
@@ -48,7 +48,7 @@ export function Pagination({
 					type="button"
 					onClick={() => onPageChange(page)}
 					aria-current={page === currentPage ? "page" : undefined}
-					className={`flex h-9 w-9 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+					className={`flex h-11 w-11 items-center justify-center rounded-md text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
 						page === currentPage
 							? "bg-accent text-foreground-inverse"
 							: "text-foreground-secondary hover:bg-muted"
@@ -62,7 +62,7 @@ export function Pagination({
 				type="button"
 				onClick={() => onPageChange(currentPage + 1)}
 				disabled={currentPage === totalPages}
-				className="flex h-9 w-9 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="flex h-11 w-11 items-center justify-center rounded-md text-foreground-secondary transition-colors hover:bg-muted disabled:opacity-40 disabled:hover:bg-transparent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				aria-label={s.next}
 			>
 				<ChevronRight className="h-4 w-4" aria-hidden="true" />

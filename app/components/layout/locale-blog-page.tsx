@@ -16,7 +16,7 @@ import type { Locale } from "#/lib/locale";
 const copy = {
 	en: {
 		eyebrow: "Articles",
-		heading: "Blog",
+		heading: "Writing",
 		subtitle:
 			"Notes on web development, React, TypeScript, Bun, and modern tooling.",
 		emptyTitle: "No articles found",
@@ -24,7 +24,7 @@ const copy = {
 	},
 	"pt-br": {
 		eyebrow: "Artigos",
-		heading: "Blog",
+		heading: "Escrita",
 		subtitle:
 			"Notas sobre desenvolvimento web, React, TypeScript, Bun e ferramentas modernas.",
 		emptyTitle: "Nenhum artigo encontrado",

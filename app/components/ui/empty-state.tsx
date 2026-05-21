@@ -1,8 +1,8 @@
 import type { LucideIcon } from "lucide-react";
-import { SearchX } from "lucide-react";
+import { FileText } from "lucide-react";
 
 export function EmptyState({
-	icon: Icon = SearchX,
+	icon: Icon = FileText,
 	title = "Nenhum resultado encontrado",
 	description = "Tente ajustar seus filtros ou buscar por outro termo.",
 }: {
