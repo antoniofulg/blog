@@ -1,0 +1,116 @@
+---
+title: "Pare de passar 12 props. Use Component composition."
+slug: react-component-composition
+description: Todo componente React começa simples. Depois cresce. Esse é o padrão que evita o efeito bola de neve da complexidade — sem reescrever tudo.
+publishedAt: 2024-10-08
+---
+
+Você já passou por isso. Escreve um componente `Alert` limpo. Ele recebe três props. Duas semanas depois, são oito. Um mês depois alguém pede uma variante e você está olhando para uma selva de condicionais com medo de tocar.
+
+O componente não ficou ruim de propósito. Ele cresceu uma prop razoável por vez.
+
+Component composition é a saída. Em vez de fazer um componente fazer mais, você quebra ele em pedaços que fazem menos cada um — e deixa quem usa montar do jeito que precisar.
+
+## Por que a abordagem com props desanda
+
+O ponto de partida típico:
+
+```jsx
+const Alert = ({ title, description, buttonLabel }) => (
+  <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+    <h2 className="font-bold text-lg">{title}</h2>
+    <p className="mt-2 text-sm">{description}</p>
+    <button className="mt-4 bg-red-500 text-white font-semibold py-2 px-4 rounded">
+      {buttonLabel}
+    </button>
+  </div>
+);
+
+<Alert
+  title="Warning!"
+  description="This is your last chance to save your changes."
+  buttonLabel="Save Changes"
+/>
+```
+
+Limpo o bastante. Mas aí vem: "Dá para adicionar um ícone?" Um botão de fechar? Uma segunda ação? Um link no lugar do botão? Um badge opcional?
+
+Cada novo requisito vira uma nova prop. A API do componente cresce mais rápido que a documentação. Quem usa precisa ler o código-fonte para saber o que é possível. É nesse momento que Component composition ganha.
+
+## A versão com Component composition
+
+Quebre o componente em pedaços autocontidos e deixe os filhos decidirem o layout:
+
+```jsx
+const Alert = ({ children }) => (
+  <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 relative">
+    {children}
+  </div>
+);
+
+const AlertTitle = ({ children }) => (
+  <h2 className="font-bold text-lg">{children}</h2>
+);
+
+const AlertDescription = ({ children }) => (
+  <p className="mt-2 text-sm">{children}</p>
+);
+
+const AlertButton = ({ children, onClick }) => (
+  <button
+    className="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
+    onClick={onClick}
+  >
+    {children}
+  </button>
+);
+
+const CloseButton = ({ onClick }) => (
+  <button
+    className="absolute top-2 right-2 text-red-700 hover:text-red-800"
+    onClick={onClick}
+  >
+    ✕
+  </button>
+);
+```
+
+O uso fica autodocumentado:
+
+```jsx
+<Alert>
+  <AlertTitle>Warning!</AlertTitle>
+  <AlertDescription>This is your last chance to save your changes.</AlertDescription>
+  <AlertButton onClick={handleSave}>Save Changes</AlertButton>
+  <CloseButton onClick={handleClose} />
+</Alert>
+```
+
+Lê uma vez e você sabe exatamente o que está sendo renderizado. Sem precisar caçar prop.
+
+## O que muda de fato
+
+A sacada em cinco segundos: **quem chama ganha controle total sem o componente ganhar mais complexidade.**
+
+Quer adicionar um ícone entre o título e a descrição? Coloca lá. Quer dois botões? Adiciona os dois. Quer a descrição primeiro? Reordena os filhos. O shell `Alert` não liga — ele só fornece o wrapper e o estilo.
+
+Nada disso era possível na versão baseada em props sem mais uma rodada de "dá pra adicionar uma prop pra isso?".
+
+Quatro ganhos concretos:
+
+- **Flexibilidade** — novos layouts não exigem nenhuma mudança no componente pai
+- **Reaproveitamento** — `AlertTitle` e `AlertButton` são só componentes; use em qualquer lugar
+- **Legibilidade** — o uso lê como uma descrição da UI, não como uma chamada de função
+- **Manutenção** — mudar o estilo de hover do botão mexe só no `AlertButton`, em nada mais
+
+## Quando aplicar esse padrão
+
+Nem todo componente precisa ser quebrado desde o primeiro dia. Um bom sinal: quando você começa a adicionar props booleanas para ligar e desligar partes (`showCloseButton`, `hasIcon`, `isDestructive`), Component composition é o caminho certo.
+
+Se o componente é pequeno e estável, três props está ótimo. Se ele está crescendo e quem usa sempre precisa de algo um pouco diferente, divida ele.
+
+A abordagem com props é um carro. Component composition é a estrada — ela não decide para onde você vai; só faz qualquer destino ser alcançável.
+
+---
+
+Component composition não é um truque de refatoração que você puxa quando as coisas dão errado. É um hábito de design que evita a complexidade se acumular desde o começo. Aplique cedo em componentes compartilhados e que crescem com frequência, e você vai parar de temer o próximo pedido de feature.

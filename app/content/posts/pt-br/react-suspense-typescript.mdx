@@ -1,0 +1,290 @@
+---
+title: "Pare de empilhar isLoading. Use React Suspense"
+slug: react-suspense-typescript
+description: Loading states aninhados, flags de erro e renders condicionais se empilham rápido. React Suspense tira essa complexidade dos seus componentes e leva pra árvore, onde ela deve estar.
+publishedAt: 2024-10-21
+---
+
+Todo componente assíncrono começa do mesmo jeito:
+
+```tsx
+if (isLoading) return <Spinner />;
+if (error) return <ErrorMessage error={error} />;
+return <UserProfile user={data} />;
+```
+
+Tudo bem pra um componente. Mas dashboards têm cinco. Páginas têm dez. Cada um carrega seu próprio `isLoading`, seu próprio `error` e seus próprios branches condicionais. A lógica de UI de verdade acaba enterrada debaixo do boilerplate de loading state.
+
+React Suspense tira esse boilerplate dos seus componentes e leva pra estrutura da árvore, onde ele deve estar.
+
+## O que Suspense faz de fato
+
+Suspense "suspende" o render de um componente até que uma condição seja atendida — uma busca de dados resolvendo, um import lazy carregando. Em vez de cada componente gerenciar seu próprio loading state, ele lança uma promise e o React captura, mostrando um `fallback` até a promise resolver.
+
+Duas peças:
+
+- **Componente `<Suspense>`** — marca um boundary; mostra `fallback` enquanto qualquer filho estiver suspenso
+- **Prop `fallback`** — a UI que aparece durante a espera
+
+A versão mais simples, com componentes carregados via lazy:
+
+```tsx
+import { Suspense, lazy } from "react";
+
+const Dashboard = lazy(() => import("./Dashboard"));
+
+export function App() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+```
+
+`Dashboard` carrega só quando necessário. Enquanto carrega, `PageSkeleton` renderiza. Quando pronto, `Dashboard` assume. Zero estado `isLoading`, zero branches condicionais dentro do `Dashboard`.
+
+## O que de fato dispara Suspense
+
+Mito comum: qualquer promise pendente dentro de um componente dispara Suspense. Não dispara.
+
+Suspense reage a um sinal específico — um componente **lançar uma promise** durante o render. O renderer do React captura o valor lançado, sobe pela árvore até o `<Suspense>` boundary mais próximo e mostra o `fallback` dele até a promise resolver. Aí tenta renderizar de novo.
+
+Nenhuma destas dispara Suspense:
+
+```tsx
+// useEffect + state — padrão clássico, loading state manual
+useEffect(() => {
+  fetch("/api/user").then(r => r.json()).then(setUser);
+}, []);
+
+// Promise guardada em state — fica parada
+const [promise] = useState(() => fetch("/api/user"));
+
+// Await dentro de event handler — nunca chega no renderer
+async function onClick() {
+  const user = await fetchUser();
+}
+```
+
+O que dispara Suspense no React 18:
+
+- **`React.lazy()`** — único disparador built-in; lança internamente enquanto o import dinâmico resolve
+- **Um resource wrapper custom que lança** — padrão da próxima seção
+- **Hooks de bibliotecas que implementam o protocolo** — React Query, SWR e Relay aceitam um config `suspense: true`; por baixo, eles lançam a promise pendente durante o render
+
+A mecânica é fixa: lançar durante o render para suspender, resolver para tentar de novo. Qualquer coisa que não implemente essa mecânica é só código async normal com state normal — boundary não tem envolvimento nenhum.
+
+## Suspense com data fetching
+
+Code-splitting é o caso fácil. O mais difícil — e mais poderoso — é data fetching. Desde o React 18, fazer data fetching compatível com Suspense exige ou uma biblioteca de apoio (React Query, SWR, Relay), ou seu próprio resource wrapper. Todos implementam o mesmo protocolo por baixo: lançar uma promise para suspender, resolvê-la para continuar.
+
+Um wrapper de resource mínimo mostra o mecanismo:
+
+```tsx
+function createResource<T>(promise: Promise<T>) {
+  let status: "pending" | "success" | "error" = "pending";
+  let result: T;
+
+  const suspender = promise.then(
+    (data) => { status = "success"; result = data; },
+    (err)  => { status = "error";   result = err;  }
+  );
+
+  return {
+    read(): T {
+      if (status === "pending") throw suspender; // React captura isso
+      if (status === "error")   throw result;    // Error boundary captura isso
+      return result;
+    },
+  };
+}
+```
+
+Um componente usando `resource.read()` ou renderiza com dados, ou suspende — nada entre os dois.
+
+## Como os frameworks lidam com isso por baixo
+
+Frameworks full-stack em cima do React 18 empurram a mecânica de throw-promise para a camada de routing e SSR, para você não precisar escrever resource wrappers direto:
+
+- **Next.js App Router** — cada segmento de route aceita um arquivo `loading.tsx` que vira o fallback de Suspense automaticamente. React Server Components fazem `await` de dados no servidor; o React faz stream de pedaços de HTML conforme cada subárvore resolve, usando `renderToPipeableStream` por baixo.
+- **Routes estilo Remix** — loaders podem retornar `defer({ slow: somePromise })`; componentes consomem com `<Await>`, que lança a promise pendente durante o render e suspende a subárvore.
+- **TanStack Start** — combina route loaders com `useSuspenseQuery` do TanStack Query. O hook lança a promise pendente durante o render; o framework faz stream dos dados resolvidos para os boundaries certos.
+
+A primitiva não muda — continua sendo lançar uma promise durante o render. O que muda é quem é dono do throw: um hook de biblioteca, um wrapper custom, ou o encanamento de loader do framework.
+
+## TypeScript deixa isso seguro
+
+O ganho real do TypeScript aqui: `resource.read()` devolve exatamente o que a promise resolveu, tipado corretamente. Quem chama não consegue tratar `User | null` como `User` por acidente.
+
+```tsx
+type User = { id: number; name: string };
+
+const userResource = createResource<User>(fetchUser(1));
+
+function UserProfile() {
+  const user = userResource.read(); // tipado como User — não User | undefined
+  return <h1>{user.name}</h1>;
+}
+```
+
+Mismatches de shape são pegos em tempo de compilação. O corpo do componente fica limpo: sem narrowing de tipos, sem checks de null, sem código defensivo.
+
+## Boundaries granulares: a parte que importa mesmo
+
+A maioria dos tutoriais mostra Suspense envolvendo uma página inteira. É aí que o padrão perde o valor. O objetivo é boundaries pequenos para que o usuário veja conteúdo assim que ele estiver pronto — não um único spinner combinado esperando por tudo.
+
+Dashboard com boundaries separados:
+
+```tsx
+export function Dashboard() {
+  return (
+    <div>
+      <Suspense fallback={<MetricsSkeleton />}>
+        <Analytics />
+      </Suspense>
+      <Suspense fallback={<ListSkeleton />}>
+        <RecentPosts />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+`Analytics` e `RecentPosts` carregam em paralelo. O que resolver primeiro renderiza primeiro. O usuário vê conteúdo útil na hora, em vez de ficar olhando um spinner de tela inteira enquanto a request mais lenta termina.
+
+Boundaries aninhados levam isso adiante:
+
+```tsx
+export function Page() {
+  return (
+    <Suspense fallback={<PageShell />}>
+      <HeroSection />
+      <Suspense fallback={<ListSkeleton />}>
+        <PostList />
+      </Suspense>
+    </Suspense>
+  );
+}
+```
+
+`HeroSection` renderiza assim que seus dados estão prontos. `PostList` mantém seu próprio skeleton até os dados dele chegarem. Renderização progressiva sem coordenar nenhum estado manualmente.
+
+## Sempre combine com um error boundary
+
+Suspense cuida do estado de loading. Error boundaries cuidam do estado de falha. Use os dois:
+
+```tsx
+import { ErrorBoundary } from "react-error-boundary";
+
+<ErrorBoundary fallback={<ErrorMessage />}>
+  <Suspense fallback={<Skeleton />}>
+    <AsyncComponent />
+  </Suspense>
+</ErrorBoundary>
+```
+
+Sem um error boundary, um erro lançado por um componente suspenso vira uma exceção não tratada. Com um, ele renderiza um fallback em vez de derrubar a subárvore.
+
+## Três regras que fazem Suspense funcionar
+
+1. **Boundaries pequenos no lugar de grandes.** Um `Suspense` envolvendo a aplicação inteira é pior que nenhum Suspense — você só centralizou toda a UX de loading. Coloque boundaries perto dos componentes que precisam deles.
+
+2. **Invista nos fallbacks.** Um skeleton que combina com o shape do componente real parece rápido. Um spinner genérico parece lento mesmo quando os dados chegam no mesmo tempo. A qualidade do fallback molda diretamente a performance percebida.
+
+3. **Use uma biblioteca.** Não construa o wrapper de resource acima para produção. React Query, SWR e Relay já implementam suporte a Suspense corretamente, incluindo invalidação de cache e recuperação de erro.
+
+---
+
+A mudança mental que Suspense força vale mais do que qualquer API individual: você para de pensar em loading states como flags a nível de componente e começa a pensar neles como boundaries a nível de árvore. Seus componentes ficam mais simples. Sua UX de loading fica mais deliberada. E você nunca mais escreve `if (isLoading) return <Spinner />`.
+
+---
+
+## Update · 22/05/2026 — React Suspense no React 19
+
+React 19 estabilizou o hook `use()` para promises, o que reduz o resource wrapper custom acima a uma chamada só. Um exemplo completo com fetches em paralelo, boundaries granulares e um error boundary.
+
+Comece com os types e os fetch helpers — mesma forma que você escreveria para qualquer data layer no cliente:
+
+```tsx
+import { Suspense, use } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+
+type User = { id: number; name: string; email: string };
+type Post = { id: number; title: string };
+
+async function fetchUser(id: number): Promise<User> {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error(`Failed to load user ${id}`);
+  return res.json();
+}
+
+async function fetchUserPosts(id: number): Promise<Post[]> {
+  const res = await fetch(`/api/users/${id}/posts`);
+  if (!res.ok) throw new Error(`Failed to load posts for user ${id}`);
+  return res.json();
+}
+```
+
+Em seguida, os componentes folha. Cada um recebe uma promise como prop e lê com `use()` durante o render. O componente suspende até a promise resolver — sem flag `isLoading`, sem `useEffect`, sem return condicional.
+
+```tsx
+function UserHeader({ userPromise }: { userPromise: Promise<User> }) {
+  const user = use(userPromise);
+  return (
+    <header>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </header>
+  );
+}
+
+function UserPosts({ postsPromise }: { postsPromise: Promise<Post[]> }) {
+  const posts = use(postsPromise);
+  return (
+    <ul>
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+Por fim, o pai dispara as duas requests em paralelo antes de renderizar e passa as promises em andamento pra baixo. Cada filho ganha seu próprio Suspense boundary, então renderizam independentes conforme resolvem. Um ErrorBoundary externo captura rejeições de qualquer subárvore.
+
+```tsx
+export function UserPage({ userId }: { userId: number }) {
+  const userPromise = fetchUser(userId);
+  const postsPromise = fetchUserPosts(userId);
+
+  return (
+    <ErrorBoundary fallback={<p>Não foi possível carregar o perfil.</p>}>
+      <Suspense fallback={<HeaderSkeleton />}>
+        <UserHeader userPromise={userPromise} />
+      </Suspense>
+
+      <Suspense fallback={<PostListSkeleton />}>
+        <UserPosts postsPromise={postsPromise} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+```
+
+Um detalhe que arruína esse padrão se passar batido: as promises precisam ser criadas num pai estável — um server component, um route loader ou um pai que não re-renderiza a cada interação. Se `fetchUser()` rodar dentro do filho ou dentro de um componente que re-renderiza com frequência, você vai recriar a promise a cada render e `use()` vai ficar suspendendo pra sempre.
+
+Mais dois detalhes que valem destacar:
+
+- **Cada chamada de `use()` tem seu próprio boundary.** Header e posts carregam em paralelo; o que resolver primeiro renderiza primeiro. Um único Suspense envolvendo os dois travaria no mais lento.
+- **`use()` pode ser chamado condicionalmente.** Diferente dos outros hooks, `use()` é permitido dentro de `if` e loops. Ele também desempacota Context (`use(SomeContext)`), virando o único hook que serve tanto como leitor de Suspense quanto leitor de context.
+
+O exemplo `createResource` lá em cima continua útil pra entender o protocolo — na prática, `use()` é a API que você usa.
+
+Três outras mudanças do React 19 que valem saber:
+
+- **Server Components estáveis.** RSC virou o padrão recomendado pra UI com dados: componentes rodam no servidor, fazem `await` direto e fazem stream do resultado pro cliente. O framework é dono do Suspense boundary; você ganha streaming e hidratação parcial sem escrever a mecânica de suspend.
+- **Suspense preserva estado dos siblings durante o fallback.** No React 18, jogar um sibling pra estado de fallback podia desmontar componentes adjacentes. React 19 mantém siblings montados, deixando árvores de Suspense aninhadas mais previsíveis.
+- **Suspense coordena com stylesheets e assets.** Quando um componente suspenso fica pronto, React 19 espera por CSS e scripts preloaded antes de virar o boundary. Menos FOUC, hidratação mais suave.
+
+Resumo: os padrões de React 18 deste post continuam funcionando e continuam descrevendo o que acontece por baixo. React 19 te dá `use()` como porta de entrada mais limpa e aperta o comportamento dos boundaries.
