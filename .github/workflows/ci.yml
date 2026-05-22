@@ -96,5 +96,5 @@ jobs:
           BRANCH_NAME: ${{ github.head_ref }}
         run: |
           echo "$BRANCH_NAME" | \
-          grep -qE '^(TASK-[0-9]+/[a-z0-9][a-z0-9-]*|hotfix/.+)$' || \
-          { echo "Branch must match TASK-XXXX/slug or hotfix/*"; exit 1; }
+          grep -qE '^((feat|fix|chore|docs|test|refactor|ci|hotfix)/[a-z0-9][a-z0-9-]*|post/[a-z][a-z-]*/[a-z0-9][a-z0-9-]*)$' || \
+          { echo "Branch must match <feat|fix|chore|docs|test|refactor|ci|hotfix>/<slug> or post/<lang>/<slug>"; exit 1; }

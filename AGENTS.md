@@ -31,7 +31,7 @@ docs/_reports/        — per-run content audit reports (gitignored)
 docs/audits/          — committed audit history (SUMMARY.md)
 
 ## Key Conventions
-- Branch: TASK-XXXX/slug or hotfix/slug
+- Branch: <type>/slug where type ∈ feat|fix|chore|docs|test|refactor|ci|hotfix, or post/<lang>/<slug>
 - Commits: Conventional Commits (feat/fix/chore/docs/test/refactor/ci)
 - TypeScript: use `type` for all shapes; `interface` only for class implements
   or module augmentation (e.g., TanStack Router Register)

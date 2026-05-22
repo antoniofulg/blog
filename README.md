@@ -74,11 +74,14 @@ make help          # List all targets with descriptions
 
 ### Branching
 
-All branches must follow `TASK-XXXX/short-description` (zero-padded task number) or `hotfix/description`. `main` is always exempt. GitHub Ruleset enforces this at push time.
+Branches must follow `<type>/short-description` where `<type>` mirrors the commitlint types: `feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `ci`, `hotfix`. Content posts use `post/<lang>/<slug>`. `main` is always exempt. The `branch-check` CI job and the GitHub Ruleset enforce this at push time.
 
 ```sh
-git checkout -b TASK-0005/my-feature
-git checkout -b hotfix/broken-login    # emergency, no task number required
+git checkout -b feat/post-list-pagination
+git checkout -b fix/expired-session-cookie
+git checkout -b docs/contributing-branching
+git checkout -b post/en/react-suspense-typescript    # new content post
+git checkout -b hotfix/broken-login                  # production emergency
 ```
 
 ### Commit messages

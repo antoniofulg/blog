@@ -29,7 +29,7 @@ Two additional jobs run on PRs only:
 | Job | What it checks |
 |-----|----------------|
 | commitlint | All commits in PR follow Conventional Commits |
-| branch-check | Branch name matches `TASK-XXXX/slug` or `hotfix/*` |
+| branch-check | Branch name matches `<feat\|fix\|chore\|docs\|test\|refactor\|ci\|hotfix>/<slug>` or `post/<lang>/<slug>` |
 
 All eight checks must be green before a PR can merge.
 

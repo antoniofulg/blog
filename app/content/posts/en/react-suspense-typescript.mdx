@@ -1,9 +1,8 @@
 ---
-title: "Replace Your isLoading Spaghetti with React Suspense"
+title: "Stop Stacking isLoading. Use React Suspense"
 slug: react-suspense-typescript
 description: Nested loading states, error flags, and conditional renders pile up fast. React Suspense moves that complexity out of your components and into the tree where it belongs.
 publishedAt: 2024-10-21
-noTranslation: true
 ---
 
 Every async component starts the same way:
@@ -45,9 +44,40 @@ export function App() {
 
 `Dashboard` loads only when needed. While it loads, `PageSkeleton` renders. When it's ready, `Dashboard` takes over. Zero `isLoading` state, zero conditional branches inside `Dashboard`.
 
+## What Actually Triggers Suspense
+
+Common misconception: any pending promise inside a component will trigger Suspense. It doesn't.
+
+Suspense reacts to one specific signal — a component **throwing a promise** during render. React's renderer catches the thrown value, walks up the tree to the nearest `<Suspense>` boundary, and renders its `fallback` until that promise resolves. Then it retries the render.
+
+None of these trigger Suspense:
+
+```tsx
+// useEffect + state — classic pattern, manual loading state
+useEffect(() => {
+  fetch("/api/user").then(r => r.json()).then(setUser);
+}, []);
+
+// Promise stored in state — just sits there
+const [promise] = useState(() => fetch("/api/user"));
+
+// Awaiting inside an event handler — never reaches the renderer
+async function onClick() {
+  const user = await fetchUser();
+}
+```
+
+What does trigger Suspense in React 18:
+
+- **`React.lazy()`** — the only built-in trigger; throws internally while the dynamic import resolves
+- **A custom resource wrapper that throws** — pattern shown in the next section
+- **Library hooks built on the protocol** — React Query, SWR, and Relay opt in via a `suspense: true` config; under the hood they throw the pending promise during render
+
+The mechanic is fixed: throw during render to suspend, resolve to retry. Anything that doesn't implement that mechanic is just regular async code with regular state — no boundary involvement.
+
 ## Suspense with Data Fetching
 
-Code-splitting is the easy case. The harder — and more powerful — case is data fetching. As of React 18, Suspense-compatible data fetching requires a supporting library: React Query, SWR, Relay, or a full-stack framework like TanStack Start or Next.js. All of them implement the same protocol under the hood: throw a promise to suspend, resolve it to continue.
+Code-splitting is the easy case. The harder — and more powerful — case is data fetching. As of React 18, Suspense-compatible data fetching requires either a supporting library (React Query, SWR, Relay) or your own resource wrapper. They all implement the same protocol under the hood: throw a promise to suspend, resolve it to continue.
 
 A minimal resource wrapper shows the mechanism:
 
@@ -72,6 +102,16 @@ function createResource<T>(promise: Promise<T>) {
 ```
 
 A component using `resource.read()` either renders with data or suspends — nothing in between.
+
+## How Frameworks Handle This Under the Hood
+
+Full-stack frameworks built on React 18 push the throw-promise mechanic down to the routing and SSR layer, so you don't write resource wrappers directly:
+
+- **Next.js App Router** — each route segment accepts a `loading.tsx` file that becomes the Suspense fallback automatically. React Server Components `await` data on the server; React streams HTML chunks as each subtree resolves, using `renderToPipeableStream` underneath.
+- **Remix-style routes** — loaders can return `defer({ slow: somePromise })`; components consume with `<Await>`, which throws the pending promise during render and suspends the subtree.
+- **TanStack Start** — combines route loaders with `useSuspenseQuery` from TanStack Query. The hook throws the pending promise during render; the framework streams resolved data into the matching boundaries.
+
+The primitive doesn't change — it's still throw a promise during render. What changes is who owns the throw: a library hook, a custom wrapper, or the framework's loader plumbing.
 
 ## TypeScript Makes This Safe
 
@@ -152,8 +192,99 @@ Without an error boundary, a thrown error from a suspended component surfaces as
 
 2. **Invest in fallbacks.** A skeleton that matches the real component's shape feels fast. A generic spinner feels slow even if the data arrives in the same time. Fallback quality directly shapes perceived performance.
 
-3. **Use a library.** Don't build the resource wrapper above for production code. React Query, SWR, and TanStack Query all implement Suspense support correctly, including cache invalidation and error recovery.
+3. **Use a library.** Don't build the resource wrapper above for production code. React Query, SWR, and Relay all implement Suspense support correctly, including cache invalidation and error recovery.
 
 ---
 
 The mental shift Suspense forces is worth more than any individual API: you stop thinking about loading states as component-level flags and start thinking about them as tree-level boundaries. Your components get simpler. Your loading UX gets more deliberate. And you never write `if (isLoading) return <Spinner />` again.
+
+---
+
+## Update · 2026-05-22 — React Suspense in React 19
+
+React 19 stabilized the `use()` hook for promises, which collapses the custom resource wrapper above into a single call. Here's a complete example with parallel fetches, granular boundaries, and an error boundary.
+
+Start with the types and the fetch helpers — the same shape you'd write for any client-side data layer:
+
+```tsx
+import { Suspense, use } from "react";
+import { ErrorBoundary } from "react-error-boundary";
+
+type User = { id: number; name: string; email: string };
+type Post = { id: number; title: string };
+
+async function fetchUser(id: number): Promise<User> {
+  const res = await fetch(`/api/users/${id}`);
+  if (!res.ok) throw new Error(`Failed to load user ${id}`);
+  return res.json();
+}
+
+async function fetchUserPosts(id: number): Promise<Post[]> {
+  const res = await fetch(`/api/users/${id}/posts`);
+  if (!res.ok) throw new Error(`Failed to load posts for user ${id}`);
+  return res.json();
+}
+```
+
+Next, the leaf components. Each one accepts a promise as a prop and reads it with `use()` during render. The component suspends until its promise resolves — no `isLoading` flag, no `useEffect`, no conditional return.
+
+```tsx
+function UserHeader({ userPromise }: { userPromise: Promise<User> }) {
+  const user = use(userPromise);
+  return (
+    <header>
+      <h1>{user.name}</h1>
+      <p>{user.email}</p>
+    </header>
+  );
+}
+
+function UserPosts({ postsPromise }: { postsPromise: Promise<Post[]> }) {
+  const posts = use(postsPromise);
+  return (
+    <ul>
+      {posts.map((p) => (
+        <li key={p.id}>{p.title}</li>
+      ))}
+    </ul>
+  );
+}
+```
+
+Finally, the parent kicks off both requests in parallel before rendering and passes the in-flight promises down. Each child gets its own Suspense boundary so they render independently as they resolve. An outer ErrorBoundary catches rejections from either subtree.
+
+```tsx
+export function UserPage({ userId }: { userId: number }) {
+  const userPromise = fetchUser(userId);
+  const postsPromise = fetchUserPosts(userId);
+
+  return (
+    <ErrorBoundary fallback={<p>Couldn't load profile.</p>}>
+      <Suspense fallback={<HeaderSkeleton />}>
+        <UserHeader userPromise={userPromise} />
+      </Suspense>
+
+      <Suspense fallback={<PostListSkeleton />}>
+        <UserPosts postsPromise={postsPromise} />
+      </Suspense>
+    </ErrorBoundary>
+  );
+}
+```
+
+One caveat that ruins this pattern if missed: the promises must be created in a stable parent — a server component, a route loader, or a parent that doesn't re-render on user interaction. If `fetchUser()` runs inside the child or inside a component that re-renders frequently, you'll recreate the promise on every render and `use()` will keep suspending forever.
+
+Two more details worth highlighting:
+
+- **Each `use()` call gets its own boundary.** Header and posts load in parallel; whichever resolves first renders first. A single Suspense wrapping both would gate on the slower one.
+- **`use()` can be called conditionally.** Unlike other hooks, `use()` is allowed inside `if` blocks and loops. It also unwraps Context (`use(SomeContext)`), making it the one hook that doubles as both Suspense reader and context reader.
+
+The `createResource` example earlier is still useful for understanding the protocol — in practice, `use()` is the API you reach for.
+
+Three other React 19 changes worth knowing:
+
+- **Server Components are stable.** RSC is now the recommended pattern for data-loaded UI: components run on the server, `await` data directly, and stream resolved output to the client. The framework owns the Suspense boundary; you get streaming and partial hydration without writing the suspend mechanic at all.
+- **Suspense preserves sibling state during fallbacks.** In React 18, flipping a sibling into a fallback state could remount adjacent components. React 19 keeps siblings mounted, which makes nested Suspense trees behave more predictably.
+- **Suspense coordinates with stylesheets and assets.** When a suspended component is ready, React 19 waits on preloaded CSS and scripts before flipping the boundary. Less FOUC, smoother hydration.
+
+Takeaway: the React 18 patterns in this post still work and still describe what happens under the hood. React 19 gives you `use()` as a cleaner front door and tightens behavior around boundaries.

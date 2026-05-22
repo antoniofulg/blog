@@ -13,7 +13,7 @@ const navLinksByLocale: Record<
 		{ label: "About", to: "/en/about" },
 	],
 	"pt-br": [
-		{ label: "Home", to: "/" },
+		{ label: "Home", to: "/pt-br/" },
 		{ label: "Sobre", to: "/pt-br/about" },
 	],
 };
