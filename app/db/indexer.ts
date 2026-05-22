@@ -9,7 +9,7 @@ import {
 	normalize,
 	relative,
 } from "node:path";
-import { eq } from "drizzle-orm";
+import { eq, or } from "drizzle-orm";
 import matter from "gray-matter";
 import { LOCALES, type Locale } from "#/lib/locale";
 import { db } from "./client";
@@ -169,9 +169,21 @@ export async function upsertPost(filePath: string): Promise<void> {
 
 export async function removePost(filePath: string): Promise<void> {
 	try {
-		filePath = toRelativePath(filePath);
-		await db.delete(posts).where(eq(posts.filePath, filePath));
-		console.log(JSON.stringify({ level: "INFO", action: "removed", filePath }));
+		// Delete by both the original input AND the cwd-relative normalization.
+		// Legacy rows (pre-toRelativePath) stored absolute paths; new rows store
+		// relative. Matching both forms lets cleanup catch either kind without a
+		// separate migration.
+		const normalized = toRelativePath(filePath);
+		await db
+			.delete(posts)
+			.where(or(eq(posts.filePath, filePath), eq(posts.filePath, normalized)));
+		console.log(
+			JSON.stringify({
+				level: "INFO",
+				action: "removed",
+				filePath: normalized,
+			}),
+		);
 	} catch (err) {
 		console.error(
 			JSON.stringify({
