@@ -100,7 +100,7 @@ const LanguagePair = forwardRef<
 	let firstAlternateAssigned = false;
 
 	return (
-		<div className="inline-flex items-center gap-1.5 text-sm">
+		<div className="hidden h-10 items-center gap-2 text-sm leading-none lg:inline-flex">
 			{LOCALES.map((locale, idx) => {
 				const isActive = locale === currentLocale;
 				const item = getItemFor(items, locale);
@@ -120,7 +120,7 @@ const LanguagePair = forwardRef<
 						{idx > 0 && (
 							<span
 								aria-hidden="true"
-								className="select-none text-foreground-muted"
+								className="select-none text-foreground-muted leading-none"
 							>
 								·
 							</span>
@@ -139,12 +139,12 @@ const LanguagePair = forwardRef<
 							aria-current={isActive ? "true" : undefined}
 							aria-disabled={!isAvailable ? "true" : undefined}
 							aria-label={accessibleLabel}
-							className={`rounded-sm px-0.5 font-mono text-xs tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+							className={`rounded-sm px-1 py-1 text-sm tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
 								isActive
-									? "font-semibold text-foreground"
+									? "cursor-default font-semibold text-foreground"
 									: isAvailable
-										? "text-foreground-secondary hover:text-foreground"
-										: "text-foreground-muted hover:text-foreground-secondary"
+										? "font-medium text-foreground-secondary hover:text-foreground"
+										: "font-medium text-foreground-muted hover:text-foreground-secondary"
 							}`}
 						>
 							{localeCode[locale]}
@@ -176,7 +176,7 @@ function LanguageList({
 			</span>
 			<ul
 				aria-labelledby={`lang-section-${currentLocale}`}
-				className="flex flex-col px-5"
+				className="flex flex-col divide-y divide-border px-5"
 			>
 				{LOCALES.map((locale) => {
 					const isActive = locale === currentLocale;
@@ -199,9 +199,9 @@ function LanguageList({
 								aria-current={isActive ? "true" : undefined}
 								aria-disabled={!isAvailable ? "true" : undefined}
 								aria-label={accessibleLabel}
-								className={`flex h-13 w-full items-center justify-between border-b border-border text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+								className={`flex h-13 w-full items-center justify-between text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
 									isActive
-										? "font-semibold text-foreground"
+										? "cursor-default font-semibold text-foreground"
 										: isAvailable
 											? "font-medium text-foreground-secondary hover:text-foreground"
 											: "font-medium text-foreground-muted hover:text-foreground-secondary"
