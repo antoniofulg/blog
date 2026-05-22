@@ -2,24 +2,38 @@
 
 ## Branch naming
 
-Every branch must match one of these patterns — enforced by GitHub Ruleset at push time:
+Every branch must match one of these patterns — enforced by the `branch-check` CI job and the GitHub Ruleset at push time:
 
 ```
-TASK-XXXX/short-description   # normal work, XXXX is zero-padded task number
-hotfix/short-description      # production emergency, no task number required
-post/<lang>/<slug>            # new content post (advisory; not enforced by Ruleset)
+feat/short-description        # new user-facing feature
+fix/short-description         # bug fix
+chore/short-description       # maintenance, deps, tooling
+docs/short-description        # documentation only
+test/short-description        # adding or fixing tests
+refactor/short-description    # restructure without behavior change
+ci/short-description          # CI/CD workflow changes
+hotfix/short-description      # production emergency
+post/<lang>/<slug>            # new content post or translation
 main                          # always exempt
 ```
 
+The prefix list mirrors the Conventional Commits types enforced by commitlint, so the branch type matches the commit type.
+
 Examples:
-- `TASK-0003/cicd-vps-pipeline` ✓
-- `TASK-0042/fix-login` ✓
+- `feat/post-list-pagination` ✓
+- `fix/expired-session-cookie` ✓
+- `chore/bun-1-3-14` ✓
+- `docs/contributing-branching` ✓
+- `test/deploy-path-spaces` ✓
+- `refactor/post-loader-helper` ✓
+- `ci/workflow-run-gate` ✓
 - `hotfix/broken-auth` ✓
 - `post/en/react-suspense-typescript` ✓ (content branch)
 - `post/pt-br/react-suspense-typescript` ✓ (translation branch)
-- `feature/my-thing` ✗ — blocked by Ruleset
+- `feature/my-thing` ✗ — `feature/` is not in the prefix list, use `feat/`
+- `TASK-0042/fix-login` ✗ — TASK-XXXX prefix is deprecated (was an early Compozy convention; see ADR/Changelog)
 
-When creating a branch, look up the compozy task number first. The branch name must be traceable to a task. Content branches (`post/<lang>/<slug>`) are advisory — the GitHub Ruleset does not enforce this pattern.
+Slug must match `[a-z0-9][a-z0-9-]*`. For `post/<lang>/<slug>`, `<lang>` must be `en`, `pt-br`, or any lowercase-with-hyphens locale string.
 
 ## Commit messages
 

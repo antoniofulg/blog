@@ -144,7 +144,7 @@ post/en/react-suspense-typescript    # new English post
 post/pt-br/react-suspense-typescript # Portuguese translation
 ```
 
-This is an advisory pattern. The GitHub Ruleset does not enforce it, but agents and authors should follow it for consistency. Task branches continue to use `TASK-XXXX/short-description`.
+The `branch-check` CI job and the GitHub Ruleset both enforce this pattern. Non-content branches use `<type>/short-description` with `<type>` from the commitlint list (`feat`, `fix`, `chore`, `docs`, `test`, `refactor`, `ci`, `hotfix`).
 
 ## Locale Routing
 
