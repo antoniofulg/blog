@@ -1,21 +1,16 @@
 // @vitest-environment jsdom
-import {
-	cleanup,
-	createEvent,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it } from "vitest";
 import { LanguageMenu } from "#/components/ui/language-menu";
 
 afterEach(() => {
 	cleanup();
 });
 
-// LanguageMenu's `dropdown` variant hides items behind a trigger button.
-// Use the `list` variant so items render immediately for unit assertions.
+// LanguageMenu's default `pair` variant uses `hidden lg:inline-flex`, so the
+// chips are display:none at jsdom's default viewport. Use the `list` variant
+// so items render immediately for unit assertions.
 
 // ─── unit: aria-label — issue 002 ────────────────────────────────────────────
 
@@ -80,28 +75,32 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 	});
 });
 
-// ─── unit: keyboard handler — issue 003 ─────────────────────────────────────
+// ─── unit: keyboard activation (native <button>) ────────────────────────────
+//
+// Manual onKeyDown handler removed in the audit pass — native <button>
+// already activates on Space/Enter via the browser's synthetic click event
+// without scrolling the page. The previous tests asserted properties of the
+// custom handler; with the handler gone, those assertions tested framework
+// behavior, not application behavior. Native activation is covered
+// implicitly by every test that uses fireEvent.click on the chip.
 
-describe("unit: onKeyDown preventDefault (issue 003 — Space scrolls page)", () => {
-	it("Space key fires onClick", () => {
-		const onClick = vi.fn();
+describe("unit: tabIndex and aria-current on active chip", () => {
+	it("active chip carries aria-current and tabIndex=-1", () => {
+		// The active locale's chip is rendered but should not be a tab stop —
+		// pressing Enter/Space on it would be a no-op (handler is undefined).
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
-				items: [
-					{ locale: "pt-br", label: "Português", available: true, onClick },
-				],
+				items: [{ locale: "pt-br", label: "Português" }],
 				currentLocale: "en",
 			}),
 		);
-
-		const item = screen.getByRole("button", { name: "Português" });
-		fireEvent.keyDown(item, { key: " ", code: "Space" });
-
-		expect(onClick).toHaveBeenCalledTimes(1);
+		const active = screen.getByRole("button", { name: "English" });
+		expect(active.getAttribute("aria-current")).toBe("true");
+		expect(active.tabIndex).toBe(-1);
 	});
 
-	it("Space key event is defaultPrevented", () => {
+	it("alternate chip is in the tab order", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -109,64 +108,8 @@ describe("unit: onKeyDown preventDefault (issue 003 — Space scrolls page)", ()
 				currentLocale: "en",
 			}),
 		);
-
-		const item = screen.getByRole("button", { name: "Português" });
-		const event = createEvent.keyDown(item, { key: " ", code: "Space" });
-		fireEvent(item, event);
-
-		expect(event.defaultPrevented).toBe(true);
-	});
-
-	it("Enter key fires onClick", () => {
-		const onClick = vi.fn();
-		render(
-			React.createElement(LanguageMenu, {
-				variant: "list",
-				items: [
-					{ locale: "pt-br", label: "Português", available: true, onClick },
-				],
-				currentLocale: "en",
-			}),
-		);
-
-		const item = screen.getByRole("button", { name: "Português" });
-		fireEvent.keyDown(item, { key: "Enter", code: "Enter" });
-
-		expect(onClick).toHaveBeenCalledTimes(1);
-	});
-
-	it("Enter key event is defaultPrevented", () => {
-		render(
-			React.createElement(LanguageMenu, {
-				variant: "list",
-				items: [{ locale: "pt-br", label: "Português", available: true }],
-				currentLocale: "en",
-			}),
-		);
-
-		const item = screen.getByRole("button", { name: "Português" });
-		const event = createEvent.keyDown(item, { key: "Enter", code: "Enter" });
-		fireEvent(item, event);
-
-		expect(event.defaultPrevented).toBe(true);
-	});
-
-	it("other keys do not fire onClick", () => {
-		const onClick = vi.fn();
-		render(
-			React.createElement(LanguageMenu, {
-				variant: "list",
-				items: [
-					{ locale: "pt-br", label: "Português", available: true, onClick },
-				],
-				currentLocale: "en",
-			}),
-		);
-
-		const item = screen.getByRole("button", { name: "Português" });
-		fireEvent.keyDown(item, { key: "Tab", code: "Tab" });
-		fireEvent.keyDown(item, { key: "Escape", code: "Escape" });
-
-		expect(onClick).not.toHaveBeenCalled();
+		const alt = screen.getByRole("button", { name: "Português" });
+		expect(alt.getAttribute("aria-current")).toBeNull();
+		expect(alt.tabIndex).toBe(0);
 	});
 });

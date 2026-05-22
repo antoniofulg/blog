@@ -153,7 +153,9 @@ describe("unit: LanguageMenu available item", () => {
 		expect(screen.getByText("sem tradução")).toBeDefined();
 	});
 
-	it("sets aria-disabled='true' when available={false} (AC-4)", () => {
+	it("aria-label includes 'no translation' hint when available={false} (AC-4)", () => {
+		// aria-disabled was removed (button stays operable — opens missing-twin dialog).
+		// The hint suffix in aria-label is the AT signal for the unavailable state.
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -162,10 +164,11 @@ describe("unit: LanguageMenu available item", () => {
 			}),
 		);
 		const item = screen.getByRole("button", { name: /Português \(BR\)/ });
-		expect(item.getAttribute("aria-disabled")).toBe("true");
+		expect(item.getAttribute("aria-label")).toContain("no translation");
+		expect(item.getAttribute("aria-disabled")).toBeNull();
 	});
 
-	it("does not set aria-disabled when available={true}", () => {
+	it("aria-label is plain label when available={true}", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -174,6 +177,7 @@ describe("unit: LanguageMenu available item", () => {
 			}),
 		);
 		const item = screen.getByRole("button", { name: "Português (BR)" });
+		expect(item.getAttribute("aria-label")).toBe("Português (BR)");
 		expect(item.getAttribute("aria-disabled")).toBeNull();
 	});
 
@@ -240,8 +244,11 @@ describe("integration: LanguageMenu mixed availability", () => {
 		const unavailableItem = screen.getByRole("button", {
 			name: /Português \(BR\)/,
 		});
-		expect(availableItem.getAttribute("aria-disabled")).toBeNull();
-		expect(unavailableItem.getAttribute("aria-disabled")).toBe("true");
+		// aria-disabled removed per audit P2 fix — state lives in aria-label hint.
+		expect(availableItem.getAttribute("aria-label")).toBe("English");
+		expect(unavailableItem.getAttribute("aria-label")).toContain(
+			"no translation",
+		);
 		expect(screen.queryByText("no translation")).toBeDefined();
 		expect(screen.queryByText("sem tradução")).toBeNull();
 	});
@@ -279,7 +286,9 @@ describe("unit: Header language switcher trigger label", () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
-		const chip = screen.getByRole("button", { name: /current language/i });
+		// Active chip carries aria-current="true" and aria-label = locale full name.
+		const chip = screen.getByRole("button", { name: "English" });
+		expect(chip.getAttribute("aria-current")).toBe("true");
 		expect(chip.textContent?.trim()).toBe("EN");
 	});
 
@@ -287,7 +296,8 @@ describe("unit: Header language switcher trigger label", () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
-		const chip = screen.getByRole("button", { name: /idioma atual/i });
+		const chip = screen.getByRole("button", { name: "Português" });
+		expect(chip.getAttribute("aria-current")).toBe("true");
 		expect(chip.textContent?.trim()).toBe("PT");
 	});
 });
@@ -309,9 +319,8 @@ describe("unit: Header language switcher on admin routes", () => {
 		mocks.setPathname("/admin");
 		renderHeader();
 		await act(async () => {});
-		expect(
-			screen.queryByRole("button", { name: /current language|idioma atual/i }),
-		).toBeNull();
+		// No button carries aria-current="true" when the switcher is absent.
+		expect(document.querySelector('button[aria-current="true"]')).toBeNull();
 	});
 
 	it("switcher is rendered on /en/blog", async () => {
@@ -319,8 +328,8 @@ describe("unit: Header language switcher on admin routes", () => {
 		renderHeader();
 		await act(async () => {});
 		expect(
-			screen.getByRole("button", { name: /current language/i }),
-		).toBeDefined();
+			document.querySelector('button[aria-current="true"]'),
+		).not.toBeNull();
 	});
 });
 
@@ -416,9 +425,10 @@ describe("unit: Header language switcher navigation", () => {
 		await act(async () => {});
 
 		// Typographic pair: no dropdown to open.
-		// Verify item has aria-disabled
+		// Unavailable chip signals state via aria-label hint (aria-disabled was
+		// removed per audit fix — the button stays operable so the dialog can open).
 		const ptBrItem = screen.getByRole("button", { name: /Português/ });
-		expect(ptBrItem.getAttribute("aria-disabled")).toBe("true");
+		expect(ptBrItem.getAttribute("aria-label")).toContain("no translation");
 
 		// Click unavailable item → dialog should open, navigate NOT called
 		await act(async () => {
@@ -494,8 +504,8 @@ describe("integration: language switcher localStorage", () => {
 		renderHeader();
 		await act(async () => {});
 
-		const chip = screen.getByRole("button", { name: /current language/i });
-		expect(chip).toBeDefined();
+		const chip = document.querySelector('button[aria-current="true"]');
+		expect(chip).not.toBeNull();
 	});
 });
 
@@ -545,8 +555,8 @@ describe("unit: Header removed nav entries", () => {
 		renderHeader();
 		await act(async () => {});
 		expect(
-			screen.getByRole("button", { name: /current language/i }),
-		).toBeDefined();
+			document.querySelector('button[aria-current="true"]'),
+		).not.toBeNull();
 	});
 
 	it("theme toggle button still renders", async () => {

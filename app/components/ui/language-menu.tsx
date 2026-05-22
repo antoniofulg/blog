@@ -32,11 +32,6 @@ const switchActionByLocale: Record<Locale, (target: string) => string> = {
 	"pt-br": (target) => `Ler em ${target}`,
 };
 
-const currentLabelByLocale: Record<Locale, string> = {
-	en: "current language",
-	"pt-br": "idioma atual",
-};
-
 export type LanguageMenuItemConfig = {
 	locale: Locale;
 	label?: string;
@@ -44,7 +39,7 @@ export type LanguageMenuItemConfig = {
 	onClick?: () => void;
 };
 
-type Variant = "dropdown" | "list";
+type Variant = "pair" | "list";
 
 export type LanguageMenuProps = {
 	variant?: Variant;
@@ -60,7 +55,7 @@ function getItemFor(
 }
 
 export const LanguageMenu = forwardRef<HTMLButtonElement, LanguageMenuProps>(
-	function LanguageMenu({ variant = "dropdown", items, currentLocale }, ref) {
+	function LanguageMenu({ variant = "pair", items, currentLocale }, ref) {
 		if (variant === "list") {
 			return <LanguageList items={items} currentLocale={currentLocale} />;
 		}
@@ -94,13 +89,14 @@ const LanguagePair = forwardRef<
 		(node: HTMLButtonElement | null) => {
 			if (typeof ref === "function") ref(node);
 			else if (ref)
-				(ref as React.MutableRefObject<HTMLButtonElement | null>).current =
-					node;
+				(ref as React.RefObject<HTMLButtonElement | null>).current = node;
 		},
 		[ref],
 	);
 
-	let firstAlternateAssigned = false;
+	// Index of the first non-current locale receives the ref. Computed once
+	// outside the JSX map so the assignment isn't a render-time mutation.
+	const firstAlternateIdx = LOCALES.findIndex((l) => l !== currentLocale);
 
 	return (
 		<div className="hidden h-10 items-center gap-2 text-sm leading-none lg:inline-flex">
@@ -109,14 +105,13 @@ const LanguagePair = forwardRef<
 				const item = getItemFor(items, locale);
 				const isAvailable = isActive || item?.available !== false;
 				const fullName = item?.label ?? localeLabel[locale];
+				// aria-current carries the active-state announcement. Don't add
+				// "current language" to the label or AT reads "current" twice.
 				const accessibleLabel = isActive
-					? `${fullName}, ${currentLabelByLocale[currentLocale]}`
+					? fullName
 					: isAvailable
 						? switchAction(fullName)
 						: `${switchAction(fullName)}, ${hint}`;
-
-				const assignRef = !isActive && !firstAlternateAssigned;
-				if (assignRef) firstAlternateAssigned = true;
 
 				return (
 					<Fragment key={locale}>
@@ -129,20 +124,13 @@ const LanguagePair = forwardRef<
 							</span>
 						)}
 						<button
-							ref={assignRef ? setRef : undefined}
+							ref={idx === firstAlternateIdx ? setRef : undefined}
 							type="button"
 							onClick={isActive ? undefined : item?.onClick}
-							onKeyDown={(e) => {
-								if (isActive) return;
-								if (e.key === "Enter" || e.key === " ") {
-									e.preventDefault();
-									item?.onClick?.();
-								}
-							}}
+							tabIndex={isActive ? -1 : 0}
 							aria-current={isActive ? "true" : undefined}
-							aria-disabled={!isAvailable ? "true" : undefined}
 							aria-label={accessibleLabel}
-							className={`rounded-sm px-1 py-1 text-sm tracking-wider transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+							className={`rounded-sm p-2 text-sm transition-[color,box-shadow] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none ${
 								isActive
 									? "cursor-default font-semibold text-foreground"
 									: isAvailable
@@ -186,23 +174,20 @@ function LanguageList({
 					const item = getItemFor(items, locale);
 					const isAvailable = isActive || item?.available !== false;
 					const label = item?.label ?? localeLabel[locale];
+					// Mobile list renders the full label visibly inside the chip, so the
+					// aria-label can stay short. (LanguagePair's chip shows only the
+					// 2-char code visually and adds the "Read in …" action verb to its
+					// aria-label so screen reader output isn't just "EN".)
 					const accessibleLabel = !isAvailable ? `${label}, ${hint}` : label;
 					return (
 						<li key={locale}>
 							<button
 								type="button"
 								onClick={isActive ? undefined : item?.onClick}
-								onKeyDown={(e) => {
-									if (isActive) return;
-									if (e.key === "Enter" || e.key === " ") {
-										e.preventDefault();
-										item?.onClick?.();
-									}
-								}}
+								tabIndex={isActive ? -1 : 0}
 								aria-current={isActive ? "true" : undefined}
-								aria-disabled={!isAvailable ? "true" : undefined}
 								aria-label={accessibleLabel}
-								className={`flex h-13 w-full items-center justify-between text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+								className={`flex h-13 w-full items-center justify-between text-base transition-[color,box-shadow] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none ${
 									isActive
 										? "cursor-default font-semibold text-foreground"
 										: isAvailable

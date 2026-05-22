@@ -242,7 +242,7 @@ export function Header() {
 					{renderSwitcher && (
 						<LanguageMenu
 							ref={triggerRef}
-							variant="dropdown"
+							variant="pair"
 							items={localeItems}
 							currentLocale={currentLocale}
 						/>
