@@ -1,12 +1,4 @@
-import { Check, ChevronDown, Languages } from "lucide-react";
-import {
-	forwardRef,
-	useCallback,
-	useEffect,
-	useId,
-	useRef,
-	useState,
-} from "react";
+import { Fragment, forwardRef, useCallback } from "react";
 import { LOCALES, type Locale } from "#/lib/locale";
 
 const localeLabel: Record<Locale, string> = {
@@ -19,19 +11,27 @@ const localeCode: Record<Locale, string> = {
 	"pt-br": "PT",
 };
 
-const triggerLabelByLocale: Record<Locale, string> = {
-	en: "Change language",
-	"pt-br": "Trocar idioma",
-};
-
 const sectionLabelByLocale: Record<Locale, string> = {
 	en: "Language",
 	"pt-br": "Idioma",
 };
 
-const NOT_AVAILABLE_HINT: Record<Locale, string> = {
-	en: "(not available)",
-	"pt-br": "(indisponível)",
+// Voice-fragment hint: matches PRODUCT.md's "patient, precise, generous" tone
+// without the procedural feel of "(not available)". Reads as the author's
+// shorthand: this twin doesn't exist in the visitor's target locale.
+const NO_TRANSLATION_HINT: Record<Locale, string> = {
+	en: "no translation",
+	"pt-br": "sem tradução",
+};
+
+const switchActionByLocale: Record<Locale, (target: string) => string> = {
+	en: (target) => `Switch to ${target}`,
+	"pt-br": (target) => `Mudar para ${target}`,
+};
+
+const currentLabelByLocale: Record<Locale, string> = {
+	en: "current language",
+	"pt-br": "idioma atual",
 };
 
 export type LanguageMenuItemConfig = {
@@ -62,10 +62,101 @@ export const LanguageMenu = forwardRef<HTMLButtonElement, LanguageMenuProps>(
 			return <LanguageList items={items} currentLocale={currentLocale} />;
 		}
 		return (
-			<LanguageDropdown ref={ref} items={items} currentLocale={currentLocale} />
+			<LanguagePair ref={ref} items={items} currentLocale={currentLocale} />
 		);
 	},
 );
+
+// ─── Desktop: typographic pair ────────────────────────────────────────────────
+// The whole switcher IS the current state. No popup, no chevron, no check
+// icon. Active locale is bold foreground, alternate is muted and clickable.
+// Click the alternate → navigate (if twin exists) or open modal (if not).
+// Distilled from the prior dropdown variant per DESIGN.md "type is the
+// architecture; color is a small set of deliberate marks".
+
+const LanguagePair = forwardRef<
+	HTMLButtonElement,
+	{
+		items: LanguageMenuItemConfig[];
+		currentLocale: Locale;
+	}
+>(function LanguagePair({ items, currentLocale }, ref) {
+	const hint = NO_TRANSLATION_HINT[currentLocale];
+	const switchAction = switchActionByLocale[currentLocale];
+
+	// Ref callback: forward the FIRST non-current button to the parent. That's
+	// the button the missing-twin dialog's focus-restore should land on after
+	// the user cancels.
+	const setRef = useCallback(
+		(node: HTMLButtonElement | null) => {
+			if (typeof ref === "function") ref(node);
+			else if (ref)
+				(ref as React.MutableRefObject<HTMLButtonElement | null>).current =
+					node;
+		},
+		[ref],
+	);
+
+	let firstAlternateAssigned = false;
+
+	return (
+		<div className="inline-flex items-center gap-1.5 text-sm">
+			{LOCALES.map((locale, idx) => {
+				const isActive = locale === currentLocale;
+				const item = getItemFor(items, locale);
+				const isAvailable = isActive || item?.available !== false;
+				const fullName = item?.label ?? localeLabel[locale];
+				const accessibleLabel = isActive
+					? `${fullName}, ${currentLabelByLocale[currentLocale]}`
+					: isAvailable
+						? switchAction(fullName)
+						: `${switchAction(fullName)}, ${hint}`;
+
+				const assignRef = !isActive && !firstAlternateAssigned;
+				if (assignRef) firstAlternateAssigned = true;
+
+				return (
+					<Fragment key={locale}>
+						{idx > 0 && (
+							<span
+								aria-hidden="true"
+								className="select-none text-foreground-muted"
+							>
+								·
+							</span>
+						)}
+						<button
+							ref={assignRef ? setRef : undefined}
+							type="button"
+							onClick={isActive ? undefined : item?.onClick}
+							onKeyDown={(e) => {
+								if (isActive) return;
+								if (e.key === "Enter" || e.key === " ") {
+									e.preventDefault();
+									item?.onClick?.();
+								}
+							}}
+							aria-current={isActive ? "true" : undefined}
+							aria-disabled={!isAvailable ? "true" : undefined}
+							aria-label={accessibleLabel}
+							className={`rounded-sm px-0.5 font-mono text-xs tracking-wide transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+								isActive
+									? "font-semibold text-foreground"
+									: isAvailable
+										? "text-foreground-secondary hover:text-foreground"
+										: "text-foreground-muted hover:text-foreground-secondary"
+							}`}
+						>
+							{localeCode[locale]}
+						</button>
+					</Fragment>
+				);
+			})}
+		</div>
+	);
+});
+
+// ─── Mobile: stacked list inside the mobile menu drawer ───────────────────────
 
 function LanguageList({
 	items,
@@ -74,7 +165,7 @@ function LanguageList({
 	items: LanguageMenuItemConfig[];
 	currentLocale: Locale;
 }) {
-	const hint = NOT_AVAILABLE_HINT[currentLocale];
+	const hint = NO_TRANSLATION_HINT[currentLocale];
 	return (
 		<div className="flex flex-col">
 			<span
@@ -92,7 +183,7 @@ function LanguageList({
 					const item = getItemFor(items, locale);
 					const isAvailable = isActive || item?.available !== false;
 					const label = item?.label ?? localeLabel[locale];
-					const accessibleLabel = !isAvailable ? `${label} ${hint}` : label;
+					const accessibleLabel = !isAvailable ? `${label}, ${hint}` : label;
 					return (
 						<li key={locale}>
 							<button
@@ -108,27 +199,22 @@ function LanguageList({
 								aria-current={isActive ? "true" : undefined}
 								aria-disabled={!isAvailable ? "true" : undefined}
 								aria-label={accessibleLabel}
-								className={`flex h-13 w-full items-center justify-between border-b border-border text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
+								className={`flex h-13 w-full items-center justify-between border-b border-border text-base transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
 									isActive
-										? "text-foreground"
+										? "font-semibold text-foreground"
 										: isAvailable
-											? "text-foreground-secondary hover:text-foreground"
-											: "text-foreground-muted hover:text-foreground-secondary"
+											? "font-medium text-foreground-secondary hover:text-foreground"
+											: "font-medium text-foreground-muted hover:text-foreground-secondary"
 								}`}
 							>
-								<span>
-									<span>{label}</span>
-									{!isActive && !isAvailable && (
-										<span
-											aria-hidden="true"
-											className="ml-1.5 text-xs text-foreground-muted"
-										>
-											{hint}
-										</span>
-									)}
-								</span>
-								{isActive && (
-									<Check className="h-5 w-5 text-accent" aria-hidden="true" />
+								<span>{label}</span>
+								{!isActive && !isAvailable && (
+									<span
+										aria-hidden="true"
+										className="font-normal text-xs text-foreground-muted"
+									>
+										{hint}
+									</span>
 								)}
 							</button>
 						</li>
@@ -138,214 +224,3 @@ function LanguageList({
 		</div>
 	);
 }
-
-const LanguageDropdown = forwardRef<
-	HTMLButtonElement,
-	{
-		items: LanguageMenuItemConfig[];
-		currentLocale: Locale;
-	}
->(function LanguageDropdown({ items, currentLocale }, ref) {
-	const [open, setOpen] = useState(false);
-	const triggerRef = useRef<HTMLButtonElement>(null);
-	const menuRef = useRef<HTMLDivElement>(null);
-	const menuId = useId();
-	const hint = NOT_AVAILABLE_HINT[currentLocale];
-
-	// Ref callback: sets both internal and parent ref synchronously during commit,
-	// and clears the parent ref on unmount (React calls with null).
-	const setTriggerRef = useCallback(
-		(node: HTMLButtonElement | null) => {
-			triggerRef.current = node;
-			if (typeof ref === "function") ref(node);
-			else if (ref)
-				(ref as React.MutableRefObject<HTMLButtonElement | null>).current =
-					node;
-		},
-		[ref],
-	);
-
-	// Close on outside pointer down.
-	useEffect(() => {
-		if (!open) return;
-		function handle(event: MouseEvent) {
-			const target = event.target as Node;
-			if (
-				!triggerRef.current?.contains(target) &&
-				!menuRef.current?.contains(target)
-			) {
-				setOpen(false);
-			}
-		}
-		document.addEventListener("mousedown", handle);
-		return () => document.removeEventListener("mousedown", handle);
-	}, [open]);
-
-	// Close on focus leaving the disclosure (Tab-out).
-	useEffect(() => {
-		if (!open) return;
-		function handle(event: FocusEvent) {
-			const target = event.target as Node;
-			if (
-				!triggerRef.current?.contains(target) &&
-				!menuRef.current?.contains(target)
-			) {
-				setOpen(false);
-			}
-		}
-		document.addEventListener("focusin", handle);
-		return () => document.removeEventListener("focusin", handle);
-	}, [open]);
-
-	// Close on Escape, return focus to trigger.
-	useEffect(() => {
-		if (!open) return;
-		function handle(event: KeyboardEvent) {
-			if (event.key === "Escape") {
-				setOpen(false);
-				triggerRef.current?.focus();
-			}
-		}
-		document.addEventListener("keydown", handle);
-		return () => document.removeEventListener("keydown", handle);
-	}, [open]);
-
-	// Focus the active item when the menu opens.
-	useEffect(() => {
-		if (!open) return;
-		const elements = menuRef.current?.querySelectorAll<HTMLButtonElement>(
-			'[role="menuitemradio"]',
-		);
-		if (!elements || elements.length === 0) return;
-		const active = Array.from(elements).find(
-			(el) => el.getAttribute("aria-checked") === "true",
-		);
-		(active ?? elements[0])?.focus();
-	}, [open]);
-
-	function handleItemClick(locale: Locale) {
-		const isActive = locale === currentLocale;
-		if (isActive) {
-			setOpen(false);
-			triggerRef.current?.focus();
-			return;
-		}
-		const item = getItemFor(items, locale);
-		item?.onClick?.();
-		setOpen(false);
-		triggerRef.current?.focus();
-	}
-
-	function handleMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-		const elements = menuRef.current?.querySelectorAll<HTMLButtonElement>(
-			'[role="menuitemradio"]',
-		);
-		if (!elements || elements.length === 0) return;
-		const activeEl = document.activeElement as HTMLElement | null;
-		const idx = Array.from(elements).indexOf(activeEl as HTMLButtonElement);
-
-		if (event.key === "ArrowDown") {
-			event.preventDefault();
-			const next = (idx + 1 + elements.length) % elements.length;
-			elements[next]?.focus();
-		} else if (event.key === "ArrowUp") {
-			event.preventDefault();
-			const prev = (idx - 1 + elements.length) % elements.length;
-			elements[prev]?.focus();
-		} else if (event.key === "Home") {
-			event.preventDefault();
-			elements[0]?.focus();
-		} else if (event.key === "End") {
-			event.preventDefault();
-			elements[elements.length - 1]?.focus();
-		}
-	}
-
-	return (
-		<div className="relative">
-			<button
-				ref={setTriggerRef}
-				type="button"
-				aria-haspopup="menu"
-				aria-expanded={open}
-				aria-controls={menuId}
-				aria-label={triggerLabelByLocale[currentLocale]}
-				onClick={() => setOpen((o) => !o)}
-				className="flex h-11 items-center gap-1.5 rounded-md bg-surface px-2.5 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-			>
-				<Languages className="h-4 w-4" aria-hidden="true" />
-				<span className="text-xs font-semibold">
-					{localeCode[currentLocale]}
-				</span>
-				<ChevronDown
-					className={`h-3 w-3 text-foreground-muted transition-transform ${open ? "rotate-180" : ""}`}
-					aria-hidden="true"
-				/>
-			</button>
-
-			{open && (
-				<div
-					ref={menuRef}
-					id={menuId}
-					role="menu"
-					aria-label={triggerLabelByLocale[currentLocale]}
-					onKeyDown={handleMenuKeyDown}
-					className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-lg border border-border bg-card shadow-md"
-				>
-					<ul className="py-1">
-						{LOCALES.map((locale) => {
-							const isActive = locale === currentLocale;
-							const item = getItemFor(items, locale);
-							const isAvailable = isActive || item?.available !== false;
-							const label = item?.label ?? localeLabel[locale];
-							const accessibleLabel = !isAvailable ? `${label} ${hint}` : label;
-							return (
-								<li key={locale} role="none">
-									<button
-										type="button"
-										role="menuitemradio"
-										aria-checked={isActive}
-										aria-disabled={!isAvailable ? "true" : undefined}
-										aria-label={accessibleLabel}
-										onClick={() => handleItemClick(locale)}
-										onKeyDown={(e) => {
-											if (e.key === "Enter" || e.key === " ") {
-												e.preventDefault();
-												handleItemClick(locale);
-											}
-										}}
-										className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-surface focus-visible:bg-surface focus-visible:outline-none ${
-											isActive
-												? "font-medium text-foreground"
-												: isAvailable
-													? "text-foreground-secondary"
-													: "text-foreground-muted"
-										}`}
-									>
-										<span>
-											<span>{label}</span>
-											{!isActive && !isAvailable && (
-												<span
-													aria-hidden="true"
-													className="ml-1.5 text-xs text-foreground-muted"
-												>
-													{hint}
-												</span>
-											)}
-										</span>
-										{isActive && (
-											<Check
-												className="h-4 w-4 text-accent"
-												aria-hidden="true"
-											/>
-										)}
-									</button>
-								</li>
-							);
-						})}
-					</ul>
-				</div>
-			)}
-		</div>
-	);
-});

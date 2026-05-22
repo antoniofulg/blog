@@ -116,8 +116,8 @@ describe("unit: LanguageMenu available item", () => {
 			}),
 		);
 		expect(screen.getByText("Português (BR)")).toBeDefined();
-		expect(screen.queryByText("(not available)")).toBeNull();
-		expect(screen.queryByText("(indisponível)")).toBeNull();
+		expect(screen.queryByText("no translation")).toBeNull();
+		expect(screen.queryByText("sem tradução")).toBeNull();
 	});
 
 	it("renders label without hint when available={true}", () => {
@@ -128,7 +128,7 @@ describe("unit: LanguageMenu available item", () => {
 				currentLocale: "en",
 			}),
 		);
-		expect(screen.queryByText("(not available)")).toBeNull();
+		expect(screen.queryByText("no translation")).toBeNull();
 	});
 
 	it("renders hint text when available={false} (en locale) (AC-4)", () => {
@@ -139,7 +139,7 @@ describe("unit: LanguageMenu available item", () => {
 				currentLocale: "en",
 			}),
 		);
-		expect(screen.getByText("(not available)")).toBeDefined();
+		expect(screen.getByText("no translation")).toBeDefined();
 	});
 
 	it("renders localized hint text in pt-br when available={false}", () => {
@@ -150,7 +150,7 @@ describe("unit: LanguageMenu available item", () => {
 				currentLocale: "pt-br",
 			}),
 		);
-		expect(screen.getByText("(indisponível)")).toBeDefined();
+		expect(screen.getByText("sem tradução")).toBeDefined();
 	});
 
 	it("sets aria-disabled='true' when available={false} (AC-4)", () => {
@@ -242,8 +242,8 @@ describe("integration: LanguageMenu mixed availability", () => {
 		});
 		expect(availableItem.getAttribute("aria-disabled")).toBeNull();
 		expect(unavailableItem.getAttribute("aria-disabled")).toBe("true");
-		expect(screen.queryByText("(not available)")).toBeDefined();
-		expect(screen.queryByText("(indisponível)")).toBeNull();
+		expect(screen.queryByText("no translation")).toBeDefined();
+		expect(screen.queryByText("sem tradução")).toBeNull();
 	});
 
 	it("both items render their labels regardless of availability", () => {
@@ -275,20 +275,20 @@ describe("unit: Header language switcher trigger label", () => {
 		cleanup();
 	});
 
-	it("renders locale code 'EN' on the trigger when locale is 'en'", async () => {
+	it("renders locale code 'EN' as the current chip when locale is 'en'", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
-		const btn = screen.getByRole("button", { name: "Change language" });
-		expect(btn.textContent).toContain("EN");
+		const chip = screen.getByRole("button", { name: /current language/i });
+		expect(chip.textContent?.trim()).toBe("EN");
 	});
 
-	it("renders locale code 'PT' on the trigger when on /pt-br/blog", async () => {
+	it("renders locale code 'PT' as the current chip when on /pt-br/blog", async () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
-		const btn = screen.getByRole("button", { name: "Trocar idioma" });
-		expect(btn.textContent).toContain("PT");
+		const chip = screen.getByRole("button", { name: /idioma atual/i });
+		expect(chip.textContent?.trim()).toBe("PT");
 	});
 });
 
@@ -305,21 +305,21 @@ describe("unit: Header language switcher on admin routes", () => {
 		cleanup();
 	});
 
-	it("switcher button is not rendered on /admin", async () => {
+	it("switcher is not rendered on /admin", async () => {
 		mocks.setPathname("/admin");
 		renderHeader();
 		await act(async () => {});
 		expect(
-			screen.queryByRole("button", { name: "Change language" }),
+			screen.queryByRole("button", { name: /current language|idioma atual/i }),
 		).toBeNull();
 	});
 
-	it("switcher button is rendered on /en/blog", async () => {
+	it("switcher is rendered on /en/blog", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
 		expect(
-			screen.getByRole("button", { name: "Change language" }),
+			screen.getByRole("button", { name: /current language/i }),
 		).toBeDefined();
 	});
 });
@@ -348,14 +348,8 @@ describe("unit: Header language switcher navigation", () => {
 		renderHeader();
 		await act(async () => {});
 
-		// Open menu
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		await act(async () => {
-			fireEvent.click(trigger);
-		});
-
-		// Click pt-br item
-		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		// Click pt-br chip directly (no dropdown anymore — typographic pair)
+		const ptBrItem = screen.getByRole("button", { name: /Português/ });
 		await act(async () => {
 			fireEvent.click(ptBrItem);
 		});
@@ -373,12 +367,8 @@ describe("unit: Header language switcher navigation", () => {
 		renderHeader();
 		await act(async () => {});
 
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		await act(async () => {
-			fireEvent.click(trigger);
-		});
-
-		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		// Typographic pair: no dropdown to open.
+		const ptBrItem = screen.getByRole("button", { name: /Português/ });
 		await act(async () => {
 			fireEvent.click(ptBrItem);
 		});
@@ -401,12 +391,8 @@ describe("unit: Header language switcher navigation", () => {
 		renderHeader();
 		await act(async () => {});
 
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		await act(async () => {
-			fireEvent.click(trigger);
-		});
-
-		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		// Typographic pair: no dropdown to open.
+		const ptBrItem = screen.getByRole("button", { name: /Português/ });
 		await act(async () => {
 			fireEvent.click(ptBrItem);
 		});
@@ -429,13 +415,9 @@ describe("unit: Header language switcher navigation", () => {
 		renderHeader();
 		await act(async () => {});
 
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		await act(async () => {
-			fireEvent.click(trigger);
-		});
-
+		// Typographic pair: no dropdown to open.
 		// Verify item has aria-disabled
-		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		const ptBrItem = screen.getByRole("button", { name: /Português/ });
 		expect(ptBrItem.getAttribute("aria-disabled")).toBe("true");
 
 		// Click unavailable item → dialog should open, navigate NOT called
@@ -459,27 +441,24 @@ describe("unit: Header dialog state on unavailable locale", () => {
 		cleanup();
 	});
 
-	it("menu closes after clicking any item (available or not)", async () => {
+	it("clicking pt-br chip on /en/blog triggers navigate (no menu state to close)", async () => {
 		mocks.setPathname("/en/blog");
 		mocks.setMatches([]);
 		renderHeader();
 		await act(async () => {});
 
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		await act(async () => {
-			fireEvent.click(trigger);
-		});
+		// Typographic pair has no menu — clicking the chip fires the action directly.
+		expect(screen.queryByRole("menu")).toBeNull();
 
-		// Menu is open — Português item visible
-		expect(screen.queryByRole("menu")).not.toBeNull();
-
-		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		const ptBrItem = screen.getByRole("button", { name: /Português/ });
 		await act(async () => {
 			fireEvent.click(ptBrItem);
 		});
 
-		// Menu should close after click
-		expect(screen.queryByRole("menu")).toBeNull();
+		expect(mocks.navigate).toHaveBeenCalledWith({
+			to: "/{-$locale}/",
+			params: { locale: "pt-br" },
+		});
 	});
 });
 
@@ -501,12 +480,8 @@ describe("integration: language switcher localStorage", () => {
 		renderHeader();
 		await act(async () => {});
 
-		const trigger = screen.getByRole("button", { name: "Change language" });
-		await act(async () => {
-			fireEvent.click(trigger);
-		});
-
-		const ptBrItem = screen.getByRole("menuitemradio", { name: /Português/ });
+		// Typographic pair: no dropdown to open.
+		const ptBrItem = screen.getByRole("button", { name: /Português/ });
 		await act(async () => {
 			fireEvent.click(ptBrItem);
 		});
@@ -519,8 +494,8 @@ describe("integration: language switcher localStorage", () => {
 		renderHeader();
 		await act(async () => {});
 
-		const btn = screen.getByRole("button", { name: "Change language" });
-		expect(btn).toBeDefined();
+		const chip = screen.getByRole("button", { name: /current language/i });
+		expect(chip).toBeDefined();
 	});
 });
 
@@ -570,7 +545,7 @@ describe("unit: Header removed nav entries", () => {
 		renderHeader();
 		await act(async () => {});
 		expect(
-			screen.getByRole("button", { name: "Change language" }),
+			screen.getByRole("button", { name: /current language/i }),
 		).toBeDefined();
 	});
 

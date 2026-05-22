@@ -44,10 +44,10 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 		);
 
 		const item = screen.getByRole("button", {
-			name: "Português (BR) (not available)",
+			name: "Português (BR), no translation",
 		});
 		expect(item.getAttribute("aria-label")).toBe(
-			"Português (BR) (not available)",
+			"Português (BR), no translation",
 		);
 	});
 
@@ -61,9 +61,9 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 		);
 
 		const item = screen.getByRole("button", {
-			name: "English (indisponível)",
+			name: "English, sem tradução",
 		});
-		expect(item.getAttribute("aria-label")).toBe("English (indisponível)");
+		expect(item.getAttribute("aria-label")).toBe("English, sem tradução");
 	});
 
 	it("unavailable item still renders visible hint span for sighted users", () => {
@@ -76,7 +76,7 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 		);
 
 		// aria-hidden span with hint text must still be in DOM for sighted users
-		expect(screen.getByText("(not available)")).toBeDefined();
+		expect(screen.getByText("no translation")).toBeDefined();
 	});
 });
 
