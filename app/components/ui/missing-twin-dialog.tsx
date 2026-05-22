@@ -1,3 +1,4 @@
+import { useRef } from "react";
 import {
 	Dialog,
 	DialogContent,
@@ -55,26 +56,37 @@ export function MissingTwinDialog({
 }: MissingTwinDialogProps) {
 	const copy = COPY[currentLocale];
 	const targetName = LOCALE_NAMES[targetLocale];
+	const cancelRef = useRef<HTMLButtonElement>(null);
 
 	return (
 		<Dialog open={open} onOpenChange={(isOpen) => !isOpen && onCancel()}>
-			<DialogContent>
+			<DialogContent
+				onOpenAutoFocus={(event) => {
+					// The confirm action is destructive-ish: it navigates the reader
+					// away from the page they're on. Cancel is the safer Enter target,
+					// so redirect Radix's default initial focus (the close × icon) to
+					// the cancel button.
+					event.preventDefault();
+					cancelRef.current?.focus();
+				}}
+			>
 				<DialogHeader>
 					<DialogTitle>{copy.title}</DialogTitle>
 					<DialogDescription>{copy.body(targetName)}</DialogDescription>
 				</DialogHeader>
 				<DialogFooter>
 					<button
+						ref={cancelRef}
 						type="button"
 						onClick={onCancel}
-						className="inline-flex items-center justify-center rounded-md border border-border bg-background px-4 py-2 text-sm font-medium text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+						className="inline-flex items-center justify-center rounded-md border border-border-strong bg-background px-4 py-2 text-sm font-medium text-foreground transition-[color,background-color,box-shadow] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
 					>
 						{copy.cancel}
 					</button>
 					<button
 						type="button"
 						onClick={onConfirm}
-						className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-background transition-colors hover:bg-accent/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+						className="inline-flex items-center justify-center rounded-md bg-accent px-4 py-2 text-sm font-medium text-foreground-inverse transition-[color,background-color,box-shadow] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none"
 					>
 						{copy.confirm}
 					</button>
