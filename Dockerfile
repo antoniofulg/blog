@@ -28,7 +28,7 @@ COPY --from=builder /app/drizzle.config.ts ./drizzle.config.ts
 COPY --from=builder /app/scripts/migrate.ts ./scripts/migrate.ts
 COPY --from=builder /app/scripts/seed.ts ./scripts/seed.ts
 COPY --from=builder /app/scripts/sync.ts ./scripts/sync.ts
-COPY --from=builder /app/content ./content
+COPY --from=builder /app/app/content ./app/content
 COPY --from=builder /app/app/db ./app/db
 COPY --from=builder /app/app/lib ./app/lib
 
