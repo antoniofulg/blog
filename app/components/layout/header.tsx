@@ -23,7 +23,7 @@ const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 		{ label: "About", to: "/en/about" },
 	],
 	"pt-br": [
-		{ label: "Home", to: "/" },
+		{ label: "Home", to: "/pt-br/" },
 		{ label: "Sobre", to: "/pt-br/about" },
 	],
 };
