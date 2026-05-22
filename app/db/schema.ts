@@ -18,7 +18,6 @@ export const posts = pgTable(
 		title: text("title").notNull(),
 		description: text("description"),
 		publishedAt: timestamp("published_at"),
-		isPublished: boolean("is_published").notNull().default(false),
 		viewCount: integer("view_count").notNull().default(0),
 		indexedAt: timestamp("indexed_at").notNull().defaultNow(),
 		category: text("category"),

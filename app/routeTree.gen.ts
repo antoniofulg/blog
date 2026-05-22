@@ -10,6 +10,7 @@
 
 import { Route as rootRouteImport } from './routes/__root'
 import { Route as Char123LocaleChar125RouteImport } from './routes/{-$locale}'
+import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as LoginRouteImport } from './routes/login'
@@ -17,14 +18,17 @@ import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$local
 import { Route as PtBrIndexRouteImport } from './routes/pt-br.index'
 import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
-import { Route as Char123LocaleChar125AboutRouteImport } from './routes/{-$locale}/about'
 import { Route as Char123LocaleChar125SlugRouteImport } from './routes/{-$locale}/$slug'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
-import { Route as AdminPreviewSlugRouteImport } from './routes/admin/preview.$slug'
 
 const Char123LocaleChar125Route = Char123LocaleChar125RouteImport.update({
   id: '/{-$locale}',
   path: '/{-$locale}',
+  getParentRoute: () => rootRouteImport,
+} as any)
+const SitemapDotxmlRoute = SitemapDotxmlRouteImport.update({
+  id: '/sitemap.xml',
+  path: '/sitemap.xml',
   getParentRoute: () => rootRouteImport,
 } as any)
 const RssDotxmlRoute = RssDotxmlRouteImport.update({
@@ -63,12 +67,6 @@ const AdminIndexRoute = AdminIndexRouteImport.update({
   path: '/admin/',
   getParentRoute: () => rootRouteImport,
 } as any)
-const Char123LocaleChar125AboutRoute =
-  Char123LocaleChar125AboutRouteImport.update({
-    id: '/about',
-    path: '/about',
-    getParentRoute: () => Char123LocaleChar125Route,
-  } as any)
 const Char123LocaleChar125SlugRoute =
   Char123LocaleChar125SlugRouteImport.update({
     id: '/$slug',
@@ -80,37 +78,30 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   path: '/api/auth/$',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AdminPreviewSlugRoute = AdminPreviewSlugRouteImport.update({
-  id: '/admin/preview/$slug',
-  path: '/admin/preview/$slug',
-  getParentRoute: () => rootRouteImport,
-} as any)
 
 export interface FileRoutesByFullPath {
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
-  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
   '/en/': typeof EnIndexRoute
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
-  '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
-  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin': typeof AdminIndexRoute
   '/en': typeof EnIndexRoute
   '/pt-br': typeof PtBrIndexRoute
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
-  '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRoutesById {
@@ -118,14 +109,13 @@ export interface FileRoutesById {
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
+  '/sitemap.xml': typeof SitemapDotxmlRoute
   '/{-$locale}': typeof Char123LocaleChar125RouteWithChildren
   '/{-$locale}/$slug': typeof Char123LocaleChar125SlugRoute
-  '/{-$locale}/about': typeof Char123LocaleChar125AboutRoute
   '/admin/': typeof AdminIndexRoute
   '/en/': typeof EnIndexRoute
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
-  '/admin/preview/$slug': typeof AdminPreviewSlugRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
 }
 export interface FileRouteTypes {
@@ -134,41 +124,38 @@ export interface FileRouteTypes {
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
+    | '/sitemap.xml'
     | '/{-$locale}'
     | '/{-$locale}/$slug'
-    | '/{-$locale}/about'
     | '/admin/'
     | '/en/'
     | '/pt-br/'
     | '/{-$locale}/'
-    | '/admin/preview/$slug'
     | '/api/auth/$'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
+    | '/sitemap.xml'
     | '/{-$locale}/$slug'
-    | '/{-$locale}/about'
     | '/admin'
     | '/en'
     | '/pt-br'
     | '/{-$locale}'
-    | '/admin/preview/$slug'
     | '/api/auth/$'
   id:
     | '__root__'
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
+    | '/sitemap.xml'
     | '/{-$locale}'
     | '/{-$locale}/$slug'
-    | '/{-$locale}/about'
     | '/admin/'
     | '/en/'
     | '/pt-br/'
     | '/{-$locale}/'
-    | '/admin/preview/$slug'
     | '/api/auth/$'
   fileRoutesById: FileRoutesById
 }
@@ -176,11 +163,11 @@ export interface RootRouteChildren {
   LoginRoute: typeof LoginRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   RssDotxmlRoute: typeof RssDotxmlRoute
+  SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   Char123LocaleChar125Route: typeof Char123LocaleChar125RouteWithChildren
   AdminIndexRoute: typeof AdminIndexRoute
   EnIndexRoute: typeof EnIndexRoute
   PtBrIndexRoute: typeof PtBrIndexRoute
-  AdminPreviewSlugRoute: typeof AdminPreviewSlugRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
 }
 
@@ -191,6 +178,13 @@ declare module '@tanstack/react-router' {
       path: '/{-$locale}'
       fullPath: '/{-$locale}'
       preLoaderRoute: typeof Char123LocaleChar125RouteImport
+      parentRoute: typeof rootRouteImport
+    }
+    '/sitemap.xml': {
+      id: '/sitemap.xml'
+      path: '/sitemap.xml'
+      fullPath: '/sitemap.xml'
+      preLoaderRoute: typeof SitemapDotxmlRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/rss.xml': {
@@ -242,13 +236,6 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AdminIndexRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/{-$locale}/about': {
-      id: '/{-$locale}/about'
-      path: '/about'
-      fullPath: '/{-$locale}/about'
-      preLoaderRoute: typeof Char123LocaleChar125AboutRouteImport
-      parentRoute: typeof Char123LocaleChar125Route
-    }
     '/{-$locale}/$slug': {
       id: '/{-$locale}/$slug'
       path: '/$slug'
@@ -263,25 +250,16 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof ApiAuthSplatRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/admin/preview/$slug': {
-      id: '/admin/preview/$slug'
-      path: '/admin/preview/$slug'
-      fullPath: '/admin/preview/$slug'
-      preLoaderRoute: typeof AdminPreviewSlugRouteImport
-      parentRoute: typeof rootRouteImport
-    }
   }
 }
 
 interface Char123LocaleChar125RouteChildren {
   Char123LocaleChar125SlugRoute: typeof Char123LocaleChar125SlugRoute
-  Char123LocaleChar125AboutRoute: typeof Char123LocaleChar125AboutRoute
   Char123LocaleChar125IndexRoute: typeof Char123LocaleChar125IndexRoute
 }
 
 const Char123LocaleChar125RouteChildren: Char123LocaleChar125RouteChildren = {
   Char123LocaleChar125SlugRoute: Char123LocaleChar125SlugRoute,
-  Char123LocaleChar125AboutRoute: Char123LocaleChar125AboutRoute,
   Char123LocaleChar125IndexRoute: Char123LocaleChar125IndexRoute,
 }
 
@@ -292,11 +270,11 @@ const rootRouteChildren: RootRouteChildren = {
   LoginRoute: LoginRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   RssDotxmlRoute: RssDotxmlRoute,
+  SitemapDotxmlRoute: SitemapDotxmlRoute,
   Char123LocaleChar125Route: Char123LocaleChar125RouteWithChildren,
   AdminIndexRoute: AdminIndexRoute,
   EnIndexRoute: EnIndexRoute,
   PtBrIndexRoute: PtBrIndexRoute,
-  AdminPreviewSlugRoute: AdminPreviewSlugRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,
 }
 export const routeTree = rootRouteImport

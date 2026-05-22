@@ -45,7 +45,7 @@ vi.mock("#/db/client", () => ({
 }));
 
 import { removePost, syncAll, upsertPost } from "#/db/indexer";
-import { getPublishedPostsFn } from "#/db/queries";
+import { listPostsFn } from "#/db/queries";
 import { posts } from "#/db/schema";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
@@ -77,7 +77,6 @@ describe("unit: upsertPost", () => {
 		const valuesArg = mocks.values.mock.calls[0][0] as Record<string, unknown>;
 		expect(valuesArg.title).toBe("Hello World");
 		expect(valuesArg.description).toBe("A short intro post.");
-		expect(valuesArg.isPublished).toBe(false);
 		expect(mocks.onConflictDoUpdate).toHaveBeenCalledTimes(1);
 		const conflictArg = mocks.onConflictDoUpdate.mock.calls[0][0] as {
 			target: unknown;
@@ -85,7 +84,6 @@ describe("unit: upsertPost", () => {
 		};
 		expect(conflictArg.target).toBe(posts.filePath);
 		expect(conflictArg.set.title).toBe("Hello World");
-		expect("isPublished" in conflictArg.set).toBe(false);
 		expect("viewCount" in conflictArg.set).toBe(false);
 	});
 
@@ -305,7 +303,7 @@ describe("unit: syncAll", () => {
 	});
 });
 
-// ─── Unit: getPublishedPostsFn ───────────────────────────────────────────────
+// ─── Unit: listPostsFn ───────────────────────────────────────────────────────
 
 function extractSQLParams(node: unknown, acc: unknown[] = []): unknown[] {
 	if (!node || typeof node !== "object") return acc;
@@ -326,7 +324,7 @@ function extractSQLParams(node: unknown, acc: unknown[] = []): unknown[] {
 	return acc;
 }
 
-describe("unit: getPublishedPostsFn", () => {
+describe("unit: listPostsFn", () => {
 	beforeEach(() => {
 		resetMocks();
 		mocks.orderBy.mockResolvedValue([]);
@@ -334,7 +332,7 @@ describe("unit: getPublishedPostsFn", () => {
 	});
 
 	it("calls db.select chain and returns posts for lang='en'", async () => {
-		const result = await getPublishedPostsFn("en");
+		const result = await listPostsFn("en");
 		expect(mocks.select).toHaveBeenCalledTimes(1);
 		expect(mocks.selectFrom).toHaveBeenCalledWith(posts);
 		expect(mocks.selectWhere).toHaveBeenCalledTimes(1);
@@ -343,20 +341,20 @@ describe("unit: getPublishedPostsFn", () => {
 	});
 
 	it("calls db.select chain for lang='pt-br'", async () => {
-		await getPublishedPostsFn("pt-br");
+		await listPostsFn("pt-br");
 		expect(mocks.selectWhere).toHaveBeenCalledTimes(1);
 		expect(mocks.orderBy).toHaveBeenCalledTimes(1);
 	});
 
 	it("passes lang value into where clause for lang='en'", async () => {
-		await getPublishedPostsFn("en");
+		await listPostsFn("en");
 		const whereArg = mocks.selectWhere.mock.calls[0][0];
 		expect(whereArg).toBeDefined();
 		expect(extractSQLParams(whereArg)).toContain("en");
 	});
 
 	it("passes lang value into where clause for lang='pt-br'", async () => {
-		await getPublishedPostsFn("pt-br");
+		await listPostsFn("pt-br");
 		const whereArg = mocks.selectWhere.mock.calls[0][0];
 		expect(whereArg).toBeDefined();
 		expect(extractSQLParams(whereArg)).toContain("pt-br");

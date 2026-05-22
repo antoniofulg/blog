@@ -45,37 +45,33 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		return `---\ntitle: ${title}\n${extra}---\nContent.`;
 	}
 
-	it("upsertPost creates row with is_published=false and correct slug", async () => {
+	it("upsertPost creates row with correct slug", async () => {
 		const dir = join(tmpDir, "en");
 		await mkdir(dir, { recursive: true });
 		const filePath = join(dir, "integ-hello.mdx");
 		await writeFile(filePath, mdx("Integration Hello", "slug: integ-hello\n"));
 		await upsertPost(filePath);
-		const rows = await sql<{ is_published: boolean; slug: string }[]>`
-      SELECT is_published, slug FROM posts WHERE file_path = ${filePath}
+		const rows = await sql<{ slug: string }[]>`
+      SELECT slug FROM posts WHERE file_path = ${filePath}
     `;
 		expect(rows).toHaveLength(1);
-		expect(rows[0].is_published).toBe(false);
 		expect(rows[0].slug).toBe("integ-hello");
 	});
 
-	it("second upsertPost updates title but preserves is_published and view_count", async () => {
+	it("second upsertPost updates title but preserves view_count", async () => {
 		const dir = join(tmpDir, "en");
 		await mkdir(dir, { recursive: true });
 		const filePath = join(dir, "integ-preserve.mdx");
 		await writeFile(filePath, mdx("Original Title", "slug: integ-preserve\n"));
 		await upsertPost(filePath);
-		await sql`UPDATE posts SET is_published = true, view_count = 5 WHERE file_path = ${filePath}`;
+		await sql`UPDATE posts SET view_count = 5 WHERE file_path = ${filePath}`;
 		await writeFile(filePath, mdx("Updated Title", "slug: integ-preserve\n"));
 		await upsertPost(filePath);
-		const rows = await sql<
-			{ title: string; is_published: boolean; view_count: number }[]
-		>`
-      SELECT title, is_published, view_count FROM posts WHERE file_path = ${filePath}
+		const rows = await sql<{ title: string; view_count: number }[]>`
+      SELECT title, view_count FROM posts WHERE file_path = ${filePath}
     `;
 		expect(rows).toHaveLength(1);
 		expect(rows[0].title).toBe("Updated Title");
-		expect(rows[0].is_published).toBe(true);
 		expect(rows[0].view_count).toBe(5);
 	});
 

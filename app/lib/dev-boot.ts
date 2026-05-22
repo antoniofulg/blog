@@ -1,7 +1,9 @@
 import { execFileSync, spawn } from "node:child_process";
 import { syncAll } from "#/db/indexer";
 
-export async function runDevBoot(contentDir = "./content"): Promise<void> {
+export async function runDevBoot(
+	contentDir = "./app/content/posts",
+): Promise<void> {
 	execFileSync("bun", ["run", "db:migrate"], { stdio: "inherit" });
 	execFileSync("bun", ["run", "db:seed"], { stdio: "inherit" });
 

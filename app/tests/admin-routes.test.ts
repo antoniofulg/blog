@@ -1,6 +1,5 @@
 import { join } from "node:path";
 import { isRedirect } from "@tanstack/react-router";
-import { createElement } from "react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
@@ -16,7 +15,6 @@ const mocks = vi.hoisted(() => {
 				from: vi.fn(() => chain),
 				where: vi.fn(() => chain),
 				orderBy: vi.fn(() => chain),
-				set: vi.fn(() => chain),
 				// biome-ignore lint/suspicious/noThenProperty: thenable chain needed to mock Drizzle's awaitable query builder
 				then(
 					onFulfilled?: (value: unknown) => unknown,
@@ -39,29 +37,15 @@ const mocks = vi.hoisted(() => {
 	};
 
 	const selectChain = makeChain([]);
-	const updateChain = makeChain([]);
 
 	const db = {
 		select: vi.fn(() => selectChain),
-		update: vi.fn(() => updateChain),
 	};
 
-	const readFile = vi.fn().mockResolvedValue("# Draft\n\nContent");
-	const renderMdx = vi.fn().mockResolvedValue(() => null);
-
-	return {
-		db,
-		selectChain,
-		updateChain,
-		readFile,
-		renderMdx,
-		makeChain,
-	};
+	return { db, selectChain, makeChain };
 });
 
 vi.mock("#/db/client", () => ({ db: mocks.db }));
-vi.mock("node:fs/promises", () => ({ readFile: mocks.readFile }));
-vi.mock("#/lib/mdx/renderer.server", () => ({ renderMdx: mocks.renderMdx }));
 
 // Prevent TanStack Start Vite plugin from stripping server fn handlers.
 vi.mock("@tanstack/react-start", () => ({
@@ -74,8 +58,7 @@ vi.mock("@tanstack/react-start", () => ({
 }));
 
 import { posts } from "#/db/schema";
-import { getAllPostsFn, togglePublishedFn } from "#/routes/admin/index.server";
-import { getAdminPreviewFn } from "#/routes/admin/preview.$slug.server";
+import { getAllPostsFn } from "#/routes/admin/index.server";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 
@@ -84,12 +67,16 @@ function makePost(overrides: Partial<(typeof posts)["_"]["inferSelect"]> = {}) {
 		id: 1,
 		filePath: join(FIXTURES, "hello.mdx"),
 		slug: "hello-world",
+		lang: "en",
 		title: "Hello World",
 		description: "A short intro post.",
 		publishedAt: new Date("2026-05-02"),
-		isPublished: true,
 		viewCount: 5,
 		indexedAt: new Date(),
+		category: null,
+		series: null,
+		seriesPart: null,
+		draft: null,
 		...overrides,
 	};
 }
@@ -97,7 +84,6 @@ function makePost(overrides: Partial<(typeof posts)["_"]["inferSelect"]> = {}) {
 function resetMocks() {
 	vi.clearAllMocks();
 	mocks.selectChain._resolve([]);
-	mocks.updateChain._resolve([]);
 	(mocks.selectChain.from as ReturnType<typeof vi.fn>).mockReturnValue(
 		mocks.selectChain,
 	);
@@ -107,16 +93,7 @@ function resetMocks() {
 	(mocks.selectChain.orderBy as ReturnType<typeof vi.fn>).mockReturnValue(
 		mocks.selectChain,
 	);
-	(mocks.updateChain.set as ReturnType<typeof vi.fn>).mockReturnValue(
-		mocks.updateChain,
-	);
-	(mocks.updateChain.where as ReturnType<typeof vi.fn>).mockReturnValue(
-		mocks.updateChain,
-	);
 	mocks.db.select.mockReturnValue(mocks.selectChain);
-	mocks.db.update.mockReturnValue(mocks.updateChain);
-	mocks.readFile.mockResolvedValue("# Draft\n\nContent");
-	mocks.renderMdx.mockResolvedValue(() => null);
 }
 
 // ─── Unit: getAllPostsFn ──────────────────────────────────────────────────────
@@ -124,14 +101,12 @@ function resetMocks() {
 describe("unit: getAllPostsFn", () => {
 	beforeEach(resetMocks);
 
-	it("returns both draft and published posts (no is_published filter)", async () => {
-		const draft = makePost({ id: 1, slug: "draft", isPublished: false });
-		const published = makePost({ id: 2, slug: "published", isPublished: true });
+	it("returns all posts regardless of draft state (no is_published filter)", async () => {
+		const draft = makePost({ id: 1, slug: "draft" });
+		const published = makePost({ id: 2, slug: "published" });
 		mocks.selectChain._resolve([draft, published]);
 		const result = await getAllPostsFn();
-		// Exactly one db.select() call — no .where() filtering by is_published
 		expect(mocks.db.select).toHaveBeenCalledTimes(1);
-		// .where() is NOT called (no filter on is_published)
 		expect(mocks.selectChain.where).not.toHaveBeenCalled();
 		expect(result).toHaveLength(2);
 	});
@@ -151,77 +126,75 @@ describe("unit: getAllPostsFn", () => {
 	});
 });
 
-// ─── Unit: togglePublishedFn ──────────────────────────────────────────────────
+// ─── Unit: locale filter logic ───────────────────────────────────────────────
 
-describe("unit: togglePublishedFn", () => {
-	beforeEach(resetMocks);
+describe("unit: locale filter logic", () => {
+	const allPosts = [
+		makePost({ id: 1, slug: "hello", lang: "en" }),
+		makePost({ id: 2, slug: "hello", lang: "pt-br" }),
+		makePost({ id: 3, slug: "only-en", lang: "en" }),
+		makePost({ id: 4, slug: "only-pt", lang: "pt-br" }),
+	];
 
-	it("sets is_published=true and published_at=now() when published_at is null", async () => {
-		mocks.selectChain._resolve([{ publishedAt: null }]);
-		await togglePublishedFn(1, true);
-		expect(mocks.db.update).toHaveBeenCalledTimes(1);
-		const setArg = (mocks.updateChain.set as ReturnType<typeof vi.fn>).mock
-			.calls[0][0] as Record<string, unknown>;
-		expect(setArg.isPublished).toBe(true);
-		expect(setArg.publishedAt).toBeInstanceOf(Date);
+	it("shows all posts when locale param is absent", () => {
+		const locale = undefined;
+		const shown = locale ? allPosts.filter((p) => p.lang === locale) : allPosts;
+		expect(shown).toHaveLength(4);
 	});
 
-	it("does not overwrite an existing non-null published_at when publishing", async () => {
-		const existingDate = new Date("2026-01-15");
-		mocks.selectChain._resolve([{ publishedAt: existingDate }]);
-		await togglePublishedFn(1, true);
-		const setArg = (mocks.updateChain.set as ReturnType<typeof vi.fn>).mock
-			.calls[0][0] as Record<string, unknown>;
-		expect(setArg.isPublished).toBe(true);
-		expect(setArg.publishedAt).toBe(existingDate);
+	it("shows only EN posts when locale=en", () => {
+		const shown = allPosts.filter((p) => p.lang === "en");
+		expect(shown).toHaveLength(2);
+		expect(shown.every((p) => p.lang === "en")).toBe(true);
 	});
 
-	it("sets is_published=false and does not change published_at when unpublishing", async () => {
-		await togglePublishedFn(1, false);
-		// No SELECT needed when unpublishing
-		const setArg = (mocks.updateChain.set as ReturnType<typeof vi.fn>).mock
-			.calls[0][0] as Record<string, unknown>;
-		expect(setArg.isPublished).toBe(false);
-		expect("publishedAt" in setArg).toBe(false);
+	it("shows only PT-BR posts when locale=pt-br", () => {
+		const shown = allPosts.filter((p) => p.lang === "pt-br");
+		expect(shown).toHaveLength(2);
+		expect(shown.every((p) => p.lang === "pt-br")).toBe(true);
+	});
+
+	it("locale=en excludes PT-BR-only posts", () => {
+		const shown = allPosts.filter((p) => p.lang === "en");
+		expect(shown.some((p) => p.slug === "only-pt")).toBe(false);
 	});
 });
 
-// ─── Unit: getAdminPreviewFn ──────────────────────────────────────────────────
+// ─── Unit: postUrl (View button href) ────────────────────────────────────────
 
-describe("unit: getAdminPreviewFn", () => {
-	beforeEach(resetMocks);
+// Mirrors the postUrl logic from app/routes/admin/index.tsx.
+function postUrl(slug: string, lang: string): string {
+	return lang === "en" ? `/${slug}` : `/pt-br/${slug}`;
+}
 
-	it("returns post regardless of is_published=false (draft post)", async () => {
-		const draft = makePost({ slug: "draft-slug", isPublished: false });
-		mocks.selectChain._resolve([draft]);
-		const result = await getAdminPreviewFn("draft-slug");
-		expect(result.post.slug).toBe("draft-slug");
-		expect(result.post.isPublished).toBe(false);
+describe("unit: postUrl (View button href)", () => {
+	it("links to EN URL for EN post", () => {
+		expect(postUrl("hello", "en")).toBe("/hello");
 	});
 
-	it("returns post regardless of is_published=true (published post)", async () => {
-		const published = makePost({
-			slug: "published-slug",
-			isPublished: true,
-		});
-		mocks.selectChain._resolve([published]);
-		const result = await getAdminPreviewFn("published-slug");
-		expect(result.post.slug).toBe("published-slug");
+	it("links to EN URL for EN-only post", () => {
+		expect(postUrl("only-en", "en")).toBe("/only-en");
 	});
 
-	it("throws 404 Response when post not found", async () => {
-		mocks.selectChain._resolve([]);
-		const err = await getAdminPreviewFn("missing").catch((e) => e);
-		expect(err).toBeInstanceOf(Response);
-		expect((err as Response).status).toBe(404);
+	it("links to PT-BR URL for PT-BR-only post", () => {
+		expect(postUrl("only-pt", "pt-br")).toBe("/pt-br/only-pt");
 	});
 
-	it("returns html string from renderMdx", async () => {
-		const post = makePost({ slug: "test-slug" });
-		mocks.selectChain._resolve([post]);
-		mocks.renderMdx.mockResolvedValueOnce(() => null);
-		const result = await getAdminPreviewFn("test-slug");
-		expect(typeof result.html).toBe("string");
+	it("PT-BR row links to PT-BR URL even when EN twin exists", () => {
+		// Row's own lang wins — locale filter context demands the correct URL.
+		expect(postUrl("hello", "pt-br")).toBe("/pt-br/hello");
+	});
+
+	it("under locale=pt-br filter, all shown rows produce /pt-br/... hrefs", () => {
+		const allPosts = [
+			makePost({ id: 1, slug: "hello", lang: "en" }),
+			makePost({ id: 2, slug: "hello", lang: "pt-br" }),
+			makePost({ id: 3, slug: "only-en", lang: "en" }),
+			makePost({ id: 4, slug: "only-pt", lang: "pt-br" }),
+		];
+		const shown = allPosts.filter((p) => p.lang === "pt-br");
+		const hrefs = shown.map((p) => postUrl(p.slug, p.lang));
+		expect(hrefs.every((h) => h.startsWith("/pt-br/"))).toBe(true);
 	});
 });
 
@@ -268,6 +241,3 @@ describe("unit: admin beforeLoad auth guard", () => {
 		expect(threw).toBe(false);
 	});
 });
-
-// avoid unused import warning — createElement is used via renderToStaticMarkup in getAdminPreviewFn
-void createElement;

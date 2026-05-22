@@ -1,7 +1,5 @@
-import { useNavigate, useRouterState } from "@tanstack/react-router";
-import { Check, ChevronDown, Languages } from "lucide-react";
-import { useEffect, useId, useRef, useState } from "react";
-import { DEFAULT_LOCALE, LOCALES, type Locale, useLocale } from "#/lib/locale";
+import { Fragment, forwardRef, useCallback } from "react";
+import { LOCALES, type Locale } from "#/lib/locale";
 
 const localeLabel: Record<Locale, string> = {
 	en: "English",
@@ -13,281 +11,204 @@ const localeCode: Record<Locale, string> = {
 	"pt-br": "PT",
 };
 
-const triggerLabelByLocale: Record<Locale, string> = {
-	en: "Change language",
-	"pt-br": "Trocar idioma",
-};
-
 const sectionLabelByLocale: Record<Locale, string> = {
 	en: "Language",
 	"pt-br": "Idioma",
 };
 
-type Variant = "dropdown" | "list";
-
-type Props = {
-	variant?: Variant;
-	onAfterChange?: () => void;
+// Voice-fragment hint: matches PRODUCT.md's "patient, precise, generous" tone
+// without the procedural feel of "(not available)". Reads as the author's
+// shorthand: this twin doesn't exist in the visitor's target locale.
+const NO_TRANSLATION_HINT: Record<Locale, string> = {
+	en: "no translation",
+	"pt-br": "sem tradução",
 };
 
-function useSwitchLocale() {
-	const { setLocale } = useLocale();
-	const navigate = useNavigate();
-	const pathname = useRouterState({ select: (s) => s.location.pathname });
+// Action verb tied to what the visitor actually does after clicking: reading
+// the article in another language. Stronger than the generic "Switch to" /
+// "Mudar para" and reads as a voice-fragment per PRODUCT.md tone.
+const switchActionByLocale: Record<Locale, (target: string) => string> = {
+	en: (target) => `Read in ${target}`,
+	"pt-br": (target) => `Ler em ${target}`,
+};
 
-	const currentLocale: Locale =
-		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
-			| Locale
-			| undefined) ?? DEFAULT_LOCALE;
+export type LanguageMenuItemConfig = {
+	locale: Locale;
+	label?: string;
+	available?: boolean;
+	onClick?: () => void;
+};
 
-	function switchTo(target: Locale) {
-		if (target === currentLocale) return;
-		setLocale(target);
-		const prefix = `/${currentLocale}/`;
-		const localeParam = target === DEFAULT_LOCALE ? undefined : target;
-		if (pathname.startsWith(prefix)) {
-			const rest = pathname.slice(prefix.length).replace(/\/$/, "");
-			if (rest === "" || rest === "blog") {
-				navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
-			} else if (rest === "about") {
-				navigate({
-					to: "/{-$locale}/about/",
-					params: { locale: localeParam },
-				});
-			} else {
-				navigate({
-					to: "/{-$locale}/$slug/",
-					params: { locale: localeParam, slug: rest },
-				});
-			}
-		} else if (pathname === "/about") {
-			navigate({
-				to: "/{-$locale}/about/",
-				params: { locale: localeParam },
-			});
-		} else {
-			navigate({ to: "/{-$locale}/", params: { locale: localeParam } });
-		}
-	}
+type Variant = "pair" | "list";
 
-	return { currentLocale, switchTo };
-}
-
-export function LanguageMenu({ variant = "dropdown", onAfterChange }: Props) {
-	const { currentLocale, switchTo } = useSwitchLocale();
-
-	function handleSelect(locale: Locale) {
-		switchTo(locale);
-		onAfterChange?.();
-	}
-
-	if (variant === "list") {
-		return (
-			<div className="flex flex-col">
-				<span
-					id={`lang-section-${currentLocale}`}
-					className="px-5 pt-6 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted"
-				>
-					{sectionLabelByLocale[currentLocale]}
-				</span>
-				<ul
-					aria-labelledby={`lang-section-${currentLocale}`}
-					className="flex flex-col px-5"
-				>
-					{LOCALES.map((locale) => {
-						const isActive = locale === currentLocale;
-						return (
-							<li key={locale}>
-								<button
-									type="button"
-									onClick={() => handleSelect(locale)}
-									aria-current={isActive ? "true" : undefined}
-									className={`flex h-13 w-full items-center justify-between border-b border-border text-base font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
-										isActive
-											? "text-foreground"
-											: "text-foreground-secondary hover:text-foreground"
-									}`}
-								>
-									<span>{localeLabel[locale]}</span>
-									{isActive && (
-										<Check className="h-5 w-5 text-accent" aria-hidden="true" />
-									)}
-								</button>
-							</li>
-						);
-					})}
-				</ul>
-			</div>
-		);
-	}
-
-	return (
-		<LanguageDropdown currentLocale={currentLocale} onSelect={handleSelect} />
-	);
-}
-
-function LanguageDropdown({
-	currentLocale,
-	onSelect,
-}: {
+export type LanguageMenuProps = {
+	variant?: Variant;
+	items: LanguageMenuItemConfig[];
 	currentLocale: Locale;
-	onSelect: (locale: Locale) => void;
-}) {
-	const [open, setOpen] = useState(false);
-	const triggerRef = useRef<HTMLButtonElement>(null);
-	const menuRef = useRef<HTMLDivElement>(null);
-	const menuId = useId();
+};
 
-	// Close on outside pointer down.
-	useEffect(() => {
-		if (!open) return;
-		function handle(event: MouseEvent) {
-			const target = event.target as Node;
-			if (
-				!triggerRef.current?.contains(target) &&
-				!menuRef.current?.contains(target)
-			) {
-				setOpen(false);
-			}
+function getItemFor(
+	items: LanguageMenuItemConfig[],
+	locale: Locale,
+): LanguageMenuItemConfig | undefined {
+	return items.find((i) => i.locale === locale);
+}
+
+export const LanguageMenu = forwardRef<HTMLButtonElement, LanguageMenuProps>(
+	function LanguageMenu({ variant = "pair", items, currentLocale }, ref) {
+		if (variant === "list") {
+			return <LanguageList items={items} currentLocale={currentLocale} />;
 		}
-		document.addEventListener("mousedown", handle);
-		return () => document.removeEventListener("mousedown", handle);
-	}, [open]);
-
-	// Close on focus leaving the disclosure (Tab-out).
-	useEffect(() => {
-		if (!open) return;
-		function handle(event: FocusEvent) {
-			const target = event.target as Node;
-			if (
-				!triggerRef.current?.contains(target) &&
-				!menuRef.current?.contains(target)
-			) {
-				setOpen(false);
-			}
-		}
-		document.addEventListener("focusin", handle);
-		return () => document.removeEventListener("focusin", handle);
-	}, [open]);
-
-	// Close on Escape, return focus to trigger.
-	useEffect(() => {
-		if (!open) return;
-		function handle(event: KeyboardEvent) {
-			if (event.key === "Escape") {
-				setOpen(false);
-				triggerRef.current?.focus();
-			}
-		}
-		document.addEventListener("keydown", handle);
-		return () => document.removeEventListener("keydown", handle);
-	}, [open]);
-
-	// Focus the active item when the menu opens.
-	useEffect(() => {
-		if (!open) return;
-		const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
-			'[role="menuitemradio"]',
+		return (
+			<LanguagePair ref={ref} items={items} currentLocale={currentLocale} />
 		);
-		if (!items || items.length === 0) return;
-		const active = Array.from(items).find(
-			(el) => el.getAttribute("aria-checked") === "true",
-		);
-		(active ?? items[0])?.focus();
-	}, [open]);
+	},
+);
 
-	function handleSelect(locale: Locale) {
-		onSelect(locale);
-		setOpen(false);
-		triggerRef.current?.focus();
+// ─── Desktop: typographic pair ────────────────────────────────────────────────
+// The whole switcher IS the current state. No popup, no chevron, no check
+// icon. Active locale is bold foreground, alternate is muted and clickable.
+// Click the alternate → navigate (if twin exists) or open modal (if not).
+// Distilled from the prior dropdown variant per DESIGN.md "type is the
+// architecture; color is a small set of deliberate marks".
+
+const LanguagePair = forwardRef<
+	HTMLButtonElement,
+	{
+		items: LanguageMenuItemConfig[];
+		currentLocale: Locale;
 	}
+>(function LanguagePair({ items, currentLocale }, ref) {
+	const hint = NO_TRANSLATION_HINT[currentLocale];
+	const switchAction = switchActionByLocale[currentLocale];
 
-	function handleMenuKeyDown(event: React.KeyboardEvent<HTMLDivElement>) {
-		const items = menuRef.current?.querySelectorAll<HTMLButtonElement>(
-			'[role="menuitemradio"]',
-		);
-		if (!items || items.length === 0) return;
-		const active = document.activeElement as HTMLElement | null;
-		const idx = Array.from(items).indexOf(active as HTMLButtonElement);
+	// Ref callback: forward the FIRST non-current button to the parent. That's
+	// the button the missing-twin dialog's focus-restore should land on after
+	// the user cancels.
+	const setRef = useCallback(
+		(node: HTMLButtonElement | null) => {
+			if (typeof ref === "function") ref(node);
+			else if (ref)
+				(ref as React.RefObject<HTMLButtonElement | null>).current = node;
+		},
+		[ref],
+	);
 
-		if (event.key === "ArrowDown") {
-			event.preventDefault();
-			const next = (idx + 1 + items.length) % items.length;
-			items[next]?.focus();
-		} else if (event.key === "ArrowUp") {
-			event.preventDefault();
-			const prev = (idx - 1 + items.length) % items.length;
-			items[prev]?.focus();
-		} else if (event.key === "Home") {
-			event.preventDefault();
-			items[0]?.focus();
-		} else if (event.key === "End") {
-			event.preventDefault();
-			items[items.length - 1]?.focus();
-		}
-	}
+	// Index of the first non-current locale receives the ref. Computed once
+	// outside the JSX map so the assignment isn't a render-time mutation.
+	const firstAlternateIdx = LOCALES.findIndex((l) => l !== currentLocale);
 
 	return (
-		<div className="relative">
-			<button
-				ref={triggerRef}
-				type="button"
-				aria-haspopup="menu"
-				aria-expanded={open}
-				aria-controls={menuId}
-				aria-label={triggerLabelByLocale[currentLocale]}
-				onClick={() => setOpen((o) => !o)}
-				className="flex h-11 items-center gap-1.5 rounded-md bg-surface px-2.5 text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-			>
-				<Languages className="h-4 w-4" aria-hidden="true" />
-				<span className="text-xs font-semibold">
-					{localeCode[currentLocale]}
-				</span>
-				<ChevronDown
-					className={`h-3 w-3 text-foreground-muted transition-transform ${open ? "rotate-180" : ""}`}
-					aria-hidden="true"
-				/>
-			</button>
+		<div className="hidden h-10 items-center gap-2 text-sm leading-none lg:inline-flex">
+			{LOCALES.map((locale, idx) => {
+				const isActive = locale === currentLocale;
+				const item = getItemFor(items, locale);
+				const isAvailable = isActive || item?.available !== false;
+				const fullName = item?.label ?? localeLabel[locale];
+				// aria-current carries the active-state announcement. Don't add
+				// "current language" to the label or AT reads "current" twice.
+				const accessibleLabel = isActive
+					? fullName
+					: isAvailable
+						? switchAction(fullName)
+						: `${switchAction(fullName)}, ${hint}`;
 
-			{open && (
-				<div
-					ref={menuRef}
-					id={menuId}
-					role="menu"
-					aria-label={triggerLabelByLocale[currentLocale]}
-					onKeyDown={handleMenuKeyDown}
-					className="absolute right-0 z-50 mt-2 w-44 overflow-hidden rounded-lg border border-border bg-card shadow-md"
-				>
-					<ul className="py-1">
-						{LOCALES.map((locale) => {
-							const isActive = locale === currentLocale;
-							return (
-								<li key={locale} role="none">
-									<button
-										type="button"
-										role="menuitemradio"
-										aria-checked={isActive}
-										onClick={() => handleSelect(locale)}
-										className={`flex w-full items-center justify-between gap-3 px-3 py-2 text-left text-sm transition-colors hover:bg-surface focus-visible:bg-surface focus-visible:outline-none ${
-											isActive
-												? "font-medium text-foreground"
-												: "text-foreground-secondary"
-										}`}
+				return (
+					<Fragment key={locale}>
+						{idx > 0 && (
+							<span
+								aria-hidden="true"
+								className="select-none text-foreground-muted leading-none"
+							>
+								·
+							</span>
+						)}
+						<button
+							ref={idx === firstAlternateIdx ? setRef : undefined}
+							type="button"
+							onClick={isActive ? undefined : item?.onClick}
+							tabIndex={isActive ? -1 : 0}
+							aria-current={isActive ? "true" : undefined}
+							aria-label={accessibleLabel}
+							className={`rounded-sm p-2 text-sm transition-[color,box-shadow] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none ${
+								isActive
+									? "cursor-default font-semibold text-foreground"
+									: isAvailable
+										? "font-medium text-foreground-secondary hover:text-foreground"
+										: "font-medium text-foreground-muted hover:text-foreground-secondary"
+							}`}
+						>
+							{localeCode[locale]}
+						</button>
+					</Fragment>
+				);
+			})}
+		</div>
+	);
+});
+
+// ─── Mobile: stacked list inside the mobile menu drawer ───────────────────────
+
+function LanguageList({
+	items,
+	currentLocale,
+}: {
+	items: LanguageMenuItemConfig[];
+	currentLocale: Locale;
+}) {
+	const hint = NO_TRANSLATION_HINT[currentLocale];
+	return (
+		<div className="flex flex-col">
+			<span
+				id={`lang-section-${currentLocale}`}
+				className="px-5 pt-6 pb-2 text-xs font-semibold uppercase tracking-[0.18em] text-foreground-muted"
+			>
+				{sectionLabelByLocale[currentLocale]}
+			</span>
+			<ul
+				aria-labelledby={`lang-section-${currentLocale}`}
+				className="flex flex-col divide-y divide-border px-5"
+			>
+				{LOCALES.map((locale) => {
+					const isActive = locale === currentLocale;
+					const item = getItemFor(items, locale);
+					const isAvailable = isActive || item?.available !== false;
+					const label = item?.label ?? localeLabel[locale];
+					// Mobile list renders the full label visibly inside the chip, so the
+					// aria-label can stay short. (LanguagePair's chip shows only the
+					// 2-char code visually and adds the "Read in …" action verb to its
+					// aria-label so screen reader output isn't just "EN".)
+					const accessibleLabel = !isAvailable ? `${label}, ${hint}` : label;
+					return (
+						<li key={locale}>
+							<button
+								type="button"
+								onClick={isActive ? undefined : item?.onClick}
+								tabIndex={isActive ? -1 : 0}
+								aria-current={isActive ? "true" : undefined}
+								aria-label={accessibleLabel}
+								className={`flex h-13 w-full items-center justify-between text-base transition-[color,box-shadow] duration-200 ease-[cubic-bezier(0.25,1,0.5,1)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background motion-reduce:transition-none ${
+									isActive
+										? "cursor-default font-semibold text-foreground"
+										: isAvailable
+											? "font-medium text-foreground-secondary hover:text-foreground"
+											: "font-medium text-foreground-muted hover:text-foreground-secondary"
+								}`}
+							>
+								<span>{label}</span>
+								{!isActive && !isAvailable && (
+									<span
+										aria-hidden="true"
+										className="font-normal text-xs text-foreground-muted"
 									>
-										<span>{localeLabel[locale]}</span>
-										{isActive && (
-											<Check
-												className="h-4 w-4 text-accent"
-												aria-hidden="true"
-											/>
-										)}
-									</button>
-								</li>
-							);
-						})}
-					</ul>
-				</div>
-			)}
+										{hint}
+									</span>
+								)}
+							</button>
+						</li>
+					);
+				})}
+			</ul>
 		</div>
 	);
 }

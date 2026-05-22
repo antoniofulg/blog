@@ -77,10 +77,6 @@ export async function seedFixturePost(
 		.limit(1);
 
 	if (existing.length > 0) {
-		await db
-			.update(posts)
-			.set({ isPublished: false })
-			.where(eq(posts.id, existing[0].id));
 		return {
 			id: existing[0].id,
 			slug: FIXTURE_POST_SLUG,
@@ -96,7 +92,6 @@ export async function seedFixturePost(
 			lang: "en",
 			title: FIXTURE_POST_TITLE,
 			description: "Fixture post for E2E tests",
-			isPublished: false,
 		})
 		.returning({ id: posts.id });
 
@@ -131,7 +126,7 @@ export async function seedPublishedFixturePosts(
 	if (existingEn.length > 0) {
 		await db
 			.update(posts)
-			.set({ isPublished: true, filePath: enFilePath })
+			.set({ filePath: enFilePath })
 			.where(eq(posts.id, existingEn[0].id));
 		enId = existingEn[0].id;
 	} else {
@@ -143,7 +138,6 @@ export async function seedPublishedFixturePosts(
 				lang: "en",
 				title: FIXTURE_PUBLIC_EN_TITLE,
 				description: "A published fixture post for E2E public-read tests.",
-				isPublished: true,
 			})
 			.returning({ id: posts.id });
 		enId = inserted.id;
@@ -159,7 +153,7 @@ export async function seedPublishedFixturePosts(
 	if (existingPtBr.length > 0) {
 		await db
 			.update(posts)
-			.set({ isPublished: true, filePath: ptBrFilePath })
+			.set({ filePath: ptBrFilePath })
 			.where(eq(posts.id, existingPtBr[0].id));
 		ptBrId = existingPtBr[0].id;
 	} else {
@@ -172,11 +166,51 @@ export async function seedPublishedFixturePosts(
 				title: FIXTURE_PUBLIC_PTBR_TITLE,
 				description:
 					"Um post de fixture publicado para testes E2E de leitura pública.",
-				isPublished: true,
 			})
 			.returning({ id: posts.id });
 		ptBrId = inserted.id;
 	}
 
 	return { enId, ptBrId };
+}
+
+export const FIXTURE_EN_ONLY_SLUG = "e2e-en-only-fixture";
+export const FIXTURE_EN_ONLY_TITLE = "E2E EN-Only Fixture";
+
+export async function seedEnOnlyFixturePost(
+	db: AnyDb,
+	repoRoot: string = process.cwd(),
+): Promise<{ id: number; slug: string }> {
+	const { posts } = schema;
+	const enFilePath = join(
+		repoRoot,
+		"app/content/posts/en/e2e-en-only-fixture.mdx",
+	);
+
+	const existing = await db
+		.select({ id: posts.id })
+		.from(posts)
+		.where(and(eq(posts.slug, FIXTURE_EN_ONLY_SLUG), eq(posts.lang, "en")))
+		.limit(1);
+
+	if (existing.length > 0) {
+		await db
+			.update(posts)
+			.set({ filePath: enFilePath })
+			.where(eq(posts.id, existing[0].id));
+		return { id: existing[0].id, slug: FIXTURE_EN_ONLY_SLUG };
+	}
+
+	const [inserted] = await db
+		.insert(posts)
+		.values({
+			filePath: enFilePath,
+			slug: FIXTURE_EN_ONLY_SLUG,
+			lang: "en",
+			title: FIXTURE_EN_ONLY_TITLE,
+			description: "EN-only fixture for language-switcher modal tests.",
+		})
+		.returning({ id: posts.id });
+
+	return { id: inserted.id, slug: FIXTURE_EN_ONLY_SLUG };
 }

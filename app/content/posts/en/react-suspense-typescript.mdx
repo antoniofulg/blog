@@ -1,0 +1,159 @@
+---
+title: "Replace Your isLoading Spaghetti with React Suspense"
+slug: react-suspense-typescript
+description: Nested loading states, error flags, and conditional renders pile up fast. React Suspense moves that complexity out of your components and into the tree where it belongs.
+publishedAt: 2024-10-21
+noTranslation: true
+---
+
+Every async component starts the same way:
+
+```tsx
+if (isLoading) return <Spinner />;
+if (error) return <ErrorMessage error={error} />;
+return <UserProfile user={data} />;
+```
+
+That's fine for one component. But dashboards have five of them. Pages have ten. Each one carries its own `isLoading`, its own `error`, and its own conditional branches. The actual UI logic ends up buried under loading-state scaffolding.
+
+React Suspense moves that scaffolding out of your components and into the tree structure where it belongs.
+
+## What Suspense Actually Does
+
+Suspense "suspends" a component's render until a condition is met — a data fetch resolving, a lazy import loading. Instead of each component managing its own loading state, it throws a promise and React catches it, showing a `fallback` until the promise resolves.
+
+Two pieces:
+
+- **`<Suspense>` component** — marks a boundary; shows `fallback` while any child is suspended
+- **`fallback` prop** — the UI to display while waiting
+
+The simplest version, with lazy-loaded components:
+
+```tsx
+import { Suspense, lazy } from "react";
+
+const Dashboard = lazy(() => import("./Dashboard"));
+
+export function App() {
+  return (
+    <Suspense fallback={<PageSkeleton />}>
+      <Dashboard />
+    </Suspense>
+  );
+}
+```
+
+`Dashboard` loads only when needed. While it loads, `PageSkeleton` renders. When it's ready, `Dashboard` takes over. Zero `isLoading` state, zero conditional branches inside `Dashboard`.
+
+## Suspense with Data Fetching
+
+Code-splitting is the easy case. The harder — and more powerful — case is data fetching. As of React 18, Suspense-compatible data fetching requires a supporting library: React Query, SWR, Relay, or a full-stack framework like TanStack Start or Next.js. All of them implement the same protocol under the hood: throw a promise to suspend, resolve it to continue.
+
+A minimal resource wrapper shows the mechanism:
+
+```tsx
+function createResource<T>(promise: Promise<T>) {
+  let status: "pending" | "success" | "error" = "pending";
+  let result: T;
+
+  const suspender = promise.then(
+    (data) => { status = "success"; result = data; },
+    (err)  => { status = "error";   result = err;  }
+  );
+
+  return {
+    read(): T {
+      if (status === "pending") throw suspender; // React catches this
+      if (status === "error")   throw result;    // Error boundary catches this
+      return result;
+    },
+  };
+}
+```
+
+A component using `resource.read()` either renders with data or suspends — nothing in between.
+
+## TypeScript Makes This Safe
+
+The real leverage of TypeScript here: `resource.read()` returns exactly what the promise resolved with, typed correctly. Callers can't accidentally treat `User | null` as `User`.
+
+```tsx
+type User = { id: number; name: string };
+
+const userResource = createResource<User>(fetchUser(1));
+
+function UserProfile() {
+  const user = userResource.read(); // typed as User — not User | undefined
+  return <h1>{user.name}</h1>;
+}
+```
+
+Shape mismatches get caught at compile time. The component body is clean: no type narrowing, no null checks, no defensive coding.
+
+## Granular Boundaries: The Part That Actually Matters
+
+Most tutorials show Suspense wrapping an entire page. That's where the pattern loses its value. The goal is small boundaries so users see content as soon as it's ready — not one combined spinner waiting for everything.
+
+Dashboard with separate boundaries:
+
+```tsx
+export function Dashboard() {
+  return (
+    <div>
+      <Suspense fallback={<MetricsSkeleton />}>
+        <Analytics />
+      </Suspense>
+      <Suspense fallback={<ListSkeleton />}>
+        <RecentPosts />
+      </Suspense>
+    </div>
+  );
+}
+```
+
+`Analytics` and `RecentPosts` load in parallel. Whichever resolves first renders first. The user sees meaningful content immediately instead of staring at a full-page spinner while the slower request catches up.
+
+Nested boundaries take this further:
+
+```tsx
+export function Page() {
+  return (
+    <Suspense fallback={<PageShell />}>
+      <HeroSection />
+      <Suspense fallback={<ListSkeleton />}>
+        <PostList />
+      </Suspense>
+    </Suspense>
+  );
+}
+```
+
+`HeroSection` renders as soon as its data is ready. `PostList` keeps its own skeleton until its data arrives. Progressive rendering without coordinating any state manually.
+
+## Always Pair with an Error Boundary
+
+Suspense handles the loading state. Error boundaries handle the failure state. Use both:
+
+```tsx
+import { ErrorBoundary } from "react-error-boundary";
+
+<ErrorBoundary fallback={<ErrorMessage />}>
+  <Suspense fallback={<Skeleton />}>
+    <AsyncComponent />
+  </Suspense>
+</ErrorBoundary>
+```
+
+Without an error boundary, a thrown error from a suspended component surfaces as an unhandled exception. With one, it renders a fallback instead of crashing the subtree.
+
+## Three Rules That Make Suspense Work
+
+1. **Small boundaries over big ones.** One `Suspense` wrapping the entire app is worse than no Suspense at all — you've just centralized all loading UX. Put boundaries close to the components that need them.
+
+2. **Invest in fallbacks.** A skeleton that matches the real component's shape feels fast. A generic spinner feels slow even if the data arrives in the same time. Fallback quality directly shapes perceived performance.
+
+3. **Use a library.** Don't build the resource wrapper above for production code. React Query, SWR, and TanStack Query all implement Suspense support correctly, including cache invalidation and error recovery.
+
+---
+
+The mental shift Suspense forces is worth more than any individual API: you stop thinking about loading states as component-level flags and start thinking about them as tree-level boundaries. Your components get simpler. Your loading UX gets more deliberate. And you never write `if (isLoading) return <Spinner />` again.

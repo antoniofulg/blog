@@ -1,7 +1,7 @@
 import "@tanstack/react-start/server-only";
 import { readdir, readFile } from "node:fs/promises";
 import { basename, dirname, extname, join } from "node:path";
-import { desc, eq } from "drizzle-orm";
+import { desc } from "drizzle-orm";
 import matter from "gray-matter";
 import { db } from "#/db/client";
 import { posts } from "#/db/schema";
@@ -24,7 +24,6 @@ export type PostEntry = {
 	lang: Locale;
 	filePath: string;
 	frontmatter: PostFrontmatter;
-	isPublished: boolean;
 	hasTwin: boolean;
 };
 
@@ -63,26 +62,12 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		expectedStatus: 200,
 		intent: "post detail",
 	},
-	"{-$locale}/about.tsx": {
-		path: "/about",
-		locale: "en",
-		auth: "public",
-		expectedStatus: 200,
-		intent: "about page",
-	},
 	"admin/index.tsx": {
 		path: "/admin",
 		locale: null,
 		auth: "admin",
 		expectedStatus: 200,
 		intent: "admin dashboard",
-	},
-	"admin/preview.$slug.tsx": {
-		path: "/admin/preview/:slug",
-		locale: null,
-		auth: "admin",
-		expectedStatus: 200,
-		intent: "admin preview",
 	},
 	"login.tsx": {
 		path: "/login",
@@ -107,18 +92,17 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 	},
 };
 
-async function getLatestPublishedSlug(): Promise<string | null> {
+async function getLatestPostSlug(): Promise<string | null> {
 	const [row] = await db
 		.select({ slug: posts.slug })
 		.from(posts)
-		.where(eq(posts.isPublished, true))
 		.orderBy(desc(posts.publishedAt))
 		.limit(1);
 	return row?.slug ?? null;
 }
 
 export async function getRouteInventory(): Promise<RouteEntry[]> {
-	const liveSlug = await getLatestPublishedSlug();
+	const liveSlug = await getLatestPostSlug();
 	return Object.entries(ROUTE_METADATA)
 		.filter(([, meta]) => meta.expectedStatus !== null)
 		.flatMap(([, meta]): RouteEntry[] => {
@@ -259,12 +243,6 @@ export async function getPostInventory(): Promise<PostEntry[]> {
 		}
 	}
 
-	// Query DB for isPublished status
-	const dbRows = await db
-		.select({ filePath: posts.filePath, isPublished: posts.isPublished })
-		.from(posts);
-	const publishedMap = new Map(dbRows.map((r) => [r.filePath, r.isPublished]));
-
 	return parsed.map(({ filePath, slug, lang, frontmatter }) => {
 		const otherLocales = LOCALES.filter((l) => l !== lang);
 		const hasTwin = otherLocales.some((l) => slugsByLocale[l]?.has(slug));
@@ -273,7 +251,6 @@ export async function getPostInventory(): Promise<PostEntry[]> {
 			lang,
 			filePath,
 			frontmatter,
-			isPublished: publishedMap.get(filePath) ?? false,
 			hasTwin,
 		};
 	});

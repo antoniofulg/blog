@@ -47,7 +47,6 @@ function makePost(overrides: Partial<PostEntry> = {}): PostEntry {
 		lang: "en",
 		filePath: fix("valid.mdx"),
 		frontmatter,
-		isPublished: true,
 		hasTwin: true,
 		...overrides,
 	};
@@ -150,9 +149,7 @@ describe("checkBrokenLinks", () => {
 	const knownPaths = new Set(["/", "/about", "/login"]);
 
 	it("published post with broken internal link → blocker", async () => {
-		const posts = [
-			makePost({ filePath: fix("broken-link.mdx"), isPublished: true }),
-		];
+		const posts = [makePost({ filePath: fix("broken-link.mdx") })];
 		const findings = await checkBrokenLinks(posts, knownSlugs, knownPaths);
 		const blocker = findings.find((f) => f.severity === "blocker");
 		expect(blocker).toBeDefined();
@@ -162,7 +159,14 @@ describe("checkBrokenLinks", () => {
 
 	it("draft post with broken internal link → minor", async () => {
 		const posts = [
-			makePost({ filePath: fix("broken-link.mdx"), isPublished: false }),
+			makePost({
+				filePath: fix("broken-link.mdx"),
+				frontmatter: {
+					title: "Test Post",
+					description: "A test post",
+					draft: true,
+				},
+			}),
 		];
 		const findings = await checkBrokenLinks(posts, knownSlugs, knownPaths);
 		const minor = findings.find((f) => f.category === "broken-link");
@@ -171,26 +175,20 @@ describe("checkBrokenLinks", () => {
 	});
 
 	it("post with valid route link → no finding", async () => {
-		const posts = [
-			makePost({ filePath: fix("good-link.mdx"), isPublished: true }),
-		];
+		const posts = [makePost({ filePath: fix("good-link.mdx") })];
 		const findings = await checkBrokenLinks(posts, knownSlugs, knownPaths);
 		expect(findings).toHaveLength(0);
 	});
 
 	it("finding includes line number from link source", async () => {
-		const posts = [
-			makePost({ filePath: fix("broken-link.mdx"), isPublished: true }),
-		];
+		const posts = [makePost({ filePath: fix("broken-link.mdx") })];
 		const findings = await checkBrokenLinks(posts, knownSlugs, knownPaths);
 		const broken = findings.find((f) => f.category === "broken-link");
 		expect(broken?.line).toBeGreaterThan(0);
 	});
 
 	it("links with locale prefixes resolve via slug extraction → no finding", async () => {
-		const posts = [
-			makePost({ filePath: fix("locale-link.mdx"), isPublished: true }),
-		];
+		const posts = [makePost({ filePath: fix("locale-link.mdx") })];
 		const findings = await checkBrokenLinks(
 			posts,
 			new Set(["existing-post"]),
@@ -203,7 +201,6 @@ describe("checkBrokenLinks", () => {
 		const dynamicPosts = [
 			makePost({
 				filePath: fix("../link-parser/expression-attr.mdx"),
-				isPublished: true,
 			}),
 		];
 		const findings = await checkBrokenLinks(
@@ -257,12 +254,10 @@ describe("checkSeriesGaps", () => {
 		const posts = [
 			makePost({
 				slug: "part1",
-				isPublished: true,
 				frontmatter: { title: "Part 1", series: "foo", seriesPart: 1 },
 			}),
 			makePost({
 				slug: "part3",
-				isPublished: true,
 				frontmatter: { title: "Part 3", series: "foo", seriesPart: 3 },
 			}),
 		];
@@ -278,12 +273,10 @@ describe("checkSeriesGaps", () => {
 		const posts = [
 			makePost({
 				slug: "part1",
-				isPublished: true,
 				frontmatter: { title: "Part 1", series: "bar", seriesPart: 1 },
 			}),
 			makePost({
 				slug: "part2",
-				isPublished: true,
 				frontmatter: { title: "Part 2", series: "bar", seriesPart: 2 },
 			}),
 		];
@@ -295,28 +288,30 @@ describe("checkSeriesGaps", () => {
 		const posts = [
 			makePost({
 				slug: "p1",
-				isPublished: true,
 				frontmatter: { title: "Part 1", series: "baz", seriesPart: 1 },
 			}),
 			makePost({
 				slug: "p2",
-				isPublished: false,
-				frontmatter: { title: "Part 2 (draft)", series: "baz", seriesPart: 2 },
+				frontmatter: {
+					title: "Part 2 (draft)",
+					series: "baz",
+					seriesPart: 2,
+					draft: true,
+				},
 			}),
 			makePost({
 				slug: "p3",
-				isPublished: true,
 				frontmatter: { title: "Part 3", series: "baz", seriesPart: 3 },
 			}),
 		];
-		// Only parts 1 and 3 are published → gap at 2
+		// Only parts 1 and 3 are non-draft → gap at 2
 		const findings = checkSeriesGaps(posts);
 		expect(findings).toHaveLength(1);
 		expect(findings[0].message).toContain("2");
 	});
 
 	it("posts without series field → no finding", () => {
-		const posts = [makePost({ isPublished: true })];
+		const posts = [makePost()];
 		const findings = checkSeriesGaps(posts);
 		expect(findings).toHaveLength(0);
 	});
@@ -325,12 +320,10 @@ describe("checkSeriesGaps", () => {
 		const posts = [
 			makePost({
 				slug: "p1",
-				isPublished: true,
 				frontmatter: { title: "P1", series: "myser", seriesPart: 1 },
 			}),
 			makePost({
 				slug: "p3",
-				isPublished: true,
 				frontmatter: { title: "P3", series: "myser", seriesPart: 3 },
 			}),
 		];
@@ -343,17 +336,14 @@ describe("checkSeriesGaps", () => {
 		const posts = [
 			makePost({
 				slug: "p1",
-				isPublished: true,
 				frontmatter: { title: "P1", series: "multi", seriesPart: 1 },
 			}),
 			makePost({
 				slug: "p3",
-				isPublished: true,
 				frontmatter: { title: "P3", series: "multi", seriesPart: 3 },
 			}),
 			makePost({
 				slug: "p5",
-				isPublished: true,
 				frontmatter: { title: "P5", series: "multi", seriesPart: 5 },
 			}),
 		];
@@ -591,13 +581,11 @@ describe("runContentAudit integration", () => {
 			makePost({
 				slug: "broken-link",
 				filePath: fix("broken-link.mdx"),
-				isPublished: true,
 				hasTwin: false,
 			}),
 			makePost({
 				slug: "missing-alt",
 				filePath: fix("missing-alt.mdx"),
-				isPublished: true,
 				hasTwin: true,
 			}),
 		];

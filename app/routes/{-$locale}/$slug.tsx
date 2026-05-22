@@ -5,7 +5,12 @@ import { PostHeader } from "#/components/ui/post-header";
 import { TranslationNotice } from "#/components/ui/translation-notice";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
 import { readingTimeMinutes } from "#/lib/reading-time";
-import { getPostBySlugWithLang, incrementViewCount } from "./$slug.server";
+import {
+	getPostBySlugWithLang,
+	incrementViewCount,
+	type PageLoaderResult,
+	type PostLoaderResult,
+} from "./$slug.server";
 
 export const Route = createFileRoute("/{-$locale}/$slug")({
 	loader: async ({ params }) => {
@@ -14,45 +19,100 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 			data: { slug: params.slug, lang },
 		});
 	},
-	head: ({ loaderData }) => ({
-		meta: [
-			{ title: loaderData?.post?.title ?? "Blog" },
-			...(loaderData?.post?.description
-				? [{ name: "description", content: loaderData.post.description }]
-				: []),
-			...(loaderData?.post?.title
-				? [{ property: "og:title", content: loaderData.post.title }]
-				: []),
-			...(loaderData?.post?.description
-				? [
-						{
-							property: "og:description",
-							content: loaderData.post.description,
-						},
-					]
-				: []),
-		],
-		links: loaderData?.alternateLang
-			? [
-					{
-						rel: "alternate",
-						hrefLang: toBcp47(loaderData.post.lang as Locale),
-						href: localeHref(
-							loaderData.post.lang as Locale,
-							loaderData.post.slug,
-						),
-					},
-					{
-						rel: "alternate",
-						hrefLang: toBcp47(loaderData.alternateLang as Locale),
-						href: localeHref(
-							loaderData.alternateLang as Locale,
-							loaderData.post.slug,
-						),
-					},
-				]
-			: [],
-	}),
+	head: ({ loaderData }) => {
+		if (loaderData?.kind === "post") {
+			return {
+				meta: [
+					{ title: loaderData.post.title ?? "Blog" },
+					...(loaderData.post.description
+						? [{ name: "description", content: loaderData.post.description }]
+						: []),
+					...(loaderData.post.title
+						? [{ property: "og:title", content: loaderData.post.title }]
+						: []),
+					...(loaderData.post.description
+						? [
+								{
+									property: "og:description",
+									content: loaderData.post.description,
+								},
+							]
+						: []),
+				],
+				links: loaderData.alternateLang
+					? [
+							{
+								rel: "alternate",
+								hrefLang: toBcp47(loaderData.post.lang as Locale),
+								href: localeHref(
+									loaderData.post.lang as Locale,
+									loaderData.post.slug,
+								),
+							},
+							{
+								rel: "alternate",
+								hrefLang: toBcp47(loaderData.alternateLang as Locale),
+								href: localeHref(
+									loaderData.alternateLang as Locale,
+									loaderData.post.slug,
+								),
+							},
+						]
+					: [],
+			};
+		}
+		if (loaderData?.kind === "page") {
+			const otherLang: Locale =
+				loaderData.requestedLang === "en" ? "pt-br" : "en";
+			return {
+				meta: [
+					{ title: loaderData.entry.frontmatter.title ?? "Blog" },
+					...(loaderData.entry.frontmatter.description
+						? [
+								{
+									name: "description",
+									content: loaderData.entry.frontmatter.description,
+								},
+							]
+						: []),
+					...(loaderData.entry.frontmatter.title
+						? [
+								{
+									property: "og:title",
+									content: loaderData.entry.frontmatter.title,
+								},
+							]
+						: []),
+					...(loaderData.entry.frontmatter.description
+						? [
+								{
+									property: "og:description",
+									content: loaderData.entry.frontmatter.description,
+								},
+							]
+						: []),
+				],
+				links: loaderData.hasTwin
+					? [
+							{
+								rel: "alternate",
+								hrefLang: toBcp47(loaderData.requestedLang),
+								href: localeHref(
+									loaderData.requestedLang,
+									loaderData.entry.slug,
+								),
+							},
+							{
+								rel: "alternate",
+								hrefLang: toBcp47(otherLang),
+								href: localeHref(otherLang, loaderData.entry.slug),
+							},
+						]
+					: [],
+			};
+		}
+		return { meta: [{ title: "Blog" }], links: [] };
+	},
 	component: LocalePostDetail,
 	notFoundComponent: () => {
 		const { locale } = Route.useParams();
@@ -95,6 +155,16 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 });
 
 export function LocalePostDetail() {
+	const loaderData = Route.useLoaderData();
+
+	if (loaderData.kind === "page") {
+		return <StaticPageView data={loaderData} />;
+	}
+
+	return <PostView data={loaderData} />;
+}
+
+function PostView({ data }: { data: PostLoaderResult }) {
 	const {
 		post,
 		html,
@@ -102,7 +172,7 @@ export function LocalePostDetail() {
 		requestedLang,
 		availableLang,
 		alternateLang,
-	} = Route.useLoaderData();
+	} = data;
 
 	useEffect(() => {
 		// Session guard prevents repeated increments on refresh or dev reload.
@@ -159,6 +229,50 @@ export function LocalePostDetail() {
 					publishedAt={post.publishedAt}
 					postLang={post.lang as Locale}
 					requestedLang={requestedLang}
+				/>
+			</article>
+		</div>
+	);
+}
+
+function StaticPageView({ data }: { data: PageLoaderResult }) {
+	return (
+		<div className="px-5 py-16 lg:px-20 lg:py-24">
+			<article
+				className="mx-auto max-w-3xl"
+				lang={toBcp47(data.requestedLang)}
+				aria-labelledby="page-title"
+			>
+				<header className="animate-fade-up mb-8 flex flex-col gap-4 lg:mb-12">
+					<h1
+						id="page-title"
+						className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl"
+					>
+						{data.entry.frontmatter.title}
+					</h1>
+					{data.entry.frontmatter.description && (
+						<p className="text-lg leading-relaxed text-foreground-secondary">
+							{data.entry.frontmatter.description}
+						</p>
+					)}
+				</header>
+
+				<hr
+					className="animate-fade-up my-8 border-border lg:my-12"
+					style={{ animationDelay: "300ms" }}
+				/>
+
+				<div
+					className="animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border"
+					style={{ animationDelay: "300ms" }}
+					// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
+					dangerouslySetInnerHTML={{ __html: data.html }}
+				/>
+
+				<PostFooter
+					publishedAt={null}
+					postLang={data.requestedLang}
+					requestedLang={data.requestedLang}
 				/>
 			</article>
 		</div>

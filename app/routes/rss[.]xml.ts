@@ -10,10 +10,10 @@ function escapeXml(str: string): string {
 }
 
 async function getRssResponse() {
-	const { getPublishedPostsFn } = await import("#/db/queries");
+	const { listPostsFn } = await import("#/db/queries");
 	const siteUrl = import.meta.env.VITE_SITE_URL ?? "http://localhost:3000";
 
-	const posts = await getPublishedPostsFn("en");
+	const posts = await listPostsFn("en");
 	const feedUrl = `${siteUrl}/rss.xml`;
 
 	const items = posts

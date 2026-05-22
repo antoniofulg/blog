@@ -1,0 +1,119 @@
+---
+title: "Stop Passing 12 Props. Use Component Composition Instead."
+slug: react-component-composition
+description: Every React component starts simple. Then it grows. Here's the pattern that keeps complexity from compounding — without rewriting everything.
+publishedAt: 2024-10-08
+noTranslation: true
+---
+
+# Stop Passing 12 Props. Use Component Composition Instead.
+
+You've been there. You write a clean `Alert` component. It takes three props. Two weeks later it takes eight. A month later someone asks for a variant and you're staring at a conditional jungle that you're afraid to touch.
+
+The component didn't get bad on purpose. It grew one reasonable prop at a time.
+
+Component composition is the exit ramp. Instead of making one component do more, you break it into pieces that each do less — and let the caller assemble them however they need.
+
+## Why the Props Approach Breaks Down
+
+Here's the typical starting point:
+
+```jsx
+const Alert = ({ title, description, buttonLabel }) => (
+  <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4">
+    <h2 className="font-bold text-lg">{title}</h2>
+    <p className="mt-2 text-sm">{description}</p>
+    <button className="mt-4 bg-red-500 text-white font-semibold py-2 px-4 rounded">
+      {buttonLabel}
+    </button>
+  </div>
+);
+
+<Alert
+  title="Warning!"
+  description="This is your last chance to save your changes."
+  buttonLabel="Save Changes"
+/>
+```
+
+Clean enough. But then comes: "Can we add an icon?" A close button? A second action? A link instead of a button? An optional badge?
+
+Every new requirement becomes a new prop. The component's API grows faster than its documentation. Callers have to read the source to know what's possible. That's the moment composition wins.
+
+## The Composed Version
+
+Split the component into self-contained pieces and let children decide the layout:
+
+```jsx
+const Alert = ({ children }) => (
+  <div className="bg-red-100 border-l-4 border-red-500 text-red-700 p-4 relative">
+    {children}
+  </div>
+);
+
+const AlertTitle = ({ children }) => (
+  <h2 className="font-bold text-lg">{children}</h2>
+);
+
+const AlertDescription = ({ children }) => (
+  <p className="mt-2 text-sm">{children}</p>
+);
+
+const AlertButton = ({ children, onClick }) => (
+  <button
+    className="mt-4 bg-red-500 hover:bg-red-600 text-white font-semibold py-2 px-4 rounded"
+    onClick={onClick}
+  >
+    {children}
+  </button>
+);
+
+const CloseButton = ({ onClick }) => (
+  <button
+    className="absolute top-2 right-2 text-red-700 hover:text-red-800"
+    onClick={onClick}
+  >
+    ✕
+  </button>
+);
+```
+
+Usage becomes self-documenting:
+
+```jsx
+<Alert>
+  <AlertTitle>Warning!</AlertTitle>
+  <AlertDescription>This is your last chance to save your changes.</AlertDescription>
+  <AlertButton onClick={handleSave}>Save Changes</AlertButton>
+  <CloseButton onClick={handleClose} />
+</Alert>
+```
+
+Read it once and you know exactly what's rendered. No prop-hunting required.
+
+## What Actually Changes
+
+The five-second insight: **the caller gains full control without the component gaining more complexity.**
+
+Want to add an icon between the title and description? Just put it there. Want two buttons? Add them both. Want the description first? Reorder the children. The `Alert` shell doesn't care — it just provides the wrapper and the style.
+
+None of that was possible with the props-based version without another round of "can we add a prop for that?"
+
+Four concrete wins:
+
+- **Flexibility** — new layouts require zero changes to the parent component
+- **Reusability** — `AlertTitle` and `AlertButton` are just components; use them anywhere
+- **Readability** — usage reads like a description of the UI, not a function call
+- **Maintainability** — changing the button's hover style only touches `AlertButton`, nothing else
+
+## When to Apply This Pattern
+
+Not every component needs to be decomposed from day one. A good signal: when you start adding boolean props to toggle pieces on and off (`showCloseButton`, `hasIcon`, `isDestructive`), composition is the right move.
+
+If the component is small and stable, three props is fine. If it's growing and callers keep needing something slightly different, break it apart.
+
+The props approach is a car. Composition is the road — it doesn't determine where you go; it just makes every destination reachable.
+
+---
+
+Component composition isn't a refactoring trick you reach for when things go wrong. It's a design habit that keeps complexity from compounding in the first place. Apply it early on shared, frequently-extended components and you'll stop dreading the next feature request.

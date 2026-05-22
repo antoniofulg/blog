@@ -95,10 +95,9 @@ const config = defineConfig({
 				client: {
 					excludeFiles: [
 						"app/routes/{-$locale}/$slug.server.ts",
-						"app/routes/{-$locale}/about.server.ts",
 						"app/routes/{-$locale}/index.server.ts",
 						"app/routes/admin/index.server.ts",
-						"app/routes/admin/preview.$slug.server.ts",
+						"app/routes/sitemap[.]xml.server.ts",
 					],
 				},
 			},

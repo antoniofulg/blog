@@ -9,7 +9,7 @@ import { parseFrontmatter } from "#/lib/mdx/parser.server";
 import { renderMdx } from "#/lib/mdx/renderer.server";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
-const CONTENT_DIR = join(import.meta.dirname, "../../content");
+const CONTENT_DIR = join(import.meta.dirname, "../content/posts");
 
 // ─── Unit: parseFrontmatter ───────────────────────────────────────────────────
 
@@ -125,9 +125,10 @@ function lintFrontmatter(filePath: string): void {
 
 describe("lint: frontmatter conventions", () => {
 	it("all post MDX files in content/ pass frontmatter validation", () => {
-		// About pages use aboutFrontmatterSchema (different shape); exclude from post lint
+		// About pages use aboutFrontmatterSchema (different shape); exclude from post lint.
+		// e2e fixtures intentionally omit optional frontmatter — not real posts.
 		const files = findMdxFiles(CONTENT_DIR).filter(
-			(f) => !f.endsWith("/about.mdx"),
+			(f) => !f.endsWith("/about.mdx") && !/\/e2e-[^/]+\.mdx$/.test(f),
 		);
 		expect(files.length).toBeGreaterThan(0);
 		for (const file of files) {
@@ -141,9 +142,9 @@ describe("lint: frontmatter conventions", () => {
 		).not.toThrow();
 	});
 
-	it("component-composition-react.mdx has all required fields", () => {
+	it("react-component-composition.mdx has all required fields", () => {
 		expect(() =>
-			lintFrontmatter(join(CONTENT_DIR, "en/component-composition-react.mdx")),
+			lintFrontmatter(join(CONTENT_DIR, "en/react-component-composition.mdx")),
 		).not.toThrow();
 	});
 

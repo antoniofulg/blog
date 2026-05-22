@@ -1,10 +1,11 @@
 import { notFound } from "@tanstack/react-router";
 import { createServerFn } from "@tanstack/react-start";
-import matter from "gray-matter";
 import type { Post } from "#/db/schema";
 import { LOCALES, type Locale } from "#/lib/locale";
+import type { PageEntry } from "#/lib/mdx/pages.server";
 
 export type PostLoaderResult = {
+	kind: "post";
 	post: Post;
 	html: string;
 	requestedLang: Locale;
@@ -13,15 +14,25 @@ export type PostLoaderResult = {
 	alternateLang: Locale | null;
 };
 
+export type PageLoaderResult = {
+	kind: "page";
+	entry: PageEntry;
+	html: string;
+	requestedLang: Locale;
+	hasTwin: boolean;
+};
+
+export type SlugLoaderResult = PostLoaderResult | PageLoaderResult;
+
 export async function getPostBySlugWithLangFn(
 	slug: string,
 	requestedLang: Locale,
 	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
 	renderFn: (source: string) => Promise<any> = async () => () => null,
-): Promise<PostLoaderResult> {
+): Promise<SlugLoaderResult> {
 	const [
 		{ readFile },
-		{ and, eq },
+		{ and, eq, sql },
 		{ createElement },
 		{ renderToStaticMarkup },
 		{ db },
@@ -41,61 +52,93 @@ export async function getPostBySlugWithLangFn(
 			and(
 				eq(posts.slug, slug),
 				eq(posts.lang, requestedLang),
-				eq(posts.isPublished, true),
+				sql`${posts.draft} IS NOT TRUE`,
 			),
 		);
 
+	// Read the post's MDX file; on ENOENT (stale DB row pointing at a moved/deleted
+	// file) fall through to the next lookup branch instead of crashing the route.
+	async function safeReadMdx(filePath: string): Promise<string | null> {
+		try {
+			return await readFile(filePath, "utf-8");
+		} catch (err) {
+			const code = (err as NodeJS.ErrnoException).code;
+			if (code === "ENOENT") return null;
+			throw err;
+		}
+	}
+
 	if (exactPost) {
-		const { content: source } = matter(
-			await readFile(exactPost.filePath, "utf-8"),
-		);
-		const Content = await renderFn(source);
-		const html = renderToStaticMarkup(createElement(Content, {}));
+		const source = await safeReadMdx(exactPost.filePath);
+		if (source !== null) {
+			const Content = await renderFn(source);
+			const html = renderToStaticMarkup(createElement(Content, {}));
 
-		const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
-		const [altPost] = await db
-			.select()
-			.from(posts)
-			.where(
-				and(
-					eq(posts.slug, slug),
-					eq(posts.lang, otherLang),
-					eq(posts.isPublished, true),
-				),
-			);
+			const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
+			const [altPost] = await db
+				.select()
+				.from(posts)
+				.where(
+					and(
+						eq(posts.slug, slug),
+						eq(posts.lang, otherLang),
+						sql`${posts.draft} IS NOT TRUE`,
+					),
+				);
 
-		return {
-			post: exactPost,
-			html,
-			requestedLang,
-			notTranslated: false,
-			availableLang: null,
-			alternateLang: altPost ? otherLang : null,
-		};
+			return {
+				kind: "post",
+				post: exactPost,
+				html,
+				requestedLang,
+				notTranslated: false,
+				availableLang: null,
+				alternateLang: altPost ? otherLang : null,
+			};
+		}
+		// Stale DB row — drop through to fallback / page lookup.
 	}
 
 	const [fallbackPost] = await db
 		.select()
 		.from(posts)
-		.where(and(eq(posts.slug, slug), eq(posts.isPublished, true)));
+		.where(and(eq(posts.slug, slug), sql`${posts.draft} IS NOT TRUE`));
 
-	if (!fallbackPost) {
-		throw notFound();
+	if (fallbackPost) {
+		const source = await safeReadMdx(fallbackPost.filePath);
+		if (source !== null) {
+			const Content = await renderFn(source);
+			const html = renderToStaticMarkup(createElement(Content, {}));
+			return {
+				kind: "post",
+				post: fallbackPost,
+				html,
+				requestedLang,
+				notTranslated: true,
+				availableLang: fallbackPost.lang as Locale,
+				alternateLang: null,
+			};
+		}
+		// Stale DB row — drop through to static-page lookup.
 	}
 
-	const { content: source } = matter(
-		await readFile(fallbackPost.filePath, "utf-8"),
+	const { loadStaticPage, staticPageHasTwin } = await import(
+		"#/lib/mdx/pages.server"
 	);
-	const Content = await renderFn(source);
-	const html = renderToStaticMarkup(createElement(Content, {}));
-	return {
-		post: fallbackPost,
-		html,
-		requestedLang,
-		notTranslated: true,
-		availableLang: fallbackPost.lang as Locale,
-		alternateLang: null,
-	};
+	const page = await loadStaticPage(slug, requestedLang);
+	if (page) {
+		const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
+		const hasTwin = staticPageHasTwin(slug, otherLang);
+		return {
+			kind: "page",
+			entry: page.entry,
+			html: page.html,
+			requestedLang,
+			hasTwin,
+		};
+	}
+
+	throw notFound();
 }
 
 export async function incrementViewCountFn(id: number): Promise<void> {

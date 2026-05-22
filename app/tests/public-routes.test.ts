@@ -27,7 +27,7 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
-import { getPublishedPostsFn } from "#/db/queries";
+import { listPostsFn } from "#/db/queries";
 import type { posts } from "#/db/schema";
 
 type Post = (typeof posts)["_"]["inferSelect"];
@@ -41,7 +41,6 @@ function makePost(overrides: Partial<Post> = {}): Post {
 		title: "Hello World",
 		description: "A short intro post.",
 		publishedAt: new Date("2026-05-02"),
-		isPublished: true,
 		viewCount: 0,
 		indexedAt: new Date(),
 		category: null,
@@ -60,23 +59,23 @@ function resetMocks() {
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
 }
 
-// ─── Unit: getPublishedPostsFn ────────────────────────────────────────────────
+// ─── Unit: listPostsFn ────────────────────────────────────────────────────────
 
-describe("unit: getPublishedPostsFn", () => {
+describe("unit: listPostsFn", () => {
 	beforeEach(resetMocks);
 
-	it("calls db.select().from(posts).where(isPublished=true).orderBy(publishedAt DESC)", async () => {
+	it("calls db.select().from(posts).where(lang).orderBy(publishedAt DESC)", async () => {
 		mocks.selectOrderBy.mockResolvedValue([makePost()]);
-		const result = await getPublishedPostsFn("en");
+		const result = await listPostsFn("en");
 		expect(mocks.select).toHaveBeenCalledTimes(1);
 		expect(mocks.selectFrom).toHaveBeenCalled();
 		expect(result).toHaveLength(1);
 		expect(result[0].slug).toBe("hello-world");
 	});
 
-	it("returns only is_published=true rows — mock returns empty for draft-only DB", async () => {
+	it("returns empty when DB returns no posts for the locale", async () => {
 		mocks.selectOrderBy.mockResolvedValue([]);
-		const result = await getPublishedPostsFn("en");
+		const result = await listPostsFn("en");
 		expect(result).toHaveLength(0);
 	});
 
@@ -92,7 +91,7 @@ describe("unit: getPublishedPostsFn", () => {
 			publishedAt: new Date("2026-05-02"),
 		});
 		mocks.selectOrderBy.mockResolvedValue([newer, older]);
-		const result = await getPublishedPostsFn("en");
+		const result = await listPostsFn("en");
 		expect(result[0].slug).toBe("newer");
 		expect(result[1].slug).toBe("older");
 	});

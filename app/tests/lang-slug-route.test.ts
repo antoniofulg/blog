@@ -26,6 +26,9 @@ const mocks = vi.hoisted(() => {
 
 	const readFile = vi.fn().mockResolvedValue("# Test\n\nContent");
 
+	const loadStaticPage = vi.fn().mockResolvedValue(null);
+	const staticPageHasTwin = vi.fn().mockReturnValue(true);
+
 	return {
 		select,
 		selectFrom,
@@ -34,6 +37,8 @@ const mocks = vi.hoisted(() => {
 		set,
 		updateWhere,
 		readFile,
+		loadStaticPage,
+		staticPageHasTwin,
 	};
 });
 
@@ -46,6 +51,11 @@ vi.mock("#/db/client", () => ({
 
 vi.mock("node:fs/promises", () => ({
 	readFile: mocks.readFile,
+}));
+
+vi.mock("#/lib/mdx/pages.server", () => ({
+	loadStaticPage: mocks.loadStaticPage,
+	staticPageHasTwin: mocks.staticPageHasTwin,
 }));
 
 vi.mock("@tanstack/react-start", () => ({
@@ -76,7 +86,6 @@ function makePost(overrides: Partial<Post> = {}): Post {
 		title: "React Suspense with TypeScript",
 		description: "A deep dive into React Suspense.",
 		publishedAt: new Date("2026-05-02"),
-		isPublished: true,
 		viewCount: 0,
 		indexedAt: new Date(),
 		category: null,
@@ -96,6 +105,7 @@ function resetMocks() {
 	mocks.set.mockReturnValue({ where: mocks.updateWhere });
 	mocks.update.mockReturnValue({ set: mocks.set });
 	mocks.readFile.mockResolvedValue("# Test\n\nContent");
+	mocks.loadStaticPage.mockResolvedValue(null);
 }
 
 // ─── Unit: validateLocaleInput ────────────────────────────────────────────────
@@ -137,6 +147,8 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.notTranslated).toBe(false);
 		expect(result.availableLang).toBeNull();
 		expect(result.requestedLang).toBe("en");
@@ -153,6 +165,8 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 			.mockResolvedValueOnce([enPost])
 			.mockResolvedValueOnce([ptPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.alternateLang).toBe("pt-br");
 	});
 
@@ -160,6 +174,8 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.alternateLang).toBeNull();
 	});
 
@@ -186,6 +202,8 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.notTranslated).toBe(true);
 		expect(result.availableLang).toBe("en");
 		expect(result.requestedLang).toBe("pt-br");
@@ -199,6 +217,8 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 		});
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([ptPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
 		expect(result.notTranslated).toBe(true);
 		expect(result.availableLang).toBe("pt-br");
 		expect(result.requestedLang).toBe("en");
@@ -302,6 +322,168 @@ describe("unit: TranslationNotice", () => {
 	});
 });
 
+// ─── Unit: discriminated union (kind field) ───────────────────────────────────
+
+describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
+	beforeEach(resetMocks);
+
+	it("exact match → kind is 'post'", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+	});
+
+	it("fallback match → kind is 'post'", async () => {
+		const enPost = makePost({ lang: "en" });
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
+		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
+		expect(result.kind).toBe("post");
+	});
+
+	it("post miss → page found → kind is 'page'", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		const pageResult = {
+			entry: {
+				slug: "about",
+				locale: "en" as const,
+				filePath: "/pages/en/about.mdx",
+				frontmatter: { title: "About", description: "About me" },
+			},
+			html: "<p>About me</p>",
+		};
+		mocks.loadStaticPage.mockResolvedValueOnce(pageResult);
+		mocks.staticPageHasTwin.mockReturnValueOnce(true);
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("page");
+		if (result.kind === "page") {
+			expect(result.entry.frontmatter.title).toBe("About");
+			expect(result.html).toBe("<p>About me</p>");
+			expect(result.requestedLang).toBe("en");
+			expect(result.hasTwin).toBe(true);
+		}
+	});
+
+	it("post miss → page found pt-br → kind is 'page' with pt-br locale", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		const pageResult = {
+			entry: {
+				slug: "about",
+				locale: "pt-br" as const,
+				filePath: "/pages/pt-br/about.mdx",
+				frontmatter: { title: "Sobre" },
+			},
+			html: "<p>Sobre mim</p>",
+		};
+		mocks.loadStaticPage.mockResolvedValueOnce(pageResult);
+		mocks.staticPageHasTwin.mockReturnValueOnce(false);
+		const result = await getPostBySlugWithLangFn("about", "pt-br");
+		expect(result.kind).toBe("page");
+		if (result.kind === "page") {
+			expect(result.requestedLang).toBe("pt-br");
+			expect(result.hasTwin).toBe(false);
+		}
+	});
+
+	it("post miss + page miss → notFound()", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		mocks.loadStaticPage.mockResolvedValueOnce(null);
+		const err = await getPostBySlugWithLangFn("nonexistent", "en").catch(
+			(e) => e,
+		);
+		expect(isNotFound(err)).toBe(true);
+	});
+
+	it("collision: post and page both exist → returns post (post wins)", async () => {
+		const enPost = makePost({ slug: "about", lang: "en" });
+		mocks.selectWhere.mockResolvedValueOnce([enPost]);
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("post");
+		expect(mocks.loadStaticPage).not.toHaveBeenCalled();
+	});
+
+	it("loadStaticPage receives correct slug and locale", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
+		mocks.loadStaticPage.mockResolvedValueOnce(null);
+		await getPostBySlugWithLangFn("uses", "pt-br").catch(() => null);
+		expect(mocks.loadStaticPage).toHaveBeenCalledWith("uses", "pt-br");
+	});
+
+	it("stale post row (ENOENT on filePath) falls through to static page", async () => {
+		// Simulate the /about regression: DB has a ghost post row pointing at a
+		// moved/deleted MDX file. Loader must not crash — fall through to the
+		// static-page branch and return the page result.
+		const stalePost = makePost({
+			slug: "about",
+			lang: "en",
+			filePath: "content/en/about.mdx", // file no longer exists
+		});
+		mocks.selectWhere.mockResolvedValueOnce([stalePost]);
+		mocks.readFile.mockRejectedValueOnce(
+			Object.assign(new Error("ENOENT: no such file"), { code: "ENOENT" }),
+		);
+		mocks.loadStaticPage.mockResolvedValueOnce({
+			entry: {
+				slug: "about",
+				locale: "en" as const,
+				filePath: "/pages/en/about.mdx",
+				frontmatter: { title: "About" },
+			},
+			html: "<p>About me</p>",
+		});
+		mocks.staticPageHasTwin.mockReturnValueOnce(true);
+
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("page");
+		if (result.kind === "page") {
+			expect(result.entry.frontmatter.title).toBe("About");
+		}
+		expect(mocks.loadStaticPage).toHaveBeenCalledWith("about", "en");
+	});
+
+	it("stale fallback row (ENOENT) falls through to static page", async () => {
+		// Variant: exact-match query returns nothing; fallback query returns a
+		// ghost row (e.g. slug=about, lang=pt-br pointing at old `content/pt-br/about.mdx`).
+		// Loader must not crash — fall through to static-page branch.
+		const stalePtBr = makePost({
+			slug: "about",
+			lang: "pt-br",
+			filePath: "content/pt-br/about.mdx",
+		});
+		mocks.selectWhere
+			.mockResolvedValueOnce([]) // exact-match miss
+			.mockResolvedValueOnce([stalePtBr]); // fallback hit (ghost row)
+		mocks.readFile.mockRejectedValueOnce(
+			Object.assign(new Error("ENOENT: no such file"), { code: "ENOENT" }),
+		);
+		mocks.loadStaticPage.mockResolvedValueOnce({
+			entry: {
+				slug: "about",
+				locale: "en" as const,
+				filePath: "/pages/en/about.mdx",
+				frontmatter: { title: "About" },
+			},
+			html: "<p>About me</p>",
+		});
+		mocks.staticPageHasTwin.mockReturnValueOnce(false);
+
+		const result = await getPostBySlugWithLangFn("about", "en");
+		expect(result.kind).toBe("page");
+	});
+
+	it("non-ENOENT readFile error still propagates", async () => {
+		// Permission errors etc. should NOT be swallowed — only ENOENT means
+		// "file missing, try next branch".
+		const enPost = makePost({ slug: "react-suspense", lang: "en" });
+		mocks.selectWhere.mockResolvedValueOnce([enPost]);
+		mocks.readFile.mockRejectedValueOnce(
+			Object.assign(new Error("EACCES: permission denied"), { code: "EACCES" }),
+		);
+		await expect(
+			getPostBySlugWithLangFn("react-suspense", "en"),
+		).rejects.toThrow(/permission denied/);
+	});
+});
+
 // ─── Integration: locale post detail routes ──────────────────────────────────
 
 function isPortFree(port: number): Promise<boolean> {
@@ -329,8 +511,8 @@ describe.skipIf(port5432Free || port3000Free)(
 			const pg = await import("postgres");
 			sql = pg.default(DB_URL);
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'en', 'Integration Lang Slug Test', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'en', 'Integration Lang Slug Test', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 		});
@@ -377,8 +559,8 @@ describe.skipIf(port5432Free || port3000Free)(
 		it("GET /<slug> head contains hreflang pair for pt-br alternate", async () => {
 			// Insert pt-br version of the post so alternateLang is populated
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
@@ -392,8 +574,8 @@ describe.skipIf(port5432Free || port3000Free)(
 
 		it("GET /pt-br/<slug> head contains hreflang pair for en alternate", async () => {
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
@@ -407,8 +589,8 @@ describe.skipIf(port5432Free || port3000Free)(
 
 		it("GET /<slug> hreflang hrefs contain no /en/ prefix", async () => {
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
@@ -425,8 +607,8 @@ describe.skipIf(port5432Free || port3000Free)(
 
 		it("GET /pt-br/<slug> SSR contains pt-br postMeta.publishedOn label before the date", async () => {
 			await sql`
-        INSERT INTO posts (file_path, slug, lang, title, description, is_published, published_at, view_count, indexed_at)
-        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', true, NOW(), 0, NOW())
+        INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
+        VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
         ON CONFLICT DO NOTHING
       `;
 			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
@@ -436,3 +618,33 @@ describe.skipIf(port5432Free || port3000Free)(
 		});
 	},
 );
+
+describe.skipIf(port3000Free)("integration: static page routes (about)", () => {
+	const BASE_URL = "http://localhost:3000";
+
+	it("GET /about returns 200 with migrated page content", async () => {
+		const res = await fetch(`${BASE_URL}/about`);
+		expect(res.status).toBe(200);
+		const html = await res.text();
+		expect(html.toLowerCase()).toContain("about");
+	});
+
+	it("GET /pt-br/about returns 200 with pt-br page content", async () => {
+		const res = await fetch(`${BASE_URL}/pt-br/about`);
+		expect(res.status).toBe(200);
+		const html = await res.text();
+		expect(html).toBeTruthy();
+	});
+
+	it("GET /about does not contain published date label (pages have no date)", async () => {
+		const res = await fetch(`${BASE_URL}/about`);
+		const html = await res.text();
+		expect(html).not.toContain("Published on");
+		expect(html).not.toContain("Publicado em");
+	});
+
+	it("GET /__nonexistent_page__ returns 404", async () => {
+		const res = await fetch(`${BASE_URL}/__nonexistent_page_${Date.now()}__`);
+		expect(res.status).toBe(404);
+	});
+});

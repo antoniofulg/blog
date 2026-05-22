@@ -20,9 +20,9 @@ import { parseDir, runSync } from "../../scripts/sync";
 // ─── Unit: parseDir ───────────────────────────────────────────────────────────
 
 describe("unit: parseDir", () => {
-	it("returns resolved content/ path when no --dir arg", () => {
+	it("returns resolved app/content/posts path when no --dir arg", () => {
 		const dir = parseDir([]);
-		expect(dir).toMatch(/content$/);
+		expect(dir).toMatch(/app\/content\/posts$/);
 	});
 
 	it("returns resolved --dir path when provided", () => {
@@ -39,11 +39,11 @@ describe("unit: runSync", () => {
 		mocks.syncAll.mockResolvedValue(undefined);
 	});
 
-	it("calls syncAll with content/ path when no --dir given", async () => {
+	it("calls syncAll with app/content/posts path when no --dir given", async () => {
 		await runSync([]);
 		expect(mocks.syncAll).toHaveBeenCalledTimes(1);
 		const arg = mocks.syncAll.mock.calls[0]?.[0] as string;
-		expect(arg).toMatch(/content$/);
+		expect(arg).toMatch(/app\/content\/posts$/);
 	});
 
 	it("calls syncAll with override path when --dir ./other given", async () => {

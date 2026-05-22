@@ -9,6 +9,7 @@ import {
 	seedAdminUser,
 	seedFixturePost,
 	seedPublishedFixturePosts,
+	seedEnOnlyFixturePost,
 } from "./seed";
 
 // Path written by scripts/e2e-server.ts before Playwright runs global setup.
@@ -24,6 +25,7 @@ export type E2EState = {
 	fixturePostTitle: string;
 	publicFixtureEnId: number;
 	publicFixturePtBrId: number;
+	enOnlyPostSlug: string;
 };
 
 async function waitForStateFile(timeoutMs = 30_000): Promise<E2EState> {
@@ -57,6 +59,7 @@ export default async function globalSetup(): Promise<void> {
 	const fixture = await seedFixturePost(db, fixtureFilePath);
 
 	const publicFixture = await seedPublishedFixturePosts(db);
+	const enOnlyPost = await seedEnOnlyFixturePost(db);
 
 	// Persist env vars for the test worker process
 	process.env.E2E_ADMIN_USER_ID = adminUserId;
@@ -70,6 +73,7 @@ export default async function globalSetup(): Promise<void> {
 		fixturePostTitle: fixture.title,
 		publicFixtureEnId: publicFixture.enId,
 		publicFixturePtBrId: publicFixture.ptBrId,
+		enOnlyPostSlug: enOnlyPost.slug,
 	};
 	await writeFile(E2E_STATE_FILE, JSON.stringify(fullState), "utf-8");
 

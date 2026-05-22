@@ -37,11 +37,6 @@ describe("unit: posts schema", () => {
 		expect(col.isUnique).toBeFalsy();
 	});
 
-	it("is_published defaults to false", () => {
-		const col = posts.isPublished;
-		expect(col.default).toBe(false);
-	});
-
 	it("view_count defaults to 0", () => {
 		const col = posts.viewCount;
 		expect(col.default).toBe(0);
@@ -72,7 +67,6 @@ describe("unit: posts schema", () => {
 			title: "Hello",
 			description: null,
 			publishedAt: null,
-			isPublished: false,
 			viewCount: 0,
 			indexedAt: new Date(),
 			category: null,
@@ -82,7 +76,6 @@ describe("unit: posts schema", () => {
 		};
 		expect(_post.id).toBe(1);
 		expect(typeof _post.slug).toBe("string");
-		expect(typeof _post.isPublished).toBe("boolean");
 		expect(_post.lang).toBe("en");
 	});
 
@@ -156,14 +149,14 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		expect(cols).toContain("title");
 		expect(cols).toContain("description");
 		expect(cols).toContain("published_at");
-		expect(cols).toContain("is_published");
+		expect(cols).not.toContain("is_published");
 		expect(cols).toContain("view_count");
 		expect(cols).toContain("indexed_at");
 		expect(cols).toContain("category");
 		expect(cols).toContain("series");
 		expect(cols).toContain("series_part");
 		expect(cols).toContain("draft");
-		expect(cols).toHaveLength(14);
+		expect(cols).toHaveLength(13);
 	});
 
 	it("duplicate file_path insert throws unique constraint error", async () => {
