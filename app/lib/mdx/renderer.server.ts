@@ -1,6 +1,5 @@
 import { compile, run } from "@mdx-js/mdx";
 import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
-import matter from "gray-matter";
 import type { ComponentType } from "react";
 import * as runtime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
@@ -35,10 +34,20 @@ function getHighlighter() {
 	return highlighterPromise;
 }
 
-export async function renderMdx(source: string): Promise<ComponentType> {
+/**
+ * Compile an MDX **body** (no frontmatter) into a React component.
+ *
+ * The caller is responsible for stripping frontmatter before calling — pass
+ * the `content` field from `gray-matter`, not the raw file source. Passing a
+ * source that still begins with a `---\n…\n---` block will cause `@mdx-js/mdx`
+ * to parse it as a setext H1 and render the raw YAML.
+ *
+ * See `loadStaticPage` and `getPostBySlugWithLangFn` for the two call sites
+ * that perform the strip.
+ */
+export async function renderMdx(body: string): Promise<ComponentType> {
 	const highlighter = await getHighlighter();
-	const { content } = matter(source);
-	const compiled = await compile(content, {
+	const compiled = await compile(body, {
 		outputFormat: "function-body",
 		remarkPlugins: [remarkGfm],
 		rehypePlugins: [

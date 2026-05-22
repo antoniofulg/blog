@@ -28,7 +28,7 @@ export async function getPostBySlugWithLangFn(
 	slug: string,
 	requestedLang: Locale,
 	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
-	renderFn: (source: string) => Promise<any> = async () => () => null,
+	renderFn: (body: string) => Promise<any> = async () => () => null,
 ): Promise<SlugLoaderResult> {
 	const [
 		{ readFile },
@@ -37,6 +37,7 @@ export async function getPostBySlugWithLangFn(
 		{ renderToStaticMarkup },
 		{ db },
 		{ posts },
+		{ default: matter },
 	] = await Promise.all([
 		import("node:fs/promises"),
 		import("drizzle-orm"),
@@ -44,6 +45,7 @@ export async function getPostBySlugWithLangFn(
 		import("react-dom/server"),
 		import("#/db/client"),
 		import("#/db/schema"),
+		import("gray-matter"),
 	]);
 	const [exactPost] = await db
 		.select()
@@ -71,7 +73,11 @@ export async function getPostBySlugWithLangFn(
 	if (exactPost) {
 		const source = await safeReadMdx(exactPost.filePath);
 		if (source !== null) {
-			const Content = await renderFn(source);
+			// renderMdx expects a frontmatter-stripped body; strip here so the
+			// renderer stays pure and doesn't double-parse callers that already
+			// pass body (e.g. loadStaticPage).
+			const { content: body } = matter(source);
+			const Content = await renderFn(body);
 			const html = renderToStaticMarkup(createElement(Content, {}));
 
 			const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
@@ -107,7 +113,8 @@ export async function getPostBySlugWithLangFn(
 	if (fallbackPost) {
 		const source = await safeReadMdx(fallbackPost.filePath);
 		if (source !== null) {
-			const Content = await renderFn(source);
+			const { content: body } = matter(source);
+			const Content = await renderFn(body);
 			const html = renderToStaticMarkup(createElement(Content, {}));
 			return {
 				kind: "post",
