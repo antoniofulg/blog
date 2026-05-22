@@ -1,5 +1,6 @@
 import { compile, run } from "@mdx-js/mdx";
 import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
+import matter from "gray-matter";
 import type { ComponentType } from "react";
 import * as runtime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
@@ -36,7 +37,8 @@ function getHighlighter() {
 
 export async function renderMdx(source: string): Promise<ComponentType> {
 	const highlighter = await getHighlighter();
-	const compiled = await compile(source, {
+	const { content } = matter(source);
+	const compiled = await compile(content, {
 		outputFormat: "function-body",
 		remarkPlugins: [remarkGfm],
 		rehypePlugins: [
