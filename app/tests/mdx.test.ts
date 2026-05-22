@@ -142,9 +142,9 @@ describe("lint: frontmatter conventions", () => {
 		).not.toThrow();
 	});
 
-	it("component-composition-react.mdx has all required fields", () => {
+	it("react-component-composition.mdx has all required fields", () => {
 		expect(() =>
-			lintFrontmatter(join(CONTENT_DIR, "en/component-composition-react.mdx")),
+			lintFrontmatter(join(CONTENT_DIR, "en/react-component-composition.mdx")),
 		).not.toThrow();
 	});
 
