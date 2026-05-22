@@ -15,13 +15,16 @@ check runtime DOM. For runtime accessibility checks, use `a11y-testing` instead.
 
 ### Posts
 
-| Check | Locale | Published | Drafts | Opt-out |
-|-------|--------|-----------|--------|---------|
+Lifecycle columns refer to the `draft` frontmatter flag: a post with `draft: true`
+is a "Draft"; everything else (including posts that omit the field) is "Non-draft".
+
+| Check | Locale | Non-draft | Draft | Opt-out |
+|-------|--------|-----------|-------|---------|
 | `frontmatter-invalid` | en + pt-br | yes | yes | none |
 | `translation-gap` | en only | yes | yes | `noTranslation: true` |
-| `broken-link` | en + pt-br | yes | yes | none |
+| `broken-link` | en + pt-br | yes | yes (severity downgraded to `minor`) | none |
 | `missing-alt-text` | en + pt-br | yes | yes | none |
-| `series-gap` | en + pt-br | yes | yes | none |
+| `series-gap` | en + pt-br | yes | no (drafts skipped) | none |
 
 ### Pages (`app/content/pages/<locale>/`)
 
@@ -38,11 +41,11 @@ for this skill. That matrix applies to `e2e-coverage` (browser sessions).
 
 | Category | Severity | Trigger condition |
 |----------|----------|------------------|
-| `frontmatter-invalid` | blocker | Required field missing or wrong type: `title` (string), `date` (ISO date), `slug` (string), `published` (boolean) |
+| `frontmatter-invalid` | blocker | Required field `title` (string) is missing or empty. All other fields are optional: `slug` (string; falls back to filename), `publishedAt` (ISO date), `description` (string), `category` (string), `series` (string), `seriesPart` (number), `draft` (boolean), `noTranslation` (boolean) |
 | `translation-gap` (post) | major | en post exists with no `app/content/posts/pt-br/<slug>.mdx` twin AND frontmatter lacks `noTranslation: true` |
 | `translation-gap` (page) | major | en page exists in `app/content/pages/en/<slug>.mdx` with no `app/content/pages/pt-br/<slug>.mdx` twin (no opt-out — pages do not carry `noTranslation`) |
-| `broken-link` (published) | blocker | Internal link target (`[text](path)` or JSX `<Link href="">`) has no matching file in `app/content/posts/` |
-| `broken-link` (draft) | minor | Internal link target in an unpublished post has no matching file in `app/content/posts/` |
+| `broken-link` (non-draft post) | blocker | Internal link target (`[text](path)` or JSX `<Link href="">`) in a post without `draft: true` has no matching file in `app/content/posts/` |
+| `broken-link` (draft post) | minor | Internal link target in a post with `draft: true` has no matching file in `app/content/posts/` |
 | `missing-alt-text` | major | `<img>` element or `![](url)` markdown image has empty or missing `alt` attribute/text |
 | `series-gap` | minor | Posts sharing a `series` frontmatter key have non-contiguous `part` numbers (e.g., parts [1, 3] with no part 2) |
 | `slug-collision` | major | A static page slug in `app/content/pages/<locale>/` matches a post slug in the same locale; the post silently wins at runtime (ADR-005). Rename the page or post to resolve. |
