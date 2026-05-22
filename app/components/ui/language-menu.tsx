@@ -24,9 +24,12 @@ const NO_TRANSLATION_HINT: Record<Locale, string> = {
 	"pt-br": "sem tradução",
 };
 
+// Action verb tied to what the visitor actually does after clicking: reading
+// the article in another language. Stronger than the generic "Switch to" /
+// "Mudar para" and reads as a voice-fragment per PRODUCT.md tone.
 const switchActionByLocale: Record<Locale, (target: string) => string> = {
-	en: (target) => `Switch to ${target}`,
-	"pt-br": (target) => `Mudar para ${target}`,
+	en: (target) => `Read in ${target}`,
+	"pt-br": (target) => `Ler em ${target}`,
 };
 
 const currentLabelByLocale: Record<Locale, string> = {
