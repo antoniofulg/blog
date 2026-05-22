@@ -64,7 +64,7 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 	);
 
 	test(
-		"locale switcher: from pt-br post, open menu, switch to en → navigates to /<slug>",
+		"locale switcher: from pt-br post, click EN chip → navigates to /<slug>",
 		async ({ page }) => {
 			await page.goto(`/pt-br/${FIXTURE_SLUG}`);
 			await page.waitForLoadState("load");
@@ -73,10 +73,7 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 				page.getByRole("heading", { name: FIXTURE_PTBR_TITLE, exact: true }),
 			).toBeVisible();
 
-			await page.getByRole("button", { name: "Trocar idioma" }).click();
-			await expect(page.getByRole("menu")).toBeVisible();
-
-			await page.getByRole("menuitemradio", { name: /English/ }).click();
+			await page.getByRole("button", { name: /English/ }).click();
 			await page.waitForURL((url) => !url.pathname.startsWith("/pt-br"));
 
 			expect(page.url()).toContain(`/${FIXTURE_SLUG}`);
@@ -84,12 +81,15 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 			await expect(
 				page.getByRole("heading", { name: FIXTURE_EN_TITLE, exact: true }),
 			).toBeVisible();
+			await expect(
+				page.locator('button[aria-current="true"]'),
+			).toHaveText("EN");
 		},
 	);
 
 	// AC-5: was broken — en → pt-br on an un-prefixed en URL fell to home instead of /pt-br/<slug>
 	test(
-		"locale switcher: from en post (no prefix), open menu, switch to pt-br → navigates to /pt-br/<slug>",
+		"locale switcher: from en post (no prefix), click PT chip → navigates to /pt-br/<slug>",
 		async ({ page }) => {
 			await page.goto(`/${FIXTURE_SLUG}`);
 			await page.waitForLoadState("load");
@@ -98,57 +98,55 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 				page.getByRole("heading", { name: FIXTURE_EN_TITLE, exact: true }),
 			).toBeVisible();
 
-			await page.getByRole("button", { name: "Change language" }).click();
-			await expect(page.getByRole("menu")).toBeVisible();
+			const ptBrChip = page.getByRole("button", { name: /Português/ });
+			await expect(ptBrChip).not.toHaveAttribute("aria-disabled");
 
-			const ptBrItem = page.getByRole("menuitemradio", { name: /Português/ });
-			await expect(ptBrItem).not.toHaveAttribute("aria-disabled");
-
-			await ptBrItem.click();
-			await page.waitForURL((url) =>
-				url.pathname.startsWith("/pt-br"),
-			);
+			await ptBrChip.click();
+			await page.waitForURL((url) => url.pathname.startsWith("/pt-br"));
 
 			expect(page.url()).toContain(`/pt-br/${FIXTURE_SLUG}`);
 			await expect(
 				page.getByRole("heading", { name: FIXTURE_PTBR_TITLE, exact: true }),
 			).toBeVisible();
+			await expect(
+				page.locator('button[aria-current="true"]'),
+			).toHaveText("PT");
 		},
 	);
 
 	test(
-		"locale switcher: menu shows '(not available)' and aria-disabled for en-only post",
+		"locale switcher: unavailable PT chip exposes 'no translation' via aria-label for en-only post",
 		async ({ page }) => {
 			await page.goto(`/${EN_ONLY_SLUG}`);
 			await page.waitForLoadState("load");
 
-			await page.getByRole("button", { name: "Change language" }).click();
-			await expect(page.getByRole("menu")).toBeVisible();
-
-			const ptBrItem = page.getByRole("menuitemradio", { name: /Português/ });
-			await expect(ptBrItem).toHaveAttribute("aria-disabled", "true");
-			await expect(page.getByText("(not available)")).toBeVisible();
+			// Desktop pair has no visible hint span — only aria-label carries the
+			// "no translation" signal. The visible-span hint lives in the mobile
+			// list variant and is verified separately by component tests.
+			const ptBrChip = page.getByRole("button", { name: /Português/ });
+			await expect(ptBrChip).toHaveAttribute(
+				"aria-label",
+				/no translation/,
+			);
+			await expect(ptBrChip).toHaveText("PT");
 		},
 	);
 
 	test(
-		"locale switcher: modal confirm path navigates to /pt-br/ for en-only post",
+		"locale switcher: clicking unavailable PT chip opens modal, confirm → /pt-br/",
 		async ({ page }) => {
 			await page.goto(`/${EN_ONLY_SLUG}`);
 			await page.waitForLoadState("load");
 
-			await page.getByRole("button", { name: "Change language" }).click();
-			// aria-disabled item: bypass Playwright's enabled-check; the modal seam
-			// requires the click to still fire so the dialog can open (ADR-003).
+			// Unavailable chip still carries aria-disabled="true"; bypass
+			// Playwright's enabled-check so the modal seam (ADR-003) fires.
 			await page
-				.getByRole("menuitemradio", { name: /Português/ })
+				.getByRole("button", { name: /Português/ })
 				.click({ force: true });
 
-			// Dialog opens — copy is in English (current page locale)
 			await expect(page.getByRole("dialog")).toBeVisible();
 			await expect(page.getByText("Content not available")).toBeVisible();
 
-			// Confirm navigates to pt-br home
 			await page.getByRole("button", { name: "Continue" }).click();
 			await page.waitForURL("/pt-br/");
 
@@ -164,23 +162,21 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 
 			const initialUrl = page.url();
 
-			await page.getByRole("button", { name: "Change language" }).click();
-			await page
-				.getByRole("menuitemradio", { name: /Português/ })
-				.click({ force: true });
+			const ptBrChip = page.getByRole("button", { name: /Português/ });
+			// Unavailable chip carries aria-disabled="true"; force the click
+			// past Playwright's enabled-check so the modal seam fires.
+			await ptBrChip.click({ force: true });
 
 			await expect(page.getByRole("dialog")).toBeVisible();
 
-			// Cancel — dialog closes, URL unchanged
 			await page.getByRole("button", { name: "Cancel" }).click();
 			await expect(page.getByRole("dialog")).not.toBeVisible();
 
 			expect(page.url()).toBe(initialUrl);
 
-			// Focus returns to the language menu trigger
-			await expect(
-				page.getByRole("button", { name: "Change language" }),
-			).toBeFocused();
+			// Focus returns to the first non-current chip (ref-forwarded by
+			// LanguagePair) — pt-br here, since en is the active locale.
+			await expect(ptBrChip).toBeFocused();
 		},
 	);
 
