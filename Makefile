@@ -104,7 +104,7 @@ lint-tests: ## Lint e2e test annotations for 48h SLA compliance
 
 e2e: test-e2e ## CI matrix alias — delegates to test-e2e
 
-test-e2e: ## Run Playwright e2e test suite
+test-e2e: $(NITRO_BUNDLE) ## Run Playwright e2e test suite (auto-rebuilds nitro bundle when sources changed)
 	bun run test:e2e
 	@echo "E2e tests complete. Next: make lint | git commit"
 
@@ -115,7 +115,7 @@ audit-content: ## Run content audit and write report to docs/_reports/
 # Rebuild rule: Nitro bundle is stale when any app/scripts source file or one
 # of the build inputs (package.json, bun.lock, vite.config.ts) is newer.
 $(NITRO_BUNDLE): $(APP_SOURCES) package.json bun.lock vite.config.ts
-	@echo "[audit-fe] sources changed — rebuilding nitro bundle..."
+	@echo "[make] sources changed — rebuilding nitro bundle..."
 	bun run build
 
 audit-fe: $(NITRO_BUNDLE) ## Run app (browser) audit; orchestrates preview server (auto-rebuilds when sources changed)
