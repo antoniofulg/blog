@@ -36,15 +36,15 @@ type CardProps = {
 function SummaryCard({ label, value, delta }: CardProps) {
 	return (
 		<div className="flex flex-col gap-2 rounded-lg border border-border bg-card p-4">
-			<span className="text-sm font-medium text-muted-foreground">{label}</span>
+			<span className="text-sm font-medium text-foreground-muted">{label}</span>
 			<div className="flex items-end gap-2">
 				<span className="text-2xl font-bold text-foreground">{value}</span>
 				{delta && delta.kind !== "none" && (
 					<span
 						className={
 							delta.kind === "up"
-								? "flex items-center gap-0.5 text-sm font-medium text-green-600"
-								: "flex items-center gap-0.5 text-sm font-medium text-red-600"
+								? "flex items-center gap-0.5 text-sm font-medium text-success"
+								: "flex items-center gap-0.5 text-sm font-medium text-error"
 						}
 					>
 						{delta.kind === "up" ? (

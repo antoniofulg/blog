@@ -38,15 +38,65 @@ const SUFFIX_MAP: ReadonlyArray<readonly [string, ReferrerSource]> = [
 	["github.com", "github"],
 ] as const;
 
+/**
+ * Well-known TLD suffixes for Google country-variant domains.
+ * Restricting to this set prevents typosquatting domains that merely start
+ * with "google." (e.g. `google.evil.com`) from being bucketed as "google".
+ */
+const GOOGLE_TLDS = new Set([
+	"com",
+	"co.uk",
+	"co.jp",
+	"com.br",
+	"com.mx",
+	"com.au",
+	"de",
+	"fr",
+	"it",
+	"es",
+	"ca",
+	"nl",
+	"pl",
+	"pt",
+	"ru",
+	"ch",
+	"be",
+	"at",
+	"se",
+	"no",
+	"dk",
+	"fi",
+	"cz",
+	"gr",
+	"hu",
+	"ro",
+	"ie",
+	"co.in",
+	"co.kr",
+	"co.nz",
+	"com.ar",
+	"com.co",
+	"com.pe",
+	"com.uy",
+	"com.ve",
+]);
+
 function hostnameToSource(hostname: string): ReferrerSource {
 	for (const [suffix, source] of SUFFIX_MAP) {
 		if (hostname === suffix || hostname.endsWith(`.${suffix}`)) {
 			return source;
 		}
 	}
-	// Google country variants: google.com, google.co.uk, google.com.br,
-	// www.google.com, maps.google.com, etc.
-	if (hostname.startsWith("google.") || hostname.includes(".google.")) {
+	// Google country variants: google.com, google.co.uk, google.com.br, etc.
+	// Require a recognised TLD suffix after "google." to avoid mis-classifying
+	// typosquatting domains like `google.evil.com` as "google".
+	const dotIdx = hostname.indexOf(".");
+	const tldSuffix = dotIdx >= 0 ? hostname.slice(dotIdx + 1) : "";
+	if (
+		(hostname.startsWith("google.") && GOOGLE_TLDS.has(tldSuffix)) ||
+		(hostname.includes(".google.") &&
+			/\.google\.(com|[a-z]{2})$/.test(hostname))
+	) {
 		return "google";
 	}
 	return "other";

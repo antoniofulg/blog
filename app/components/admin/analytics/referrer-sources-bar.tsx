@@ -55,15 +55,15 @@ const ALL_SOURCES: ReferrerSource[] = [
 // ── Color map ─────────────────────────────────────────────────────────────────
 
 /**
- * Stable mapping from every ReferrerSource bucket to a CSS chart color token.
+ * Stable mapping from every ReferrerSource bucket to a CSS color token.
  *
  * TS exhaustiveness guarantee: `Record<ReferrerSource, string>` causes a
  * compile error if a new bucket is added to `ReferrerSource` but not here.
  *
- * Note: There are 12 source buckets but only 10 chart tokens (chart-1 to
- * chart-10). `direct` and `other` reuse chart-1/chart-2 respectively since
- * they are catch-all buckets that rarely appear alongside LinkedIn or Google
- * in a single dataset.
+ * The 10 named sources use chart-1 → chart-10. The two catch-all buckets
+ * (`direct`, `other`) use semantic muted tokens so they are visually distinct
+ * from named sources in a stacked bar — `direct` traffic coexists with
+ * LinkedIn/Google in almost every indie-blog dataset.
  */
 export const SOURCE_COLOR_MAP: Record<ReferrerSource, string> = {
 	linkedin: "var(--color-chart-1)",
@@ -76,8 +76,8 @@ export const SOURCE_COLOR_MAP: Record<ReferrerSource, string> = {
 	medium: "var(--color-chart-8)",
 	bluesky: "var(--color-chart-9)",
 	mastodon: "var(--color-chart-10)",
-	direct: "var(--color-chart-1)",
-	other: "var(--color-chart-2)",
+	direct: "var(--color-foreground-muted)",
+	other: "var(--color-border-strong)",
 };
 
 // ── Pivot helper ──────────────────────────────────────────────────────────────

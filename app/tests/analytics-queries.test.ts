@@ -50,7 +50,12 @@ vi.mock("#/db/client", () => ({
 }));
 
 // Import SUT after mocks are registered
-import { getAnalyticsDashboard, resolveRange } from "#/db/analytics-queries";
+import {
+	fillDailyGaps,
+	fillReferrerDayGaps,
+	getAnalyticsDashboard,
+	resolveRange,
+} from "#/db/analytics-queries";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -487,5 +492,138 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		expect(post2?.sparkline).toHaveLength(2);
 		expect(post2?.sparkline[0]).toBe(0); // day "2026-05-22" → no event
 		expect(post2?.sparkline[1]).toBe(5); // day "2026-05-23" → 5 events
+	});
+});
+
+// ── Tests: fillDailyGaps ──────────────────────────────────────────────────────
+
+describe("fillDailyGaps", () => {
+	const w = (start: string, end: string) => ({
+		start: new Date(`${start}T00:00:00Z`),
+		end: new Date(`${end}T23:59:59Z`),
+	});
+
+	it("returns empty array for empty input (no data, no axis to fill)", () => {
+		expect(fillDailyGaps([], w("2025-01-01", "2025-01-07"), "7d")).toEqual([]);
+	});
+
+	it("returns input unchanged when all dates are present (no gaps)", () => {
+		const rows = [
+			{ date: "2025-01-01", count: 5 },
+			{ date: "2025-01-02", count: 3 },
+			{ date: "2025-01-03", count: 7 },
+		];
+		const result = fillDailyGaps(rows, w("2025-01-01", "2025-01-03"), "7d");
+		expect(result).toHaveLength(3);
+		expect(result.map((r) => r.date)).toEqual([
+			"2025-01-01",
+			"2025-01-02",
+			"2025-01-03",
+		]);
+	});
+
+	it("inserts zero-count entries for missing dates", () => {
+		const rows = [
+			{ date: "2025-01-01", count: 5 },
+			{ date: "2025-01-03", count: 7 },
+		];
+		const result = fillDailyGaps(rows, w("2025-01-01", "2025-01-03"), "7d");
+		expect(result).toHaveLength(3);
+		expect(result[1]).toEqual({ date: "2025-01-02", count: 0 });
+	});
+
+	it("fills all days from window.start to window.end", () => {
+		const rows = [{ date: "2025-01-05", count: 10 }];
+		const result = fillDailyGaps(rows, w("2025-01-01", "2025-01-07"), "7d");
+		expect(result).toHaveLength(7);
+		expect(result[0]).toEqual({ date: "2025-01-01", count: 0 });
+		expect(result[4]).toEqual({ date: "2025-01-05", count: 10 });
+		expect(result[6]).toEqual({ date: "2025-01-07", count: 0 });
+	});
+
+	it("for range='all', fills from first data row date (not epoch)", () => {
+		// window.start is epoch but data starts at "2025-01-03"
+		const rows = [
+			{ date: "2025-01-03", count: 2 },
+			{ date: "2025-01-05", count: 4 },
+		];
+		// end is Jan 5 so fill is 3 days: Jan 3, Jan 4, Jan 5
+		const result = fillDailyGaps(rows, w("1970-01-01", "2025-01-05"), "all");
+		expect(result).toHaveLength(3);
+		expect(result[0].date).toBe("2025-01-03");
+		expect(result[1]).toEqual({ date: "2025-01-04", count: 0 });
+		expect(result[2].date).toBe("2025-01-05");
+	});
+
+	it("preserves ascending order of output dates", () => {
+		const rows = [
+			{ date: "2025-01-03", count: 1 },
+			{ date: "2025-01-01", count: 3 },
+		];
+		// Even with out-of-order input, output is sorted by date
+		const result = fillDailyGaps(rows, w("2025-01-01", "2025-01-03"), "7d");
+		expect(result.map((r) => r.date)).toEqual([
+			"2025-01-01",
+			"2025-01-02",
+			"2025-01-03",
+		]);
+	});
+});
+
+// ── Tests: fillReferrerDayGaps ────────────────────────────────────────────────
+
+describe("fillReferrerDayGaps", () => {
+	const w = (start: string, end: string) => ({
+		start: new Date(`${start}T00:00:00Z`),
+		end: new Date(`${end}T23:59:59Z`),
+	});
+
+	it("returns empty array for empty input", () => {
+		expect(
+			fillReferrerDayGaps([], w("2025-01-01", "2025-01-03"), "7d"),
+		).toEqual([]);
+	});
+
+	it("returns input unchanged when all dates are present", () => {
+		const rows = [
+			{ date: "2025-01-01", source: "google", count: 3 },
+			{ date: "2025-01-02", source: "direct", count: 2 },
+		];
+		const result = fillReferrerDayGaps(
+			rows,
+			w("2025-01-01", "2025-01-02"),
+			"7d",
+		);
+		expect(result.filter((r) => r.count > 0)).toHaveLength(2);
+	});
+
+	it("inserts sentinel rows for missing dates", () => {
+		const rows = [
+			{ date: "2025-01-01", source: "google", count: 3 },
+			{ date: "2025-01-03", source: "linkedin", count: 5 },
+		];
+		const result = fillReferrerDayGaps(
+			rows,
+			w("2025-01-01", "2025-01-03"),
+			"7d",
+		);
+		const jan2 = result.filter((r) => r.date === "2025-01-02");
+		expect(jan2).toHaveLength(1);
+		expect(jan2[0]).toEqual({ date: "2025-01-02", source: "other", count: 0 });
+	});
+
+	it("output is sorted by date", () => {
+		const rows = [
+			{ date: "2025-01-03", source: "google", count: 3 },
+			{ date: "2025-01-01", source: "direct", count: 2 },
+		];
+		const result = fillReferrerDayGaps(
+			rows,
+			w("2025-01-01", "2025-01-03"),
+			"7d",
+		);
+		const dates = result.map((r) => r.date);
+		expect(dates[0]).toBe("2025-01-01");
+		expect(dates[dates.length - 1]).toBe("2025-01-03");
 	});
 });

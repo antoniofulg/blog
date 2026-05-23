@@ -343,9 +343,11 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 		expect(sources.has("direct")).toBe(true);
 	}, 30_000);
 
-	it("dailyTrend has ≤7 entries for range=7d", async () => {
+	it("dailyTrend has ≤8 entries for range=7d (7-day window spans 8 calendar days inclusive after gap-fill)", async () => {
 		const result = await getAnalyticsDashboard({ range: "7d" });
-		expect(result.dailyTrend.length).toBeLessThanOrEqual(7);
+		// resolveRange("7d") = [now-7d, now]; fillDailyGaps fills every calendar
+		// day in that inclusive window → 8 rows (today + 7 preceding days).
+		expect(result.dailyTrend.length).toBeLessThanOrEqual(8);
 	}, 30_000);
 
 	it("deviceSplit sums match totalVisits", async () => {

@@ -149,17 +149,24 @@ export async function getPostBySlugWithLangFn(
 }
 
 export async function incrementViewCountFn(id: number): Promise<void> {
-	const [{ getRequest }, { db }, { posts }, { eq }] = await Promise.all([
+	// Gate on bot check first — no DB I/O for bot requests.
+	const [{ getRequest }, { isBotUserAgent }] = await Promise.all([
 		import("@tanstack/react-start/server"),
+		import("#/lib/analytics/bot-filter"),
+	]);
+
+	const request = getRequest();
+
+	if (isBotUserAgent(request.headers.get("User-Agent"))) return;
+
+	// Read lang server-side so the client call signature (`{ data: post.id }`)
+	// stays unchanged — the client useEffect does not need to pass lang.
+	const [{ db }, { posts }, { eq }] = await Promise.all([
 		import("#/db/client"),
 		import("#/db/schema"),
 		import("drizzle-orm"),
 	]);
 
-	const request = getRequest();
-
-	// Read lang server-side so the client call signature (`{ data: post.id }`)
-	// stays unchanged — the client useEffect does not need to pass lang.
 	const [post] = await db
 		.select({ lang: posts.lang })
 		.from(posts)

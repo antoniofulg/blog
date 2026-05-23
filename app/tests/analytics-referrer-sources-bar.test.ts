@@ -186,7 +186,10 @@ describe("pivotReferrerByDay", () => {
 // ── SOURCE_COLOR_MAP exhaustiveness ───────────────────────────────────────────
 
 describe("SOURCE_COLOR_MAP", () => {
-	it("maps all 12 ReferrerSource buckets", () => {
+	const CSS_VAR_RE = /^var\(--color-[\w-]+\)$/;
+	const CHART_VAR_RE = /^var\(--color-chart-\d+\)$/;
+
+	it("maps all 12 ReferrerSource buckets to a CSS custom property", () => {
 		const expectedSources = [
 			"linkedin",
 			"google",
@@ -202,14 +205,40 @@ describe("SOURCE_COLOR_MAP", () => {
 			"other",
 		] as const;
 		for (const source of expectedSources) {
-			expect(SOURCE_COLOR_MAP[source]).toMatch(/^var\(--color-chart-\d+\)$/);
+			expect(SOURCE_COLOR_MAP[source]).toMatch(CSS_VAR_RE);
 		}
 	});
 
 	it("maps every bucket to a CSS custom property reference", () => {
 		for (const [, color] of Object.entries(SOURCE_COLOR_MAP)) {
-			expect(color).toMatch(/^var\(--color-chart-\d+\)$/);
+			expect(color).toMatch(CSS_VAR_RE);
 		}
+	});
+
+	it("named sources (linkedin→mastodon) use chart color tokens", () => {
+		const namedSources = [
+			"linkedin",
+			"google",
+			"github",
+			"twitter",
+			"reddit",
+			"hackernews",
+			"dev.to",
+			"medium",
+			"bluesky",
+			"mastodon",
+		] as const;
+		for (const source of namedSources) {
+			expect(SOURCE_COLOR_MAP[source]).toMatch(CHART_VAR_RE);
+		}
+	});
+
+	it("catch-all buckets (direct, other) use distinct semantic tokens, not chart tokens", () => {
+		// Catch-all buckets must NOT share colors with named sources —
+		// they use muted semantic tokens for visual distinction.
+		expect(SOURCE_COLOR_MAP.direct).not.toMatch(CHART_VAR_RE);
+		expect(SOURCE_COLOR_MAP.other).not.toMatch(CHART_VAR_RE);
+		expect(SOURCE_COLOR_MAP.direct).not.toBe(SOURCE_COLOR_MAP.other);
 	});
 });
 

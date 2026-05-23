@@ -12,7 +12,7 @@ import {
 } from "recharts";
 import { EmptyState } from "#/components/ui/empty-state";
 import type { AnalyticsDashboardData } from "#/db/analytics-queries";
-import { formatBRT, formatDayMonth } from "#/lib/date";
+import { formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
 
@@ -57,14 +57,15 @@ type TooltipProps = {
 	active?: boolean;
 	payload?: Array<{ value: number }>;
 	label?: string;
+	locale: Locale;
 };
 
-function ChartTooltip({ active, payload, label }: TooltipProps) {
+function ChartTooltip({ active, payload, label, locale }: TooltipProps) {
 	if (!active || !payload?.length || label === undefined) return null;
 	const d = new Date(label);
 	return (
 		<div className="rounded-md border border-border bg-card px-3 py-2 text-sm shadow-sm">
-			<p className="text-foreground-muted">{formatBRT(d)}</p>
+			<p className="text-foreground-muted">{formatDayMonth(d, locale)}</p>
 			<p className="font-semibold text-foreground">{payload[0].value}</p>
 		</div>
 	);
@@ -130,7 +131,7 @@ export function DailyTrendChart({ dailyTrend, locale, postId }: Props) {
 								tickLine={false}
 								width={32}
 							/>
-							<Tooltip content={<ChartTooltip />} />
+							<Tooltip content={<ChartTooltip locale={locale} />} />
 							<Line
 								type="monotone"
 								dataKey="count"

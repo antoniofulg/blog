@@ -125,7 +125,9 @@ function makePost(overrides: Partial<Post> = {}): Post {
 }
 
 function resetMocks() {
-	vi.clearAllMocks();
+	// resetAllMocks clears call counts AND purges pending mockResolvedValueOnce
+	// queues — preventing stale One-time values from leaking into later tests.
+	vi.resetAllMocks();
 	mocks.selectWhere.mockResolvedValue([]);
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
@@ -308,30 +310,22 @@ describe("unit: incrementViewCountFn", () => {
 		);
 	});
 
-	it("bot UA: recordPostView is called with the bot request; db.update is never called directly", async () => {
-		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
+	it("bot UA: early return before DB query — recordPostView is never called", async () => {
 		// Simulate a Googlebot request arriving via getRequest().
+		// The bot check now runs BEFORE the lang SELECT (issue_009 fix), so no
+		// DB query is made and recordPostView is never reached.
 		mocks.getRequest.mockReturnValueOnce(
 			new Request("http://localhost/", {
 				headers: { "User-Agent": BOT_UA },
 			}),
 		);
-		// recordPostView returns the bot-rejection result.
-		mocks.recordPostView.mockResolvedValueOnce({
-			recorded: false,
-			counterIncremented: false,
-		});
 
 		await incrementViewCountFn(42);
 
-		// recordPostView is called — the bot gate lives inside the boundary.
-		expect(mocks.recordPostView).toHaveBeenCalledTimes(1);
-		const callArg = mocks.recordPostView.mock.calls[0][0] as {
-			request: Request;
-		};
-		expect(callArg.request.headers.get("User-Agent")).toContain("Googlebot");
-
-		// No direct db.update call — incrementViewCountFn no longer owns the counter.
+		// Bot is identified before any DB I/O; recordPostView must NOT be called.
+		expect(mocks.recordPostView).not.toHaveBeenCalled();
+		// No DB reads or writes issued.
+		expect(mocks.select).not.toHaveBeenCalled();
 		expect(mocks.update).not.toHaveBeenCalled();
 	});
 

@@ -101,7 +101,7 @@ describe("RangeSelector — preset labels (AC-3)", () => {
 	it("shows the correct pt-br label for current value on trigger", () => {
 		renderSelector("ytd", "pt-br");
 		const t = strings["pt-br"].admin.analytics.range;
-		expect(screen.getByRole("button").textContent).toContain(t["ytd"]);
+		expect(screen.getByRole("button").textContent).toContain(t.ytd);
 	});
 });
 
@@ -141,7 +141,7 @@ describe("RangeSelector — click selection", () => {
 		fireEvent.click(screen.getByRole("button"));
 		const list = screen.getByRole("listbox");
 		const t = strings.en.admin.analytics.range;
-		fireEvent.click(within(list).getByText(t["all"]));
+		fireEvent.click(within(list).getByText(t.all));
 		expect(onSelect).toHaveBeenCalledTimes(1);
 	});
 });
@@ -327,5 +327,26 @@ describe("RangeSelector — ARIA attributes", () => {
 		for (const opt of nonSelected) {
 			expect(opt.getAttribute("aria-selected")).toBe("false");
 		}
+	});
+
+	it("each option has a stable id matching range-opt-<range>", () => {
+		renderSelector("30d");
+		fireEvent.click(screen.getByRole("button"));
+		const options = screen.getAllByRole("option");
+		for (const [i, r] of RANGE_OPTIONS.entries()) {
+			expect(options[i].getAttribute("id")).toBe(`range-opt-${r}`);
+		}
+	});
+
+	it("listbox has aria-activedescendant pointing to the focused option id", () => {
+		// value="7d" → focusedIdx=0 on open. ArrowDown → focusedIdx=1 ("30d").
+		renderSelector("7d", "en");
+		fireEvent.click(screen.getByRole("button"));
+		const list = screen.getByRole("listbox");
+		// After open, focusedIdx = indexOf("7d") = 0
+		expect(list.getAttribute("aria-activedescendant")).toBe("range-opt-7d");
+		// Arrow down → focusedIdx = 1 → "30d"
+		fireEvent.keyDown(list, { key: "ArrowDown" });
+		expect(list.getAttribute("aria-activedescendant")).toBe("range-opt-30d");
 	});
 });

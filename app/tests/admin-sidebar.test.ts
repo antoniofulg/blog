@@ -22,6 +22,24 @@ const mocks = vi.hoisted(() => {
 
 vi.mock("@tanstack/react-router", () => ({
 	useLocation: () => ({ pathname: mocks.getPathname() }),
+	// Link renders as <a href={to}> so existing test selectors (getByRole("link"),
+	// .closest("a"), getAttribute("href")) continue to work unchanged.
+	Link: ({
+		to,
+		children,
+		className,
+		"aria-current": ariaCurrent,
+	}: {
+		to: string;
+		children: React.ReactNode;
+		className?: string;
+		"aria-current"?: string;
+	}) =>
+		React.createElement(
+			"a",
+			{ href: to, className, "aria-current": ariaCurrent },
+			children,
+		),
 }));
 
 // Provide LOCALES so that strings.ts module-level validation loop works.

@@ -76,4 +76,34 @@ describe("bucketReferrer", () => {
 	it("returns other for a protocol-relative string", () => {
 		expect(bucketReferrer("//example.com/page")).toBe("other");
 	});
+
+	// ── Google TLD tightening (typosquatting guard) ──────────────────────────────
+
+	it("maps google.com to google (canonical TLD)", () => {
+		expect(bucketReferrer("https://google.com/search?q=test")).toBe("google");
+	});
+
+	it("maps google.com.br to google (multi-part country TLD)", () => {
+		expect(bucketReferrer("https://google.com.br/search?q=test")).toBe(
+			"google",
+		);
+	});
+
+	it("maps www.google.com to google (subdomain variant)", () => {
+		expect(bucketReferrer("https://www.google.com/search?q=test")).toBe(
+			"google",
+		);
+	});
+
+	it("returns other for google.evil.com (typosquatting domain starting with google.)", () => {
+		expect(bucketReferrer("https://google.evil.com/page")).toBe("other");
+	});
+
+	it("returns other for google.example.org (unknown TLD after google.)", () => {
+		expect(bucketReferrer("https://google.example.org/page")).toBe("other");
+	});
+
+	it("returns other for google.fake (single-word unknown TLD)", () => {
+		expect(bucketReferrer("https://google.fake/search")).toBe("other");
+	});
 });

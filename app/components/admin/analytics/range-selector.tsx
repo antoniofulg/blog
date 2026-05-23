@@ -105,7 +105,7 @@ export function RangeSelector({ value, locale, onSelect }: Props) {
 
 	useEffect(() => {
 		if (!open) return;
-		const handleMouseDown = (e: MouseEvent) => {
+		const handleOutside = (e: Event) => {
 			if (
 				!listRef.current?.contains(e.target as Node) &&
 				!buttonRef.current?.contains(e.target as Node)
@@ -113,8 +113,8 @@ export function RangeSelector({ value, locale, onSelect }: Props) {
 				setOpen(false);
 			}
 		};
-		document.addEventListener("mousedown", handleMouseDown);
-		return () => document.removeEventListener("mousedown", handleMouseDown);
+		document.addEventListener("pointerdown", handleOutside);
+		return () => document.removeEventListener("pointerdown", handleOutside);
 	}, [open]);
 
 	// ── Render ──────────────────────────────────────────────────────────────────
@@ -142,6 +142,11 @@ export function RangeSelector({ value, locale, onSelect }: Props) {
 					ref={listRef}
 					role="listbox"
 					aria-label="Select time range"
+					aria-activedescendant={
+						focusedIdx >= 0
+							? `range-opt-${RANGE_OPTIONS[focusedIdx]}`
+							: undefined
+					}
 					tabIndex={-1}
 					onKeyDown={handleListKeyDown}
 					className="absolute right-0 z-10 mt-1 min-w-[10rem] rounded-md border border-border bg-card py-1 shadow-md focus:outline-none"
@@ -149,6 +154,7 @@ export function RangeSelector({ value, locale, onSelect }: Props) {
 					{RANGE_OPTIONS.map((r, i) => (
 						<div
 							key={r}
+							id={`range-opt-${r}`}
 							role="option"
 							aria-selected={r === value}
 							data-focused={i === focusedIdx ? "true" : undefined}

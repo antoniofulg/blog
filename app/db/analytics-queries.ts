@@ -126,6 +126,101 @@ function resolvePreviousPeriod(
 	};
 }
 
+// ── Gap-fill helpers ──────────────────────────────────────────────────────────
+
+/**
+ * Fill zero-count gaps between date rows so charts render a continuous daily
+ * timeline. Returns `rows` unchanged when empty (no data → no axis to fill).
+ *
+ * For the `"all"` range, `window.start` is the Unix epoch — filling from there
+ * would generate thousands of rows. Instead we fill from the first data row's
+ * date, which is always the true earliest event date.
+ *
+ * Exported for unit testing.
+ */
+export function fillDailyGaps(
+	rows: Array<{ date: string; count: number }>,
+	{ start, end }: DateWindow,
+	range: AnalyticsRange,
+): Array<{ date: string; count: number }> {
+	if (rows.length === 0) return [];
+
+	const existing = new Map(rows.map((r) => [r.date, r.count]));
+
+	const fillStart =
+		range === "all"
+			? new Date(`${rows[0].date}T00:00:00Z`)
+			: new Date(
+					Date.UTC(
+						start.getUTCFullYear(),
+						start.getUTCMonth(),
+						start.getUTCDate(),
+					),
+				);
+
+	const fillEnd = new Date(
+		Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()),
+	);
+
+	const result: Array<{ date: string; count: number }> = [];
+	const cursor = new Date(fillStart);
+	while (cursor <= fillEnd) {
+		const dateStr = cursor.toISOString().slice(0, 10);
+		result.push({ date: dateStr, count: existing.get(dateStr) ?? 0 });
+		cursor.setUTCDate(cursor.getUTCDate() + 1);
+	}
+	return result;
+}
+
+/**
+ * Fill zero-count date gaps in long-format referrer-by-day data.
+ *
+ * For missing dates, inserts a sentinel row `{ date, source: "other", count: 0 }`
+ * so `pivotReferrerByDay` creates a WideEntry that anchors the date on the
+ * chart's X-axis without adding any visible bar (count = 0).
+ *
+ * Same `"all"` range special-case as `fillDailyGaps` — fill from first row's
+ * date, not the epoch.
+ *
+ * Exported for unit testing.
+ */
+export function fillReferrerDayGaps(
+	rows: Array<{ date: string; source: string; count: number }>,
+	{ start, end }: DateWindow,
+	range: AnalyticsRange,
+): Array<{ date: string; source: string; count: number }> {
+	if (rows.length === 0) return [];
+
+	const presentDates = new Set(rows.map((r) => r.date));
+
+	const fillStart =
+		range === "all"
+			? new Date(`${rows[0].date}T00:00:00Z`)
+			: new Date(
+					Date.UTC(
+						start.getUTCFullYear(),
+						start.getUTCMonth(),
+						start.getUTCDate(),
+					),
+				);
+
+	const fillEnd = new Date(
+		Date.UTC(end.getUTCFullYear(), end.getUTCMonth(), end.getUTCDate()),
+	);
+
+	const gaps: Array<{ date: string; source: string; count: number }> = [];
+	const cursor = new Date(fillStart);
+	while (cursor <= fillEnd) {
+		const dateStr = cursor.toISOString().slice(0, 10);
+		if (!presentDates.has(dateStr)) {
+			gaps.push({ date: dateStr, source: "other", count: 0 });
+		}
+		cursor.setUTCDate(cursor.getUTCDate() + 1);
+	}
+
+	return [...rows, ...gaps].sort((a, b) => a.date.localeCompare(b.date));
+}
+
 // ── SQL helper ────────────────────────────────────────────────────────────────
 
 /**
@@ -345,15 +440,20 @@ export async function getAnalyticsDashboard(
 				(prevTotalRows as Array<{ total: number | string }>)[0]?.total ?? 0,
 			),
 		},
-		dailyTrend: dailyRows.map((r) => ({
-			date: r.date as string,
-			count: Number(r.cnt),
-		})),
-		referrerByDay: referrerDayRows.map((r) => ({
-			date: r.date as string,
-			source: r.source,
-			count: Number(r.cnt),
-		})),
+		dailyTrend: fillDailyGaps(
+			dailyRows.map((r) => ({ date: r.date as string, count: Number(r.cnt) })),
+			window,
+			range,
+		),
+		referrerByDay: fillReferrerDayGaps(
+			referrerDayRows.map((r) => ({
+				date: r.date as string,
+				source: r.source,
+				count: Number(r.cnt),
+			})),
+			window,
+			range,
+		),
 		topPosts: topPostsRows.map((r) => ({
 			postId: r.postId,
 			slug: r.slug,

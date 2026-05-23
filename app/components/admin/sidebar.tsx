@@ -1,4 +1,4 @@
-import { useLocation } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { strings } from "#/lib/i18n/strings";
 import { useLocale } from "#/lib/locale";
 
@@ -34,8 +34,8 @@ export function AdminSidebar() {
 					const active = isActive(pathname);
 					return (
 						<li key={key}>
-							<a
-								href={href}
+							<Link
+								to={href}
 								aria-current={active ? "page" : undefined}
 								className={[
 									"flex items-center rounded-md px-3 py-2 text-sm font-medium transition-colors",
@@ -47,7 +47,7 @@ export function AdminSidebar() {
 								].join(" ")}
 							>
 								{t[key]}
-							</a>
+							</Link>
 						</li>
 					);
 				})}
