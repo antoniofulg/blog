@@ -83,8 +83,9 @@ export function DailyTrendChart({ dailyTrend, locale, postId }: Props) {
 	const isEmpty = dailyTrend.length === 0;
 
 	return (
-		<div
+		<section
 			data-testid="daily-trend-chart"
+			aria-label={t.widgets.dailyTrend}
 			className="rounded-lg border border-border bg-card p-4"
 		>
 			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
@@ -104,52 +105,72 @@ export function DailyTrendChart({ dailyTrend, locale, postId }: Props) {
 					}
 				/>
 			) : (
-				<ResponsiveContainer width="100%" height={220}>
-					<LineChart
-						data={dailyTrend}
-						margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-					>
-						<CartesianGrid
-							strokeDasharray="3 3"
-							stroke="var(--color-border)"
-							vertical={false}
-						/>
-						<XAxis
-							dataKey="date"
-							tickFormatter={formatTick}
-							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-							axisLine={false}
-							tickLine={false}
-						/>
-						<YAxis
-							allowDecimals={false}
-							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-							axisLine={false}
-							tickLine={false}
-							width={32}
-						/>
-						<Tooltip content={<ChartTooltip />} />
-						<Line
-							type="monotone"
-							dataKey="count"
-							stroke="var(--color-chart-1)"
-							strokeWidth={2}
-							dot={false}
-							activeDot={{ r: 4, fill: "var(--color-chart-1)" }}
-						/>
-						{peaks.map((peak) => (
-							<ReferenceDot
-								key={peak.date}
-								x={peak.date}
-								y={peak.count}
-								r={5}
-								fill="var(--color-chart-4)"
-								stroke="none"
+				<>
+					<ResponsiveContainer width="100%" height={220}>
+						<LineChart
+							data={dailyTrend}
+							margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+						>
+							<CartesianGrid
+								strokeDasharray="3 3"
+								stroke="var(--color-border)"
+								vertical={false}
 							/>
-						))}
-					</LineChart>
-				</ResponsiveContainer>
+							<XAxis
+								dataKey="date"
+								tickFormatter={formatTick}
+								tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+								axisLine={false}
+								tickLine={false}
+							/>
+							<YAxis
+								allowDecimals={false}
+								tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+								axisLine={false}
+								tickLine={false}
+								width={32}
+							/>
+							<Tooltip content={<ChartTooltip />} />
+							<Line
+								type="monotone"
+								dataKey="count"
+								stroke="var(--color-chart-1)"
+								strokeWidth={2}
+								dot={false}
+								activeDot={{ r: 4, fill: "var(--color-chart-1)" }}
+							/>
+							{peaks.map((peak) => (
+								<ReferenceDot
+									key={peak.date}
+									x={peak.date}
+									y={peak.count}
+									r={5}
+									fill="var(--color-chart-4)"
+									stroke="none"
+								/>
+							))}
+						</LineChart>
+					</ResponsiveContainer>
+
+					{/* Screen-reader fallback: same data as the visual chart */}
+					<table className="sr-only" aria-label={t.widgets.dailyTrend}>
+						<thead>
+							<tr>
+								<th scope="col">{t.a11y.columnDate}</th>
+								<th scope="col">{t.topPostsTable.columnVisits}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{dailyTrend.map((point) => (
+								<tr key={point.date}>
+									<td>{point.date}</td>
+									<td>{point.count}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</>
 			)}
-		</div>
+		</section>
 	);
 }

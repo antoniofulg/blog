@@ -133,8 +133,9 @@ export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 	const isEmpty = referrerByDay.length === 0;
 
 	return (
-		<div
+		<section
 			data-testid="referrer-sources-bar"
+			aria-label={t.widgets.referrerSources}
 			className="rounded-lg border border-border bg-card p-4"
 		>
 			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
@@ -154,43 +155,66 @@ export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 					}
 				/>
 			) : (
-				<ResponsiveContainer width="100%" height={220}>
-					<BarChart
-						data={chartData}
-						margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-					>
-						<CartesianGrid
-							strokeDasharray="3 3"
-							stroke="var(--color-border)"
-							vertical={false}
-						/>
-						<XAxis
-							dataKey="date"
-							tickFormatter={formatTick}
-							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-							axisLine={false}
-							tickLine={false}
-						/>
-						<YAxis
-							allowDecimals={false}
-							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-							axisLine={false}
-							tickLine={false}
-							width={32}
-						/>
-						<Tooltip />
-						<Legend />
-						{activeSources.map((source) => (
-							<Bar
-								key={source}
-								dataKey={source}
-								stackId="referrers"
-								fill={SOURCE_COLOR_MAP[source]}
+				<>
+					<ResponsiveContainer width="100%" height={220}>
+						<BarChart
+							data={chartData}
+							margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+						>
+							<CartesianGrid
+								strokeDasharray="3 3"
+								stroke="var(--color-border)"
+								vertical={false}
 							/>
-						))}
-					</BarChart>
-				</ResponsiveContainer>
+							<XAxis
+								dataKey="date"
+								tickFormatter={formatTick}
+								tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+								axisLine={false}
+								tickLine={false}
+							/>
+							<YAxis
+								allowDecimals={false}
+								tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+								axisLine={false}
+								tickLine={false}
+								width={32}
+							/>
+							<Tooltip />
+							<Legend />
+							{activeSources.map((source) => (
+								<Bar
+									key={source}
+									dataKey={source}
+									stackId="referrers"
+									fill={SOURCE_COLOR_MAP[source]}
+								/>
+							))}
+						</BarChart>
+					</ResponsiveContainer>
+
+					{/* Screen-reader fallback: raw referrer-by-day rows */}
+					<table className="sr-only" aria-label={t.widgets.referrerSources}>
+						<thead>
+							<tr>
+								<th scope="col">{t.a11y.columnDate}</th>
+								<th scope="col">{t.a11y.columnSource}</th>
+								<th scope="col">{t.topPostsTable.columnVisits}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{referrerByDay.map((row, i) => (
+								// biome-ignore lint/suspicious/noArrayIndexKey: sr-only table rows have no stable id; index is safe here
+								<tr key={i}>
+									<td>{row.date}</td>
+									<td>{row.source}</td>
+									<td>{row.count}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
+				</>
 			)}
-		</div>
+		</section>
 	);
 }

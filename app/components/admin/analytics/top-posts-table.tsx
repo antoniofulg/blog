@@ -65,8 +65,9 @@ export function TopPostsTable({ topPosts, locale, onRowClick, postId }: Props) {
 	const t = strings[locale].admin.analytics;
 
 	return (
-		<div
+		<section
 			data-testid="top-posts-table"
+			aria-label={t.widgets.topPosts}
 			className="rounded-lg border border-border bg-card p-4"
 		>
 			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
@@ -90,7 +91,7 @@ export function TopPostsTable({ topPosts, locale, onRowClick, postId }: Props) {
 					<table className="w-full">
 						<thead>
 							<tr className="border-b border-border">
-								<th className="pb-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
+								<th className="sticky left-0 z-10 bg-card pb-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
 									{t.topPostsTable.columnTitle}
 								</th>
 								<th className="pb-2 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
@@ -120,7 +121,7 @@ export function TopPostsTable({ topPosts, locale, onRowClick, postId }: Props) {
 									}}
 									className="cursor-pointer border-b border-border transition-colors last:border-0 hover:bg-muted focus:outline-none focus-visible:bg-muted"
 								>
-									<td className="py-2 pr-3 text-sm font-medium text-foreground">
+									<td className="sticky left-0 z-10 bg-card py-2 pr-3 text-sm font-medium text-foreground">
 										<span className="line-clamp-1">{post.title}</span>
 									</td>
 									<td className="py-2 pr-3">
@@ -138,6 +139,6 @@ export function TopPostsTable({ topPosts, locale, onRowClick, postId }: Props) {
 					</table>
 				</div>
 			)}
-		</div>
+		</section>
 	);
 }

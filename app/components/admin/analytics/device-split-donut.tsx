@@ -76,8 +76,9 @@ export function DeviceSplitDonut({ deviceSplit, locale, postId }: Props) {
 	const barData = useMemo(() => [{ ...deviceSplit }], [deviceSplit]);
 
 	return (
-		<div
+		<section
 			data-testid="device-split-donut"
+			aria-label={t.widgets.deviceSplit}
 			className="rounded-lg border border-border bg-card p-4"
 		>
 			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
@@ -99,7 +100,10 @@ export function DeviceSplitDonut({ deviceSplit, locale, postId }: Props) {
 			) : (
 				<>
 					{/* Donut variant — hidden below 480 px */}
-					<div className="hidden min-[480px]:block">
+					<div
+						data-testid="device-donut-wrapper"
+						className="hidden min-[480px]:block"
+					>
 						<ResponsiveContainer width="100%" height={220}>
 							<PieChart>
 								<Pie
@@ -127,7 +131,10 @@ export function DeviceSplitDonut({ deviceSplit, locale, postId }: Props) {
 					</div>
 
 					{/* Horizontal stacked bar — visible below 480 px */}
-					<div className="block min-[480px]:hidden">
+					<div
+						data-testid="device-bar-wrapper"
+						className="block min-[480px]:hidden"
+					>
 						<ResponsiveContainer width="100%" height={60}>
 							<BarChart
 								data={barData}
@@ -146,8 +153,26 @@ export function DeviceSplitDonut({ deviceSplit, locale, postId }: Props) {
 							</BarChart>
 						</ResponsiveContainer>
 					</div>
+
+					{/* Screen-reader fallback: same data as the visual chart */}
+					<table className="sr-only" aria-label={t.widgets.deviceSplit}>
+						<thead>
+							<tr>
+								<th scope="col">{t.a11y.columnDevice}</th>
+								<th scope="col">{t.topPostsTable.columnVisits}</th>
+							</tr>
+						</thead>
+						<tbody>
+							{DEVICE_CLASSES.map((device) => (
+								<tr key={device}>
+									<td>{device}</td>
+									<td>{deviceSplit[device]}</td>
+								</tr>
+							))}
+						</tbody>
+					</table>
 				</>
 			)}
-		</div>
+		</section>
 	);
 }

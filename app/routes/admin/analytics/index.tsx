@@ -1,3 +1,10 @@
+// Accessibility notes (task_19):
+// - Each chart widget is a <section aria-label="..."> landmark (implicit role="region" with accessible name).
+// - Chart widgets include a visually-hidden sr-only <table> so screen-reader users can navigate the raw data.
+// - The top-posts table has a sticky first column (sticky left-0 bg-card z-10) for horizontal-scroll usability.
+// - DeviceSplitDonut shows a donut at ≥480 px and a horizontal stacked bar below 480 px (Tailwind responsive classes).
+// - All interactive elements (RangeSelector trigger, FilterChip X, TopPostsTable rows) have focus-visible styles.
+// - Tab order: RangeSelector trigger → (if visible) FilterChip X → TopPostsTable rows.
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { AnalyticsDashboardSkeleton } from "#/components/admin/analytics/analytics-skeleton";

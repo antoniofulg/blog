@@ -128,7 +128,7 @@ export function RangeSelector({ value, locale, onSelect }: Props) {
 				aria-expanded={open}
 				onClick={() => (open ? setOpen(false) : openDropdown())}
 				onKeyDown={handleButtonKeyDown}
-				className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-border-strong focus:outline-none focus:ring-2 focus:ring-accent"
+				className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-border-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
 			>
 				{t[value]}
 				{/* biome-ignore lint/a11y/noAriaHiddenOnFocusable: decorative chevron */}

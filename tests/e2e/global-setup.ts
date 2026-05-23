@@ -7,9 +7,10 @@ import * as authSchema from "#/db/auth-schema";
 import * as schema from "#/db/schema";
 import {
 	seedAdminUser,
+	seedAnalyticsEvents,
+	seedEnOnlyFixturePost,
 	seedFixturePost,
 	seedPublishedFixturePosts,
-	seedEnOnlyFixturePost,
 } from "./seed";
 
 // Path written by scripts/e2e-server.ts before Playwright runs global setup.
@@ -60,6 +61,32 @@ export default async function globalSetup(): Promise<void> {
 
 	const publicFixture = await seedPublishedFixturePosts(db);
 	const enOnlyPost = await seedEnOnlyFixturePost(db);
+
+	// Seed analytics events for the filter-cascade E2E spec (task_20).
+	// 10 events for fixture post (top post) + 5 for publicFixtureEn (second post),
+	// spread across the last 14 days so they appear in both 30d and 90d ranges.
+	const now = Date.now();
+	const MS_PER_DAY = 86_400_000;
+	await seedAnalyticsEvents(db, [
+		// 10 events for fixture post — spread over days 0-9
+		...Array.from({ length: 10 }, (_, i) => ({
+			postId: fixture.id,
+			createdAt: new Date(now - (i % 14) * MS_PER_DAY),
+			referrerSource: (["google", "direct", "linkedin"] as const)[i % 3],
+			lang: "en" as const,
+			device: (["desktop", "mobile", "desktop"] as const)[i % 3],
+			isBot: false,
+		})),
+		// 5 events for public fixture post — spread over days 0, 3, 6, 9, 12
+		...Array.from({ length: 5 }, (_, i) => ({
+			postId: publicFixture.enId,
+			createdAt: new Date(now - ((i * 3) % 14) * MS_PER_DAY),
+			referrerSource: (["github", "direct"] as const)[i % 2],
+			lang: "en" as const,
+			device: "desktop" as const,
+			isBot: false,
+		})),
+	]);
 
 	// Persist env vars for the test worker process
 	process.env.E2E_ADMIN_USER_ID = adminUserId;

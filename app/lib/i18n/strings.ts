@@ -46,6 +46,11 @@ export const uiStringsSchema = z.object({
 				columnLanguage: z.string(),
 				columnVisits: z.string(),
 			}),
+			a11y: z.object({
+				columnDate: z.string(),
+				columnSource: z.string(),
+				columnDevice: z.string(),
+			}),
 			filter: z.object({
 				activeChip: z.string(),
 				clearAll: z.string(),
@@ -106,6 +111,11 @@ export const strings: Record<Locale, UIStrings> = {
 					columnLanguage: "Language",
 					columnVisits: "Visits",
 				},
+				a11y: {
+					columnDate: "Date",
+					columnSource: "Source",
+					columnDevice: "Device",
+				},
 				filter: {
 					activeChip: "Filtered by post:",
 					clearAll: "Clear filter",
@@ -163,6 +173,11 @@ export const strings: Record<Locale, UIStrings> = {
 					columnTitle: "Título",
 					columnLanguage: "Idioma",
 					columnVisits: "Visitas",
+				},
+				a11y: {
+					columnDate: "Data",
+					columnSource: "Origem",
+					columnDevice: "Dispositivo",
 				},
 				filter: {
 					activeChip: "Filtrado por post:",
