@@ -20,6 +20,7 @@ import { Route as PtBrIndexRouteImport } from './routes/pt-br.index'
 import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as Char123LocaleChar125SlugRouteImport } from './routes/{-$locale}/$slug'
+import { Route as AdminAnalyticsIndexRouteImport } from './routes/admin/analytics/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const Char123LocaleChar125Route = Char123LocaleChar125RouteImport.update({
@@ -79,6 +80,11 @@ const Char123LocaleChar125SlugRoute =
     path: '/$slug',
     getParentRoute: () => Char123LocaleChar125Route,
   } as any)
+const AdminAnalyticsIndexRoute = AdminAnalyticsIndexRouteImport.update({
+  id: '/analytics/',
+  path: '/analytics/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -98,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -110,6 +117,7 @@ export interface FileRoutesByTo {
   '/pt-br': typeof PtBrIndexRoute
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/analytics': typeof AdminAnalyticsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
@@ -125,6 +133,7 @@ export interface FileRoutesById {
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
@@ -141,6 +150,7 @@ export interface FileRouteTypes {
     | '/pt-br/'
     | '/{-$locale}/'
     | '/api/auth/$'
+    | '/admin/analytics/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -153,6 +163,7 @@ export interface FileRouteTypes {
     | '/pt-br'
     | '/{-$locale}'
     | '/api/auth/$'
+    | '/admin/analytics'
   id:
     | '__root__'
     | '/admin'
@@ -167,6 +178,7 @@ export interface FileRouteTypes {
     | '/pt-br/'
     | '/{-$locale}/'
     | '/api/auth/$'
+    | '/admin/analytics/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
@@ -260,6 +272,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof Char123LocaleChar125SlugRouteImport
       parentRoute: typeof Char123LocaleChar125Route
     }
+    '/admin/analytics/': {
+      id: '/admin/analytics/'
+      path: '/analytics'
+      fullPath: '/admin/analytics/'
+      preLoaderRoute: typeof AdminAnalyticsIndexRouteImport
+      parentRoute: typeof AdminRoute
+    }
     '/api/auth/$': {
       id: '/api/auth/$'
       path: '/api/auth/$'
@@ -272,10 +291,12 @@ declare module '@tanstack/react-router' {
 
 interface AdminRouteChildren {
   AdminIndexRoute: typeof AdminIndexRoute
+  AdminAnalyticsIndexRoute: typeof AdminAnalyticsIndexRoute
 }
 
 const AdminRouteChildren: AdminRouteChildren = {
   AdminIndexRoute: AdminIndexRoute,
+  AdminAnalyticsIndexRoute: AdminAnalyticsIndexRoute,
 }
 
 const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
