@@ -42,7 +42,7 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
-// Give Route a controllable useLoaderData / useSearch.
+// Give Route a controllable useLoaderData / useSearch / useNavigate.
 // Plain mock — no importOriginal to avoid loading two React instances.
 // lazyRouteComponent stub is required: TanStack Start Vite plugin injects a check for it.
 vi.mock("@tanstack/react-router", () => ({
@@ -52,6 +52,7 @@ vi.mock("@tanstack/react-router", () => ({
 			...opts,
 			useLoaderData: () => mocks.state.loaderData,
 			useSearch: () => ({ range: "30d" as const }),
+			useNavigate: () => vi.fn(),
 		}),
 	redirect: (opts: unknown) => ({
 		__redirect: true,
@@ -61,6 +62,35 @@ vi.mock("@tanstack/react-router", () => ({
 		typeof e === "object" && e !== null && "__redirect" in e,
 	// TanStack Start plugin injects an import of lazyRouteComponent in route files.
 	lazyRouteComponent: (fn: () => unknown) => fn,
+}));
+
+// Stub Recharts so jsdom tests don't fail on ResizeObserver / SVG layout.
+vi.mock("recharts", () => ({
+	ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
+		children,
+	LineChart: ({
+		children,
+		data,
+	}: {
+		children: React.ReactNode;
+		data: unknown[];
+	}) =>
+		React.createElement(
+			"div",
+			{ "data-testid": "line-chart", "data-count": data.length },
+			children,
+		),
+	Line: () => null,
+	XAxis: () => null,
+	YAxis: () => null,
+	Tooltip: () => null,
+	CartesianGrid: () => null,
+	ReferenceDot: ({ x, y }: { x: string; y: number }) =>
+		React.createElement("div", {
+			"data-testid": "reference-dot",
+			"data-x": x,
+			"data-y": y,
+		}),
 }));
 
 // Mock locale — must export LOCALES so strings.ts validation loop works.
@@ -313,9 +343,14 @@ describe("AnalyticsDashboard component", () => {
 		).toBeDefined();
 	});
 
-	it("renders the daily trend placeholder slot", () => {
+	it("renders the DailyTrendChart widget (task 13)", () => {
 		render(React.createElement(AnalyticsDashboard));
-		expect(screen.getByTestId("daily-trend-placeholder")).toBeDefined();
+		expect(screen.getByTestId("daily-trend-chart")).toBeDefined();
+	});
+
+	it("renders the RangeSelector widget (task 13)", () => {
+		render(React.createElement(AnalyticsDashboard));
+		expect(screen.getByTestId("range-selector")).toBeDefined();
 	});
 
 	it("renders the referrer sources placeholder slot", () => {

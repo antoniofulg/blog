@@ -1,6 +1,9 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
+import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
+import { RangeSelector } from "#/components/admin/analytics/range-selector";
 import { SummaryCards } from "#/components/admin/analytics/summary-cards";
+import type { AnalyticsRange } from "#/db/analytics-queries";
 import { strings } from "#/lib/i18n/strings";
 import { useLocale } from "#/lib/locale";
 import { getAnalyticsDashboardServerFn } from "./index.server";
@@ -43,15 +46,30 @@ export const Route = createFileRoute("/admin/analytics/")({
 export function AnalyticsDashboard() {
 	// Data consumed by widget components in tasks 12-16; call ensures loader re-fires on deps change.
 	const data = Route.useLoaderData();
+	const { range } = Route.useSearch();
+	const navigate = Route.useNavigate();
 	const { locale } = useLocale();
 	const t = strings[locale].admin.analytics;
+
+	// ADR-006: functional updater preserves postId when changing range.
+	const handleRangeSelect = (newRange: AnalyticsRange) => {
+		void navigate({ search: (prev) => ({ ...prev, range: newRange }) });
+	};
 
 	return (
 		<div className="px-5 py-10 lg:px-10">
 			<div className="mx-auto max-w-6xl">
-				<h1 className="font-heading text-3xl font-bold text-foreground">
-					{t.pageTitle}
-				</h1>
+				{/* Header row: title + range selector (top-right, ADR-006 / task 13) */}
+				<div className="flex flex-wrap items-center justify-between gap-4">
+					<h1 className="font-heading text-3xl font-bold text-foreground">
+						{t.pageTitle}
+					</h1>
+					<RangeSelector
+						value={range}
+						locale={locale}
+						onSelect={handleRangeSelect}
+					/>
+				</div>
 
 				{/* Summary cards — task 12 */}
 				<div className="mt-8">
@@ -59,10 +77,9 @@ export function AnalyticsDashboard() {
 				</div>
 
 				{/* Daily trend chart — task 13 */}
-				<div
-					data-testid="daily-trend-placeholder"
-					className="mt-4 h-72 rounded-lg border border-border bg-card"
-				/>
+				<div className="mt-4">
+					<DailyTrendChart dailyTrend={data.dailyTrend} locale={locale} />
+				</div>
 
 				{/* Referrer sources bar — task 14 */}
 				<div
