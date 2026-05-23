@@ -55,13 +55,11 @@ ssh -p "$VPS_PORT" \
    GHCR_OWNER=$GHCR_OWNER GHCR_REPO=$GHCR_REPO IMAGE_TAG=$TAG \
      docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' up -d --no-deps app
 
-   # Smoke test (skipped when DEPLOY_DOMAIN is unset)
+   # Smoke test (skipped when DEPLOY_DOMAIN is unset). On failure: rollback + exit.
    if [ -n \"$DOMAIN\" ]; then
      echo '[deploy] running smoke test...'
      sleep 10
-     if curl --fail --silent --max-time 10 https://$DOMAIN > /dev/null; then
-       echo '[deploy] smoke test passed — done: $IMAGE'
-     else
+     if ! curl --fail --silent --max-time 10 https://$DOMAIN > /dev/null; then
        echo '[deploy] smoke test FAILED — rolling back to \${OLD_IMAGE:-previous}'
        if [ -n \"\$OLD_IMAGE\" ]; then
          docker tag \"\$OLD_IMAGE\" ghcr.io/$GHCR_OWNER/$GHCR_REPO:latest
@@ -73,6 +71,19 @@ ssh -p "$VPS_PORT" \
        fi
        exit 1
      fi
-   else
-     echo '[deploy] done: $IMAGE'
-   fi"
+     echo '[deploy] smoke test passed'
+   fi
+
+   # Prune stale images: keep current ($IMAGE) + 1 rollback candidate (\$OLD_IMAGE).
+   # Drop every other ghcr.io/$GHCR_OWNER/$GHCR_REPO tag/digest and dangling blobs.
+   NEW_ID=\$(docker image inspect --format='{{.Id}}' '$IMAGE' 2>/dev/null || true)
+   OLD_ID=\$(docker image inspect --format='{{.Id}}' \"\$OLD_IMAGE\" 2>/dev/null || true)
+   if [ -n \"\$NEW_ID\" ]; then
+     docker images --no-trunc --format '{{.ID}}' 'ghcr.io/$GHCR_OWNER/$GHCR_REPO' \
+       | sort -u \
+       | grep -vxF -e \"\$NEW_ID\" -e \"\${OLD_ID:-__none__}\" \
+       | xargs -r docker rmi -f >/dev/null 2>&1 || true
+     docker image prune -f >/dev/null 2>&1 || true
+   fi
+
+   echo '[deploy] done: $IMAGE'"
