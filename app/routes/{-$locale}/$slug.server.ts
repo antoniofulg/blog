@@ -149,15 +149,30 @@ export async function getPostBySlugWithLangFn(
 }
 
 export async function incrementViewCountFn(id: number): Promise<void> {
-	const [{ db }, { posts }, { eq, sql }] = await Promise.all([
+	const [{ getRequest }, { db }, { posts }, { eq }] = await Promise.all([
+		import("@tanstack/react-start/server"),
 		import("#/db/client"),
 		import("#/db/schema"),
 		import("drizzle-orm"),
 	]);
-	await db
-		.update(posts)
-		.set({ viewCount: sql`view_count + 1` })
+
+	const request = getRequest();
+
+	// Read lang server-side so the client call signature (`{ data: post.id }`)
+	// stays unchanged — the client useEffect does not need to pass lang.
+	const [post] = await db
+		.select({ lang: posts.lang })
+		.from(posts)
 		.where(eq(posts.id, id));
+
+	if (!post) return;
+
+	const lang = post.lang as "en" | "pt-br";
+
+	const { recordPostView } = await import(
+		"#/lib/analytics/record-event.server"
+	);
+	await recordPostView({ postId: id, request, lang });
 }
 
 export function validateLocaleInput(data: { slug: string; lang: string }): {
