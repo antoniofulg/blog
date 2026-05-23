@@ -17,9 +17,11 @@ export const posts = pgTable(
 		lang: text("lang").notNull().default("en"),
 		title: text("title").notNull(),
 		description: text("description"),
-		publishedAt: timestamp("published_at"),
+		publishedAt: timestamp("published_at", { withTimezone: true }),
 		viewCount: integer("view_count").notNull().default(0),
-		indexedAt: timestamp("indexed_at").notNull().defaultNow(),
+		indexedAt: timestamp("indexed_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
 		category: text("category"),
 		series: text("series"),
 		seriesPart: integer("series_part"),

@@ -29,6 +29,13 @@
       "when": 1779335520747,
       "tag": "0003_hesitant_cassandra_nova",
       "breakpoints": true
+    },
+    {
+      "idx": 4,
+      "version": "7",
+      "when": 1779510269824,
+      "tag": "0004_posts_timestamptz",
+      "breakpoints": true
     }
   ]
 }

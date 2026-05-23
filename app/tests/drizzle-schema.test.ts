@@ -52,9 +52,19 @@ describe("unit: posts schema", () => {
 		expect(col.notNull).toBeFalsy();
 	});
 
+	it("published_at uses withTimezone: true (timestamptz)", () => {
+		const col = posts.publishedAt as unknown as Record<string, unknown>;
+		expect(col.withTimezone).toBe(true);
+	});
+
 	it("indexed_at has defaultNow()", () => {
 		const col = posts.indexedAt;
 		expect(col.hasDefault).toBe(true);
+	});
+
+	it("indexed_at uses withTimezone: true (timestamptz)", () => {
+		const col = posts.indexedAt as unknown as Record<string, unknown>;
+		expect(col.withTimezone).toBe(true);
 	});
 
 	it("Post type has expected shape (compile-time check)", () => {

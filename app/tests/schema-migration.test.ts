@@ -106,6 +106,102 @@ describe("unit: migration file 0003", () => {
 	});
 });
 
+// ─── Unit: TZ migration (0004) ──────────────────────────────────────────────
+
+describe("unit: posts schema — timestamptz columns", () => {
+	it("publishedAt Drizzle column definition uses withTimezone: true", () => {
+		const col = posts.publishedAt as unknown as Record<string, unknown>;
+		expect(col.withTimezone).toBe(true);
+	});
+
+	it("indexedAt Drizzle column definition uses withTimezone: true", () => {
+		const col = posts.indexedAt as unknown as Record<string, unknown>;
+		expect(col.withTimezone).toBe(true);
+	});
+
+	it("migration file 0004 exists in drizzle/", async () => {
+		const files = await import("node:fs/promises").then((m) =>
+			m.readdir(join(root, "drizzle")),
+		);
+		const migration = files.find((f) => f.startsWith("0004_"));
+		expect(migration).toBeDefined();
+	});
+
+	it("migration 0004 SQL alters published_at to timestamptz USING UTC", async () => {
+		const sql = await readFile(
+			join(root, "drizzle", "0004_posts_timestamptz.sql"),
+			"utf8",
+		);
+		const upper = sql.toUpperCase();
+		expect(upper).toContain("ALTER TABLE");
+		expect(upper).toContain("ALTER COLUMN");
+		expect(upper).toContain("PUBLISHED_AT");
+		expect(upper).toContain("TIMESTAMP WITH TIME ZONE");
+		expect(upper).toContain("AT TIME ZONE");
+		expect(upper).toContain("UTC");
+	});
+
+	it("migration 0004 SQL alters indexed_at to timestamptz USING UTC", async () => {
+		const sql = await readFile(
+			join(root, "drizzle", "0004_posts_timestamptz.sql"),
+			"utf8",
+		);
+		const upper = sql.toUpperCase();
+		expect(upper).toContain("INDEXED_AT");
+		expect(upper).toContain("TIMESTAMP WITH TIME ZONE");
+	});
+
+	it("migration 0004 SQL does not DROP any column", async () => {
+		const sql = await readFile(
+			join(root, "drizzle", "0004_posts_timestamptz.sql"),
+			"utf8",
+		);
+		expect(sql.toUpperCase()).not.toContain("DROP COLUMN");
+		expect(sql.toUpperCase()).not.toContain("DROP TABLE");
+	});
+
+	it("drizzle/meta/_journal.json contains entry for 0004_posts_timestamptz", async () => {
+		const raw = await readFile(
+			join(root, "drizzle", "meta", "_journal.json"),
+			"utf8",
+		);
+		const journal = JSON.parse(raw) as {
+			entries: Array<{ idx: number; tag: string }>;
+		};
+		const entry = journal.entries.find(
+			(e) => e.tag === "0004_posts_timestamptz",
+		);
+		expect(entry).toBeDefined();
+		expect(entry?.idx).toBe(4);
+	});
+
+	it("snapshot 0004 shows published_at as timestamp with time zone", async () => {
+		const raw = await readFile(
+			join(root, "drizzle", "meta", "0004_snapshot.json"),
+			"utf8",
+		);
+		const snapshot = JSON.parse(raw) as {
+			tables: { "public.posts": { columns: Record<string, { type: string }> } };
+		};
+		expect(snapshot.tables["public.posts"].columns.published_at.type).toBe(
+			"timestamp with time zone",
+		);
+	});
+
+	it("snapshot 0004 shows indexed_at as timestamp with time zone", async () => {
+		const raw = await readFile(
+			join(root, "drizzle", "meta", "0004_snapshot.json"),
+			"utf8",
+		);
+		const snapshot = JSON.parse(raw) as {
+			tables: { "public.posts": { columns: Record<string, { type: string }> } };
+		};
+		expect(snapshot.tables["public.posts"].columns.indexed_at.type).toBe(
+			"timestamp with time zone",
+		);
+	});
+});
+
 // ─── Integration: migration round-trip ──────────────────────────────────────
 
 describe.skipIf(port5432Free)(
