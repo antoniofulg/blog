@@ -25,6 +25,10 @@ const mocks = vi.hoisted(() => {
 		locale: "en" as Locale,
 		requireSessionShouldThrow: false,
 		dashboardResult: undefined as unknown,
+		searchParams: {
+			range: "30d" as "7d" | "30d" | "90d" | "mtd" | "ytd" | "all",
+			postId: undefined as number | undefined,
+		},
 	};
 	const callOrder: string[] = [];
 	const requireSessionSpy = vi.fn();
@@ -58,7 +62,7 @@ vi.mock("@tanstack/react-router", () => ({
 		(opts: Record<string, unknown>): Record<string, unknown> => ({
 			...opts,
 			useLoaderData: () => mocks.state.loaderData,
-			useSearch: () => ({ range: "30d" as const }),
+			useSearch: () => mocks.state.searchParams,
 			useNavigate: () => mocks.navigateSpy,
 		}),
 	redirect: (opts: unknown) => ({
@@ -218,6 +222,7 @@ beforeEach(() => {
 	mocks.state.locale = "en";
 	mocks.state.loaderData = makeDashboardData();
 	mocks.state.dashboardResult = makeDashboardData();
+	mocks.state.searchParams = { range: "30d", postId: undefined };
 });
 
 afterEach(cleanup);
@@ -449,6 +454,48 @@ describe("AnalyticsDashboard component", () => {
 
 		expect(enTitle).toBe(strings.en.admin.analytics.pageTitle);
 		expect(ptTitle).toBe(strings["pt-br"].admin.analytics.pageTitle);
+	});
+
+	// ── FilterChip integration (task 17) ─────────────────────────────────────────
+
+	it("filter chip is absent from DOM when no postId in search params (AC-1)", () => {
+		mocks.state.searchParams = { range: "30d", postId: undefined };
+		render(React.createElement(AnalyticsDashboard));
+		expect(screen.queryByTestId("filter-chip")).toBeNull();
+	});
+
+	it("filter chip renders when postId is set in search params (AC-2)", () => {
+		mocks.state.searchParams = { range: "30d", postId: 1 };
+		render(React.createElement(AnalyticsDashboard));
+		expect(screen.getByTestId("filter-chip")).toBeDefined();
+	});
+
+	it("filter chip shows resolved title from topPosts (AC-2)", () => {
+		mocks.state.searchParams = { range: "30d", postId: 1 };
+		render(React.createElement(AnalyticsDashboard));
+		const chip = screen.getByTestId("filter-chip");
+		// makeDashboardData topPosts[0].title === "Hello"
+		expect(chip.textContent).toContain("Hello");
+	});
+
+	it("filter chip X click calls navigate with updater that removes postId, preserves range (AC-3)", () => {
+		mocks.state.searchParams = { range: "90d", postId: 1 };
+		render(React.createElement(AnalyticsDashboard));
+		const chip = screen.getByTestId("filter-chip");
+		const btn = within(chip).getByRole("button");
+		fireEvent.click(btn);
+		expect(mocks.navigateSpy).toHaveBeenCalledTimes(1);
+		const callArg = mocks.navigateSpy.mock.calls[0][0] as {
+			search: (prev: { range: string; postId?: number }) => {
+				range: string;
+				postId?: number;
+			};
+		};
+		const updater = callArg.search;
+		// Functional updater must preserve range and remove postId.
+		const result = updater({ range: "90d", postId: 1 });
+		expect(result.range).toBe("90d"); // range preserved
+		expect(result.postId).toBeUndefined(); // postId cleared
 	});
 });
 

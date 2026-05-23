@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
 import { DeviceSplitDonut } from "#/components/admin/analytics/device-split-donut";
+import { FilterChip } from "#/components/admin/analytics/filter-chip";
 import { RangeSelector } from "#/components/admin/analytics/range-selector";
 import { ReferrerSourcesBar } from "#/components/admin/analytics/referrer-sources-bar";
 import { SummaryCards } from "#/components/admin/analytics/summary-cards";
@@ -49,7 +50,7 @@ export const Route = createFileRoute("/admin/analytics/")({
 export function AnalyticsDashboard() {
 	// Data consumed by widget components in tasks 12-16; call ensures loader re-fires on deps change.
 	const data = Route.useLoaderData();
-	const { range } = Route.useSearch();
+	const { range, postId } = Route.useSearch();
 	const navigate = Route.useNavigate();
 	const { locale } = useLocale();
 	const t = strings[locale].admin.analytics;
@@ -62,6 +63,11 @@ export function AnalyticsDashboard() {
 	// ADR-006: functional updater preserves range when setting postId filter.
 	const handleRowClick = (postId: number) => {
 		void navigate({ search: (prev) => ({ ...prev, postId }) });
+	};
+
+	// ADR-006: functional updater preserves range and removes only postId.
+	const handleClearFilter = () => {
+		void navigate({ search: (prev) => ({ ...prev, postId: undefined }) });
 	};
 
 	return (
@@ -78,6 +84,18 @@ export function AnalyticsDashboard() {
 						onSelect={handleRangeSelect}
 					/>
 				</div>
+
+				{/* Filter chip — task 17: visible when postId is in URL */}
+				{postId !== undefined && (
+					<div className="mt-4">
+						<FilterChip
+							postId={postId}
+							topPosts={data.topPosts}
+							locale={locale}
+							onClear={handleClearFilter}
+						/>
+					</div>
+				)}
 
 				{/* Summary cards — task 12 */}
 				<div className="mt-8">
