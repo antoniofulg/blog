@@ -1,5 +1,8 @@
+import { sql } from "drizzle-orm";
 import {
+	bigserial,
 	boolean,
+	index,
 	integer,
 	pgTable,
 	serial,
@@ -32,3 +35,31 @@ export const posts = pgTable(
 
 export type Post = typeof posts.$inferSelect;
 export type NewPost = typeof posts.$inferInsert;
+
+export const analyticsEvents = pgTable(
+	"analytics_events",
+	{
+		id: bigserial("id", { mode: "number" }).primaryKey(),
+		postId: integer("post_id")
+			.notNull()
+			.references(() => posts.id, { onDelete: "cascade" }),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		referrerSource: text("referrer_source").notNull(),
+		lang: text("lang").notNull(),
+		device: text("device").notNull(),
+		countryCode: text("country_code"),
+		isBot: boolean("is_bot").notNull().default(false),
+	},
+	(t) => [
+		index("idx_events_post_created").on(t.postId, t.createdAt.desc()),
+		index("idx_events_created").on(t.createdAt.desc()),
+		index("idx_events_nonbot_created")
+			.on(t.createdAt.desc())
+			.where(sql`is_bot = false`),
+	],
+);
+
+export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
+export type NewAnalyticsEvent = typeof analyticsEvents.$inferInsert;
