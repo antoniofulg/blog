@@ -89,7 +89,7 @@ export function DailyTrendChart({ dailyTrend, locale, postId }: Props) {
 			aria-label={t.widgets.dailyTrend}
 			className="rounded-lg border border-border bg-card p-4"
 		>
-			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
+			<h2 className="mb-4 text-sm font-medium text-foreground-muted">
 				{t.widgets.dailyTrend}
 			</h2>
 

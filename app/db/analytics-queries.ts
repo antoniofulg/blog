@@ -213,7 +213,7 @@ export function fillReferrerDayGaps(
 	while (cursor <= fillEnd) {
 		const dateStr = cursor.toISOString().slice(0, 10);
 		if (!presentDates.has(dateStr)) {
-			gaps.push({ date: dateStr, source: "other", count: 0 });
+			gaps.push({ date: dateStr, source: "__gap__", count: 0 });
 		}
 		cursor.setUTCDate(cursor.getUTCDate() + 1);
 	}

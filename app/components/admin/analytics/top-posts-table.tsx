@@ -70,7 +70,7 @@ export function TopPostsTable({ topPosts, locale, onRowClick, postId }: Props) {
 			aria-label={t.widgets.topPosts}
 			className="rounded-lg border border-border bg-card p-4"
 		>
-			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
+			<h2 className="mb-4 text-sm font-medium text-foreground-muted">
 				{t.widgets.topPosts}
 			</h2>
 

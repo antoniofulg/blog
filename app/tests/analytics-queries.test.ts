@@ -609,7 +609,42 @@ describe("fillReferrerDayGaps", () => {
 		);
 		const jan2 = result.filter((r) => r.date === "2025-01-02");
 		expect(jan2).toHaveLength(1);
-		expect(jan2[0]).toEqual({ date: "2025-01-02", source: "other", count: 0 });
+		expect(jan2[0]).toEqual({
+			date: "2025-01-02",
+			source: "__gap__",
+			count: 0,
+		});
+	});
+
+	it("gap sentinel is not a real ReferrerSource — does not pollute activeSources", () => {
+		// Simulates a blog with only LinkedIn traffic + one quiet gap day.
+		// The activeSources computation in referrer-sources-bar.tsx filters
+		// ALL_SOURCES against the set of sources present in the filled rows.
+		// "__gap__" must NOT appear in ALL_SOURCES so "other" stays absent.
+		const ALL_SOURCES = [
+			"linkedin",
+			"google",
+			"github",
+			"twitter",
+			"reddit",
+			"hackernews",
+			"dev.to",
+			"medium",
+			"bluesky",
+			"mastodon",
+			"direct",
+			"other",
+		];
+		const rows = [{ date: "2025-01-01", source: "linkedin", count: 5 }];
+		const result = fillReferrerDayGaps(
+			rows,
+			w("2025-01-01", "2025-01-02"),
+			"7d",
+		);
+		const present = new Set(result.map((r) => r.source));
+		const activeSources = ALL_SOURCES.filter((s) => present.has(s));
+		expect(activeSources).toEqual(["linkedin"]);
+		expect(activeSources).not.toContain("other");
 	});
 
 	it("output is sorted by date", () => {
