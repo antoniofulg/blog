@@ -62,6 +62,13 @@ export const ROUTE_METADATA: Record<string, RouteMetadataEntry> = {
 		expectedStatus: 200,
 		intent: "post detail",
 	},
+	"admin.tsx": {
+		path: "/admin",
+		locale: null,
+		auth: "admin",
+		expectedStatus: null,
+		intent: "admin layout shell with sidebar",
+	},
 	"admin/index.tsx": {
 		path: "/admin",
 		locale: null,
