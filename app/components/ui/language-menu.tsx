@@ -134,8 +134,8 @@ const LanguagePair = forwardRef<
 								isActive
 									? "cursor-default font-semibold text-foreground"
 									: isAvailable
-										? "font-medium text-foreground-secondary hover:text-foreground"
-										: "font-medium text-foreground-muted hover:text-foreground-secondary"
+										? "cursor-pointer font-medium text-foreground-secondary hover:text-foreground"
+										: "cursor-pointer font-medium text-foreground-muted hover:text-foreground-secondary"
 							}`}
 						>
 							{localeCode[locale]}
@@ -191,8 +191,8 @@ function LanguageList({
 									isActive
 										? "cursor-default font-semibold text-foreground"
 										: isAvailable
-											? "font-medium text-foreground-secondary hover:text-foreground"
-											: "font-medium text-foreground-muted hover:text-foreground-secondary"
+											? "cursor-pointer font-medium text-foreground-secondary hover:text-foreground"
+											: "cursor-pointer font-medium text-foreground-muted hover:text-foreground-secondary"
 								}`}
 							>
 								<span>{label}</span>
