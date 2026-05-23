@@ -72,6 +72,8 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 // Stub Recharts so jsdom tests don't fail on ResizeObserver / SVG layout.
+// Any new dashboard widget that adds a Recharts chart type MUST add its stub here
+// (see workflow memory: "Recharts mock pattern for jsdom tests").
 vi.mock("recharts", () => ({
 	ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
 		children,
@@ -101,6 +103,29 @@ vi.mock("recharts", () => ({
 		),
 	Bar: ({ dataKey }: { dataKey: string }) =>
 		React.createElement("div", { "data-testid": "bar", "data-key": dataKey }),
+	// PieChart / Pie / Cell — added for DeviceSplitDonut (task_16)
+	PieChart: ({ children }: { children: React.ReactNode }) =>
+		React.createElement("div", { "data-testid": "pie-chart" }, children),
+	Pie: ({
+		data,
+		innerRadius,
+		children,
+	}: {
+		data: unknown[];
+		innerRadius: number;
+		children?: React.ReactNode;
+	}) =>
+		React.createElement(
+			"div",
+			{
+				"data-testid": "pie",
+				"data-count": data.length,
+				"data-inner-radius": innerRadius,
+			},
+			children,
+		),
+	Cell: ({ fill }: { fill: string }) =>
+		React.createElement("div", { "data-testid": "cell", "data-fill": fill }),
 	Legend: () =>
 		React.createElement("div", { "data-testid": "recharts-legend" }),
 	Line: () => null,
@@ -407,9 +432,9 @@ describe("AnalyticsDashboard component", () => {
 		expect(result.postId).toBe(1); // makeDashboardData topPosts[0].postId === 1
 	});
 
-	it("renders the device split placeholder slot", () => {
+	it("renders the device split donut widget (task 16)", () => {
 		render(React.createElement(AnalyticsDashboard));
-		expect(screen.getByTestId("device-split-placeholder")).toBeDefined();
+		expect(screen.getByTestId("device-split-donut")).toBeDefined();
 	});
 
 	it("page title matches strings for both locales", () => {

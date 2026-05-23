@@ -1,6 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
+import { DeviceSplitDonut } from "#/components/admin/analytics/device-split-donut";
 import { RangeSelector } from "#/components/admin/analytics/range-selector";
 import { ReferrerSourcesBar } from "#/components/admin/analytics/referrer-sources-bar";
 import { SummaryCards } from "#/components/admin/analytics/summary-cards";
@@ -103,10 +104,7 @@ export function AnalyticsDashboard() {
 						locale={locale}
 						onRowClick={handleRowClick}
 					/>
-					<div
-						data-testid="device-split-placeholder"
-						className="h-72 rounded-lg border border-border bg-card"
-					/>
+					<DeviceSplitDonut deviceSplit={data.deviceSplit} locale={locale} />
 				</div>
 			</div>
 		</div>
