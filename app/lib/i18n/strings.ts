@@ -27,8 +27,8 @@ export const strings: Record<Locale, UIStrings> = {
 		},
 		notFound: {
 			title: "Page not found",
-			body: "Nothing here. Check the URL or head back to the writing.",
-			homeCta: "← Writing",
+			body: "Nothing here. Check the URL or head back to the posts.",
+			homeCta: "← Posts",
 		},
 	},
 	"pt-br": {
@@ -39,8 +39,8 @@ export const strings: Record<Locale, UIStrings> = {
 		},
 		notFound: {
 			title: "Página não encontrada",
-			body: "Nada aqui. Verifique o URL ou volte para os artigos.",
-			homeCta: "← Escrita",
+			body: "Nada aqui. Verifique o URL ou volte para os posts.",
+			homeCta: "← Posts",
 		},
 	},
 };

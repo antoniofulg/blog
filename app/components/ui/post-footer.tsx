@@ -7,11 +7,11 @@ const publishedByLocale: Record<Locale, string> = {
 	"pt-br": "Publicado em",
 };
 
-// Matches homepage H1 ("Writing" / "Escrita") — consistent label across all
-// back-navigation from post pages to the listing.
-const writingByLocale: Record<Locale, string> = {
-	en: "Writing",
-	"pt-br": "Escrita",
+// Matches homepage H1 ("Posts") — consistent label across all back-navigation
+// from post pages to the listing.
+const listingLabelByLocale: Record<Locale, string> = {
+	en: "Posts",
+	"pt-br": "Posts",
 };
 
 const dateLocale: Record<Locale, string> = {
@@ -56,7 +56,7 @@ export function PostFooter({ publishedAt, postLang, requestedLang }: Props) {
 				className="inline-flex min-h-[44px] items-center gap-1.5 self-start rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground-secondary transition-colors hover:border-border-strong hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			>
 				<ArrowLeft className="h-4 w-4" aria-hidden="true" />
-				<span>{writingByLocale[requestedLang]}</span>
+				<span>{listingLabelByLocale[requestedLang]}</span>
 			</Link>
 		</footer>
 	);

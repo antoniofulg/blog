@@ -8,8 +8,8 @@ const eyebrowByLocale: Record<Locale, string> = {
 };
 
 const allPostsByLocale: Record<Locale, string> = {
-	en: "Writing",
-	"pt-br": "Escrita",
+	en: "Posts",
+	"pt-br": "Posts",
 };
 
 const publishedByLocale: Record<Locale, string> = {

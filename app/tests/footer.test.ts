@@ -133,7 +133,7 @@ describe("unit: Footer copy (locale=en)", () => {
 	it("renders English tagline", () => {
 		renderFooter();
 		expect(
-			document.body.textContent?.includes("Notes on web development"),
+			document.body.textContent?.includes("Daily lessons from shipping"),
 		).toBe(true);
 	});
 

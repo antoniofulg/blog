@@ -19,9 +19,9 @@ const navLinksByLocale: Record<
 };
 
 const tagline: Record<Locale, string> = {
-	en: "Notes on web development, React, TypeScript, and modern tooling.",
+	en: "Daily lessons from shipping software — patterns, gotchas, refactors, and the tools that change how I work.",
 	"pt-br":
-		"Notas sobre desenvolvimento web, React, TypeScript e ferramentas modernas.",
+		"Lições do dia a dia entregando software — padrões, pegadinhas, refactors e as ferramentas que mudam como eu trabalho.",
 };
 
 const rightsReserved: Record<Locale, string> = {

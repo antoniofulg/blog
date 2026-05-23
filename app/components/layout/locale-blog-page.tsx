@@ -16,17 +16,17 @@ import { DEFAULT_LOCALE, type Locale } from "#/lib/locale";
 const copy = {
 	en: {
 		eyebrow: "Articles",
-		heading: "Writing",
+		heading: "Posts",
 		subtitle:
-			"Notes on web development, React, TypeScript, Bun, and modern tooling.",
+			"Daily lessons from shipping software — patterns, gotchas, refactors, and the tools that change how I work.",
 		emptyTitle: "No articles found",
 		emptyDesc: "No published articles yet.",
 	},
 	"pt-br": {
 		eyebrow: "Artigos",
-		heading: "Escrita",
+		heading: "Posts",
 		subtitle:
-			"Notas sobre desenvolvimento web, React, TypeScript, Bun e ferramentas modernas.",
+			"Lições do dia a dia entregando software — padrões, pegadinhas, refactors e as ferramentas que mudam como eu trabalho.",
 		emptyTitle: "Nenhum artigo encontrado",
 		emptyDesc: "Não há artigos publicados ainda.",
 	},
