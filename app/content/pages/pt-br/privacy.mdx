@@ -1,0 +1,47 @@
+---
+title: Privacidade
+description: Como este blog rastreia visualizações de posts sem cookies, fingerprints ou armazenamento de IP — e o que isso significa para você.
+publishedAt: 2026-05-23
+---
+
+# Privacidade
+
+Este blog coleta analytics mínimos e anônimos para entender quais posts são úteis. Sem cookies. Sem scripts de terceiros. Nenhum dado pessoal sai do servidor.
+
+## O que é coletado
+
+Cada visualização de post registra os seguintes dados no banco de dados:
+
+| Campo | Valor armazenado |
+|---|---|
+| **Timestamp** | Quando a visualização aconteceu (UTC). |
+| **ID do post** | Qual post foi visualizado. |
+| **Fonte do referrer** | Categoria agrupada: `linkedin`, `google`, `github`, `twitter`, `reddit`, `hackernews`, `dev.to`, `medium`, `bluesky`, `mastodon`, `direct` ou `other`. A URL bruta do referrer não é armazenada. |
+| **Idioma** | O locale do post — `en` ou `pt-br`. |
+| **Tipo de dispositivo** | Categoria agrupada: `mobile`, `tablet` ou `desktop`. A string bruta do user-agent não é armazenada. |
+
+Nenhum endereço IP é armazenado. Nenhum país é derivado ou armazenado (V1). Nenhum identificador de sessão é criado. Nenhum cookie é definido.
+
+## O que NÃO é coletado
+
+- **Endereço IP** — não é registrado, armazenado nem processado.
+- **Cookies** — zero cookies são definidos para fins de analytics.
+- **Fingerprint do navegador** — nenhuma técnica de fingerprinting é utilizada (canvas, fonte, WebGL ou similar).
+- **Rastreamento cross-site** — sem pixel beacons, sem identificadores compartilhados com outros sites.
+- **País ou cidade** — resolução geográfica não é realizada na V1.
+- **URL exata do referrer** — a URL completa é reduzida a uma categoria de origem antes do armazenamento; a string original é descartada.
+- **String do user-agent** — reduzida a uma classe de dispositivo antes do armazenamento; a string original é descartada.
+
+## Filtro de bots
+
+Crawlers automatizados (bots de motores de busca, scrapers de SEO, monitores de uptime, crawlers de treinamento de IA) são detectados pela sua string de user-agent e excluídos de todos os dados de analytics, incluindo o contador público de visualizações exibido em cada post. O contador público reflete apenas visitas humanas.
+
+Este filtro está alinhado com as diretrizes da CNIL para medição de audiência sem cookies (Folha n°16), que permitem analytics sem banner de consentimento quando os dados são estritamente limitados a medições anônimas e sem rastreamento cross-site.
+
+## Retenção de dados
+
+Os eventos de analytics são armazenados em um banco de dados PostgreSQL auto-hospedado em um VPS privado. Nenhum dado é enviado para serviços de analytics de terceiros. Não há limite de retenção definido na V1; uma política de limpeza por janela deslizante é uma consideração para V2.
+
+## Seus direitos
+
+Como nenhum dado pessoal é coletado, não há dados pessoais para acessar, corrigir ou excluir sob GDPR, LGPD ou estruturas similares. Se tiver alguma dúvida, envie um e-mail para [antoniofulg@gmail.com](mailto:antoniofulg@gmail.com).

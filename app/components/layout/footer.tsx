@@ -11,10 +11,12 @@ const navLinksByLocale: Record<
 	en: [
 		{ label: "Home", to: "/" },
 		{ label: "About", to: "/en/about" },
+		{ label: "Privacy", to: "/en/privacy" },
 	],
 	"pt-br": [
 		{ label: "Home", to: "/pt-br/" },
 		{ label: "Sobre", to: "/pt-br/about" },
+		{ label: "Privacidade", to: "/pt-br/privacy" },
 	],
 };
 
