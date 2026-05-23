@@ -41,6 +41,11 @@ export const uiStringsSchema = z.object({
 				ytd: z.string(),
 				all: z.string(),
 			}),
+			topPostsTable: z.object({
+				columnTitle: z.string(),
+				columnLanguage: z.string(),
+				columnVisits: z.string(),
+			}),
 			filter: z.object({
 				activeChip: z.string(),
 				clearAll: z.string(),
@@ -94,6 +99,11 @@ export const strings: Record<Locale, UIStrings> = {
 					ytd: "Year to date",
 					all: "All time",
 				},
+				topPostsTable: {
+					columnTitle: "Title",
+					columnLanguage: "Language",
+					columnVisits: "Visits",
+				},
 				filter: {
 					activeChip: "Filtered by post:",
 					clearAll: "Clear filter",
@@ -143,6 +153,11 @@ export const strings: Record<Locale, UIStrings> = {
 					mtd: "Mês atual",
 					ytd: "Ano atual",
 					all: "Tudo",
+				},
+				topPostsTable: {
+					columnTitle: "Título",
+					columnLanguage: "Idioma",
+					columnVisits: "Visitas",
 				},
 				filter: {
 					activeChip: "Filtrado por post:",

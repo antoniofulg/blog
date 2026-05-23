@@ -5,7 +5,13 @@
  * Component rendering is tested with @testing-library/react in jsdom.
  * Server fn and schema tests run in the same env (jsdom is permissive enough).
  */
-import { cleanup, render, screen } from "@testing-library/react";
+import {
+	cleanup,
+	fireEvent,
+	render,
+	screen,
+	within,
+} from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -23,8 +29,9 @@ const mocks = vi.hoisted(() => {
 	const callOrder: string[] = [];
 	const requireSessionSpy = vi.fn();
 	const getDashboardSpy = vi.fn();
+	const navigateSpy = vi.fn();
 
-	return { state, callOrder, requireSessionSpy, getDashboardSpy };
+	return { state, callOrder, requireSessionSpy, getDashboardSpy, navigateSpy };
 });
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
@@ -52,7 +59,7 @@ vi.mock("@tanstack/react-router", () => ({
 			...opts,
 			useLoaderData: () => mocks.state.loaderData,
 			useSearch: () => ({ range: "30d" as const }),
-			useNavigate: () => vi.fn(),
+			useNavigate: () => mocks.navigateSpy,
 		}),
 	redirect: (opts: unknown) => ({
 		__redirect: true,
@@ -181,6 +188,7 @@ beforeEach(() => {
 	mocks.callOrder.length = 0;
 	mocks.requireSessionSpy.mockClear();
 	mocks.getDashboardSpy.mockClear();
+	mocks.navigateSpy.mockClear();
 	mocks.state.requireSessionShouldThrow = false;
 	mocks.state.locale = "en";
 	mocks.state.loaderData = makeDashboardData();
@@ -374,9 +382,29 @@ describe("AnalyticsDashboard component", () => {
 		expect(screen.getByTestId("referrer-sources-bar")).toBeDefined();
 	});
 
-	it("renders the top posts placeholder slot", () => {
+	it("renders the top posts table widget (task 15)", () => {
 		render(React.createElement(AnalyticsDashboard));
-		expect(screen.getByTestId("top-posts-placeholder")).toBeDefined();
+		expect(screen.getByTestId("top-posts-table")).toBeDefined();
+	});
+
+	it("top posts table row click calls navigate with functional postId updater (AC-3)", () => {
+		render(React.createElement(AnalyticsDashboard));
+		const table = screen.getByTestId("top-posts-table");
+		const rows = within(table).getAllByRole("button");
+		fireEvent.click(rows[0]);
+		expect(mocks.navigateSpy).toHaveBeenCalledTimes(1);
+		// Verify navigate received a functional updater that correctly sets postId.
+		const callArg = mocks.navigateSpy.mock.calls[0][0] as {
+			search: (prev: { range: string; postId?: number }) => {
+				range: string;
+				postId?: number;
+			};
+		};
+		const updater = callArg.search;
+		// Functional updater must preserve range while setting postId.
+		const result = updater({ range: "90d" });
+		expect(result.range).toBe("90d");
+		expect(result.postId).toBe(1); // makeDashboardData topPosts[0].postId === 1
 	});
 
 	it("renders the device split placeholder slot", () => {

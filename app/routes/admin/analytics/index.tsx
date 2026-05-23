@@ -4,6 +4,7 @@ import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart"
 import { RangeSelector } from "#/components/admin/analytics/range-selector";
 import { ReferrerSourcesBar } from "#/components/admin/analytics/referrer-sources-bar";
 import { SummaryCards } from "#/components/admin/analytics/summary-cards";
+import { TopPostsTable } from "#/components/admin/analytics/top-posts-table";
 import type { AnalyticsRange } from "#/db/analytics-queries";
 import { strings } from "#/lib/i18n/strings";
 import { useLocale } from "#/lib/locale";
@@ -57,6 +58,11 @@ export function AnalyticsDashboard() {
 		void navigate({ search: (prev) => ({ ...prev, range: newRange }) });
 	};
 
+	// ADR-006: functional updater preserves range when setting postId filter.
+	const handleRowClick = (postId: number) => {
+		void navigate({ search: (prev) => ({ ...prev, postId }) });
+	};
+
 	return (
 		<div className="px-5 py-10 lg:px-10">
 			<div className="mx-auto max-w-6xl">
@@ -92,9 +98,10 @@ export function AnalyticsDashboard() {
 
 				{/* Bottom row: top posts + device split — tasks 15, 16 */}
 				<div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-					<div
-						data-testid="top-posts-placeholder"
-						className="h-72 rounded-lg border border-border bg-card"
+					<TopPostsTable
+						topPosts={data.topPosts}
+						locale={locale}
+						onRowClick={handleRowClick}
 					/>
 					<div
 						data-testid="device-split-placeholder"
