@@ -1,0 +1,127 @@
+---
+title: "Two React Patterns Worth the Swap: Callback Refs and Object Lookups"
+slug: react-callback-ref-and-object-lookup
+description: Two small refactors that remove boilerplate without changing behavior — a callback ref instead of useRef + useEffect for measuring a DOM node, and an object lookup instead of a switch for conditional rendering.
+publishedAt: 2024-10-24
+---
+
+Some React patterns aren't wrong, they're just heavier than they need to be. You've written them dozens of times because the docs nudged you that way. Two of them — measuring a DOM node with `useRef` + `useEffect`, and rendering one of several variants with a `switch` — have cleaner replacements that take fewer lines, use fewer hooks, and read more directly.
+
+Both are mechanical swaps. No tradeoffs, no edge cases to learn. Just shorter code that says the same thing.
+
+## Pattern 1: Use a Callback Ref Instead of `useRef` + `useEffect`
+
+The default pattern for reading a DOM node's dimensions:
+
+```tsx
+function MeasuredBox({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    if (ref.current) {
+      setWidth(ref.current.offsetWidth);
+    }
+  }, []);
+
+  return (
+    <div ref={ref}>
+      <p>Width: {width}px</p>
+      {children}
+    </div>
+  );
+}
+```
+
+It works, but it's chatty. Two hooks, an effect that runs once just to grab a measurement that was already available the moment React attached the ref.
+
+A callback ref does the same job in one place:
+
+```tsx
+function MeasuredBox({ children }: { children: React.ReactNode }) {
+  const [width, setWidth] = useState(0);
+
+  const measureRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) setWidth(node.offsetWidth);
+  }, []);
+
+  return (
+    <div ref={measureRef}>
+      <p>Width: {width}px</p>
+      {children}
+    </div>
+  );
+}
+```
+
+The callback runs the moment React attaches the node and again any time the ref's owner changes. No `useEffect`, no `ref.current` indirection, and the measurement happens at the right moment by definition rather than by timing accident.
+
+When this matters more than the savings suggest:
+
+- **Conditional rendering of the measured element.** With a callback ref, you re-measure automatically when the element mounts or unmounts. The `useRef` + `useEffect` version needs the right dependency array or a `ResizeObserver` to keep up.
+- **`useEffect` runs after paint; the callback ref runs after commit.** For layout reads that drive subsequent renders, the callback ref avoids one paint flash.
+
+`useCallback` is here to keep the ref's identity stable so React doesn't detach and re-attach on every render — same rule as ["Stop Wrapping Every Function in useCallback"](/react-usecallback-when-it-helps).
+
+## Pattern 2: Use an Object Lookup Instead of a `switch`
+
+Conditional rendering by variant is the second classic boilerplate:
+
+```tsx
+function Status({ kind }: { kind: "loading" | "success" | "error" | "idle" }) {
+  switch (kind) {
+    case "loading":
+      return <Spinner />;
+    case "success":
+      return <CheckIcon />;
+    case "error":
+      return <ErrorIcon />;
+    case "idle":
+      return null;
+    default:
+      return null;
+  }
+}
+```
+
+An object lookup compresses the same intent:
+
+```tsx
+const STATUS_VIEWS = {
+  loading: <Spinner />,
+  success: <CheckIcon />,
+  error: <ErrorIcon />,
+  idle: null,
+} satisfies Record<"loading" | "success" | "error" | "idle", React.ReactNode>;
+
+function Status({ kind }: { kind: keyof typeof STATUS_VIEWS }) {
+  return STATUS_VIEWS[kind];
+}
+```
+
+What this trades for:
+
+- **The map is a data structure, not control flow.** Adding a new variant is one line. Removing one deletes a line. No `default` branch to forget.
+- **TypeScript helps.** `satisfies Record<..., React.ReactNode>` proves at compile time that every variant has an entry — drop a key and it won't compile.
+- **The lookup table is reusable.** Pass it around, merge it with another variant set, render it in a `<select>` for a debug toggle — it's just an object.
+
+When the variant body needs more than a static element — say it depends on props — promote the values to factory functions:
+
+```tsx
+const STATUS_VIEWS = {
+  loading: () => <Spinner />,
+  success: (msg: string) => <p>{msg}</p>,
+  error: (err: Error) => <ErrorIcon error={err} />,
+  idle: () => null,
+} as const;
+
+function Status({ kind, data }: Props) {
+  return STATUS_VIEWS[kind](data);
+}
+```
+
+The pattern scales until the variants need very different prop shapes — at which point a discriminated union with a `switch` is clearer again. The object lookup is the sweet spot for 3–10 variants that all render React nodes.
+
+---
+
+Both swaps remove a layer of indirection (an effect, a control structure) without changing what the code does. The reward isn't performance — it's intent. Less to scan, fewer places where a future edit can drift off the rails.

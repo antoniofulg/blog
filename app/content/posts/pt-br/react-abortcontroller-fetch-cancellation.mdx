@@ -1,0 +1,121 @@
+---
+title: "Cancele requisições com AbortController. Pare de vazar requisições no unmount."
+slug: react-abortcontroller-fetch-cancellation
+description: AbortController transforma um fetch numa requisição cancelável. Use sempre que um componente pode desmontar, sair da rota ou disparar uma requisição mais nova antes da anterior terminar — ou seja, na maioria das vezes.
+publishedAt: 2024-09-30
+---
+
+Abre a aba network do DevTools com um usuário clicando rápido e você normalmente vê uma pilha de requisições em andamento que ninguém mais tá esperando. O usuário clicou num link, o componente desmontou e o `fetch` que ele disparou no meio do render continua rodando na rede. Quando resolve, o handler tenta `setState` num componente que não existe mais — React antigo gritava sobre isso, React moderno só ignora, mas em qualquer caso você desperdiçou banda, tempo de servidor e possivelmente sobrescreveu dados mais frescos com resultado obsoleto.
+
+`AbortController` é a correção nativa. Um controller, um signal, uma chamada de `abort()` no cleanup. O fetch sabe que tem que desistir.
+
+## O padrão básico
+
+```tsx
+import { useEffect, useState } from "react";
+
+function UserCard({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(`/api/users/${userId}`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data: User) => setUser(data))
+      .catch((err) => {
+        if (err.name === "AbortError") return; // esperado no cleanup, engole
+        console.error(err);
+      });
+
+    return () => controller.abort();
+  }, [userId]);
+
+  return user ? <div>{user.name}</div> : <p>Loading…</p>;
+}
+```
+
+Duas coisas importam:
+
+1. **`controller.abort()` roda no cleanup.** O cleanup dispara quando o effect re-roda (novo `userId`) e quando o componente desmonta. Os dois casos jogam fora a requisição obsoleta.
+2. **`AbortError` é esperado, não excepcional.** Filtra ele antes de chegar no seu error handler de verdade — senão todo cleanup loga um erro de aparência assustadora.
+
+## Onde realmente compensa
+
+O padrão importa mais em alguns lugares do que em outros. Os casos onde dá pra sentir:
+
+- **Search-as-you-type.** Toda tecla dispara uma requisição. Sem cancelamento, a resposta de "rea" pode chegar *depois* da resposta de "react", sobrescrevendo sua resposta final com um resultado desatualizado. Com `AbortController`, toda nova tecla aborta a requisição anterior.
+- **Mudanças de tab e route.** Um usuário saindo no meio de um fetch não liga mais pros dados. Cancela e libera o slot da requisição.
+- **Polling que o usuário pode parar.** Um botão "pausar updates" pode chamar `controller.abort()` pra encerrar um long-poll em andamento de forma limpa.
+- **Renders concorrentes durante transitions.** React 18+ pode renderizar duas vezes durante transitions; se os dois renders disparam fetches, você quer o abandonado cancelado.
+
+## Um hook reutilizável
+
+A mesma forma, empacotada:
+
+```tsx
+import { useEffect, useState } from "react";
+
+type FetchState<T> =
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: Error };
+
+export function useFetchJson<T>(url: string): FetchState<T> {
+  const [state, setState] = useState<FetchState<T>>({ status: "loading" });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setState({ status: "loading" });
+
+    fetch(url, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<T>;
+      })
+      .then((data) => setState({ status: "success", data }))
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setState({ status: "error", error: err as Error });
+      });
+
+    return () => controller.abort();
+  }, [url]);
+
+  return state;
+}
+```
+
+Alguns detalhes que valem destacar:
+
+- `setState({ status: "loading" })` a cada re-run do effect dá um sinal honesto de UI durante refetches.
+- O cleanup roda *antes* do novo effect rodar, então o controller anterior já tá cancelado quando o novo fetch começa.
+
+## Além do fetch
+
+`AbortSignal` é um token de cancelamento de propósito geral. O mesmo controller pode cancelar:
+
+- Qualquer chamada de `fetch` (acima)
+- Um registro de `addEventListener` (`element.addEventListener("click", handler, { signal })`)
+- Um `EventSource` com suporte a signal (polyfill ou nativo)
+- Várias bibliotecas de terceiros que aceitam `{ signal }` nas opções de requisição
+
+Um `controller.abort()` num cleanup pode derrubar um buquê inteiro de subscriptions. Esse é o poder real — o signal é o protocolo; todo o resto entra por opção.
+
+---
+
+O modelo mental: **um fetch que você não consegue cancelar é um fetch do qual o componente é dono pra sempre**, mesmo depois do componente sumir. Embrulha todo `fetch` client-side num controller, aborta no cleanup, e a rede para de correr atrás de UI obsoleta.
+
+---
+
+## Update · 22/05/2026 — Onde isso ainda importa
+
+Em 2026, a maior parte do data fetching mudou pra route loaders (TanStack Start, Remix), Server Components (Next.js App Router) e hooks de bibliotecas (React Query, SWR). Essas camadas cuidam do cancelamento pra você — quando você sai da rota, o signal do loader já é abortado pelo framework, e o React Query auto-cancela queries em andamento quando os componentes desmontam.
+
+O que sobra pra `AbortController` na mão:
+
+- **Clientes de real-time e streaming** — WebSocket, `EventSource`, consumers de `ReadableStream`; as bibliotecas acima não cobrem isso.
+- **Ações imperativas** — um botão "download de arquivo grande" clicado pelo usuário onde você quer um affordance de "cancelar".
+- **Protocolos custom** — qualquer coisa que aceita um `AbortSignal` mas não tá embrulhado pela sua biblioteca de data fetching.
+
+Se você usa React Query ou SWR, confira a documentação delas pra cancelamento de query — elas expõem o signal pra sua query function pra você plugar num `fetch` sem gerenciar o controller na mão.

@@ -1,0 +1,121 @@
+---
+title: "Cancel Stale Fetches with AbortController. Stop Leaking Requests on Unmount."
+slug: react-abortcontroller-fetch-cancellation
+description: AbortController turns a fetch into a cancellable request. Use it whenever a component can unmount, navigate away, or fire a newer request before the older one finishes — which is most of the time.
+publishedAt: 2024-09-30
+---
+
+Open the DevTools network tab on a fast-clicking user and you'll usually see a pile of in-flight requests no one is waiting for anymore. The user clicked a link, the component unmounted, and the `fetch` it kicked off mid-render is still chugging along on the network. When it resolves, the handler tries to `setState` on a component that doesn't exist anymore — React used to scream about this, modern React just drops it, but either way you wasted bandwidth, server time, and possibly clobbered fresher data with stale results.
+
+`AbortController` is the built-in fix. One controller, one signal, one `abort()` call in cleanup. The fetch knows to give up.
+
+## The Basic Pattern
+
+```tsx
+import { useEffect, useState } from "react";
+
+function UserCard({ userId }: { userId: string }) {
+  const [user, setUser] = useState<User | null>(null);
+
+  useEffect(() => {
+    const controller = new AbortController();
+
+    fetch(`/api/users/${userId}`, { signal: controller.signal })
+      .then((res) => res.json())
+      .then((data: User) => setUser(data))
+      .catch((err) => {
+        if (err.name === "AbortError") return; // expected on cleanup, swallow it
+        console.error(err);
+      });
+
+    return () => controller.abort();
+  }, [userId]);
+
+  return user ? <div>{user.name}</div> : <p>Loading…</p>;
+}
+```
+
+Two things matter:
+
+1. **`controller.abort()` runs on cleanup.** Cleanup fires when the effect re-runs (new `userId`) and when the component unmounts. Both cases throw away the stale request.
+2. **`AbortError` is expected, not exceptional.** Filter it out before reaching your real error handler — otherwise every cleanup logs a scary-looking error.
+
+## Where It Actually Pays Off
+
+The pattern matters more in some places than others. The cases where you'll feel it:
+
+- **Search-as-you-type.** Every keystroke fires a request. Without cancellation, the response for "rea" might land *after* the response for "react", overwriting your final answer with an outdated one. With `AbortController`, every new keystroke aborts the previous request.
+- **Tab and route changes.** A user navigating away mid-fetch doesn't care about the data anymore. Cancel it and free the request slot.
+- **Polling that the user can stop.** A "pause updates" button can call `controller.abort()` to end an in-flight long-poll cleanly.
+- **Concurrent renders during transitions.** React 18+ may render twice during transitions; if both renders kick off fetches, you want the abandoned one cancelled.
+
+## A Reusable Hook
+
+The same shape, packaged:
+
+```tsx
+import { useEffect, useState } from "react";
+
+type FetchState<T> =
+  | { status: "loading" }
+  | { status: "success"; data: T }
+  | { status: "error"; error: Error };
+
+export function useFetchJson<T>(url: string): FetchState<T> {
+  const [state, setState] = useState<FetchState<T>>({ status: "loading" });
+
+  useEffect(() => {
+    const controller = new AbortController();
+    setState({ status: "loading" });
+
+    fetch(url, { signal: controller.signal })
+      .then((res) => {
+        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+        return res.json() as Promise<T>;
+      })
+      .then((data) => setState({ status: "success", data }))
+      .catch((err) => {
+        if (err.name === "AbortError") return;
+        setState({ status: "error", error: err as Error });
+      });
+
+    return () => controller.abort();
+  }, [url]);
+
+  return state;
+}
+```
+
+A few details worth flagging:
+
+- `setState({ status: "loading" })` on every effect re-run gives an honest UI signal during refetches.
+- The cleanup runs *before* the new effect runs, so the prior controller is already cancelled by the time the new fetch starts.
+
+## Beyond fetch
+
+`AbortSignal` is a general-purpose cancellation token. The same controller can cancel:
+
+- Any `fetch` call (above)
+- An `addEventListener` registration (`element.addEventListener("click", handler, { signal })`)
+- An `EventSource` polyfilled with signal support
+- Many third-party libraries that accept `{ signal }` in their request options
+
+One `controller.abort()` in a cleanup function can tear down a whole bouquet of subscriptions. That's the real power of it — the signal is the protocol; everything else opts in.
+
+---
+
+The mental model: **a fetch you can't cancel is a fetch the component owns forever**, even after the component is gone. Wrap every client-side `fetch` in a controller, abort in cleanup, and the network will stop chasing stale UI.
+
+---
+
+## Update · 2026-05-22 — Where this still matters
+
+In 2026, most data fetching has moved to route loaders (TanStack Start, Remix), Server Components (Next.js App Router), and library hooks (React Query, SWR). Those layers handle cancellation for you — when you navigate away, the loader's signal is already aborted by the framework, and React Query auto-cancels in-flight queries when their components unmount.
+
+What's left for hand-rolled `AbortController`:
+
+- **Real-time and streaming clients** — WebSocket, `EventSource`, `ReadableStream` consumers; the libraries above don't cover these.
+- **Imperative actions** — a user-clicked "download large file" button where you want a "cancel" affordance.
+- **Custom protocols** — anything that accepts an `AbortSignal` but isn't wrapped by your data-fetching library.
+
+If you're using React Query or SWR, check their docs for query cancellation — they expose the signal to your query function so you can wire it into a `fetch` call without managing the controller yourself.

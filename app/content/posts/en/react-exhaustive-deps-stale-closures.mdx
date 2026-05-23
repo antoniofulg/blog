@@ -1,0 +1,104 @@
+---
+title: "Stop Suppressing exhaustive-deps. Stale Closures Are Why You Should Listen."
+slug: react-exhaustive-deps-stale-closures
+description: The react-hooks/exhaustive-deps rule isn't a style preference. It's the guardrail that prevents useEffect from running with stale values you forgot you closed over.
+publishedAt: 2024-11-06
+---
+
+The `react-hooks/exhaustive-deps` rule has a reputation for being annoying. It nags about every variable your `useEffect` touches, even when you "know" the variable isn't going to change. The temptation is to slap an `// eslint-disable-next-line` on top and move on.
+
+Don't. The rule exists because every variable your effect reads becomes part of an invisible snapshot — and skipping one creates a stale closure bug that's easy to miss and hard to track down.
+
+## What an Effect's Dependency Array Actually Promises
+
+When you write:
+
+```tsx
+useEffect(() => {
+  doSomethingWith(value);
+}, [value]);
+```
+
+You're telling React: "run this only when `value` changes." React takes that literally. On every render, it compares the current `[value]` with the previous one using `Object.is`. If nothing changed, the effect doesn't re-run — meaning the function body that closed over the *previous* render's variables stays in memory, ready to fire again later with the values it captured.
+
+Now imagine you forget to list a dependency. Here's a confirmable dialog that should warn the user before discarding unsaved edits:
+
+```tsx
+function ConfirmableDialog({ onClose }: { onClose: () => void }) {
+  const [hasChanges, setHasChanges] = useState(false);
+
+  useEffect(() => {
+    function handleKey(e: KeyboardEvent) {
+      if (e.key !== "Escape") return;
+      if (hasChanges && !confirm("Discard changes?")) return;
+      onClose();
+    }
+    document.addEventListener("keydown", handleKey);
+    return () => document.removeEventListener("keydown", handleKey);
+  }, []); // empty deps → handler captures hasChanges = false forever
+
+  return (
+    <form onChange={() => setHasChanges(true)}>
+      {/* … fields … */}
+    </form>
+  );
+}
+```
+
+Open the dialog, type something — `hasChanges` flips to `true`. Press Escape. The handler still reads `hasChanges` as `false`, skips the confirmation, fires `onClose`, and the user loses their input. The listener was attached once on mount, captured `hasChanges = false` in its closure, and never updated. Classic stale closure, and a great way to lose someone's trust.
+
+The fix is one of:
+
+1. Add `hasChanges` and `onClose` to the dep array. The effect re-runs and the listener re-attaches each time those values change. Works, slightly wasteful — the listener tears down and re-arms on every keystroke that flips `hasChanges`.
+2. Keep the latest values in `useRef`s updated on every render, read `ref.current` inside the handler. The listener is attached once and always reads fresh.
+3. (React 19) Pull the bug-prone read into `useEffectEvent` — a stable function that always sees the latest values from render without participating in the dep array.
+
+Each is a deliberate choice. Suppressing the lint rule isn't — it just hides the bug.
+
+## Why Functions Are the Worst Offenders
+
+Variables you forget feel obvious in hindsight. Functions are sneakier, because they look like they couldn't have changed. A debounced search input that calls a parent-provided handler:
+
+```tsx
+function SearchInput({ onSearch }: { onSearch: (q: string) => void }) {
+  const [query, setQuery] = useState("");
+
+  useEffect(() => {
+    const id = setTimeout(() => onSearch(query), 300);
+    return () => clearTimeout(id);
+  }, [query]); // missing: onSearch
+
+  return <input value={query} onChange={(e) => setQuery(e.target.value)} />;
+}
+```
+
+The debounce fires 300ms after the user stops typing — but it calls *whatever `onSearch` was when the effect first ran*. If the parent later swaps `onSearch` (the user toggled the search scope from "posts" to "users"), the debounced effect doesn't notice. Searches keep hitting the old endpoint while the rest of the UI looks correct.
+
+ESLint flags `onSearch` as a missing dependency. Adding it triggers the next problem: `onSearch` is a fresh reference every parent render, so the timeout resets on every render — the debounce never gets to fire. The fix is to stabilize `onSearch` in the parent with `useCallback`:
+
+```tsx
+function Parent() {
+  const handleSearch = useCallback((q: string) => {
+    void fetch(`/api/search?q=${encodeURIComponent(q)}`);
+  }, []);
+  return <SearchInput onSearch={handleSearch} />;
+}
+```
+
+Now `onSearch`'s reference is stable, the debounce fires correctly, and it always calls the current handler. This is exactly one of the two cases where [`useCallback` earns its keep](/react-usecallback-when-it-helps).
+
+## The Rare Cases Where You Can Suppress
+
+`exhaustive-deps` is right about 99% of the time. The 1% where you might legitimately suppress:
+
+- **Mount-only effects with intentional snapshot semantics.** Logging the initial mount time, capturing a one-time analytics event. Even then, prefer `useEffect(..., [])` with a comment, not a disable.
+- **Refs you read inside an effect.** ESLint doesn't always know `ref.current` is stable; reading `ref.current` inside the effect body without listing `ref` is fine (the ref object itself is stable; its `.current` is mutable).
+- **Imperative APIs you set up once.** A chart library you initialize on mount and tear down on unmount, where mid-effect re-runs would be destructive.
+
+Even in those cases, the better move is usually to refactor the code so the rule passes naturally — pull the imperative setup into a custom hook, or use a callback ref so the setup happens at attach time instead of effect time.
+
+If you do suppress, leave a comment explaining why. A bare `eslint-disable-next-line` ages into a mystery; `// stale-by-design: the captured value is the intended snapshot` doesn't.
+
+---
+
+The mental model: **the dependency array isn't a hint, it's a contract.** Every value your effect reads needs to be listed, because the function body is a closure that will outlive the render it was created in. The lint rule is the only thing in the toolchain that can see all the variables you're reading. Trust it. When it complains, ask "is this a stale closure waiting to happen?" — the answer is yes more often than you'd like.
