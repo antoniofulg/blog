@@ -1,9 +1,17 @@
 import { execSync } from "node:child_process";
 import { createServer } from "node:net";
 import { join } from "node:path";
-import { afterAll, describe, expect, it } from "vitest";
-import type { NewPost, Post } from "../db/schema";
-import { posts } from "../db/schema";
+import { eq } from "drizzle-orm";
+import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import * as authSchema from "../db/auth-schema";
+import type {
+	AnalyticsEvent,
+	NewAnalyticsEvent,
+	NewPost,
+	Post,
+} from "../db/schema";
+import * as schema from "../db/schema";
+import { analyticsEvents, posts } from "../db/schema";
 
 const root = join(import.meta.dirname, "../..");
 
@@ -17,7 +25,7 @@ function isPortFree(port: number): Promise<boolean> {
 
 const port5432Free = await isPortFree(5432);
 
-// ─── Unit tests: schema structure ───────────────────────────────────────────
+// ─── Unit tests: posts schema ────────────────────────────────────────────────
 
 describe("unit: posts schema", () => {
 	it("table name is 'posts'", () => {
@@ -52,9 +60,19 @@ describe("unit: posts schema", () => {
 		expect(col.notNull).toBeFalsy();
 	});
 
+	it("published_at uses withTimezone: true (timestamptz)", () => {
+		const col = posts.publishedAt as unknown as Record<string, unknown>;
+		expect(col.withTimezone).toBe(true);
+	});
+
 	it("indexed_at has defaultNow()", () => {
 		const col = posts.indexedAt;
 		expect(col.hasDefault).toBe(true);
+	});
+
+	it("indexed_at uses withTimezone: true (timestamptz)", () => {
+		const col = posts.indexedAt as unknown as Record<string, unknown>;
+		expect(col.withTimezone).toBe(true);
 	});
 
 	it("Post type has expected shape (compile-time check)", () => {
@@ -209,5 +227,160 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		} finally {
 			await sql`DELETE FROM posts WHERE slug = ${unique}`;
 		}
+	});
+});
+
+// ─── Unit tests: analyticsEvents schema ─────────────────────────────────────
+
+describe("unit: analyticsEvents schema", () => {
+	it("table name is 'analytics_events'", () => {
+		expect(
+			(analyticsEvents as unknown as Record<symbol, unknown>)[
+				Symbol.for("drizzle:Name")
+			],
+		).toBe("analytics_events");
+	});
+
+	it("createdAt uses withTimezone: true (timestamptz)", () => {
+		const col = analyticsEvents.createdAt as unknown as Record<string, unknown>;
+		expect(col.withTimezone).toBe(true);
+	});
+
+	it("createdAt has defaultNow()", () => {
+		const col = analyticsEvents.createdAt;
+		expect(col.hasDefault).toBe(true);
+	});
+
+	it("countryCode is nullable (no notNull)", () => {
+		const col = analyticsEvents.countryCode;
+		expect(col.notNull).toBeFalsy();
+	});
+
+	it("isBot defaults to false", () => {
+		const col = analyticsEvents.isBot;
+		expect(col.default).toBe(false);
+	});
+
+	it("AnalyticsEvent type has expected shape (compile-time check)", () => {
+		const _event: AnalyticsEvent = {
+			id: 1,
+			postId: 42,
+			createdAt: new Date(),
+			referrerSource: "google",
+			lang: "en",
+			device: "desktop",
+			countryCode: null,
+			isBot: false,
+		};
+		expect(_event.id).toBe(1);
+		expect(_event.countryCode).toBeNull();
+		expect(_event.isBot).toBe(false);
+	});
+
+	it("NewAnalyticsEvent does not require id or createdAt (compile-time check)", () => {
+		const _new: NewAnalyticsEvent = {
+			postId: 1,
+			referrerSource: "direct",
+			lang: "pt-br",
+			device: "mobile",
+		};
+		expect(_new.postId).toBe(1);
+		// id and createdAt are optional — omitting them must compile without error
+	});
+});
+
+// ─── Integration tests: analyticsEvents (PGLite) ────────────────────────────
+
+describe("integration: analyticsEvents (PGLite)", () => {
+	type CombinedSchema = typeof schema & typeof authSchema;
+	type PgliteDb = import("drizzle-orm/pglite").PgliteDatabase<CombinedSchema>;
+
+	let db: PgliteDb;
+	let pgliteClient: import("@electric-sql/pglite").PGlite;
+
+	beforeAll(async () => {
+		const { PGlite } = await import("@electric-sql/pglite");
+		const { drizzle } = await import("drizzle-orm/pglite");
+		const { pushSchema } = await import("drizzle-kit/api");
+
+		pgliteClient = new PGlite("memory://");
+		await pgliteClient.waitReady;
+
+		db = drizzle<CombinedSchema>(pgliteClient, {
+			schema: { ...schema, ...authSchema } as CombinedSchema,
+		});
+
+		// Apply current schema (includes analytics_events from this task)
+		// drizzle-kit/api's PgDatabase type differs from PgliteDatabase generic; cast required
+		// biome-ignore lint/suspicious/noExplicitAny: pushSchema requires db as any
+		const result = await pushSchema({ ...schema, ...authSchema }, db as any);
+		await result.apply();
+	});
+
+	afterAll(async () => {
+		await pgliteClient.close();
+	});
+
+	it("inserts a single event row referencing a seeded post and reads it back", async () => {
+		const [post] = await db
+			.insert(posts)
+			.values({
+				filePath: "content/en/analytics-integ-insert.mdx",
+				slug: "analytics-integ-insert",
+				lang: "en",
+				title: "Analytics Integ Insert",
+			})
+			.returning();
+
+		const [event] = await db
+			.insert(analyticsEvents)
+			.values({
+				postId: post.id,
+				referrerSource: "linkedin",
+				lang: "en",
+				device: "desktop",
+			})
+			.returning();
+
+		expect(event.postId).toBe(post.id);
+		expect(event.referrerSource).toBe("linkedin");
+		expect(event.lang).toBe("en");
+		expect(event.device).toBe("desktop");
+		expect(event.countryCode).toBeNull();
+		expect(event.isBot).toBe(false);
+		expect(event.createdAt).toBeInstanceOf(Date);
+	});
+
+	it("cascade deletes event row when referenced post is deleted", async () => {
+		const [post] = await db
+			.insert(posts)
+			.values({
+				filePath: "content/en/analytics-integ-cascade.mdx",
+				slug: "analytics-integ-cascade",
+				lang: "en",
+				title: "Analytics Integ Cascade",
+			})
+			.returning();
+
+		const [event] = await db
+			.insert(analyticsEvents)
+			.values({
+				postId: post.id,
+				referrerSource: "direct",
+				lang: "en",
+				device: "mobile",
+			})
+			.returning();
+
+		// Delete the post — must cascade to analytics_events
+		await db.delete(posts).where(eq(posts.id, post.id));
+
+		// Event row must be gone
+		const remaining = await db
+			.select()
+			.from(analyticsEvents)
+			.where(eq(analyticsEvents.id, event.id));
+
+		expect(remaining).toHaveLength(0);
 	});
 });

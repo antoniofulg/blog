@@ -47,6 +47,17 @@
   --color-tag-typescript: var(--tag-typescript);
   --color-tag-bun: var(--tag-bun);
   --color-tag-tanstack: var(--tag-tanstack);
+
+  --color-chart-1: var(--chart-1);
+  --color-chart-2: var(--chart-2);
+  --color-chart-3: var(--chart-3);
+  --color-chart-4: var(--chart-4);
+  --color-chart-5: var(--chart-5);
+  --color-chart-6: var(--chart-6);
+  --color-chart-7: var(--chart-7);
+  --color-chart-8: var(--chart-8);
+  --color-chart-9: var(--chart-9);
+  --color-chart-10: var(--chart-10);
 }
 
 :root {
@@ -82,6 +93,18 @@
   --tag-typescript: #B377E3;
   --tag-bun: #E39C03;
   --tag-tanstack: #EE5F50;
+
+  /* Chart palette — light mode. 10 distinct hues with ≥3:1 contrast on #F5F8FC. */
+  --chart-1: #2563EB;
+  --chart-2: #7C3AED;
+  --chart-3: #D97706;
+  --chart-4: #DC2626;
+  --chart-5: #059669;
+  --chart-6: #DB2777;
+  --chart-7: #0891B2;
+  --chart-8: #EA580C;
+  --chart-9: #65A30D;
+  --chart-10: #7E22CE;
 }
 
 .dark {
@@ -117,6 +140,18 @@
   --tag-typescript: #B78AFF;
   --tag-bun: #EACD61;
   --tag-tanstack: #E35535;
+
+  /* Chart palette — dark mode. Lighter variants with ≥3:1 contrast on #1C2433. */
+  --chart-1: #60A5FA;
+  --chart-2: #A78BFA;
+  --chart-3: #FCD34D;
+  --chart-4: #F87171;
+  --chart-5: #34D399;
+  --chart-6: #F472B6;
+  --chart-7: #22D3EE;
+  --chart-8: #FB923C;
+  --chart-9: #A3E635;
+  --chart-10: #C084FC;
 }
 
 /*

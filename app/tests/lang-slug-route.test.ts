@@ -15,6 +15,11 @@ import {
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
+const HUMAN_UA =
+	"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
+
+const BOT_UA = "Googlebot/2.1 (+http://www.google.com/bot.html)";
+
 const mocks = vi.hoisted(() => {
 	const selectWhere = vi.fn().mockResolvedValue([]);
 	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
@@ -29,6 +34,19 @@ const mocks = vi.hoisted(() => {
 	const loadStaticPage = vi.fn().mockResolvedValue(null);
 	const staticPageHasTwin = vi.fn().mockReturnValue(true);
 
+	const recordPostView = vi
+		.fn()
+		.mockResolvedValue({ recorded: true, counterIncremented: true });
+
+	const getRequest = vi.fn().mockReturnValue(
+		new Request("http://localhost/", {
+			headers: {
+				"User-Agent":
+					"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+			},
+		}),
+	);
+
 	return {
 		select,
 		selectFrom,
@@ -39,6 +57,8 @@ const mocks = vi.hoisted(() => {
 		readFile,
 		loadStaticPage,
 		staticPageHasTwin,
+		recordPostView,
+		getRequest,
 	};
 });
 
@@ -67,8 +87,16 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
+vi.mock("@tanstack/react-start/server", () => ({
+	getRequest: mocks.getRequest,
+}));
+
+vi.mock("#/lib/analytics/record-event.server", () => ({
+	recordPostView: mocks.recordPostView,
+}));
+
 import { TranslationNotice } from "#/components/ui/translation-notice";
-import { posts } from "#/db/schema";
+import type { posts } from "#/db/schema";
 import {
 	getPostBySlugWithLangFn,
 	incrementViewCountFn,
@@ -97,7 +125,9 @@ function makePost(overrides: Partial<Post> = {}): Post {
 }
 
 function resetMocks() {
-	vi.clearAllMocks();
+	// resetAllMocks clears call counts AND purges pending mockResolvedValueOnce
+	// queues — preventing stale One-time values from leaking into later tests.
+	vi.resetAllMocks();
 	mocks.selectWhere.mockResolvedValue([]);
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
@@ -106,6 +136,15 @@ function resetMocks() {
 	mocks.update.mockReturnValue({ set: mocks.set });
 	mocks.readFile.mockResolvedValue("# Test\n\nContent");
 	mocks.loadStaticPage.mockResolvedValue(null);
+	mocks.recordPostView.mockResolvedValue({
+		recorded: true,
+		counterIncremented: true,
+	});
+	mocks.getRequest.mockReturnValue(
+		new Request("http://localhost/", {
+			headers: { "User-Agent": HUMAN_UA },
+		}),
+	);
 }
 
 // ─── Unit: validateLocaleInput ────────────────────────────────────────────────
@@ -243,14 +282,61 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 describe("unit: incrementViewCountFn", () => {
 	beforeEach(resetMocks);
 
-	it("calls db.update(posts).set({ viewCount: sql }).where(id)", async () => {
+	it("delegates to recordPostView with correct postId and lang (human UA)", async () => {
+		// Provide the post row for the lang lookup inside incrementViewCountFn.
+		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
+
 		await incrementViewCountFn(42);
-		expect(mocks.update).toHaveBeenCalledWith(posts);
-		expect(mocks.set).toHaveBeenCalledTimes(1);
-		const setArg = mocks.set.mock.calls[0][0] as Record<string, unknown>;
-		expect(setArg.viewCount).toBeDefined();
-		expect(typeof setArg.viewCount).not.toBe("number");
-		expect(mocks.updateWhere).toHaveBeenCalledTimes(1);
+
+		// recordPostView must be called exactly once with the right input shape.
+		expect(mocks.recordPostView).toHaveBeenCalledTimes(1);
+		expect(mocks.recordPostView).toHaveBeenCalledWith({
+			postId: 42,
+			request: expect.any(Request),
+			lang: "en",
+		});
+
+		// No direct db.update — counter is handled inside recordPostView.
+		expect(mocks.update).not.toHaveBeenCalled();
+	});
+
+	it("pt-br post lang is forwarded to recordPostView correctly", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([{ lang: "pt-br" }]);
+
+		await incrementViewCountFn(7);
+
+		expect(mocks.recordPostView).toHaveBeenCalledWith(
+			expect.objectContaining({ postId: 7, lang: "pt-br" }),
+		);
+	});
+
+	it("bot UA: early return before DB query — recordPostView is never called", async () => {
+		// Simulate a Googlebot request arriving via getRequest().
+		// The bot check now runs BEFORE the lang SELECT (issue_009 fix), so no
+		// DB query is made and recordPostView is never reached.
+		mocks.getRequest.mockReturnValueOnce(
+			new Request("http://localhost/", {
+				headers: { "User-Agent": BOT_UA },
+			}),
+		);
+
+		await incrementViewCountFn(42);
+
+		// Bot is identified before any DB I/O; recordPostView must NOT be called.
+		expect(mocks.recordPostView).not.toHaveBeenCalled();
+		// No DB reads or writes issued.
+		expect(mocks.select).not.toHaveBeenCalled();
+		expect(mocks.update).not.toHaveBeenCalled();
+	});
+
+	it("returns early without calling recordPostView when post is not found", async () => {
+		// Lang lookup returns no rows.
+		mocks.selectWhere.mockResolvedValueOnce([]);
+
+		await incrementViewCountFn(999);
+
+		expect(mocks.recordPostView).not.toHaveBeenCalled();
+		expect(mocks.update).not.toHaveBeenCalled();
 	});
 });
 

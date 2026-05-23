@@ -1,0 +1,47 @@
+---
+title: Privacy
+description: How this blog tracks post views without cookies, fingerprints, or IP storage — and what that means for you.
+publishedAt: 2026-05-23
+---
+
+# Privacy
+
+This blog collects minimal, anonymous analytics to understand which posts are useful. No cookies. No third-party scripts. No personal data leaves the server.
+
+## What is collected
+
+Every post view records the following data points in the database:
+
+| Field | Value stored |
+|---|---|
+| **Timestamp** | When the view happened (UTC). |
+| **Post ID** | Which post was viewed. |
+| **Referrer source** | Bucketed category: `linkedin`, `google`, `github`, `twitter`, `reddit`, `hackernews`, `dev.to`, `medium`, `bluesky`, `mastodon`, `direct`, or `other`. The raw referrer URL is not stored. |
+| **Language** | The post locale — `en` or `pt-br`. |
+| **Device class** | Bucketed category: `mobile`, `tablet`, or `desktop`. The raw user-agent string is not stored. |
+
+No IP address is stored. No country is derived or stored (V1). No session identifier is created. No cookie is set.
+
+## What is NOT collected
+
+- **IP address** — not logged, not stored, not processed.
+- **Cookies** — zero cookies are set for analytics purposes.
+- **Browser fingerprint** — no canvas fingerprint, font probe, WebGL probe, or any other fingerprinting technique.
+- **Cross-site tracking** — no pixel beacons, no shared identifiers with other sites.
+- **Country or city** — geographic resolution is not performed in V1.
+- **Exact referrer URL** — the full URL is reduced to a source bucket before storage; the original string is discarded.
+- **User-agent string** — reduced to a device class before storage; the original string is discarded.
+
+## Bot filtering
+
+Automated crawlers (search engine bots, SEO scrapers, uptime monitors, AI training crawlers) are detected by their user-agent string and excluded from all analytics data, including the public view counter shown on each post. The public counter reflects only human visits.
+
+This filter aligns with the CNIL guidelines for cookieless audience measurement (Sheet n°16), which allow analytics without a consent banner when the data is strictly limited to anonymous, non-cross-site measurement.
+
+## Data retention
+
+Analytics events are stored in a self-hosted PostgreSQL database on a private VPS. No data is sent to third-party analytics services. There is no retention limit defined in V1; a rolling-window cleanup policy is a V2 consideration.
+
+## Your rights
+
+Because no personal data is collected, there is no personal data to access, correct, or delete under GDPR, LGPD, or similar frameworks. If you have a concern, email [antoniofulg@gmail.com](mailto:antoniofulg@gmail.com).

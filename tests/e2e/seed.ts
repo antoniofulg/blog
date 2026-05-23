@@ -4,6 +4,7 @@ import { drizzleAdapter } from "better-auth/adapters/drizzle";
 import { and, eq } from "drizzle-orm";
 import * as authSchema from "#/db/auth-schema";
 import * as schema from "#/db/schema";
+import type { NewAnalyticsEvent } from "#/db/schema";
 
 const DEFAULT_EMAIL = "e2e@test.local";
 const DEFAULT_PASSWORD = "e2e-test-password";
@@ -213,4 +214,20 @@ export async function seedEnOnlyFixturePost(
 		.returning({ id: posts.id });
 
 	return { id: inserted.id, slug: FIXTURE_EN_ONLY_SLUG };
+}
+
+// ── Analytics Events ───────────────────────────────────────────────────────────
+
+/**
+ * Bulk-inserts analytics events for E2E fixture seeding.
+ * Not idempotent — each call inserts new rows.
+ * Only call from global-setup, which runs once per fresh PGLite instance.
+ */
+export async function seedAnalyticsEvents(
+	db: AnyDb,
+	events: NewAnalyticsEvent[],
+): Promise<void> {
+	if (events.length === 0) return;
+	const { analyticsEvents } = schema;
+	await db.insert(analyticsEvents).values(events);
 }

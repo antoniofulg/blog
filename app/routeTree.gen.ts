@@ -14,11 +14,13 @@ import { Route as SitemapDotxmlRouteImport } from './routes/sitemap[.]xml'
 import { Route as RssDotxmlRouteImport } from './routes/rss[.]xml'
 import { Route as RobotsDottxtRouteImport } from './routes/robots[.]txt'
 import { Route as LoginRouteImport } from './routes/login'
+import { Route as AdminRouteImport } from './routes/admin'
 import { Route as Char123LocaleChar125IndexRouteImport } from './routes/{-$locale}/index'
 import { Route as PtBrIndexRouteImport } from './routes/pt-br.index'
 import { Route as EnIndexRouteImport } from './routes/en.index'
 import { Route as AdminIndexRouteImport } from './routes/admin/index'
 import { Route as Char123LocaleChar125SlugRouteImport } from './routes/{-$locale}/$slug'
+import { Route as AdminAnalyticsIndexRouteImport } from './routes/admin/analytics/index'
 import { Route as ApiAuthSplatRouteImport } from './routes/api/auth/$'
 
 const Char123LocaleChar125Route = Char123LocaleChar125RouteImport.update({
@@ -46,6 +48,11 @@ const LoginRoute = LoginRouteImport.update({
   path: '/login',
   getParentRoute: () => rootRouteImport,
 } as any)
+const AdminRoute = AdminRouteImport.update({
+  id: '/admin',
+  path: '/admin',
+  getParentRoute: () => rootRouteImport,
+} as any)
 const Char123LocaleChar125IndexRoute =
   Char123LocaleChar125IndexRouteImport.update({
     id: '/',
@@ -63,9 +70,9 @@ const EnIndexRoute = EnIndexRouteImport.update({
   getParentRoute: () => rootRouteImport,
 } as any)
 const AdminIndexRoute = AdminIndexRouteImport.update({
-  id: '/admin/',
-  path: '/admin/',
-  getParentRoute: () => rootRouteImport,
+  id: '/',
+  path: '/',
+  getParentRoute: () => AdminRoute,
 } as any)
 const Char123LocaleChar125SlugRoute =
   Char123LocaleChar125SlugRouteImport.update({
@@ -73,6 +80,11 @@ const Char123LocaleChar125SlugRoute =
     path: '/$slug',
     getParentRoute: () => Char123LocaleChar125Route,
   } as any)
+const AdminAnalyticsIndexRoute = AdminAnalyticsIndexRouteImport.update({
+  id: '/analytics/',
+  path: '/analytics/',
+  getParentRoute: () => AdminRoute,
+} as any)
 const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
   id: '/api/auth/$',
   path: '/api/auth/$',
@@ -80,6 +92,7 @@ const ApiAuthSplatRoute = ApiAuthSplatRouteImport.update({
 } as any)
 
 export interface FileRoutesByFullPath {
+  '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
@@ -91,6 +104,7 @@ export interface FileRoutesByFullPath {
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
 }
 export interface FileRoutesByTo {
   '/login': typeof LoginRoute
@@ -103,9 +117,11 @@ export interface FileRoutesByTo {
   '/pt-br': typeof PtBrIndexRoute
   '/{-$locale}': typeof Char123LocaleChar125IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/analytics': typeof AdminAnalyticsIndexRoute
 }
 export interface FileRoutesById {
   __root__: typeof rootRouteImport
+  '/admin': typeof AdminRouteWithChildren
   '/login': typeof LoginRoute
   '/robots.txt': typeof RobotsDottxtRoute
   '/rss.xml': typeof RssDotxmlRoute
@@ -117,10 +133,12 @@ export interface FileRoutesById {
   '/pt-br/': typeof PtBrIndexRoute
   '/{-$locale}/': typeof Char123LocaleChar125IndexRoute
   '/api/auth/$': typeof ApiAuthSplatRoute
+  '/admin/analytics/': typeof AdminAnalyticsIndexRoute
 }
 export interface FileRouteTypes {
   fileRoutesByFullPath: FileRoutesByFullPath
   fullPaths:
+    | '/admin'
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
@@ -132,6 +150,7 @@ export interface FileRouteTypes {
     | '/pt-br/'
     | '/{-$locale}/'
     | '/api/auth/$'
+    | '/admin/analytics/'
   fileRoutesByTo: FileRoutesByTo
   to:
     | '/login'
@@ -144,8 +163,10 @@ export interface FileRouteTypes {
     | '/pt-br'
     | '/{-$locale}'
     | '/api/auth/$'
+    | '/admin/analytics'
   id:
     | '__root__'
+    | '/admin'
     | '/login'
     | '/robots.txt'
     | '/rss.xml'
@@ -157,15 +178,16 @@ export interface FileRouteTypes {
     | '/pt-br/'
     | '/{-$locale}/'
     | '/api/auth/$'
+    | '/admin/analytics/'
   fileRoutesById: FileRoutesById
 }
 export interface RootRouteChildren {
+  AdminRoute: typeof AdminRouteWithChildren
   LoginRoute: typeof LoginRoute
   RobotsDottxtRoute: typeof RobotsDottxtRoute
   RssDotxmlRoute: typeof RssDotxmlRoute
   SitemapDotxmlRoute: typeof SitemapDotxmlRoute
   Char123LocaleChar125Route: typeof Char123LocaleChar125RouteWithChildren
-  AdminIndexRoute: typeof AdminIndexRoute
   EnIndexRoute: typeof EnIndexRoute
   PtBrIndexRoute: typeof PtBrIndexRoute
   ApiAuthSplatRoute: typeof ApiAuthSplatRoute
@@ -208,6 +230,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof LoginRouteImport
       parentRoute: typeof rootRouteImport
     }
+    '/admin': {
+      id: '/admin'
+      path: '/admin'
+      fullPath: '/admin'
+      preLoaderRoute: typeof AdminRouteImport
+      parentRoute: typeof rootRouteImport
+    }
     '/{-$locale}/': {
       id: '/{-$locale}/'
       path: '/'
@@ -231,10 +260,10 @@ declare module '@tanstack/react-router' {
     }
     '/admin/': {
       id: '/admin/'
-      path: '/admin'
+      path: '/'
       fullPath: '/admin/'
       preLoaderRoute: typeof AdminIndexRouteImport
-      parentRoute: typeof rootRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/{-$locale}/$slug': {
       id: '/{-$locale}/$slug'
@@ -242,6 +271,13 @@ declare module '@tanstack/react-router' {
       fullPath: '/{-$locale}/$slug'
       preLoaderRoute: typeof Char123LocaleChar125SlugRouteImport
       parentRoute: typeof Char123LocaleChar125Route
+    }
+    '/admin/analytics/': {
+      id: '/admin/analytics/'
+      path: '/analytics'
+      fullPath: '/admin/analytics/'
+      preLoaderRoute: typeof AdminAnalyticsIndexRouteImport
+      parentRoute: typeof AdminRoute
     }
     '/api/auth/$': {
       id: '/api/auth/$'
@@ -252,6 +288,18 @@ declare module '@tanstack/react-router' {
     }
   }
 }
+
+interface AdminRouteChildren {
+  AdminIndexRoute: typeof AdminIndexRoute
+  AdminAnalyticsIndexRoute: typeof AdminAnalyticsIndexRoute
+}
+
+const AdminRouteChildren: AdminRouteChildren = {
+  AdminIndexRoute: AdminIndexRoute,
+  AdminAnalyticsIndexRoute: AdminAnalyticsIndexRoute,
+}
+
+const AdminRouteWithChildren = AdminRoute._addFileChildren(AdminRouteChildren)
 
 interface Char123LocaleChar125RouteChildren {
   Char123LocaleChar125SlugRoute: typeof Char123LocaleChar125SlugRoute
@@ -267,12 +315,12 @@ const Char123LocaleChar125RouteWithChildren =
   Char123LocaleChar125Route._addFileChildren(Char123LocaleChar125RouteChildren)
 
 const rootRouteChildren: RootRouteChildren = {
+  AdminRoute: AdminRouteWithChildren,
   LoginRoute: LoginRoute,
   RobotsDottxtRoute: RobotsDottxtRoute,
   RssDotxmlRoute: RssDotxmlRoute,
   SitemapDotxmlRoute: SitemapDotxmlRoute,
   Char123LocaleChar125Route: Char123LocaleChar125RouteWithChildren,
-  AdminIndexRoute: AdminIndexRoute,
   EnIndexRoute: EnIndexRoute,
   PtBrIndexRoute: PtBrIndexRoute,
   ApiAuthSplatRoute: ApiAuthSplatRoute,

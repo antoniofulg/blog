@@ -1,8 +1,23 @@
 // @vitest-environment jsdom
 import { cleanup, render } from "@testing-library/react";
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Footer } from "#/components/layout/footer";
+
+// ─── Locale holder (allows per-describe locale switching) ─────────────────────
+
+const localeMock = vi.hoisted(() => {
+	let _locale = "en";
+	return {
+		get: () => _locale,
+		set: (l: string) => {
+			_locale = l;
+		},
+		reset: () => {
+			_locale = "en";
+		},
+	};
+});
 
 vi.mock("@tanstack/react-router", () => ({
 	useRouterState: ({
@@ -35,7 +50,7 @@ vi.mock("@tanstack/react-router", () => ({
 vi.mock("#/lib/locale", async () => {
 	const actual =
 		await vi.importActual<typeof import("#/lib/locale")>("#/lib/locale");
-	return { ...actual, useCurrentLocale: () => "en" };
+	return { ...actual, useCurrentLocale: () => localeMock.get() };
 });
 
 function renderFooter() {
@@ -44,6 +59,7 @@ function renderFooter() {
 
 afterEach(() => {
 	cleanup();
+	localeMock.reset();
 });
 
 // ─── unit: navLinks absent entries ────────────────────────────────────────────
@@ -149,5 +165,39 @@ describe("unit: Footer copy (locale=en)", () => {
 		expect(
 			document.body.textContent?.includes(String(new Date().getFullYear())),
 		).toBe(true);
+	});
+});
+
+// ─── unit: Privacy link (locale=en) ──────────────────────────────────────────
+
+describe("unit: Footer Privacy link (locale=en)", () => {
+	it("renders a Privacy link pointing at /en/privacy", () => {
+		renderFooter();
+		expect(document.querySelector('a[href="/en/privacy"]')).not.toBeNull();
+	});
+
+	it("Privacy link label is 'Privacy'", () => {
+		renderFooter();
+		const link = document.querySelector('a[href="/en/privacy"]');
+		expect(link?.textContent).toBe("Privacy");
+	});
+});
+
+// ─── unit: Privacy link (locale=pt-br) ───────────────────────────────────────
+
+describe("unit: Footer Privacy link (locale=pt-br)", () => {
+	beforeEach(() => {
+		localeMock.set("pt-br");
+	});
+
+	it("renders a Privacy link pointing at /pt-br/privacy", () => {
+		renderFooter();
+		expect(document.querySelector('a[href="/pt-br/privacy"]')).not.toBeNull();
+	});
+
+	it("Privacy link label is 'Privacidade'", () => {
+		renderFooter();
+		const link = document.querySelector('a[href="/pt-br/privacy"]');
+		expect(link?.textContent).toBe("Privacidade");
 	});
 });
