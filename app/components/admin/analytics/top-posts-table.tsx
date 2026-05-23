@@ -21,8 +21,10 @@ type Props = {
 // ── Language badge ────────────────────────────────────────────────────────────
 
 function LangBadge({ lang }: { lang: "en" | "pt-br" }) {
+	// text-foreground-secondary on bg-muted clears WCAG 2 AA (~9.5:1 light / ~5.0:1 dark)
+	// for the 10px badge text. text-foreground-muted (#666 light) failed at ~4.18:1.
 	return (
-		<span className="inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 font-code text-[10px] font-medium uppercase text-foreground-muted">
+		<span className="inline-flex items-center rounded border border-border bg-muted px-1.5 py-0.5 font-code text-[10px] font-medium uppercase text-foreground-secondary">
 			{lang === "pt-br" ? "PT-BR" : "EN"}
 		</span>
 	);
