@@ -31,7 +31,7 @@ A estabilidade da referência só importa quando alguma coisa downstream está *
 
 ## Caso 1: A função é dep de `useEffect`
 
-Um aviso antes do exemplo: em 2026, data fetching quase nunca mora mais em `useEffect`. Mora em route loaders (TanStack Start, Remix), Server Components (Next.js App Router) ou hooks de bibliotecas como React Query e SWR que cuidam do lifecycle da request pra você. O framework ou o loader roda o fetch no servidor, entrega os dados resolvidos pro seu componente como prop, e seu código cliente só lê — sem `useEffect`, sem `fetch`, sem dep array pra esquecer.
+Um aviso antes do exemplo: em 2026, data fetching quase nunca mora mais em `useEffect`. Mora em route loaders (TanStack Start, Remix), Server Components (Next.js App Router) ou hooks de bibliotecas como React Query e SWR que cuidam do lifecycle da requisição pra você. O framework ou o loader roda o fetch no servidor, entrega os dados resolvidos pro seu componente como prop, e seu código cliente só lê — sem `useEffect`, sem `fetch`, sem dep array pra esquecer.
 
 O que continua morando em `useEffect`: subscriptions pra coisas fora do data model do React — DOM events, mensagens de WebSocket, entries de IntersectionObserver, updates de stores de bibliotecas de state não-React. Funções passadas pra dentro desses effects ainda causam re-run quando a referência muda. É aí que o problema do `useCallback` aparece hoje.
 
