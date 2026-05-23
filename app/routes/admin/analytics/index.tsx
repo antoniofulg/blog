@@ -2,6 +2,7 @@ import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
 import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
 import { RangeSelector } from "#/components/admin/analytics/range-selector";
+import { ReferrerSourcesBar } from "#/components/admin/analytics/referrer-sources-bar";
 import { SummaryCards } from "#/components/admin/analytics/summary-cards";
 import type { AnalyticsRange } from "#/db/analytics-queries";
 import { strings } from "#/lib/i18n/strings";
@@ -82,10 +83,12 @@ export function AnalyticsDashboard() {
 				</div>
 
 				{/* Referrer sources bar — task 14 */}
-				<div
-					data-testid="referrer-sources-placeholder"
-					className="mt-4 h-72 rounded-lg border border-border bg-card"
-				/>
+				<div className="mt-4">
+					<ReferrerSourcesBar
+						referrerByDay={data.referrerByDay}
+						locale={locale}
+					/>
+				</div>
 
 				{/* Bottom row: top posts + device split — tasks 15, 16 */}
 				<div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">

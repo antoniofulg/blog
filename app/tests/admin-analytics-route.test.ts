@@ -80,6 +80,22 @@ vi.mock("recharts", () => ({
 			{ "data-testid": "line-chart", "data-count": data.length },
 			children,
 		),
+	BarChart: ({
+		children,
+		data,
+	}: {
+		children: React.ReactNode;
+		data: unknown[];
+	}) =>
+		React.createElement(
+			"div",
+			{ "data-testid": "bar-chart", "data-count": data.length },
+			children,
+		),
+	Bar: ({ dataKey }: { dataKey: string }) =>
+		React.createElement("div", { "data-testid": "bar", "data-key": dataKey }),
+	Legend: () =>
+		React.createElement("div", { "data-testid": "recharts-legend" }),
 	Line: () => null,
 	XAxis: () => null,
 	YAxis: () => null,
@@ -353,9 +369,9 @@ describe("AnalyticsDashboard component", () => {
 		expect(screen.getByTestId("range-selector")).toBeDefined();
 	});
 
-	it("renders the referrer sources placeholder slot", () => {
+	it("renders the referrer sources bar widget (task 14)", () => {
 		render(React.createElement(AnalyticsDashboard));
-		expect(screen.getByTestId("referrer-sources-placeholder")).toBeDefined();
+		expect(screen.getByTestId("referrer-sources-bar")).toBeDefined();
 	});
 
 	it("renders the top posts placeholder slot", () => {
