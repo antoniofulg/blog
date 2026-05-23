@@ -1,5 +1,4 @@
 import { readFile } from "node:fs/promises";
-import { createServer } from "node:net";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
@@ -7,15 +6,25 @@ import { type Post, posts } from "#/db/schema";
 
 const root = join(import.meta.dirname, "../..");
 
-function isPortFree(port: number): Promise<boolean> {
-	return new Promise((resolve) => {
-		const server = createServer();
-		server.listen(port, () => server.close(() => resolve(true)));
-		server.on("error", () => resolve(false));
-	});
+const DB_URL =
+	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
+
+async function canReachDb(url: string): Promise<boolean> {
+	try {
+		const pg = await import("postgres");
+		const probe = pg.default(url, { max: 1, connect_timeout: 2 });
+		try {
+			await probe`SELECT 1`;
+			return true;
+		} finally {
+			await probe.end({ timeout: 1 });
+		}
+	} catch {
+		return false;
+	}
 }
 
-const port5432Free = await isPortFree(5432);
+const dbReachable = await canReachDb(DB_URL);
 
 // ─── Unit: schema inference ──────────────────────────────────────────────────
 
@@ -204,10 +213,9 @@ describe("unit: posts schema — timestamptz columns", () => {
 
 // ─── Integration: migration round-trip ──────────────────────────────────────
 
-describe.skipIf(port5432Free)(
+describe.skipIf(!dbReachable)(
 	"integration: migration round-trip (requires local postgres)",
 	() => {
-		const DB_URL = "postgres://blog:blog@localhost:5432/blog";
 		let sql: import("postgres").Sql | undefined;
 
 		beforeAll(async () => {

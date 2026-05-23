@@ -33,6 +33,17 @@ function makeSetupWorkspace(databaseUrl: string) {
 		join(workspace, ".env"),
 		`DATABASE_URL=${databaseUrl}\nADMIN_EMAIL=admin@example.com\nADMIN_PASSWORD=changeme\n`,
 	);
+
+	// Stub prerequisites for the $(NITRO_BUNDLE) rule so test-e2e can satisfy
+	// its dependency chain without invoking a real build. The bundle is touched
+	// last so its mtime is newer than every prereq — Make treats it as up to date.
+	mkdirSync(join(workspace, "app"));
+	mkdirSync(join(workspace, "scripts"));
+	writeFileSync(join(workspace, "package.json"), "{}\n");
+	writeFileSync(join(workspace, "bun.lock"), "");
+	writeFileSync(join(workspace, "vite.config.ts"), "");
+	mkdirSync(join(workspace, ".output", "server"), { recursive: true });
+	writeFileSync(join(workspace, ".output", "server", "index.mjs"), "");
 	writeFileSync(
 		join(binDir, "docker"),
 		'#!/bin/sh\nprintf \'docker %s\\n\' "$*" >> "$FAKE_COMMAND_LOG"\nexit 0\n',
@@ -317,7 +328,7 @@ describe("unit: Makefile", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
-		mkdirSync(join(workspace, "scripts"));
+		mkdirSync(join(workspace, "scripts"), { recursive: true });
 		writeFileSync(
 			join(workspace, "scripts/deploy.sh"),
 			'#!/bin/sh\necho "deploy script ran"\n',
