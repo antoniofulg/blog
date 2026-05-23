@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
+import { SummaryCards } from "#/components/admin/analytics/summary-cards";
 import { strings } from "#/lib/i18n/strings";
 import { useLocale } from "#/lib/locale";
 import { getAnalyticsDashboardServerFn } from "./index.server";
@@ -41,7 +42,7 @@ export const Route = createFileRoute("/admin/analytics/")({
 // (which the TanStack Start Vite plugin wraps in lazyRouteComponent).
 export function AnalyticsDashboard() {
 	// Data consumed by widget components in tasks 12-16; call ensures loader re-fires on deps change.
-	void Route.useLoaderData();
+	const data = Route.useLoaderData();
 	const { locale } = useLocale();
 	const t = strings[locale].admin.analytics;
 
@@ -53,23 +54,8 @@ export function AnalyticsDashboard() {
 				</h1>
 
 				{/* Summary cards — task 12 */}
-				<div className="mt-8 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-					<div
-						data-testid="summary-card-placeholder"
-						className="h-24 rounded-lg border border-border bg-card"
-					/>
-					<div
-						data-testid="summary-card-placeholder"
-						className="h-24 rounded-lg border border-border bg-card"
-					/>
-					<div
-						data-testid="summary-card-placeholder"
-						className="h-24 rounded-lg border border-border bg-card"
-					/>
-					<div
-						data-testid="summary-card-placeholder"
-						className="h-24 rounded-lg border border-border bg-card"
-					/>
+				<div className="mt-8">
+					<SummaryCards summary={data.summary} locale={locale} />
 				</div>
 
 				{/* Daily trend chart — task 13 */}

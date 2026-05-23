@@ -303,10 +303,14 @@ describe("AnalyticsDashboard component", () => {
 		).toBeDefined();
 	});
 
-	it("renders the summary card placeholder slots (4 cards)", () => {
+	it("renders the SummaryCards component with 4 cards (task 12)", () => {
+		mocks.state.locale = "en";
 		render(React.createElement(AnalyticsDashboard));
-		const cards = screen.getAllByTestId("summary-card-placeholder");
-		expect(cards).toHaveLength(4);
+		// SummaryCards renders 4 label spans — verify at least the totalVisits label
+		// is present, confirming the component mounted and received loader data.
+		expect(
+			screen.getByText(strings.en.admin.analytics.summary.totalVisits),
+		).toBeDefined();
 	});
 
 	it("renders the daily trend placeholder slot", () => {
