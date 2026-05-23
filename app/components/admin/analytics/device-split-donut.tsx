@@ -14,6 +14,7 @@ import { EmptyState } from "#/components/ui/empty-state";
 import type { DeviceClass } from "#/lib/analytics/device-detector";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
+import { WidgetHeader } from "./widget-header";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -81,9 +82,7 @@ export function DeviceSplitDonut({ deviceSplit, locale, postId }: Props) {
 			aria-label={t.widgets.deviceSplit}
 			className="rounded-lg border border-border bg-card p-4"
 		>
-			<h2 className="mb-4 text-sm font-medium text-foreground-muted">
-				{t.widgets.deviceSplit}
-			</h2>
+			<WidgetHeader>{t.widgets.deviceSplit}</WidgetHeader>
 
 			{isEmpty ? (
 				<EmptyState

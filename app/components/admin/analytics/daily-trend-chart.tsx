@@ -15,6 +15,7 @@ import type { AnalyticsDashboardData } from "#/db/analytics-queries";
 import { formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
+import { WidgetHeader } from "./widget-header";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -89,9 +90,7 @@ export function DailyTrendChart({ dailyTrend, locale, postId }: Props) {
 			aria-label={t.widgets.dailyTrend}
 			className="rounded-lg border border-border bg-card p-4"
 		>
-			<h2 className="mb-4 text-sm font-medium text-foreground-muted">
-				{t.widgets.dailyTrend}
-			</h2>
+			<WidgetHeader>{t.widgets.dailyTrend}</WidgetHeader>
 
 			{isEmpty ? (
 				<EmptyState

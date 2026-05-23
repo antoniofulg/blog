@@ -17,6 +17,35 @@ export type ReferrerSource =
 	| "other";
 
 /**
+ * Canonical ordered enumeration of every `ReferrerSource` member.
+ *
+ * Use this in:
+ *  - the dashboard's referrer-sources-bar widget (stable render order for
+ *    stacked Bar series, basis for the `activeSources` filter that keeps the
+ *    chart legend clean)
+ *  - unit tests that need the exact set of valid source names (e.g. asserting
+ *    a gap-fill sentinel does NOT pollute the legend)
+ *
+ * Exporting from this module — rather than the component — keeps the
+ * canonical list one import away from the type itself, so adding a new
+ * `ReferrerSource` member is a single co-located edit.
+ */
+export const ALL_SOURCES: readonly ReferrerSource[] = [
+	"linkedin",
+	"google",
+	"github",
+	"twitter",
+	"reddit",
+	"hackernews",
+	"dev.to",
+	"medium",
+	"bluesky",
+	"mastodon",
+	"direct",
+	"other",
+] as const;
+
+/**
  * [domain-suffix, bucket] pairs checked in order; first match wins.
  * Match rule: hostname === suffix  OR  hostname.endsWith("." + suffix)
  * This covers bare domains and their www/subdomain variants.

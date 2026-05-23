@@ -11,10 +11,14 @@ import {
 	YAxis,
 } from "recharts";
 import { EmptyState } from "#/components/ui/empty-state";
-import type { ReferrerSource } from "#/lib/analytics/referrer-bucketer";
+import {
+	ALL_SOURCES,
+	type ReferrerSource,
+} from "#/lib/analytics/referrer-bucketer";
 import { formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
+import { WidgetHeader } from "./widget-header";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -29,28 +33,6 @@ type Props = {
 	/** When set, distinguishes "filter returned no rows" from "no events ever". */
 	postId?: number;
 };
-
-// ── Source ordering ───────────────────────────────────────────────────────────
-
-/**
- * Canonical order for all V1 referrer source buckets.
- * Used to: (a) enforce exhaustiveness of SOURCE_COLOR_MAP via the TS type,
- * (b) produce a stable render order for Bar series across re-renders.
- */
-const ALL_SOURCES: ReferrerSource[] = [
-	"linkedin",
-	"google",
-	"github",
-	"twitter",
-	"reddit",
-	"hackernews",
-	"dev.to",
-	"medium",
-	"bluesky",
-	"mastodon",
-	"direct",
-	"other",
-];
 
 // ── Color map ─────────────────────────────────────────────────────────────────
 
@@ -138,9 +120,7 @@ export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 			aria-label={t.widgets.referrerSources}
 			className="rounded-lg border border-border bg-card p-4"
 		>
-			<h2 className="mb-4 text-sm font-medium text-foreground-muted">
-				{t.widgets.referrerSources}
-			</h2>
+			<WidgetHeader>{t.widgets.referrerSources}</WidgetHeader>
 
 			{isEmpty ? (
 				<EmptyState

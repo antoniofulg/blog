@@ -56,6 +56,9 @@ import {
 	getAnalyticsDashboard,
 	resolveRange,
 } from "#/db/analytics-queries";
+// Real canonical list — imported so this test catches drift if a new
+// ReferrerSource is added without updating the array.
+import { ALL_SOURCES } from "#/lib/analytics/referrer-bucketer";
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -621,20 +624,8 @@ describe("fillReferrerDayGaps", () => {
 		// The activeSources computation in referrer-sources-bar.tsx filters
 		// ALL_SOURCES against the set of sources present in the filled rows.
 		// "__gap__" must NOT appear in ALL_SOURCES so "other" stays absent.
-		const ALL_SOURCES = [
-			"linkedin",
-			"google",
-			"github",
-			"twitter",
-			"reddit",
-			"hackernews",
-			"dev.to",
-			"medium",
-			"bluesky",
-			"mastodon",
-			"direct",
-			"other",
-		];
+		// ALL_SOURCES is imported from the real module so any drift between
+		// the canonical list and this assertion fails fast.
 		const rows = [{ date: "2025-01-01", source: "linkedin", count: 5 }];
 		const result = fillReferrerDayGaps(
 			rows,

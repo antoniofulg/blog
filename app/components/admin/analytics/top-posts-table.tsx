@@ -4,6 +4,7 @@ import { EmptyState } from "#/components/ui/empty-state";
 import type { AnalyticsDashboardData } from "#/db/analytics-queries";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
+import { WidgetHeader } from "./widget-header";
 
 // ── Types ─────────────────────────────────────────────────────────────────────
 
@@ -70,9 +71,7 @@ export function TopPostsTable({ topPosts, locale, onRowClick, postId }: Props) {
 			aria-label={t.widgets.topPosts}
 			className="rounded-lg border border-border bg-card p-4"
 		>
-			<h2 className="mb-4 text-sm font-medium text-foreground-muted">
-				{t.widgets.topPosts}
-			</h2>
+			<WidgetHeader>{t.widgets.topPosts}</WidgetHeader>
 
 			{topPosts.length === 0 ? (
 				<EmptyState
