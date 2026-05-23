@@ -1,3 +1,4 @@
+import { Activity } from "lucide-react";
 import { useMemo } from "react";
 import {
 	CartesianGrid,
@@ -9,6 +10,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { EmptyState } from "#/components/ui/empty-state";
 import type { AnalyticsDashboardData } from "#/db/analytics-queries";
 import { formatBRT, formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
@@ -22,6 +24,8 @@ type DailyTrendData = AnalyticsDashboardData["dailyTrend"];
 type Props = {
 	dailyTrend: DailyTrendData;
 	locale: Locale;
+	/** When set, distinguishes "filter returned no rows" from "no events ever". */
+	postId?: number;
 };
 
 // ── Peak detection ────────────────────────────────────────────────────────────
@@ -68,13 +72,15 @@ function ChartTooltip({ active, payload, label }: TooltipProps) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function DailyTrendChart({ dailyTrend, locale }: Props) {
+export function DailyTrendChart({ dailyTrend, locale, postId }: Props) {
 	const t = strings[locale].admin.analytics;
 
 	const peaks = useMemo(() => detectPeaks(dailyTrend), [dailyTrend]);
 
 	const formatTick = (dateStr: string) =>
 		formatDayMonth(new Date(dateStr), locale);
+
+	const isEmpty = dailyTrend.length === 0;
 
 	return (
 		<div
@@ -84,51 +90,66 @@ export function DailyTrendChart({ dailyTrend, locale }: Props) {
 			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
 				{t.widgets.dailyTrend}
 			</h2>
-			<ResponsiveContainer width="100%" height={220}>
-				<LineChart
-					data={dailyTrend}
-					margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-				>
-					<CartesianGrid
-						strokeDasharray="3 3"
-						stroke="var(--color-border)"
-						vertical={false}
-					/>
-					<XAxis
-						dataKey="date"
-						tickFormatter={formatTick}
-						tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-						axisLine={false}
-						tickLine={false}
-					/>
-					<YAxis
-						allowDecimals={false}
-						tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-						axisLine={false}
-						tickLine={false}
-						width={32}
-					/>
-					<Tooltip content={<ChartTooltip />} />
-					<Line
-						type="monotone"
-						dataKey="count"
-						stroke="var(--color-chart-1)"
-						strokeWidth={2}
-						dot={false}
-						activeDot={{ r: 4, fill: "var(--color-chart-1)" }}
-					/>
-					{peaks.map((peak) => (
-						<ReferenceDot
-							key={peak.date}
-							x={peak.date}
-							y={peak.count}
-							r={5}
-							fill="var(--color-chart-4)"
-							stroke="none"
+
+			{isEmpty ? (
+				<EmptyState
+					icon={Activity}
+					title={
+						postId !== undefined ? t.empty.noDataForPost : t.empty.awaitingData
+					}
+					description={
+						postId !== undefined
+							? t.empty.noDataForPostDescription
+							: t.empty.awaitingDataDescription
+					}
+				/>
+			) : (
+				<ResponsiveContainer width="100%" height={220}>
+					<LineChart
+						data={dailyTrend}
+						margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+					>
+						<CartesianGrid
+							strokeDasharray="3 3"
+							stroke="var(--color-border)"
+							vertical={false}
 						/>
-					))}
-				</LineChart>
-			</ResponsiveContainer>
+						<XAxis
+							dataKey="date"
+							tickFormatter={formatTick}
+							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+							axisLine={false}
+							tickLine={false}
+						/>
+						<YAxis
+							allowDecimals={false}
+							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+							axisLine={false}
+							tickLine={false}
+							width={32}
+						/>
+						<Tooltip content={<ChartTooltip />} />
+						<Line
+							type="monotone"
+							dataKey="count"
+							stroke="var(--color-chart-1)"
+							strokeWidth={2}
+							dot={false}
+							activeDot={{ r: 4, fill: "var(--color-chart-1)" }}
+						/>
+						{peaks.map((peak) => (
+							<ReferenceDot
+								key={peak.date}
+								x={peak.date}
+								y={peak.count}
+								r={5}
+								fill="var(--color-chart-4)"
+								stroke="none"
+							/>
+						))}
+					</LineChart>
+				</ResponsiveContainer>
+			)}
 		</div>
 	);
 }

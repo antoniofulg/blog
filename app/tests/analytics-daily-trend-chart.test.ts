@@ -228,6 +228,68 @@ describe("DailyTrendChart — peak markers (ReferenceDot)", () => {
 	});
 });
 
+// ── Empty state (task_18) ─────────────────────────────────────────────────────
+
+describe("DailyTrendChart — empty state", () => {
+	it("renders EmptyState with awaitingData when dailyTrend is empty and no postId", () => {
+		renderChart([]);
+		expect(screen.getByTestId("daily-trend-chart")).toBeDefined();
+		expect(
+			screen.getByText(strings.en.admin.analytics.empty.awaitingData),
+		).toBeDefined();
+	});
+
+	it("renders awaitingDataDescription when dailyTrend is empty and no postId", () => {
+		renderChart([]);
+		expect(
+			screen.getByText(
+				strings.en.admin.analytics.empty.awaitingDataDescription,
+			),
+		).toBeDefined();
+	});
+
+	it("does NOT render LineChart when dailyTrend is empty", () => {
+		renderChart([]);
+		expect(screen.queryByTestId("line-chart")).toBeNull();
+	});
+
+	it("renders filter-empty title when postId is set and dailyTrend is empty", () => {
+		render(
+			React.createElement(DailyTrendChart, {
+				dailyTrend: [],
+				locale: "en",
+				postId: 7,
+			}),
+		);
+		expect(
+			screen.getByText(strings.en.admin.analytics.empty.noDataForPost),
+		).toBeDefined();
+	});
+
+	it("renders filter-empty description when postId is set and dailyTrend is empty", () => {
+		render(
+			React.createElement(DailyTrendChart, {
+				dailyTrend: [],
+				locale: "en",
+				postId: 7,
+			}),
+		);
+		expect(
+			screen.getByText(
+				strings.en.admin.analytics.empty.noDataForPostDescription,
+			),
+		).toBeDefined();
+	});
+
+	it("does not show EmptyState when dailyTrend has data", () => {
+		renderChart(makeTrend([10, 20]));
+		expect(
+			screen.queryByText(strings.en.admin.analytics.empty.awaitingData),
+		).toBeNull();
+		expect(screen.getByTestId("line-chart")).toBeDefined();
+	});
+});
+
 // ── Widget title (locale) ─────────────────────────────────────────────────────
 
 describe("DailyTrendChart — widget title", () => {

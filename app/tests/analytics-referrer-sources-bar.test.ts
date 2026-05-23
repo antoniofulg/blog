@@ -282,10 +282,26 @@ describe("ReferrerSourcesBar — rendering", () => {
 		expect(bars).toHaveLength(0);
 	});
 
-	it("BarChart still renders with 0 entries for empty input", () => {
+	it("renders EmptyState (not BarChart) for empty input", () => {
 		renderBar([]);
-		const chart = screen.getByTestId("bar-chart");
-		expect(chart.getAttribute("data-count")).toBe("0");
+		expect(screen.queryByTestId("bar-chart")).toBeNull();
+		expect(
+			screen.getByText(strings.en.admin.analytics.empty.awaitingData),
+		).toBeDefined();
+	});
+
+	it("shows filter-empty message when postId is set and referrerByDay is empty", () => {
+		mocks.setLocale("en");
+		render(
+			React.createElement(ReferrerSourcesBar, {
+				referrerByDay: [],
+				locale: "en",
+				postId: 5,
+			}),
+		);
+		expect(
+			screen.getByText(strings.en.admin.analytics.empty.noDataForPost),
+		).toBeDefined();
 	});
 });
 

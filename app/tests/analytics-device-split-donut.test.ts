@@ -204,7 +204,7 @@ describe("DeviceSplitDonut — wrapper and title", () => {
 // ── DeviceSplitDonut — donut variant (PieChart) ───────────────────────────────
 
 describe("DeviceSplitDonut — donut variant", () => {
-	it("renders PieChart", () => {
+	it("renders PieChart when data is non-zero", () => {
 		renderDonut({ mobile: 30, tablet: 10, desktop: 60 });
 		expect(screen.getByTestId("pie-chart")).toBeDefined();
 	});
@@ -286,34 +286,57 @@ describe("DeviceSplitDonut — bar variant", () => {
 // ── DeviceSplitDonut — zero-sum (empty state) ─────────────────────────────────
 
 describe("DeviceSplitDonut — zero-sum", () => {
-	it("renders empty-state copy when all values are 0", () => {
+	it("renders EmptyState with awaitingData title when all values are 0 (no postId)", () => {
 		renderDonut({ mobile: 0, tablet: 0, desktop: 0 });
-		expect(screen.getByTestId("device-split-empty")).toBeDefined();
 		expect(
 			screen.getByText(strings.en.admin.analytics.empty.awaitingData),
 		).toBeDefined();
 	});
 
-	it("Pie receives 1 neutral segment (not 3) on zero-sum", () => {
+	it("renders EmptyState description when all values are 0 (no postId)", () => {
 		renderDonut({ mobile: 0, tablet: 0, desktop: 0 });
-		const pie = screen.getByTestId("pie");
-		// 1 neutral segment for the empty donut
-		expect(pie.getAttribute("data-count")).toBe("1");
+		expect(
+			screen.getByText(
+				strings.en.admin.analytics.empty.awaitingDataDescription,
+			),
+		).toBeDefined();
 	});
 
-	it("neutral segment has a non-chart fill (muted token)", () => {
+	it("does NOT render PieChart when all values are 0 (EmptyState replaces chart)", () => {
 		renderDonut({ mobile: 0, tablet: 0, desktop: 0 });
-		const cells = screen.getAllByTestId("cell");
-		expect(cells).toHaveLength(1);
-		// neutral cell must NOT be a chart-N token
-		expect(cells[0].getAttribute("data-fill")).not.toMatch(
-			/^var\(--color-chart-\d+\)$/,
+		expect(screen.queryByTestId("pie-chart")).toBeNull();
+	});
+
+	it("does NOT render BarChart when all values are 0 (EmptyState replaces chart)", () => {
+		renderDonut({ mobile: 0, tablet: 0, desktop: 0 });
+		expect(screen.queryByTestId("bar-chart")).toBeNull();
+	});
+
+	it("renders filter-empty message when postId is set and all values are 0", () => {
+		mocks.setLocale("en");
+		render(
+			React.createElement(DeviceSplitDonut, {
+				deviceSplit: { mobile: 0, tablet: 0, desktop: 0 },
+				locale: "en",
+				postId: 42,
+			}),
 		);
+		expect(
+			screen.getByText(strings.en.admin.analytics.empty.noDataForPost),
+		).toBeDefined();
+		expect(
+			screen.getByText(
+				strings.en.admin.analytics.empty.noDataForPostDescription,
+			),
+		).toBeDefined();
 	});
 
-	it("does not show empty-state copy when data is non-zero", () => {
+	it("does not show empty state when data is non-zero", () => {
 		renderDonut({ mobile: 30, tablet: 10, desktop: 60 });
-		expect(screen.queryByTestId("device-split-empty")).toBeNull();
+		expect(
+			screen.queryByText(strings.en.admin.analytics.empty.awaitingData),
+		).toBeNull();
+		expect(screen.getByTestId("pie-chart")).toBeDefined();
 	});
 
 	it("no NaN displayed — computePercent(0, 0) returns 0", () => {

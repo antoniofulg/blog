@@ -1,5 +1,6 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import { z } from "zod";
+import { AnalyticsDashboardSkeleton } from "#/components/admin/analytics/analytics-skeleton";
 import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
 import { DeviceSplitDonut } from "#/components/admin/analytics/device-split-donut";
 import { FilterChip } from "#/components/admin/analytics/filter-chip";
@@ -40,6 +41,8 @@ export const Route = createFileRoute("/admin/analytics/")({
 	loaderDeps: ({ search: { range, postId } }) => ({ range, postId }),
 
 	loader: ({ deps }) => getAnalyticsDashboardServerFn({ data: deps }),
+
+	pendingComponent: AnalyticsDashboardSkeleton,
 
 	component: AnalyticsDashboard,
 });
@@ -104,7 +107,11 @@ export function AnalyticsDashboard() {
 
 				{/* Daily trend chart — task 13 */}
 				<div className="mt-4">
-					<DailyTrendChart dailyTrend={data.dailyTrend} locale={locale} />
+					<DailyTrendChart
+						dailyTrend={data.dailyTrend}
+						locale={locale}
+						postId={postId}
+					/>
 				</div>
 
 				{/* Referrer sources bar — task 14 */}
@@ -112,6 +119,7 @@ export function AnalyticsDashboard() {
 					<ReferrerSourcesBar
 						referrerByDay={data.referrerByDay}
 						locale={locale}
+						postId={postId}
 					/>
 				</div>
 
@@ -121,8 +129,13 @@ export function AnalyticsDashboard() {
 						topPosts={data.topPosts}
 						locale={locale}
 						onRowClick={handleRowClick}
+						postId={postId}
 					/>
-					<DeviceSplitDonut deviceSplit={data.deviceSplit} locale={locale} />
+					<DeviceSplitDonut
+						deviceSplit={data.deviceSplit}
+						locale={locale}
+						postId={postId}
+					/>
 				</div>
 			</div>
 		</div>

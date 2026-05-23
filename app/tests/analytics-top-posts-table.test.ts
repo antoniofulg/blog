@@ -144,10 +144,33 @@ describe("TopPostsTable — row count (AC-1)", () => {
 		expect(rows).toHaveLength(1);
 	});
 
-	it("renders null (no DOM output) for an empty topPosts array (AC-6)", () => {
-		const { container } = renderTable([]);
-		// Container is the testing-library wrapper div — inner content should be empty.
-		expect(container.firstChild).toBeNull();
+	it("renders EmptyState (awaitingData) for an empty topPosts array when no postId", () => {
+		renderTable([]);
+		// Wrapper still renders (no longer returns null — task_18)
+		expect(screen.getByTestId("top-posts-table")).toBeDefined();
+		expect(
+			screen.getByText(strings.en.admin.analytics.empty.awaitingData),
+		).toBeDefined();
+	});
+
+	it("renders filter-empty message when postId is set and topPosts is empty", () => {
+		mocks.setLocale("en");
+		render(
+			React.createElement(TopPostsTable, {
+				topPosts: [],
+				locale: "en",
+				onRowClick: vi.fn(),
+				postId: 99,
+			}),
+		);
+		expect(
+			screen.getByText(strings.en.admin.analytics.empty.noDataForPost),
+		).toBeDefined();
+		expect(
+			screen.getByText(
+				strings.en.admin.analytics.empty.noDataForPostDescription,
+			),
+		).toBeDefined();
 	});
 });
 

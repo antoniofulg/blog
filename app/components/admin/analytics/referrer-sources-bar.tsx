@@ -1,3 +1,4 @@
+import { Activity } from "lucide-react";
 import { useMemo } from "react";
 import {
 	Bar,
@@ -9,6 +10,7 @@ import {
 	XAxis,
 	YAxis,
 } from "recharts";
+import { EmptyState } from "#/components/ui/empty-state";
 import type { ReferrerSource } from "#/lib/analytics/referrer-bucketer";
 import { formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
@@ -24,6 +26,8 @@ type WideEntry = { date: string; [source: string]: number | string };
 type Props = {
 	referrerByDay: ReferrerByDayEntry[];
 	locale: Locale;
+	/** When set, distinguishes "filter returned no rows" from "no events ever". */
+	postId?: number;
 };
 
 // ── Source ordering ───────────────────────────────────────────────────────────
@@ -108,7 +112,7 @@ export function pivotReferrerByDay(data: ReferrerByDayEntry[]): WideEntry[] {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export function ReferrerSourcesBar({ referrerByDay, locale }: Props) {
+export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 	const t = strings[locale].admin.analytics;
 
 	const chartData = useMemo(
@@ -126,6 +130,8 @@ export function ReferrerSourcesBar({ referrerByDay, locale }: Props) {
 	const formatTick = (dateStr: string) =>
 		formatDayMonth(new Date(dateStr), locale);
 
+	const isEmpty = referrerByDay.length === 0;
+
 	return (
 		<div
 			data-testid="referrer-sources-bar"
@@ -134,42 +140,57 @@ export function ReferrerSourcesBar({ referrerByDay, locale }: Props) {
 			<h2 className="mb-4 text-sm font-medium text-muted-foreground">
 				{t.widgets.referrerSources}
 			</h2>
-			<ResponsiveContainer width="100%" height={220}>
-				<BarChart
-					data={chartData}
-					margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
-				>
-					<CartesianGrid
-						strokeDasharray="3 3"
-						stroke="var(--color-border)"
-						vertical={false}
-					/>
-					<XAxis
-						dataKey="date"
-						tickFormatter={formatTick}
-						tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-						axisLine={false}
-						tickLine={false}
-					/>
-					<YAxis
-						allowDecimals={false}
-						tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
-						axisLine={false}
-						tickLine={false}
-						width={32}
-					/>
-					<Tooltip />
-					<Legend />
-					{activeSources.map((source) => (
-						<Bar
-							key={source}
-							dataKey={source}
-							stackId="referrers"
-							fill={SOURCE_COLOR_MAP[source]}
+
+			{isEmpty ? (
+				<EmptyState
+					icon={Activity}
+					title={
+						postId !== undefined ? t.empty.noDataForPost : t.empty.awaitingData
+					}
+					description={
+						postId !== undefined
+							? t.empty.noDataForPostDescription
+							: t.empty.awaitingDataDescription
+					}
+				/>
+			) : (
+				<ResponsiveContainer width="100%" height={220}>
+					<BarChart
+						data={chartData}
+						margin={{ top: 8, right: 8, bottom: 0, left: 0 }}
+					>
+						<CartesianGrid
+							strokeDasharray="3 3"
+							stroke="var(--color-border)"
+							vertical={false}
 						/>
-					))}
-				</BarChart>
-			</ResponsiveContainer>
+						<XAxis
+							dataKey="date"
+							tickFormatter={formatTick}
+							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+							axisLine={false}
+							tickLine={false}
+						/>
+						<YAxis
+							allowDecimals={false}
+							tick={{ fontSize: 12, fill: "var(--color-foreground-muted)" }}
+							axisLine={false}
+							tickLine={false}
+							width={32}
+						/>
+						<Tooltip />
+						<Legend />
+						{activeSources.map((source) => (
+							<Bar
+								key={source}
+								dataKey={source}
+								stackId="referrers"
+								fill={SOURCE_COLOR_MAP[source]}
+							/>
+						))}
+					</BarChart>
+				</ResponsiveContainer>
+			)}
 		</div>
 	);
 }

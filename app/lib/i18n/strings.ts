@@ -53,6 +53,8 @@ export const uiStringsSchema = z.object({
 			empty: z.object({
 				awaitingData: z.string(),
 				awaitingDataDescription: z.string(),
+				noDataForPost: z.string(),
+				noDataForPostDescription: z.string(),
 			}),
 		}),
 	}),
@@ -112,6 +114,9 @@ export const strings: Record<Locale, UIStrings> = {
 					awaitingData: "No data yet",
 					awaitingDataDescription:
 						"Analytics data will appear here once visitors start reading posts.",
+					noDataForPost: "No data for this post",
+					noDataForPostDescription:
+						"No events found for the selected post in this time range.",
 				},
 			},
 		},
@@ -167,6 +172,9 @@ export const strings: Record<Locale, UIStrings> = {
 					awaitingData: "Sem dados ainda",
 					awaitingDataDescription:
 						"Os dados de analytics aparecerão aqui assim que os visitantes começarem a ler os posts.",
+					noDataForPost: "Sem dados para este post",
+					noDataForPostDescription:
+						"Nenhum evento encontrado para o post selecionado neste período.",
 				},
 			},
 		},
