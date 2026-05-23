@@ -1,0 +1,156 @@
+---
+title: "Stop Wrapping Every Function in useCallback. It Only Helps in Two Cases."
+slug: react-usecallback-when-it-helps
+description: useCallback memoizes a function's reference, not its work. Most of the time that does nothing — except in two specific cases where reference identity actually matters.
+publishedAt: 2024-10-29
+---
+
+There's a habit React developers pick up early: wrap every callback in `useCallback`, "just to be safe." It feels like a performance win — you saw it in a tutorial, the linter sometimes nudges you toward it, and the function name even sounds like it should help.
+
+It usually doesn't. Most of the time it's a no-op with extra bookkeeping. `useCallback` only earns its keep in two specific situations — and outside those, you're paying overhead for no observable benefit.
+
+## What useCallback Actually Does
+
+`useCallback(fn, deps)` returns the same function reference between renders as long as `deps` haven't changed. That's it. The function body still runs every time it's called. Nothing is cached, nothing is skipped — only the *identity* of the function value stays stable.
+
+That distinction matters more than the docs let on. Consider this:
+
+```tsx
+function Counter({ initial }: { initial: number }) {
+  const [count, setCount] = useState(initial);
+
+  const increment = useCallback(() => setCount((c) => c + 1), []);
+
+  return <button onClick={increment}>{count}</button>;
+}
+```
+
+Is this faster than the version without `useCallback`? No. The `<button>` doesn't care whether `increment` is the same reference as last render — DOM event handlers are reattached anyway. You've added a hook call, a dependency-array comparison, and a registration slot for zero observable change.
+
+The reference stability only matters when something downstream is *reading* that reference and reacting to it. That's the rule. Two things in React do exactly this.
+
+## Case 1: The Function Is a `useEffect` Dependency
+
+A note before the example: in 2026, data fetching almost never lives in `useEffect` anymore. It lives in route loaders (TanStack Start, Remix), Server Components (Next.js App Router), or library hooks like React Query and SWR that handle the request lifecycle for you. The framework or the loader runs the fetch on the server, hands the resolved data to your component as a prop, and your client code reads it — no `useEffect`, no `fetch`, no dep array to forget.
+
+What still belongs in `useEffect`: subscriptions to things outside React's data model — DOM events, WebSocket messages, IntersectionObserver entries, store updates from non-React state libraries. Functions passed into those effects still cause re-runs when their reference changes. That's where the `useCallback` issue surfaces today.
+
+Real-world version: a chat room component receives an `onMessage` handler from its parent and registers it on a WebSocket connection.
+
+```tsx
+type Props = {
+  roomId: string;
+  onMessage: (event: MessageEvent) => void;
+};
+
+function ChatRoom({ roomId, onMessage }: Props) {
+  useEffect(() => {
+    const ws = new WebSocket(`wss://example.com/rooms/${roomId}`);
+    ws.addEventListener("message", onMessage);
+    return () => ws.close();
+  }, [roomId, onMessage]);
+  // onMessage is a fresh ref every parent render → effect tears down and
+  // re-opens the WebSocket every render → conversation drops messages,
+  // burns reconnect handshakes, and the room never feels real-time
+}
+```
+
+The fix lives in the parent — wrap `onMessage` in `useCallback` so the child's effect only re-runs when `roomId` actually changes:
+
+```tsx
+function ChatPage({ roomId }: { roomId: string }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const handleMessage = useCallback((event: MessageEvent) => {
+    const payload = JSON.parse(event.data) as Message;
+    setMessages((prev) => [...prev, payload]);
+  }, []);
+
+  return <ChatRoom roomId={roomId} onMessage={handleMessage} />;
+}
+```
+
+Same rule as before: if the callback is local to the child and only used inside the effect, define it inside the effect and skip `useCallback`. Reach for `useCallback` only when the function crosses a component boundary.
+
+## Case 2: The Function Is Passed to a `React.memo` Child
+
+`React.memo` short-circuits a child's render if all its props compare equal to last time (`Object.is` by default). Functions compare by reference. A new function on every parent render means the memo always bails out — the child renders anyway, and you've paid the cost of the prop comparison on top.
+
+```tsx
+type Item = { id: number; label: string };
+type Props = { items: Item[]; onSelect: (id: number) => void };
+
+const ItemList = React.memo(function ItemList({ items, onSelect }: Props) {
+  return (
+    <ul>
+      {items.map((i) => (
+        <li key={i.id}>
+          <button onClick={() => onSelect(i.id)}>{i.label}</button>
+        </li>
+      ))}
+    </ul>
+  );
+});
+
+function Page() {
+  const [items, setItems] = useState<Item[]>([]);
+  const handleSelect = (id: number) => console.log("picked", id);
+  return <ItemList items={items} onSelect={handleSelect} />;
+}
+```
+
+`handleSelect` is a fresh reference on every `Page` render. `React.memo` sees the prop change, gives up, re-renders the list. The memo was pointless.
+
+```tsx
+function Page() {
+  const [items, setItems] = useState<Item[]>([]);
+  const handleSelect = useCallback((id: number) => console.log("picked", id), []);
+  return <ItemList items={items} onSelect={handleSelect} />;
+}
+```
+
+Now `handleSelect`'s reference is stable, the memo holds, the child skips render when nothing else changed.
+
+This case is the most common reason to reach for `useCallback`, and the one most people miss: wrapping a child in `React.memo` without stabilizing its function props is doing half the job.
+
+The cost compounds at scale. In a virtualized table or data grid where 50–500 rows are mounted at once and each row is memoized, an unstabilized `onSelect` or `onEdit` prop forces every visible row to re-render on every parent state change — typing in a filter input, ticking an unrelated checkbox, anything. That's where you can actually feel the difference.
+
+## The Cost You're Paying Otherwise
+
+`useCallback` isn't free. Every call:
+
+- Registers a hook slot, contributing to React's internal hook ledger for that component
+- Runs an `Object.is` comparison across every dependency on every render
+- Holds onto the prior function closure in memory until the deps change
+
+For small, frequently-rendered components, the bookkeeping can exceed the cost of letting a function be recreated. Re-creating a function literal in modern V8 is cheap; comparing dependency arrays and threading hook state is not free either.
+
+Wrap by need, not by reflex. The two cases above are the bar.
+
+## A Quick Self-Check
+
+Before writing `useCallback`, ask: **does anything downstream depend on this function's reference identity?**
+
+- Is it in a `useEffect` dep array? Maybe.
+- Is it a prop on a `React.memo` child? Maybe.
+- Is it a prop on a regular child / on a DOM element / used only inside the component? No.
+
+If the answer is no, `useCallback` is dead weight.
+
+---
+
+The mental model is one line: **`useCallback` memoizes a reference, not the work behind it.** Reach for it only when reference identity is the thing some other piece of React is reading. Outside those cases, you're optimizing nothing and adding noise.
+
+---
+
+## Update · 2026-05-22 — React 19 and the React Compiler
+
+React 19 ships the React Compiler in its stable channel. The compiler statically analyzes your component, figures out where memoization actually helps, and auto-memoizes references behind the scenes — `useCallback`, `useMemo`, and `React.memo` all become things you no longer write by hand for the common cases.
+
+Practical implications:
+
+- **New code on the compiler:** write functions plainly. Let the compiler decide what to stabilize. Hand-written `useCallback` becomes a code smell unless you have a specific reason the compiler can't reason about (escape hatches, refs into imperative APIs, etc.).
+- **Codebases not yet on the compiler:** the rules in this post still apply. The two cases — `useEffect` deps and `React.memo` props — are exactly the cases the compiler is trying to handle for you. Until you adopt it, you're the compiler.
+- **Mixed code:** the compiler is opt-in per file via `"use memo"` and respects existing manual memoization. Migrating piecemeal is supported.
+
+The mental model is the same as before — reference identity only matters when something downstream reads it. The compiler just removes the manual annotation step.

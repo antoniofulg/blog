@@ -1,0 +1,156 @@
+---
+title: "Pare de adicionar o useCallback em toda função. Ele só ajuda em dois casos."
+slug: react-usecallback-when-it-helps
+description: useCallback memoiza a referência da função, não o trabalho dela. Na maior parte do tempo isso não faz nada — exceto em dois casos específicos onde a identidade da referência importa de verdade.
+publishedAt: 2024-10-29
+---
+
+Tem um hábito que dev React pega cedo: adicionar `useCallback` em toda callback, "só por garantia". Parece um ganho de performance — você viu num tutorial, o linter às vezes empurra nessa direção, e o nome da função até soa como se devesse ajudar.
+
+Geralmente não ajuda. Na maior parte do tempo é um no-op com burocracia extra. `useCallback` só vale o preço em duas situações específicas — fora delas, você está pagando overhead sem benefício observável.
+
+## O que useCallback de fato faz
+
+`useCallback(fn, deps)` devolve a mesma referência de função entre renders enquanto `deps` não mudarem. Só isso. O corpo da função ainda roda toda vez que ela é chamada. Nada é cacheado, nada é pulado — só a *identidade* do valor da função fica estável.
+
+Essa distinção importa mais do que a documentação deixa claro. Olha isso:
+
+```tsx
+function Counter({ initial }: { initial: number }) {
+  const [count, setCount] = useState(initial);
+
+  const increment = useCallback(() => setCount((c) => c + 1), []);
+
+  return <button onClick={increment}>{count}</button>;
+}
+```
+
+Isso é mais rápido que a versão sem `useCallback`? Não. O `<button>` não liga se `increment` é a mesma referência do render anterior — handlers de eventos DOM são reanexados de qualquer jeito. Você adicionou uma chamada de hook, uma comparação de dependency array e um slot de registro pra zero mudança observável.
+
+A estabilidade da referência só importa quando alguma coisa downstream está *lendo* essa referência e reagindo a ela. Essa é a regra. Duas coisas no React fazem exatamente isso.
+
+## Caso 1: A função é dep de `useEffect`
+
+Um aviso antes do exemplo: em 2026, data fetching quase nunca mora mais em `useEffect`. Mora em route loaders (TanStack Start, Remix), Server Components (Next.js App Router) ou hooks de bibliotecas como React Query e SWR que cuidam do lifecycle da requisição pra você. O framework ou o loader roda o fetch no servidor, entrega os dados resolvidos pro seu componente como prop, e seu código cliente só lê — sem `useEffect`, sem `fetch`, sem dep array pra esquecer.
+
+O que continua morando em `useEffect`: subscriptions pra coisas fora do data model do React — DOM events, mensagens de WebSocket, entries de IntersectionObserver, updates de stores de bibliotecas de state não-React. Funções passadas pra dentro desses effects ainda causam re-run quando a referência muda. É aí que o problema do `useCallback` aparece hoje.
+
+Versão real: um componente de chat recebe um handler `onMessage` do pai e registra ele numa conexão WebSocket.
+
+```tsx
+type Props = {
+  roomId: string;
+  onMessage: (event: MessageEvent) => void;
+};
+
+function ChatRoom({ roomId, onMessage }: Props) {
+  useEffect(() => {
+    const ws = new WebSocket(`wss://example.com/rooms/${roomId}`);
+    ws.addEventListener("message", onMessage);
+    return () => ws.close();
+  }, [roomId, onMessage]);
+  // onMessage é uma ref nova a cada render do pai → effect desmonta e
+  // re-abre a WebSocket a cada render → conversa perde mensagens, queima
+  // handshakes de reconexão, e a sala nunca parece real-time
+}
+```
+
+A correção mora no pai — envolve `onMessage` com `useCallback` pra que o effect do filho só re-rode quando `roomId` realmente mudar:
+
+```tsx
+function ChatPage({ roomId }: { roomId: string }) {
+  const [messages, setMessages] = useState<Message[]>([]);
+
+  const handleMessage = useCallback((event: MessageEvent) => {
+    const payload = JSON.parse(event.data) as Message;
+    setMessages((prev) => [...prev, payload]);
+  }, []);
+
+  return <ChatRoom roomId={roomId} onMessage={handleMessage} />;
+}
+```
+
+Mesma regra de antes: se a callback é local do filho e só é usada dentro do effect, define ela dentro do effect e pula o `useCallback`. Vá de `useCallback` só quando a função cruza fronteira de componente.
+
+## Caso 2: A função é passada para um filho `React.memo`
+
+`React.memo` curto-circuita o render de um filho se todas as props comparam iguais à última vez (`Object.is` por padrão). Funções comparam por referência. Uma função nova a cada render do pai significa que o memo sempre desiste — o filho renderiza mesmo assim, e você ainda pagou o custo da comparação de prop por cima.
+
+```tsx
+type Item = { id: number; label: string };
+type Props = { items: Item[]; onSelect: (id: number) => void };
+
+const ItemList = React.memo(function ItemList({ items, onSelect }: Props) {
+  return (
+    <ul>
+      {items.map((i) => (
+        <li key={i.id}>
+          <button onClick={() => onSelect(i.id)}>{i.label}</button>
+        </li>
+      ))}
+    </ul>
+  );
+});
+
+function Page() {
+  const [items, setItems] = useState<Item[]>([]);
+  const handleSelect = (id: number) => console.log("picked", id);
+  return <ItemList items={items} onSelect={handleSelect} />;
+}
+```
+
+`handleSelect` é uma referência nova a cada render de `Page`. `React.memo` vê a prop mudar, desiste, re-renderiza a lista. O memo foi inútil.
+
+```tsx
+function Page() {
+  const [items, setItems] = useState<Item[]>([]);
+  const handleSelect = useCallback((id: number) => console.log("picked", id), []);
+  return <ItemList items={items} onSelect={handleSelect} />;
+}
+```
+
+Agora a referência de `handleSelect` é estável, o memo segura, o filho pula o render quando nada mais mudou.
+
+Esse caso é o motivo mais comum pra usar `useCallback` e o que mais gente esquece: envolver um filho com `React.memo` sem estabilizar as props de função dele é fazer metade do serviço.
+
+O custo escala. Numa tabela virtualizada ou num data grid onde 50–500 linhas estão montadas ao mesmo tempo e cada linha é memoizada, uma prop `onSelect` ou `onEdit` sem estabilizar força toda linha visível a re-renderizar a cada mudança de state do pai — digitar num input de filtro, marcar um checkbox sem relação, qualquer coisa. É aí que dá pra sentir a diferença de verdade.
+
+## O custo que você paga fora desses casos
+
+`useCallback` não é de graça. Toda chamada:
+
+- Registra um slot de hook, contribuindo pro ledger interno de hooks do componente
+- Roda uma comparação `Object.is` em cada dependency a cada render
+- Mantém o closure da função anterior em memória até as deps mudarem
+
+Pra componentes pequenos e que re-renderizam com frequência, a burocracia pode exceder o custo de deixar a função ser recriada. Recriar um function literal no V8 moderno é barato; comparar dependency arrays e gerenciar hook state também não é grátis.
+
+Adicione por necessidade, não por reflexo. Os dois casos acima são o critério.
+
+## Um auto-check rápido
+
+Antes de escrever `useCallback`, pergunta: **alguma coisa downstream depende da identidade da referência dessa função?**
+
+- Tá num dependency array de `useEffect`? Talvez.
+- É prop de um filho `React.memo`? Talvez.
+- É prop de um filho normal / de um elemento DOM / usada só dentro do componente? Não.
+
+Se a resposta é não, `useCallback` é peso morto.
+
+---
+
+O modelo mental é uma linha só: **`useCallback` memoiza a referência, não o trabalho por trás dela.** Use só quando a identidade da referência é o que outra parte do React está lendo. Fora desses casos, você não está otimizando nada e está adicionando ruído.
+
+---
+
+## Update · 22/05/2026 — React 19 e o React Compiler
+
+React 19 trouxe o React Compiler para o canal estável. O compilador analisa seu componente estaticamente, descobre onde memoização de fato ajuda e auto-memoiza as referências por baixo dos panos — `useCallback`, `useMemo` e `React.memo` viram coisas que você não escreve mais à mão pros casos comuns.
+
+Implicações práticas:
+
+- **Código novo no compilador:** escreve as funções normalmente. Deixa o compilador decidir o que estabilizar. `useCallback` escrito à mão vira code smell, a menos que você tenha um motivo específico que o compilador não consegue raciocinar (escape hatches, refs pra APIs imperativas, etc.).
+- **Codebases ainda sem o compilador:** as regras desse post continuam valendo. Os dois casos — deps de `useEffect` e props de `React.memo` — são exatamente os casos que o compilador tá tentando resolver pra você. Até você adotar, você é o compilador.
+- **Código misto:** o compilador é opt-in por arquivo via `"use memo"` e respeita memoização manual existente. Migração aos poucos é suportada.
+
+O modelo mental é o mesmo de antes — identidade de referência só importa quando alguma coisa downstream lê. O compilador só remove a etapa de anotação manual.

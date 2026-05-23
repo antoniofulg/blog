@@ -1,0 +1,110 @@
+---
+title: "Pare de travar a UI em updates lentos. Use useTransition."
+slug: react-usetransition-deferred-updates
+description: useTransition deixa você marcar um update de state como não-urgente pra que o React possa interrompê-lo em favor de algo mais importante — digitar num input, clicar num botão — em vez de congelar a UI inteira atrás dele.
+publishedAt: 2024-11-23
+---
+
+Você já sentiu esse bug: digita rápido num input de filtro, e o input trava porque a lista de 5.000 linhas tá re-renderizando entre cada tecla. O trabalho não é lento por caractere — é lento porque o React não tem como saber que digitar importa mais que o resultado do filtro pelos próximos 80 milissegundos.
+
+`useTransition` é como você fala isso pro React. Você marca o update caro como uma *transition* — não-urgente, interruptível — e o React mantém o input responsivo deixando updates mais importantes passar na frente.
+
+## O que useTransition retorna
+
+```tsx
+const [isPending, startTransition] = useTransition();
+```
+
+Duas coisas:
+
+- **`isPending`** — um boolean que é `true` enquanto a transition tá em andamento. Útil pra mostrar uma dica sutil de "atualizando" sem bloquear a UI.
+- **`startTransition`** — uma função. Qualquer coisa que você chama dentro dela é marcada como transition. O React vai rodar esses updates de state numa lane de baixa prioridade.
+
+O hook em si não deixa nenhum trabalho mais rápido. Ele muda a *prioridade* do trabalho pra que o React saiba o que é interruptível.
+
+## Um exemplo concreto
+
+Filtrar uma lista longa enquanto o usuário digita:
+
+```tsx
+import { useState, useTransition, useDeferredValue } from "react";
+
+type Item = { id: number; label: string };
+
+export function FilterableList({ items }: { items: Item[] }) {
+  const [query, setQuery] = useState("");
+  const [filtered, setFiltered] = useState(items);
+  const [isPending, startTransition] = useTransition();
+
+  function handleChange(e: React.ChangeEvent<HTMLInputElement>) {
+    const next = e.target.value;
+    setQuery(next); // urgente: manter o input responsivo
+
+    startTransition(() => {
+      // não-urgente: trabalho pesado de filtro
+      setFiltered(items.filter((i) => i.label.includes(next)));
+    });
+  }
+
+  return (
+    <div>
+      <input value={query} onChange={handleChange} />
+      {isPending && <span>Filtrando…</span>}
+      <ul>
+        {filtered.map((i) => (
+          <li key={i.id}>{i.label}</li>
+        ))}
+      </ul>
+    </div>
+  );
+}
+```
+
+O movimento chave: `setQuery` roda na lane urgente (controlled input precisa ficar snappy), `setFiltered` roda na lane de transition (o usuário não precisa que a lista atualize a cada tecla). Se o usuário digita rápido, o React pode descartar um render de filtro em andamento e começar de novo com a query mais nova — nenhum frame desperdiçado em resultado obsoleto.
+
+## O que useTransition não faz
+
+Um malentendido comum: `useTransition` não acelera o trabalho. O filtro ainda roda em cima dos 5.000 itens; o React ainda calcula. O que muda é *quando* o React commita o resultado e *se* deixa updates urgentes mais novos preemptarem.
+
+Implicações práticas:
+
+- Se seu trabalho é tão lento que trava a main thread por 500ms não importa o que, `useTransition` não te salva. Você precisa quebrar o trabalho em pedaços, virtualizar a lista ou mover a computação pra um Web Worker.
+- Se seu trabalho leva 30ms e por acaso cai no momento errado, `useTransition` é exatamente a correção.
+
+## Onde compensa
+
+Os casos que de fato parecem diferentes com transitions ligadas:
+
+- **Digitar num input que dirige filtragem ou search downstream.** O input fica suave mesmo quando a renderização do resultado é pesada.
+- **Tab switches que re-renderizam uma subárvore grande.** Mantém a UI da tab snappy; deixa o corpo da tab atualizar na prioridade de transition.
+- **Routing dentro de uma SPA sem transitions de router built-in do framework.** Envolve `setRoute(next)` numa transition pra manter a navegação parecendo instantânea.
+
+## Combinando com Suspense
+
+`useTransition` fica mais interessante quando a transition envolve um componente que suspende. O React segura a UI anterior enquanto a nova árvore tá carregando, em vez de imediatamente pular pro fallback de `Suspense`. O usuário vê o conteúdo *antigo* com `isPending = true` até o conteúdo novo estar pronto, aí um swap limpo. Sem flash de skeleton entre cada navegação.
+
+```tsx
+function TabSwitcher() {
+  const [tab, setTab] = useState<"home" | "profile">("home");
+  const [isPending, startTransition] = useTransition();
+
+  return (
+    <>
+      <nav style={{ opacity: isPending ? 0.6 : 1 }}>
+        <button onClick={() => startTransition(() => setTab("home"))}>Home</button>
+        <button onClick={() => startTransition(() => setTab("profile"))}>Profile</button>
+      </nav>
+
+      <Suspense fallback={<Skeleton />}>
+        {tab === "home" ? <Home /> : <Profile />}
+      </Suspense>
+    </>
+  );
+}
+```
+
+Se `<Profile />` suspende num data fetch, o `<Home />` anterior fica montado com opacidade reduzida até a nova árvore estar pronta. Sem `startTransition`, o usuário veria `<Skeleton />` imediatamente, mesmo pra fetches de menos de 100ms que nem precisam de fallback.
+
+---
+
+O modelo mental: **`useTransition` é uma dica pro React de que "esse update pode esperar".** Não muda *o que* o React faz, só a lane de prioridade em que ele faz. Use sempre que um update de state caro pode ser preemptado por input do usuário sem deixar a app parecer quebrada.

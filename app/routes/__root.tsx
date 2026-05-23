@@ -65,14 +65,14 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				{
 					name: "description",
 					content:
-						"Notes on web development, React, TypeScript, Bun, and modern tooling.",
+						"Daily lessons from shipping software — patterns, gotchas, refactors, and the tools that change how I work.",
 				},
 				{ property: "og:type", content: "website" },
 				{ property: "og:title", content: "Antonio Fulgencio Blog" },
 				{
 					property: "og:description",
 					content:
-						"Notes on web development, React, TypeScript, Bun, and modern tooling.",
+						"Daily lessons from shipping software — patterns, gotchas, refactors, and the tools that change how I work.",
 				},
 				{
 					property: "og:image",
@@ -85,7 +85,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				{
 					rel: "alternate",
 					type: "application/rss+xml",
-					title: "Antonio Fulgencio — Writing",
+					title: "Antonio Fulgencio — Posts",
 					href: `${siteUrl}/rss.xml`,
 				},
 				{ rel: "stylesheet", href: appCss },

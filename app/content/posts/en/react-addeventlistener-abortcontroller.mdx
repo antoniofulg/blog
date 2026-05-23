@@ -1,0 +1,105 @@
+---
+title: "Skip removeEventListener. Pass AbortController.signal to addEventListener Instead."
+slug: react-addeventlistener-abortcontroller
+description: addEventListener accepts an AbortSignal in its options. One controller can tear down every listener you registered with it — no removeEventListener, no reference juggling, no mismatched options object bugs.
+publishedAt: 2024-12-10
+---
+
+The classic React pattern for subscribing to a DOM event in an effect:
+
+```tsx
+useEffect(() => {
+  function onScroll() { /* … */ }
+  window.addEventListener("scroll", onScroll, { passive: true });
+  return () => window.removeEventListener("scroll", onScroll, { passive: true });
+}, []);
+```
+
+That works. It's also a small landmine field:
+
+- The cleanup must pass the *same* function reference. Inline functions don't work — you'd remove "the same" function but a different reference.
+- The cleanup must pass the *same* options object shape. `removeEventListener` matches on the `capture` flag; if you used `{ passive: true }` and the runtime treats it as a different identity for matching, you get silent leaks.
+- Multiple listeners on the same effect mean multiple `removeEventListener` calls, all with the same identity-matching constraints.
+
+`addEventListener` accepts a third option that sidesteps all of this: an `AbortSignal`. When the signal aborts, the listener is removed. One controller, one `abort()`, every listener attached with that signal goes away.
+
+## The Pattern
+
+```tsx
+useEffect(() => {
+  const controller = new AbortController();
+  const { signal } = controller;
+
+  window.addEventListener("scroll", onScroll, { passive: true, signal });
+  window.addEventListener("resize", onResize, { signal });
+  document.addEventListener("keydown", onKeyDown, { signal });
+
+  return () => controller.abort();
+}, []);
+```
+
+Four lines do what fourteen did before. The cleanup is one `abort()` regardless of how many listeners you registered, and you can't accidentally forget to remove one.
+
+## Why This Beats `removeEventListener` Every Time
+
+- **No identity matching.** Inline handlers work fine — `addEventListener("click", () => {}, { signal })` is cleaned up correctly, even though you don't have a reference to that arrow function.
+- **No options-mismatch bugs.** You don't pass the options to cleanup at all.
+- **All-or-nothing cleanup.** One controller registered five listeners? `abort()` removes all five at once.
+- **Composability.** Pass the signal further down — into a `fetch` call, into a custom subscription helper, into a Web Worker `postMessage` listener. One cleanup tears down the whole tree.
+
+## A Real-World Example
+
+A drag-and-drop interaction that needs `pointermove` and `pointerup` listeners only while a drag is in progress:
+
+```tsx
+function useDrag(onDrop: (e: PointerEvent) => void) {
+  useEffect(() => {
+    let dragging = false;
+    let dragController: AbortController | null = null;
+
+    function startDrag() {
+      if (dragging) return;
+      dragging = true;
+      dragController = new AbortController();
+      const { signal } = dragController;
+
+      window.addEventListener(
+        "pointermove",
+        (e) => {/* update transform */},
+        { signal },
+      );
+      window.addEventListener(
+        "pointerup",
+        (e) => {
+          onDrop(e);
+          dragController?.abort();
+          dragController = null;
+          dragging = false;
+        },
+        { signal },
+      );
+    }
+
+    document.addEventListener("pointerdown", startDrag, {
+      // outer signal for unmount cleanup
+    });
+    return () => {
+      dragController?.abort(); // mid-drag unmount
+    };
+  }, [onDrop]);
+}
+```
+
+The outer `useEffect` cleanup ends any drag in progress; the inner controller is created and discarded per drag. Two scopes, two signals, zero `removeEventListener` calls.
+
+## Browser Support
+
+The `signal` option for `addEventListener` has been in every major browser since around 2022 (Chrome 90+, Firefox 86+, Safari 15+). If your target supports `AbortController` for `fetch` — which is the baseline for modern React apps — it supports it here too.
+
+The only environments where this matters: very old embedded WebViews, legacy IE-style polyfills, ancient React Native versions. Check with `addEventListener.length` or a feature test if you're shipping into one of those.
+
+---
+
+The mental model: **the `signal` option turns `addEventListener` into a transaction.** Open the transaction with a controller, register everything you need, and close it with one `abort()`. The mental overhead of cleanup goes from "did I match the reference and options on every listener" to "did I call abort once."
+
+Once you write code this way, going back to manual `removeEventListener` feels like writing your own `try/finally` blocks for memory management.

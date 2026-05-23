@@ -1,0 +1,127 @@
+---
+title: "Dois padrões React que valem a troca: callback refs e object lookups"
+slug: react-callback-ref-and-object-lookup
+description: Dois refactors pequenos que removem boilerplate sem mudar comportamento — um callback ref no lugar de useRef + useEffect pra medir um nó do DOM, e um object lookup no lugar de um switch pra render condicional.
+publishedAt: 2024-10-24
+---
+
+Alguns padrões de React não estão errados, só são mais pesados do que precisariam ser. Você escreveu eles dezenas de vezes porque a documentação empurrou nessa direção. Dois deles — medir um nó do DOM com `useRef` + `useEffect` e renderizar uma de várias variantes com um `switch` — têm substituições mais limpas que ocupam menos linhas, usam menos hooks e lêem mais diretamente.
+
+Os dois são swaps mecânicos. Sem tradeoff, sem edge case pra aprender. Só código mais curto dizendo a mesma coisa.
+
+## Padrão 1: use um callback ref no lugar de `useRef` + `useEffect`
+
+O padrão default pra ler as dimensões de um nó do DOM:
+
+```tsx
+function MeasuredBox({ children }: { children: React.ReactNode }) {
+  const ref = useRef<HTMLDivElement | null>(null);
+  const [width, setWidth] = useState(0);
+
+  useEffect(() => {
+    if (ref.current) {
+      setWidth(ref.current.offsetWidth);
+    }
+  }, []);
+
+  return (
+    <div ref={ref}>
+      <p>Width: {width}px</p>
+      {children}
+    </div>
+  );
+}
+```
+
+Funciona, mas é tagarela. Dois hooks, um effect que roda uma vez só pra pegar uma medida que já tava disponível no momento que o React anexou a ref.
+
+Um callback ref faz o mesmo trabalho num lugar só:
+
+```tsx
+function MeasuredBox({ children }: { children: React.ReactNode }) {
+  const [width, setWidth] = useState(0);
+
+  const measureRef = useCallback((node: HTMLDivElement | null) => {
+    if (node) setWidth(node.offsetWidth);
+  }, []);
+
+  return (
+    <div ref={measureRef}>
+      <p>Width: {width}px</p>
+      {children}
+    </div>
+  );
+}
+```
+
+O callback roda no momento que o React anexa o nó e de novo sempre que o dono da ref muda. Sem `useEffect`, sem indireção via `ref.current`, e a medida acontece no momento certo por definição em vez de por acidente de timing.
+
+Quando isso importa mais do que o ganho sugere:
+
+- **Render condicional do elemento medido.** Com callback ref, você re-mede automaticamente quando o elemento monta ou desmonta. A versão com `useRef` + `useEffect` precisa do dependency array certo ou de um `ResizeObserver` pra acompanhar.
+- **`useEffect` roda depois do paint; o callback ref roda depois do commit.** Pra leituras de layout que dirigem renders subsequentes, o callback ref evita um flash de paint.
+
+`useCallback` tá aqui pra manter a identidade da ref estável pra que o React não desanexe e reanexe a cada render — mesma regra de ["Pare de adicionar o useCallback em toda função"](/pt-br/react-usecallback-when-it-helps).
+
+## Padrão 2: use um object lookup no lugar de um `switch`
+
+Render condicional por variante é o segundo clássico de boilerplate:
+
+```tsx
+function Status({ kind }: { kind: "loading" | "success" | "error" | "idle" }) {
+  switch (kind) {
+    case "loading":
+      return <Spinner />;
+    case "success":
+      return <CheckIcon />;
+    case "error":
+      return <ErrorIcon />;
+    case "idle":
+      return null;
+    default:
+      return null;
+  }
+}
+```
+
+Um object lookup comprime a mesma intenção:
+
+```tsx
+const STATUS_VIEWS = {
+  loading: <Spinner />,
+  success: <CheckIcon />,
+  error: <ErrorIcon />,
+  idle: null,
+} satisfies Record<"loading" | "success" | "error" | "idle", React.ReactNode>;
+
+function Status({ kind }: { kind: keyof typeof STATUS_VIEWS }) {
+  return STATUS_VIEWS[kind];
+}
+```
+
+O que isso troca:
+
+- **O map é uma estrutura de dados, não fluxo de controle.** Adicionar uma nova variante é uma linha. Remover uma deleta uma linha. Sem `default` pra esquecer.
+- **TypeScript ajuda.** `satisfies Record<..., React.ReactNode>` prova em tempo de compilação que toda variante tem entrada — derruba uma key e não compila.
+- **A lookup table é reutilizável.** Passa por aí, junta com outro set de variantes, renderiza num `<select>` pra um toggle de debug — é só um objeto.
+
+Quando o corpo da variante precisa de mais que um elemento estático — digamos que depende de props — promove os valores pra factory functions:
+
+```tsx
+const STATUS_VIEWS = {
+  loading: () => <Spinner />,
+  success: (msg: string) => <p>{msg}</p>,
+  error: (err: Error) => <ErrorIcon error={err} />,
+  idle: () => null,
+} as const;
+
+function Status({ kind, data }: Props) {
+  return STATUS_VIEWS[kind](data);
+}
+```
+
+O padrão escala até as variantes precisarem de shapes de prop muito diferentes — aí uma discriminated union com um `switch` fica mais clara de novo. O object lookup é o sweet spot pra 3–10 variantes que todas renderizam nós React.
+
+---
+
+Os dois swaps removem uma camada de indireção (um effect, uma estrutura de controle) sem mudar o que o código faz. A recompensa não é performance — é intenção. Menos pra varrer, menos lugares onde uma edição futura pode sair do trilho.

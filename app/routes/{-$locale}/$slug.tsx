@@ -121,12 +121,12 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 			en: {
 				title: "Post not found",
 				body: "This post doesn't exist or was removed.",
-				cta: "← Writing",
+				cta: "← Posts",
 			},
 			"pt-br": {
 				title: "Post não encontrado",
 				body: "Este post não existe ou foi removido.",
-				cta: "← Escrita",
+				cta: "← Posts",
 			},
 		} satisfies Record<Locale, { title: string; body: string; cta: string }>;
 		const t = copy[lang] ?? copy.en;

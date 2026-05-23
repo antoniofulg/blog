@@ -151,7 +151,7 @@ export function Dashboard() {
 }
 ```
 
-`Analytics` e `RecentPosts` carregam em paralelo. O que resolver primeiro renderiza primeiro. O usuário vê conteúdo útil na hora, em vez de ficar olhando um spinner de tela inteira enquanto a request mais lenta termina.
+`Analytics` e `RecentPosts` carregam em paralelo. O que resolver primeiro renderiza primeiro. O usuário vê conteúdo útil na hora, em vez de ficar olhando um spinner de tela inteira enquanto a requisição mais lenta termina.
 
 Boundaries aninhados levam isso adiante:
 
@@ -251,7 +251,7 @@ function UserPosts({ postsPromise }: { postsPromise: Promise<Post[]> }) {
 }
 ```
 
-Por fim, o pai dispara as duas requests em paralelo antes de renderizar e passa as promises em andamento pra baixo. Cada filho ganha seu próprio Suspense boundary, então renderizam independentes conforme resolvem. Um ErrorBoundary externo captura rejeições de qualquer subárvore.
+Por fim, o pai dispara as duas requisições em paralelo antes de renderizar e passa as promises em andamento pra baixo. Cada filho ganha seu próprio Suspense boundary, então renderizam independentes conforme resolvem. Um ErrorBoundary externo captura rejeições de qualquer subárvore.
 
 ```tsx
 export function UserPage({ userId }: { userId: number }) {
