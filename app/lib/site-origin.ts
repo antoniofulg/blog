@@ -11,13 +11,20 @@
  * and the audit preview server (`scripts/run-audit-fe.ts` sets
  * `SITE_URL=http://localhost:4173`).
  *
- * The `import.meta.env.SSR` guard prevents `process.env` access on the
- * client bundle — Vite leaves the lookup intact, so it would `ReferenceError`
- * in the browser. The client never re-renders `head()` for crawlers, so the
- * SSR-rendered HTML is the only surface that matters for SEO.
+ * The SSR vs client branches MUST return the same string for any given
+ * request, otherwise TanStack head reconciles the SSR-rendered absolute
+ * link against the client's hydrated relative link as two distinct entries
+ * — both `<link rel="canonical">` and `<meta property="og:image">` end up
+ * duplicated in the DOM, which trips Playwright's strict-mode locator and
+ * breaks Lighthouse's canonical/hreflang audits. On the client we mirror
+ * `window.location.origin` so the value matches whatever SITE_URL the
+ * server used (the audit preview, the prod host, etc.).
  */
 export function getSiteOrigin(): string {
-	if (!import.meta.env.SSR) return "";
-	const raw = process.env.SITE_URL ?? "";
-	return raw.replace(/\/+$/, "");
+	if (import.meta.env.SSR) {
+		const raw = process.env.SITE_URL ?? "";
+		return raw.replace(/\/+$/, "");
+	}
+	if (typeof window !== "undefined") return window.location.origin;
+	return "";
 }

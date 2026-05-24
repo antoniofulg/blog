@@ -99,21 +99,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 					href: "https://fonts.gstatic.com",
 					crossOrigin: "anonymous",
 				},
-				// Async-load Google Fonts CSS to drop it off the critical render
-				// path: Lighthouse FCP/LCP measured 6.2s on throttled runs while
-				// the stylesheet blocked the first paint. The preload primes the
-				// network; the print-media stylesheet is non-blocking, and an
-				// inline script swaps it back to `all` so the fonts actually
-				// apply once loaded. `font-display: swap` in the CSS gives an
-				// instant fallback paint. No-JS users keep the system fallback
-				// (Inter → ui-sans-serif).
-				{ rel: "preload", as: "style", href: GOOGLE_FONTS_HREF },
-				{ rel: "stylesheet", href: GOOGLE_FONTS_HREF, media: "print" },
-			],
-			scripts: [
-				{
-					children: `(function(){var l=document.querySelector('link[rel=stylesheet][media=print][href*="fonts.googleapis.com"]');if(l){l.media='all';}})();`,
-				},
+				{ rel: "stylesheet", href: GOOGLE_FONTS_HREF },
 			],
 		};
 	},
