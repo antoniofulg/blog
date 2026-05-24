@@ -56,6 +56,14 @@ function sortedByseverity(findings: AppAuditFinding[]): AppAuditFinding[] {
 	);
 }
 
+function formatAuditLine(
+	audit: NonNullable<AppAuditFinding["audits"]>[number],
+) {
+	const score = audit.score === null ? "n/a" : audit.score.toFixed(2);
+	const value = audit.displayValue ? ` — ${audit.displayValue}` : "";
+	return `    - \`${audit.id}\`${value} (score=${score}, weight=${audit.weight})`;
+}
+
 function formatCategorySection(
 	category: string,
 	group: AppAuditFinding[],
@@ -68,6 +76,10 @@ function formatCategorySection(
 		for (const f of group) {
 			lines.push(`- **${f.category}** (\`${f.filePath}\`)`);
 			lines.push(`  - ${f.message}`);
+			if (f.audits && f.audits.length > 0) {
+				lines.push("  - Failing audits:");
+				for (const a of f.audits) lines.push(formatAuditLine(a));
+			}
 		}
 	}
 	lines.push("");
