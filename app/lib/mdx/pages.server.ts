@@ -25,9 +25,9 @@ export const pageFrontmatterSchema = z
 		description: z.string().optional(),
 		avatar: z.string().optional(),
 		// Optional explicit alt for the avatar image; falls back to author name
-		// when absent (StaticPageProfile default). Declared here so PageFrontmatter
-		// accurately reflects the runtime value (issue 001 fix).
-		avatarAlt: z.string().optional(),
+		// when absent (StaticPageProfile default). `min(1)` so an accidental
+		// empty-string value in frontmatter does not silently produce alt="".
+		avatarAlt: z.string().min(1).optional(),
 		links: z.record(socialKindEnum, z.string().optional()).optional(),
 		// Fields present in about.mdx that previously flowed through .passthrough()
 		// without type coverage. Declared explicitly so PageFrontmatter no longer

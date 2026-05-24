@@ -1,6 +1,7 @@
 import { SocialLink } from "#/components/ui/social-link";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
+import { SITE_AUTHOR } from "#/lib/site-identity";
 import { SOCIAL_KINDS, type SocialKind } from "#/lib/social";
 
 // SOCIAL_KINDS is the single canonical source for social platform ordering
@@ -27,9 +28,14 @@ type Props = {
 };
 
 // Tailwind prose class string shared between both render branches (avatar /
-// no-avatar). Extracted as a constant to avoid duplication.
+// no-avatar). Extracted as a constant to avoid duplication. `max-w-prose`
+// caps body measure at ~65ch per DESIGN.md §3 Typography "65-Character Rule"
+// — long-form prose lives between 65 and 75 characters per line. The avatar
+// branch's right column would otherwise extend to the article's full
+// max-w-3xl (~90+ch) and break readability, especially in pt-br where the
+// average word is longer.
 const PROSE_CLASSES =
-	"animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border";
+	"animate-fade-up prose prose-lg prose-neutral max-w-prose dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border";
 
 /**
  * Renders the full content area for a static page, with optional profile-row
@@ -93,8 +99,9 @@ export function StaticPageProfile({ frontmatter, locale, html }: Props) {
 			<div className="animate-fade-up flex flex-col gap-8 md:flex-row md:items-start">
 				<img
 					src={frontmatter.avatar}
-					alt={frontmatter.avatarAlt ?? "Antonio Fulgencio"}
+					alt={frontmatter.avatarAlt ?? SITE_AUTHOR}
 					loading="eager"
+					decoding="async"
 					className="h-32 w-32 flex-shrink-0 self-start rounded-full object-cover md:h-40 md:w-40"
 				/>
 				<div className="flex min-w-0 flex-1 flex-col gap-4">
