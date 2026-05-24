@@ -1,17 +1,11 @@
 import { SocialLink } from "#/components/ui/social-link";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
+import { SOCIAL_KINDS, type SocialKind } from "#/lib/social";
 
-// Stable display order for social links in the profile row.
-type SocialKind = "github" | "linkedin" | "x" | "instagram" | "rss" | "email";
-const SOCIAL_ORDER: readonly SocialKind[] = [
-	"github",
-	"linkedin",
-	"x",
-	"instagram",
-	"rss",
-	"email",
-];
+// SOCIAL_KINDS is the single canonical source for social platform ordering
+// (app/lib/social.ts). Importing from there eliminates the previously local
+// SocialKind union + SOCIAL_ORDER duplicate (issue 002 fix).
 
 // Subset of PageFrontmatter fields consumed by this component. Defined locally
 // to avoid importing from .server.ts (components must not depend on server
@@ -20,6 +14,9 @@ type ProfileFrontmatter = {
 	title: string;
 	description?: string;
 	avatar?: string;
+	// Explicit alt for the avatar image. Falls back to author name when absent
+	// so screen readers hear the person's identity, not the page title (issue 001 fix).
+	avatarAlt?: string;
 	links?: Record<SocialKind, string | undefined>;
 };
 
@@ -51,7 +48,7 @@ export function StaticPageProfile({ frontmatter, locale, html }: Props) {
 	const t = strings[locale];
 
 	// Only render links that have a non-empty URL value.
-	const populatedLinks = SOCIAL_ORDER.filter(
+	const populatedLinks = SOCIAL_KINDS.filter(
 		(kind) => !!frontmatter.links?.[kind],
 	);
 	const hasAvatar = !!frontmatter.avatar;
@@ -96,7 +93,7 @@ export function StaticPageProfile({ frontmatter, locale, html }: Props) {
 			<div className="animate-fade-up flex flex-col gap-8 md:flex-row md:items-start">
 				<img
 					src={frontmatter.avatar}
-					alt={frontmatter.title}
+					alt={frontmatter.avatarAlt ?? "Antonio Fulgencio"}
 					loading="eager"
 					className="h-32 w-32 flex-shrink-0 self-start rounded-full object-cover md:h-40 md:w-40"
 				/>

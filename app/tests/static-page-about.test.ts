@@ -94,10 +94,18 @@ describe("StaticPageProfile — avatar present (AC-1)", () => {
 		expect(img.getAttribute("loading")).toBe("eager");
 	});
 
-	it("avatar img has alt text equal to the page title", () => {
+	it("avatar img has alt text equal to the author name fallback when avatarAlt is absent", () => {
+		// After issue 001 fix: alt = frontmatter.avatarAlt ?? "Antonio Fulgencio".
+		// FM_AVATAR_TWO_LINKS has no avatarAlt, so the fallback is used.
 		renderProfile(FM_AVATAR_TWO_LINKS);
 		const img = screen.getByRole("img");
-		expect(img.getAttribute("alt")).toBe("About");
+		expect(img.getAttribute("alt")).toBe("Antonio Fulgencio");
+	});
+
+	it("avatar img uses explicit avatarAlt when provided", () => {
+		renderProfile({ ...FM_AVATAR_TWO_LINKS, avatarAlt: "Custom alt" });
+		const img = screen.getByRole("img");
+		expect(img.getAttribute("alt")).toBe("Custom alt");
 	});
 
 	it("renders exactly 2 social link anchors for 2 populated keys", () => {

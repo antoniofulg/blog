@@ -40,6 +40,7 @@ export const uiStringsSchema = z.object({
 		sidebar: z.object({
 			posts: z.string(),
 			analytics: z.string(),
+			navLabel: z.string(),
 		}),
 		dashboard: z.object({
 			title: z.string(),
@@ -146,6 +147,7 @@ export const strings: Record<Locale, UIStrings> = {
 			sidebar: {
 				posts: "Posts",
 				analytics: "Analytics",
+				navLabel: "Admin navigation",
 			},
 			dashboard: {
 				title: "Admin Dashboard",
@@ -250,6 +252,7 @@ export const strings: Record<Locale, UIStrings> = {
 			sidebar: {
 				posts: "Posts",
 				analytics: "Analytics",
+				navLabel: "Navegação do admin",
 			},
 			dashboard: {
 				title: "Painel Admin",

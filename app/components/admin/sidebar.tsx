@@ -37,7 +37,7 @@ export function AdminSidebar() {
 
 	return (
 		<nav
-			aria-label="Admin navigation"
+			aria-label={t.navLabel}
 			className="p-3 md:flex md:h-full md:flex-col md:p-4"
 		>
 			{/* Mobile: horizontal row; Desktop: vertical column with grow */}

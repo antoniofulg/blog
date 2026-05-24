@@ -7,17 +7,13 @@ import { renderToStaticMarkup } from "react-dom/server";
 import { z } from "zod";
 import type { Locale } from "#/lib/locale";
 import { renderMdx } from "#/lib/mdx/renderer.server";
+import { SOCIAL_KINDS } from "#/lib/social";
 
-export const socialKindEnum = z.enum([
-	"github",
-	"linkedin",
-	"x",
-	"instagram",
-	"rss",
-	"email",
-]);
+// Derived from the shared SOCIAL_KINDS const tuple so that a single edit
+// propagates to all consumers (static-page-profile.tsx, social-link.tsx).
+export const socialKindEnum = z.enum(SOCIAL_KINDS);
 
-export type SocialKind = z.infer<typeof socialKindEnum>;
+export type SocialKind = (typeof SOCIAL_KINDS)[number];
 
 // Links uses optional string values to allow any subset of enum keys.
 // z.record(enumKey, z.string()) in Zod v4 requires ALL enum keys; using
@@ -28,7 +24,20 @@ export const pageFrontmatterSchema = z
 		title: z.string().min(1),
 		description: z.string().optional(),
 		avatar: z.string().optional(),
+		// Optional explicit alt for the avatar image; falls back to author name
+		// when absent (StaticPageProfile default). Declared here so PageFrontmatter
+		// accurately reflects the runtime value (issue 001 fix).
+		avatarAlt: z.string().optional(),
 		links: z.record(socialKindEnum, z.string().optional()).optional(),
+		// Fields present in about.mdx that previously flowed through .passthrough()
+		// without type coverage. Declared explicitly so PageFrontmatter no longer
+		// lies about runtime (issue 006 fix). .passthrough() is retained for any
+		// truly unknown future fields so existing passthrough-verified tests pass.
+		tagline: z.string().optional(),
+		// gray-matter parses YAML dates as Date objects; z.union handles both the
+		// Date (real file parse) and string (mocked unit-test) cases.
+		nowUpdatedAt: z.union([z.string(), z.date()]).optional(),
+		locale: z.string().optional(),
 	})
 	.passthrough();
 

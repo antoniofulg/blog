@@ -8,7 +8,7 @@ import {
 	Share2,
 	Twitter,
 } from "lucide-react";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
 
@@ -118,6 +118,17 @@ export function PostShare({ postUrl, postTitle, locale }: PostShareProps) {
 	const [hasNativeShare, setHasNativeShare] = useState(false);
 	/** brief "Copied!" confirmation state */
 	const [copied, setCopied] = useState(false);
+	/** timer ref for the "Copied!" reset — cleared on new click and on unmount */
+	const copyTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+	// Cleanup: cancel any pending reset timer when the component unmounts.
+	// Prevents a state update on an unmounted component (minor memory leak).
+	useEffect(
+		() => () => {
+			if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+		},
+		[],
+	);
 
 	useEffect(() => {
 		// Resolve to absolute URL after mount (postUrl may be a relative path
@@ -136,7 +147,10 @@ export function PostShare({ postUrl, postTitle, locale }: PostShareProps) {
 		try {
 			await navigator.clipboard.writeText(utmUrl);
 			setCopied(true);
-			setTimeout(() => setCopied(false), 2000);
+			// Cancel any previous pending reset before starting a new one so rapid
+			// double-clicks don't leave orphaned timers (issue 005 fix).
+			if (copyTimerRef.current) clearTimeout(copyTimerRef.current);
+			copyTimerRef.current = setTimeout(() => setCopied(false), 2000);
 		} catch {
 			// Clipboard API may be unavailable in non-secure contexts; fail silently.
 		}

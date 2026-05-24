@@ -51,8 +51,10 @@ publicTest.describe("/about social row", { tag: ["@public", "@smoke"] }, () => {
 			await page.goto("/about");
 			await page.waitForLoadState("load");
 
-			// Avatar rendered via frontmatter.avatar; alt = frontmatter.title = "About"
-			await expect(page.getByRole("img", { name: "About" })).toBeVisible();
+			// Avatar rendered via frontmatter.avatar; alt = avatarAlt ?? "Antonio Fulgencio"
+			await expect(
+				page.getByRole("img", { name: "Antonio Fulgencio" }),
+			).toBeVisible();
 
 			// Social links from about.mdx frontmatter links.github + links.linkedin.
 			// exact: true prevents partial match against body links like
@@ -72,8 +74,10 @@ publicTest.describe("/about social row", { tag: ["@public", "@smoke"] }, () => {
 			await page.goto("/pt-br/about");
 			await page.waitForLoadState("load");
 
-			// Alt = frontmatter.title for pt-br about = "Sobre"
-			await expect(page.getByRole("img", { name: "Sobre" })).toBeVisible();
+			// Alt = avatarAlt ?? "Antonio Fulgencio" (same fallback for both locales)
+			await expect(
+				page.getByRole("img", { name: "Antonio Fulgencio" }),
+			).toBeVisible();
 
 			// Platform names are locale-neutral (GitHub, LinkedIn in both locales)
 			await expect(
@@ -182,8 +186,11 @@ publicTest.describe("post share row", { tag: ["@public", "@smoke"] }, () => {
 			await expect(shareBtn).toBeVisible();
 
 			// Chip row section must not be present — component renders one branch or
-			// the other (never both). section[aria-label="Share"] is the chip container.
-			await expect(page.locator("section[aria-label='Share']")).not.toBeVisible();
+			// the other (never both). The chip-container <section aria-label="Share">
+			// has implicit ARIA role "region"; getByRole is used instead of CSS selector.
+			await expect(
+				page.getByRole("region", { name: "Share", exact: true }),
+			).not.toBeVisible();
 		},
 	);
 });
