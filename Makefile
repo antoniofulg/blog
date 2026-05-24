@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup dev dev-docker build preview \
         test lint format check lint-tests test-e2e audit-content audit-fe app-audit audit audit-watch \
-        db-migrate db-generate db-seed db-reset \
+        db-migrate db-generate db-seed db-sync db-reset \
         stop restart restart-all logs shell deploy
 
 IMAGE_NAME    ?= blog
@@ -143,14 +143,19 @@ db-generate: ## Generate Drizzle migration files from schema changes
 
 db-seed: ## Seed the database with development data
 	bun run db:seed
-	@echo "DB seeded. Next: make dev"
+	@echo "DB seeded. Next: make db-sync | make dev"
 
-db-reset: ## DESTRUCTIVE: drop schema, migrate, and seed (requires DB running via make dev or make dev-docker)
+db-sync: ## Walk app/content/posts/**/*.mdx and upsert into posts table (idempotent)
+	bun run sync
+	@echo "Posts indexed. Next: make dev"
+
+db-reset: ## DESTRUCTIVE: drop schema, migrate, seed, and re-index posts (requires DB running via make dev or make dev-docker)
 	docker compose exec db psql -U blog -c \
 	  "DROP SCHEMA public CASCADE; DROP SCHEMA IF EXISTS drizzle CASCADE; CREATE SCHEMA public;"
 	bun run db:migrate
 	bun run db:seed
-	@echo "DB reset. Next: make dev"
+	bun run sync
+	@echo "DB reset and posts re-indexed. Next: make dev"
 
 # -- Container Lifecycle -------------------------------------------------------
 
