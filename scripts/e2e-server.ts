@@ -45,7 +45,15 @@ await writeFile(
 );
 
 const child = spawn("bun", ["run", ".output/server/index.mjs"], {
-	env: { ...process.env, DATABASE_URL: testDb.connectionString, PORT: "4173" },
+	env: {
+		...process.env,
+		DATABASE_URL: testDb.connectionString,
+		PORT: "4173",
+		// Signal to server fns that this is the Playwright preview server, so
+		// e.g. admin/index.server.ts can keep fixture posts visible to admin
+		// E2E specs that assert against them.
+		E2E_TEST: "true",
+	},
 	stdio: "inherit",
 });
 
