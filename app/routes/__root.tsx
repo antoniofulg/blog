@@ -22,9 +22,13 @@ import {
 	type Locale,
 	LocaleProvider,
 } from "#/lib/locale";
+import { getSiteOrigin } from "#/lib/site-origin";
 import { ThemeProvider } from "#/lib/theme";
 import type { RouterContext } from "#/types/auth";
 import appCss from "../styles/global.css?url";
+
+const GOOGLE_FONTS_HREF =
+	"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap";
 
 const getAuthSession = createServerFn({ method: "GET" }).handler(async () => {
 	const { auth } = await import("#/lib/auth");
@@ -48,7 +52,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		return { auth: { user } };
 	},
 	head: ({ matches }) => {
-		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+		const siteUrl = getSiteOrigin();
 		const pathname = matches.at(-1)?.pathname ?? "/";
 		// Default-locale collapse: `/<DEFAULT_LOCALE>/<path>` → `/<path>`.
 		// Non-default locales (e.g. /pt-br/...) keep their prefix.
@@ -95,9 +99,20 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 					href: "https://fonts.gstatic.com",
 					crossOrigin: "anonymous",
 				},
+				// Async-load Google Fonts CSS to drop it off the critical render
+				// path: Lighthouse FCP/LCP measured 6.2s on throttled runs while
+				// the stylesheet blocked the first paint. The preload primes the
+				// network; the print-media stylesheet is non-blocking, and an
+				// inline script swaps it back to `all` so the fonts actually
+				// apply once loaded. `font-display: swap` in the CSS gives an
+				// instant fallback paint. No-JS users keep the system fallback
+				// (Inter → ui-sans-serif).
+				{ rel: "preload", as: "style", href: GOOGLE_FONTS_HREF },
+				{ rel: "stylesheet", href: GOOGLE_FONTS_HREF, media: "print" },
+			],
+			scripts: [
 				{
-					rel: "stylesheet",
-					href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap",
+					children: `(function(){var l=document.querySelector('link[rel=stylesheet][media=print][href*="fonts.googleapis.com"]');if(l){l.media='all';}})();`,
 				},
 			],
 		};

@@ -35,7 +35,15 @@ async function nitroBundleExists(): Promise<boolean> {
 
 function spawnPreview(): ChildProcess {
 	const child = spawn("bun", ["run", NITRO_BUNDLE], {
-		env: { ...process.env, PORT },
+		env: {
+			...process.env,
+			PORT,
+			// Without an explicit SITE_URL the SSR-rendered canonical and
+			// hreflang links emit relative hrefs, which Lighthouse SEO scores
+			// as `0` ("Relative href value"). Mirror the preview origin so
+			// `getSiteOrigin()` returns the URL the audit is actually probing.
+			SITE_URL: process.env.SITE_URL ?? BASE_URL,
+		},
 		stdio: ["ignore", "inherit", "inherit"],
 	});
 	child.on("error", (err) => {
