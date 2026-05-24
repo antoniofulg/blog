@@ -104,10 +104,10 @@ export function StaticPageProfile({ frontmatter, locale, html }: Props) {
 					decoding="async"
 					className="h-32 w-32 flex-shrink-0 self-start rounded-full object-cover md:h-40 md:w-40"
 				/>
-				<div className="flex min-w-0 flex-1 flex-col gap-4">
+				<div className="flex min-w-0 max-w-prose flex-1 flex-col gap-4">
 					<h1
 						id="page-title"
-						className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl"
+						className="font-heading text-[clamp(2rem,4.5vw,3rem)] font-bold leading-[1.15] tracking-[-0.02em] text-foreground"
 					>
 						{frontmatter.title}
 					</h1>
@@ -129,10 +129,10 @@ export function StaticPageProfile({ frontmatter, locale, html }: Props) {
 	// pre-task rendering (AC-5 regression safety).
 	return (
 		<>
-			<header className="animate-fade-up mb-8 flex flex-col gap-4 lg:mb-12">
+			<header className="animate-fade-up mb-8 flex max-w-prose flex-col gap-4 lg:mb-12">
 				<h1
 					id="page-title"
-					className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl"
+					className="font-heading text-[clamp(2rem,4.5vw,3rem)] font-bold leading-[1.15] tracking-[-0.02em] text-foreground"
 				>
 					{frontmatter.title}
 				</h1>
