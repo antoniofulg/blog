@@ -55,8 +55,10 @@ export const uiStringsSchema = z.object({
 				title: z.string(),
 				slug: z.string(),
 				lang: z.string(),
+				published: z.string(),
 				actions: z.string(),
 			}),
+			unpublished: z.string(),
 			actions: z.object({
 				view: z.string(),
 			}),
@@ -162,8 +164,10 @@ export const strings: Record<Locale, UIStrings> = {
 					title: "Title",
 					slug: "Slug",
 					lang: "Language",
+					published: "Published",
 					actions: "Actions",
 				},
+				unpublished: "Draft",
 				actions: {
 					view: "View",
 				},
@@ -267,8 +271,10 @@ export const strings: Record<Locale, UIStrings> = {
 					title: "Título",
 					slug: "Slug",
 					lang: "Idioma",
+					published: "Publicado",
 					actions: "Ações",
 				},
+				unpublished: "Rascunho",
 				actions: {
 					view: "Ver",
 				},
