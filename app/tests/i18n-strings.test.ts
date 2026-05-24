@@ -279,4 +279,91 @@ describe("uiStringsSchema — admin namespace", () => {
 			expect(strings["pt-br"].notFound.homeCta).toBe("← Posts");
 		});
 	});
+
+	describe("admin.dashboard — AC-1: title non-empty in both locales", () => {
+		it.each(LOCALES)("locale %s: dashboard.title is non-empty", (locale) => {
+			expect(strings[locale].admin.dashboard.title.length).toBeGreaterThan(0);
+		});
+	});
+
+	describe("admin.dashboard — AC-2: subtitle differs across locales", () => {
+		it("en.subtitle !== pt-br.subtitle", () => {
+			expect(strings.en.admin.dashboard.subtitle).not.toBe(
+				strings["pt-br"].admin.dashboard.subtitle,
+			);
+		});
+	});
+
+	describe("admin.dashboard — filter keys", () => {
+		it("en: filter.all resolves to 'All'", () => {
+			expect(strings.en.admin.dashboard.filter.all).toBe("All");
+		});
+		it("pt-br: filter.all resolves to 'Todos'", () => {
+			expect(strings["pt-br"].admin.dashboard.filter.all).toBe("Todos");
+		});
+		it("en: filter.label is non-empty", () => {
+			expect(strings.en.admin.dashboard.filter.label.length).toBeGreaterThan(0);
+		});
+		it("pt-br: filter.label is non-empty", () => {
+			expect(
+				strings["pt-br"].admin.dashboard.filter.label.length,
+			).toBeGreaterThan(0);
+		});
+		it.each(LOCALES)("locale %s: filter.en is non-empty", (locale) => {
+			expect(strings[locale].admin.dashboard.filter.en.length).toBeGreaterThan(
+				0,
+			);
+		});
+		it.each(LOCALES)("locale %s: filter.ptBr is non-empty", (locale) => {
+			expect(
+				strings[locale].admin.dashboard.filter.ptBr.length,
+			).toBeGreaterThan(0);
+		});
+	});
+
+	describe("admin.dashboard — table headers", () => {
+		it("en: table.title resolves to 'Title'", () => {
+			expect(strings.en.admin.dashboard.table.title).toBe("Title");
+		});
+		it("pt-br: table.title resolves to 'Título'", () => {
+			expect(strings["pt-br"].admin.dashboard.table.title).toBe("Título");
+		});
+		it("en: table.slug resolves to 'Slug'", () => {
+			expect(strings.en.admin.dashboard.table.slug).toBe("Slug");
+		});
+		it("pt-br: table.slug resolves to 'Slug'", () => {
+			expect(strings["pt-br"].admin.dashboard.table.slug).toBe("Slug");
+		});
+		it("en: table.lang resolves to non-empty", () => {
+			expect(strings.en.admin.dashboard.table.lang.length).toBeGreaterThan(0);
+		});
+		it("pt-br: table.lang resolves to 'Idioma'", () => {
+			expect(strings["pt-br"].admin.dashboard.table.lang).toBe("Idioma");
+		});
+		it("en: table.actions resolves to non-empty", () => {
+			expect(strings.en.admin.dashboard.table.actions.length).toBeGreaterThan(
+				0,
+			);
+		});
+		it("pt-br: table.actions resolves to 'Ações'", () => {
+			expect(strings["pt-br"].admin.dashboard.table.actions).toBe("Ações");
+		});
+	});
+
+	describe("admin.dashboard — actions", () => {
+		it("en: actions.view resolves to 'View'", () => {
+			expect(strings.en.admin.dashboard.actions.view).toBe("View");
+		});
+		it("pt-br: actions.view resolves to 'Ver'", () => {
+			expect(strings["pt-br"].admin.dashboard.actions.view).toBe("Ver");
+		});
+	});
+
+	describe("admin.dashboard — AC-5: module-load parse succeeds", () => {
+		it.each(
+			LOCALES,
+		)("locale %s: uiStringsSchema.parse(strings[locale]) does not throw", (locale) => {
+			expect(() => uiStringsSchema.parse(strings[locale])).not.toThrow();
+		});
+	});
 });

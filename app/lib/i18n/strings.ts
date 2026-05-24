@@ -41,6 +41,25 @@ export const uiStringsSchema = z.object({
 			posts: z.string(),
 			analytics: z.string(),
 		}),
+		dashboard: z.object({
+			title: z.string(),
+			subtitle: z.string(),
+			filter: z.object({
+				label: z.string(),
+				all: z.string(),
+				en: z.string(),
+				ptBr: z.string(),
+			}),
+			table: z.object({
+				title: z.string(),
+				slug: z.string(),
+				lang: z.string(),
+				actions: z.string(),
+			}),
+			actions: z.object({
+				view: z.string(),
+			}),
+		}),
 		analytics: z.object({
 			pageTitle: z.string(),
 			summary: z.object({
@@ -128,6 +147,25 @@ export const strings: Record<Locale, UIStrings> = {
 				posts: "Posts",
 				analytics: "Analytics",
 			},
+			dashboard: {
+				title: "Admin Dashboard",
+				subtitle: "Manage your articles and publications.",
+				filter: {
+					label: "Filter by language",
+					all: "All",
+					en: "EN",
+					ptBr: "PT-BR",
+				},
+				table: {
+					title: "Title",
+					slug: "Slug",
+					lang: "Language",
+					actions: "Actions",
+				},
+				actions: {
+					view: "View",
+				},
+			},
 			analytics: {
 				pageTitle: "Analytics",
 				summary: {
@@ -212,6 +250,25 @@ export const strings: Record<Locale, UIStrings> = {
 			sidebar: {
 				posts: "Posts",
 				analytics: "Analytics",
+			},
+			dashboard: {
+				title: "Painel Admin",
+				subtitle: "Gerencie seus artigos e publicações.",
+				filter: {
+					label: "Filtrar por idioma",
+					all: "Todos",
+					en: "EN",
+					ptBr: "PT-BR",
+				},
+				table: {
+					title: "Título",
+					slug: "Slug",
+					lang: "Idioma",
+					actions: "Ações",
+				},
+				actions: {
+					view: "Ver",
+				},
 			},
 			analytics: {
 				pageTitle: "Analytics",

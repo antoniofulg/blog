@@ -1,5 +1,7 @@
 import { createFileRoute, redirect } from "@tanstack/react-router";
 import type { Post } from "#/db/schema";
+import { strings } from "#/lib/i18n/strings";
+import { useLocale } from "#/lib/locale";
 import { getAllPosts } from "./index.server";
 
 const isLocale = (v: unknown): v is "en" | "pt-br" =>
@@ -17,39 +19,40 @@ export const Route = createFileRoute("/admin/")({
 	component: AdminDashboard,
 });
 
-const FILTERS: ReadonlyArray<{
-	label: string;
-	href: string;
-	value?: "en" | "pt-br";
-}> = [
-	{ label: "Todos", href: "/admin/" },
-	{ label: "EN", href: "/admin/?locale=en", value: "en" },
-	{ label: "PT-BR", href: "/admin/?locale=pt-br", value: "pt-br" },
-];
-
 function AdminDashboard() {
 	const posts = Route.useLoaderData();
-	const { locale } = Route.useSearch();
-	const shown = locale ? posts.filter((p: Post) => p.lang === locale) : posts;
+	const { locale: searchLocale } = Route.useSearch();
+	const { locale } = useLocale();
+	const t = strings[locale].admin.dashboard;
+
+	const shown = searchLocale
+		? posts.filter((p: Post) => p.lang === searchLocale)
+		: posts;
+
 	const viewHref = (post: Post) =>
 		post.lang === "en" ? `/${post.slug}` : `/pt-br/${post.slug}`;
+
+	const filters = [
+		{ label: t.filter.all, href: "/admin/", value: undefined },
+		{ label: t.filter.en, href: "/admin/?locale=en", value: "en" as const },
+		{
+			label: t.filter.ptBr,
+			href: "/admin/?locale=pt-br",
+			value: "pt-br" as const,
+		},
+	];
 
 	return (
 		<div className="px-5 py-16 lg:px-20">
 			<div className="mx-auto max-w-5xl">
 				<h1 className="font-heading text-3xl font-bold text-foreground">
-					Admin Dashboard
+					{t.title}
 				</h1>
-				<p className="mt-2 text-foreground-secondary">
-					Gerencie seus artigos e publicações.
-				</p>
+				<p className="mt-2 text-foreground-secondary">{t.subtitle}</p>
 
-				<nav
-					aria-label="Filtrar por idioma"
-					className="mt-6 flex gap-2 text-sm"
-				>
-					{FILTERS.map((f) => {
-						const isActive = f.value === locale;
+				<nav aria-label={t.filter.label} className="mt-6 flex gap-2 text-sm">
+					{filters.map((f) => {
+						const isActive = f.value === searchLocale;
 						return (
 							<a
 								key={f.href}
@@ -72,16 +75,16 @@ function AdminDashboard() {
 						<thead>
 							<tr className="border-b border-border bg-surface">
 								<th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
-									Título
+									{t.table.title}
 								</th>
 								<th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
-									Slug
+									{t.table.slug}
 								</th>
 								<th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
-									Idioma
+									{t.table.lang}
 								</th>
 								<th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
-									Ações
+									{t.table.actions}
 								</th>
 							</tr>
 						</thead>
@@ -104,7 +107,7 @@ function AdminDashboard() {
 											rel="noopener noreferrer"
 											className="rounded-md bg-accent px-3 py-1.5 text-xs font-medium text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-card"
 										>
-											View
+											{t.actions.view}
 										</a>
 									</td>
 								</tr>
