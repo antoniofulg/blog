@@ -108,12 +108,18 @@ describe("unit: SocialLink — anchor attributes", () => {
 		expect(anchor?.getAttribute("target")).toBeNull();
 	});
 
-	it("renders the label text inside the anchor", () => {
-		const { getByText } = renderLink(
+	it("exposes the label via aria-label + title (icon-only ghost variant)", () => {
+		const { container } = renderLink(
 			"github",
 			"My GitHub",
 			"https://github.com/me",
 		);
-		expect(getByText("My GitHub")).not.toBeNull();
+		const anchor = container.querySelector("a");
+		// SocialLink renders icon-only per the simplified ghost-button variant;
+		// the label survives as the accessible name (aria-label) + hover tooltip
+		// (title). No visible text inside the anchor.
+		expect(anchor?.getAttribute("aria-label")).toBe("My GitHub");
+		expect(anchor?.getAttribute("title")).toBe("My GitHub");
+		expect(anchor?.textContent?.trim()).toBe("");
 	});
 });

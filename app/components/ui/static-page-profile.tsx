@@ -61,7 +61,7 @@ export function StaticPageProfile({ frontmatter, locale, html }: Props) {
 	const hasLinks = populatedLinks.length > 0;
 
 	const socialRow = hasLinks ? (
-		<div className="flex flex-wrap gap-2">
+		<div className="flex flex-wrap gap-1.5">
 			{populatedLinks.map((kind) => {
 				const url = frontmatter.links?.[kind];
 				if (!url) return null;

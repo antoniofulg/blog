@@ -30,6 +30,17 @@ type Props = {
 	kind: LinkKind;
 };
 
+/**
+ * SocialLink — icon-only ghost-button affordance matching the
+ * `button-ghost` token in DESIGN.md §5 Components (40×40, bg-surface
+ * rest, bg-muted hover, rounded-md). The `label` prop is exposed only
+ * as `aria-label` + `title` so screen readers and hover-tooltips still
+ * announce the platform identity; the chip itself reads as quiet
+ * typography-first chrome that does not compete with the prose.
+ *
+ * Email kind auto-detects `mailto:` URLs and skips `target="_blank"`
+ * so the OS mail client opens in the foreground.
+ */
 export function SocialLink({ label, url, kind }: Props) {
 	const Icon = iconByKind[kind];
 	const isExternal = !url.startsWith("mailto:");
@@ -37,14 +48,12 @@ export function SocialLink({ label, url, kind }: Props) {
 	return (
 		<a
 			href={url}
-			className="group inline-flex h-11 items-center gap-2 rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground-secondary transition-colors hover:border-border-strong hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+			aria-label={label}
+			title={label}
+			className="inline-flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground-secondary transition-colors hover:bg-muted hover:text-accent focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			{...(isExternal && { target: "_blank", rel: "noopener noreferrer" })}
 		>
-			<Icon
-				className="h-4 w-4 text-foreground-muted transition-colors group-hover:text-accent"
-				aria-hidden="true"
-			/>
-			<span>{label}</span>
+			<Icon className="h-[18px] w-[18px]" aria-hidden="true" />
 		</a>
 	);
 }
