@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => {
 	let pathname = "/admin";
 	let locale: "en" | "pt-br" = "en";
+	const setLocaleSpy = vi.fn();
 	return {
 		setPathname: (p: string) => {
 			pathname = p;
@@ -17,6 +18,7 @@ const mocks = vi.hoisted(() => {
 			locale = l;
 		},
 		getLocale: () => locale,
+		setLocaleSpy,
 	};
 });
 
@@ -43,8 +45,12 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 // Provide LOCALES so that strings.ts module-level validation loop works.
+// setLocaleSpy is the spy injected into the component via useLocale().
 vi.mock("#/lib/locale", () => ({
-	useLocale: () => ({ locale: mocks.getLocale(), setLocale: () => {} }),
+	useLocale: () => ({
+		locale: mocks.getLocale(),
+		setLocale: mocks.setLocaleSpy,
+	}),
 	LOCALES: ["en", "pt-br"],
 }));
 
@@ -202,5 +208,74 @@ describe("unit: AdminSidebar pt-br locale", () => {
 		expect(
 			screen.getByText(strings["pt-br"].admin.sidebar.analytics),
 		).toBeDefined();
+	});
+});
+
+// ─── Unit: lang switcher ──────────────────────────────────────────────────────
+
+describe("unit: AdminSidebar lang switcher", () => {
+	beforeEach(() => {
+		mocks.setPathname("/admin");
+		mocks.setLocale("en");
+		mocks.setLocaleSpy.mockClear();
+	});
+	afterEach(cleanup);
+
+	it("renders both locale buttons (EN and PT) from LanguageMenu pair variant", () => {
+		render(React.createElement(AdminSidebar));
+		// LanguagePair renders localeCode values: "EN" for en, "PT" for pt-br
+		expect(screen.getByText("EN")).toBeDefined();
+		expect(screen.getByText("PT")).toBeDefined();
+	});
+
+	it("renders exactly 2 locale buttons in LanguageMenu", () => {
+		render(React.createElement(AdminSidebar));
+		const buttons = screen
+			.getAllByRole("button")
+			.filter((b) => b.textContent === "EN" || b.textContent === "PT");
+		expect(buttons).toHaveLength(2);
+	});
+
+	it("each locale button has an associated onClick function in items", () => {
+		render(React.createElement(AdminSidebar));
+		// The inactive locale button (PT when locale=en) must have an onClick handler.
+		// Active locale (EN) has onClick=undefined per LanguagePair design.
+		const ptButton = screen.getByText("PT");
+		// Clicking the inactive locale should invoke setLocale — proves onClick exists
+		fireEvent.click(ptButton);
+		expect(mocks.setLocaleSpy).toHaveBeenCalledTimes(1);
+	});
+
+	it("clicking the inactive locale fires setLocale with the correct target", () => {
+		mocks.setLocale("en"); // current locale is en
+		render(React.createElement(AdminSidebar));
+		const ptButton = screen.getByText("PT");
+		fireEvent.click(ptButton);
+		expect(mocks.setLocaleSpy).toHaveBeenCalledTimes(1);
+		expect(mocks.setLocaleSpy).toHaveBeenCalledWith("pt-br");
+	});
+
+	it("clicking the active locale does NOT fire setLocale", () => {
+		mocks.setLocale("en"); // current locale is en, EN button is active
+		render(React.createElement(AdminSidebar));
+		const enButton = screen.getByText("EN");
+		fireEvent.click(enButton);
+		expect(mocks.setLocaleSpy).not.toHaveBeenCalled();
+	});
+
+	it("nav items coexist with lang switcher — no regression", () => {
+		render(React.createElement(AdminSidebar));
+		expect(screen.getByText(strings.en.admin.sidebar.posts)).toBeDefined();
+		expect(screen.getByText(strings.en.admin.sidebar.analytics)).toBeDefined();
+		expect(screen.getByText("EN")).toBeDefined();
+	});
+
+	it("when pt-br locale is active, clicking EN fires setLocale with 'en'", () => {
+		mocks.setLocale("pt-br");
+		render(React.createElement(AdminSidebar));
+		const enButton = screen.getByText("EN");
+		fireEvent.click(enButton);
+		expect(mocks.setLocaleSpy).toHaveBeenCalledTimes(1);
+		expect(mocks.setLocaleSpy).toHaveBeenCalledWith("en");
 	});
 });

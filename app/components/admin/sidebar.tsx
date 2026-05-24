@@ -1,6 +1,10 @@
 import { Link, useLocation } from "@tanstack/react-router";
+import {
+	LanguageMenu,
+	type LanguageMenuItemConfig,
+} from "#/components/ui/language-menu";
 import { strings } from "#/lib/i18n/strings";
-import { useLocale } from "#/lib/locale";
+import { LOCALES, useLocale } from "#/lib/locale";
 
 type NavItem = {
 	key: "posts" | "analytics";
@@ -22,14 +26,22 @@ const NAV_ITEMS: NavItem[] = [
 ];
 
 export function AdminSidebar() {
-	const { locale } = useLocale();
+	const { locale, setLocale } = useLocale();
 	const { pathname } = useLocation();
 	const t = strings[locale].admin.sidebar;
 
+	const localeItems: LanguageMenuItemConfig[] = LOCALES.map((l) => ({
+		locale: l,
+		onClick: () => setLocale(l),
+	}));
+
 	return (
-		<nav aria-label="Admin navigation" className="p-3 md:p-4">
-			{/* Mobile: horizontal row; Desktop: vertical column */}
-			<ul className="flex flex-row flex-wrap gap-1 md:flex-col">
+		<nav
+			aria-label="Admin navigation"
+			className="p-3 md:flex md:h-full md:flex-col md:p-4"
+		>
+			{/* Mobile: horizontal row; Desktop: vertical column with grow */}
+			<ul className="flex flex-row flex-wrap gap-1 md:flex-col md:grow">
 				{NAV_ITEMS.map(({ key, href, isActive }) => {
 					const active = isActive(pathname);
 					return (
@@ -52,6 +64,14 @@ export function AdminSidebar() {
 					);
 				})}
 			</ul>
+			{/* Language switcher — inline on mobile, pinned to sidebar bottom on desktop */}
+			<div className="mt-2 md:mt-auto">
+				<LanguageMenu
+					variant="pair"
+					items={localeItems}
+					currentLocale={locale}
+				/>
+			</div>
 		</nav>
 	);
 }
