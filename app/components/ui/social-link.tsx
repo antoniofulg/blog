@@ -7,15 +7,12 @@ import {
 	Rss,
 	Twitter,
 } from "lucide-react";
+import type { SocialKind } from "#/lib/social";
 
-type LinkKind =
-	| "github"
-	| "linkedin"
-	| "email"
-	| "other"
-	| "x"
-	| "instagram"
-	| "rss";
+// Derived from the shared SocialKind so that adding a new platform to
+// SOCIAL_KINDS causes a TS exhaustiveness error in iconByKind, forcing
+// the icon entry to be added here at compile time.
+type LinkKind = SocialKind | "other";
 
 const iconByKind: Record<LinkKind, typeof Github> = {
 	github: Github,

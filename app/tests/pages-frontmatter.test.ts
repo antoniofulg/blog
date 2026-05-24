@@ -130,6 +130,31 @@ describe("unit: pageFrontmatterSchema", () => {
 		});
 		expect(result.avatar).toBe("/about/profile.jpeg");
 	});
+
+	it("avatarAlt parses as a string", () => {
+		const result = pageFrontmatterSchema.parse({
+			title: "About",
+			avatarAlt: "Antonio Fulgencio",
+		});
+		expect(result.avatarAlt).toBe("Antonio Fulgencio");
+	});
+
+	it("accepts nowUpdatedAt as a Date instance (gray-matter parses YAML dates this way)", () => {
+		const date = new Date("2026-05-22");
+		const result = pageFrontmatterSchema.parse({
+			title: "About",
+			nowUpdatedAt: date,
+		});
+		expect(result.nowUpdatedAt).toBeInstanceOf(Date);
+	});
+
+	it("locale parses as a string", () => {
+		const result = pageFrontmatterSchema.parse({
+			title: "About",
+			locale: "en",
+		});
+		expect(result.locale).toBe("en");
+	});
 });
 
 // ─── Unit: loadStaticPage propagates avatar + links ──────────────────────────
