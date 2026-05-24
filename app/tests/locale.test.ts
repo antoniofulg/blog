@@ -81,20 +81,24 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 		).toEqual({ available: true, renderSwitcher: true });
 	});
 
-	it("admin → renderSwitcher: false (AC-3)", () => {
+	// Admin used to hide the switcher (renderSwitcher: false) and pin it to
+	// the sidebar. It now lives in the Header for admin too, consistent with
+	// reader pages; the admin branch in useLangSwitcher short-circuits the
+	// URL navigate so setLocale alone updates the locale context.
+	it("admin → renderSwitcher: true (switcher moved to Header)", () => {
 		const result = getTwinAvailabilityForCurrentRoute(
 			{ kind: "admin" },
 			"pt-br",
 		);
-		expect(result.renderSwitcher).toBe(false);
+		expect(result.renderSwitcher).toBe(true);
 	});
 
-	it("admin → available: false", () => {
+	it("admin → available: true (no twin concept; both locales always reachable)", () => {
 		const result = getTwinAvailabilityForCurrentRoute(
 			{ kind: "admin" },
 			"pt-br",
 		);
-		expect(result.available).toBe(false);
+		expect(result.available).toBe(true);
 	});
 
 	it("post with twin targeting en → available: true", () => {

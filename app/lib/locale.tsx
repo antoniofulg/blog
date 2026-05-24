@@ -171,8 +171,10 @@ export function getTwinAvailabilityForCurrentRoute(
 	route: RouteKind,
 	_targetLocale: Locale,
 ): { available: boolean; renderSwitcher: boolean } {
-	if (route.kind === "admin")
-		return { available: false, renderSwitcher: false };
+	// Admin routes have no locale-prefixed URL counterpart; the switcher only
+	// flips the localStorage/cookie locale via setLocale (no navigation). Both
+	// locales are always reachable, so render the switcher and mark available.
+	if (route.kind === "admin") return { available: true, renderSwitcher: true };
 	if (route.kind === "structural")
 		return { available: true, renderSwitcher: true };
 	return { available: route.hasTwin, renderSwitcher: true };

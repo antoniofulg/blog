@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { cleanup, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
@@ -211,71 +211,32 @@ describe("unit: AdminSidebar pt-br locale", () => {
 	});
 });
 
-// ─── Unit: lang switcher ──────────────────────────────────────────────────────
+// ─── Unit: sidebar no longer hosts the lang switcher ─────────────────────────
+//
+// The language switcher moved from the sidebar to the public Header so admin
+// gets the same locale-toggle affordance as reader pages. Switcher behavior
+// is now exercised by app/tests/header.test.ts (admin branch) and the
+// tests/e2e/ux-polish.spec.ts admin lang-switcher scenario.
 
-describe("unit: AdminSidebar lang switcher", () => {
+describe("unit: AdminSidebar — switcher removed", () => {
 	beforeEach(() => {
 		mocks.setPathname("/admin");
 		mocks.setLocale("en");
-		mocks.setLocaleSpy.mockClear();
 	});
 	afterEach(cleanup);
 
-	it("renders both locale buttons (EN and PT) from LanguageMenu pair variant", () => {
+	it("does NOT render the language switcher (moved to Header)", () => {
 		render(React.createElement(AdminSidebar));
-		// LanguagePair renders localeCode values: "EN" for en, "PT" for pt-br
-		expect(screen.getByText("EN")).toBeDefined();
-		expect(screen.getByText("PT")).toBeDefined();
+		// LanguagePair renders localeCode values "EN" / "PT" as button text.
+		// Neither must appear inside the sidebar after the move.
+		expect(screen.queryByText("EN")).toBeNull();
+		expect(screen.queryByText("PT")).toBeNull();
 	});
 
-	it("renders exactly 2 locale buttons in LanguageMenu", () => {
+	it("renders only the two nav-item links — no extra buttons", () => {
 		render(React.createElement(AdminSidebar));
-		const buttons = screen
-			.getAllByRole("button")
-			.filter((b) => b.textContent === "EN" || b.textContent === "PT");
-		expect(buttons).toHaveLength(2);
-	});
-
-	it("each locale button has an associated onClick function in items", () => {
-		render(React.createElement(AdminSidebar));
-		// The inactive locale button (PT when locale=en) must have an onClick handler.
-		// Active locale (EN) has onClick=undefined per LanguagePair design.
-		const ptButton = screen.getByText("PT");
-		// Clicking the inactive locale should invoke setLocale — proves onClick exists
-		fireEvent.click(ptButton);
-		expect(mocks.setLocaleSpy).toHaveBeenCalledTimes(1);
-	});
-
-	it("clicking the inactive locale fires setLocale with the correct target", () => {
-		mocks.setLocale("en"); // current locale is en
-		render(React.createElement(AdminSidebar));
-		const ptButton = screen.getByText("PT");
-		fireEvent.click(ptButton);
-		expect(mocks.setLocaleSpy).toHaveBeenCalledTimes(1);
-		expect(mocks.setLocaleSpy).toHaveBeenCalledWith("pt-br");
-	});
-
-	it("clicking the active locale does NOT fire setLocale", () => {
-		mocks.setLocale("en"); // current locale is en, EN button is active
-		render(React.createElement(AdminSidebar));
-		const enButton = screen.getByText("EN");
-		fireEvent.click(enButton);
-		expect(mocks.setLocaleSpy).not.toHaveBeenCalled();
-	});
-
-	it("nav items coexist with lang switcher — no regression", () => {
-		render(React.createElement(AdminSidebar));
-		expect(screen.getByText(strings.en.admin.sidebar.posts)).toBeDefined();
-		expect(screen.getByText(strings.en.admin.sidebar.analytics)).toBeDefined();
-		expect(screen.getByText("EN")).toBeDefined();
-	});
-
-	it("when pt-br locale is active, clicking EN fires setLocale with 'en'", () => {
-		mocks.setLocale("pt-br");
-		render(React.createElement(AdminSidebar));
-		const enButton = screen.getByText("EN");
-		fireEvent.click(enButton);
-		expect(mocks.setLocaleSpy).toHaveBeenCalledTimes(1);
-		expect(mocks.setLocaleSpy).toHaveBeenCalledWith("en");
+		// Only nav items remain; no <button> elements from a LanguageMenu.
+		expect(screen.queryAllByRole("button")).toHaveLength(0);
+		expect(screen.getAllByRole("link")).toHaveLength(2);
 	});
 });

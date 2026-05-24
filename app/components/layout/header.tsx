@@ -47,7 +47,7 @@ const MOBILE_STRINGS: Record<
 };
 
 function useLangSwitcher() {
-	const { setLocale } = useLocale();
+	const { locale: contextLocale, setLocale } = useLocale();
 	const navigate = useNavigate();
 	const [dialogOpen, setDialogOpen] = useState(false);
 	const [dialogTargetLocale, setDialogTargetLocale] = useState<Locale>("pt-br");
@@ -92,11 +92,15 @@ function useLangSwitcher() {
 		},
 	});
 
-	const currentLocale: Locale =
-		(LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
-			| Locale
-			| undefined) ?? DEFAULT_LOCALE;
 	const isAdmin = pathname.startsWith("/admin");
+	// Admin routes have no locale prefix; fall back to the LocaleProvider
+	// context value (cookie/localStorage-backed) so the switcher reflects the
+	// admin's actual active locale, not the URL-default.
+	const currentLocale: Locale = isAdmin
+		? contextLocale
+		: ((LOCALES.find((l) => pathname.startsWith(`/${l}/`)) as
+				| Locale
+				| undefined) ?? DEFAULT_LOCALE);
 
 	const routeKind: RouteKind = useMemo(() => {
 		if (isAdmin) return { kind: "admin" };
@@ -139,6 +143,10 @@ function useLangSwitcher() {
 					onClick: () => {
 						if (available) {
 							setLocale(targetLocale);
+							// Admin routes are not locale-prefixed; setLocale alone is
+							// enough (LocaleProvider context updates and admin re-renders
+							// via the strings[locale] lookups). No URL navigation needed.
+							if (routeKind.kind === "admin") return;
 							const localeParam =
 								targetLocale === DEFAULT_LOCALE ? undefined : targetLocale;
 							if (routeKind.kind === "post" || routeKind.kind === "page") {
