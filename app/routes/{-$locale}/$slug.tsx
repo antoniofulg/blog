@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { PostFooter } from "#/components/ui/post-footer";
 import { PostHeader } from "#/components/ui/post-header";
+import { PostShare } from "#/components/ui/post-share";
 import { StaticPageProfile } from "#/components/ui/static-page-profile";
 import { TranslationNotice } from "#/components/ui/translation-notice";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
@@ -224,6 +225,12 @@ function PostView({ data }: { data: PostLoaderResult }) {
 					style={{ animationDelay: "300ms" }}
 					// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
 					dangerouslySetInnerHTML={{ __html: html }}
+				/>
+
+				<PostShare
+					postUrl={localeHref(post.lang as Locale, post.slug)}
+					postTitle={post.title ?? ""}
+					locale={requestedLang}
 				/>
 
 				<PostFooter

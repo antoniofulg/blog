@@ -55,7 +55,7 @@ export async function recordPostView(
 		return { recorded: false, counterIncremented: false };
 	}
 
-	const referrerSource = bucketReferrer(referer);
+	const referrerSource = bucketReferrer(referer, request.url);
 	const device = detectDevice(ua);
 
 	try {
