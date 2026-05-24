@@ -1,6 +1,6 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import type { Post } from "#/db/schema";
-import { formatDayMonth } from "#/lib/date";
+import { formatDate } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
 import { useLocale } from "#/lib/locale";
 import { getAllPosts } from "./index.server";
@@ -109,7 +109,7 @@ function AdminDashboard() {
 									</td>
 									<td className="px-4 py-3 text-xs tabular-nums text-foreground-muted">
 										{post.publishedAt
-											? formatDayMonth(post.publishedAt, locale)
+											? formatDate(post.publishedAt, locale)
 											: strings[locale].admin.dashboard.unpublished}
 									</td>
 									<td className="px-4 py-3">

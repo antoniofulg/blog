@@ -68,6 +68,30 @@ export function formatDayMonth(date: Date, locale: Locale): string {
 }
 
 /**
+ * Format a Date as a full day + month + year label, suitable for table cells
+ * and metadata where the year is part of the signal.
+ *
+ * The UTC timezone is used for the same consistency reasons as
+ * `formatDayMonth` — callers are expected to supply a Date whose UTC instant
+ * represents the intended calendar date.
+ *
+ * @example
+ *   formatDate(new Date("2025-05-23T00:00:00Z"), "en")     // "May 23, 2025"
+ *   formatDate(new Date("2025-05-23T00:00:00Z"), "pt-br")  // "23 de mai. de 2025"
+ *
+ * @returns Formatted string, or `""` if `date` is not a valid Date.
+ */
+export function formatDate(date: Date, locale: Locale): string {
+	if (!(date instanceof Date) || Number.isNaN(date.getTime())) return "";
+	return new Intl.DateTimeFormat(BCP47[locale], {
+		year: "numeric",
+		month: "short",
+		day: "numeric",
+		timeZone: "UTC",
+	}).format(date);
+}
+
+/**
  * Format a Date as a full month name, suitable for grouping labels.
  * The UTC timezone is used for the same consistency reasons as `formatDayMonth`.
  *
