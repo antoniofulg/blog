@@ -22,6 +22,20 @@ export const uiStringsSchema = z.object({
 		rss: z.string(),
 		email: z.string(),
 	}),
+	postShare: z.object({
+		share: z.string(),
+		chips: z.object({
+			x: z.string(),
+			linkedin: z.string(),
+			bluesky: z.string(),
+			hackernews: z.string(),
+			reddit: z.string(),
+			email: z.string(),
+			copyLink: z.string(),
+		}),
+		copied: z.string(),
+		ariaShareOn: z.string(),
+	}),
 	admin: z.object({
 		sidebar: z.object({
 			posts: z.string(),
@@ -89,6 +103,20 @@ export const strings: Record<Locale, UIStrings> = {
 		postMeta: {
 			publishedOn: "Published on",
 			readingTime: "min read",
+		},
+		postShare: {
+			share: "Share",
+			chips: {
+				x: "X",
+				linkedin: "LinkedIn",
+				bluesky: "Bluesky",
+				hackernews: "Hacker News",
+				reddit: "Reddit",
+				email: "Email",
+				copyLink: "Copy link",
+			},
+			copied: "Copied!",
+			ariaShareOn: "Share on {platform}",
 		},
 		notFound: {
 			title: "Page not found",
@@ -160,6 +188,20 @@ export const strings: Record<Locale, UIStrings> = {
 		postMeta: {
 			publishedOn: "Publicado em",
 			readingTime: "min de leitura",
+		},
+		postShare: {
+			share: "Compartilhar",
+			chips: {
+				x: "X",
+				linkedin: "LinkedIn",
+				bluesky: "Bluesky",
+				hackernews: "Hacker News",
+				reddit: "Reddit",
+				email: "E-mail",
+				copyLink: "Copiar link",
+			},
+			copied: "Copiado!",
+			ariaShareOn: "Compartilhar no {platform}",
 		},
 		notFound: {
 			title: "Página não encontrada",

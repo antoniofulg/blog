@@ -2,6 +2,103 @@ import { describe, expect, it } from "vitest";
 import { strings, uiStringsSchema } from "#/lib/i18n/strings";
 import { LOCALES } from "#/lib/locale";
 
+describe("uiStringsSchema — postShare namespace", () => {
+	const chipKeys = [
+		"x",
+		"linkedin",
+		"bluesky",
+		"hackernews",
+		"reddit",
+		"email",
+		"copyLink",
+	] as const;
+
+	describe("chips — all 7 keys present in both locales", () => {
+		it.each(
+			LOCALES,
+		)("locale %s: all 7 chip keys are non-empty strings", (locale) => {
+			for (const key of chipKeys) {
+				expect(
+					typeof strings[locale].postShare.chips[key],
+					`chips.${key}`,
+				).toBe("string");
+				expect(
+					strings[locale].postShare.chips[key].length,
+					`chips.${key} length`,
+				).toBeGreaterThan(0);
+			}
+		});
+	});
+
+	describe("AC-1 spot-checks — linkedin in both locales", () => {
+		it("en: chips.linkedin is non-empty string", () => {
+			expect(strings.en.postShare.chips.linkedin.length).toBeGreaterThan(0);
+		});
+		it("pt-br: chips.linkedin is non-empty string", () => {
+			expect(strings["pt-br"].postShare.chips.linkedin.length).toBeGreaterThan(
+				0,
+			);
+		});
+	});
+
+	describe("AC-2 — copied in both locales", () => {
+		it("en: copied resolves to non-empty string", () => {
+			expect(strings.en.postShare.copied.length).toBeGreaterThan(0);
+		});
+		it("pt-br: copied resolves to non-empty string (e.g. Copiado!)", () => {
+			expect(strings["pt-br"].postShare.copied.length).toBeGreaterThan(0);
+		});
+	});
+
+	describe("AC-3 — all 7 chip keys per locale", () => {
+		it.each(chipKeys)("en: chips.%s exists", (key) => {
+			expect(strings.en.postShare.chips[key]).toBeTruthy();
+		});
+
+		it.each(chipKeys)("pt-br: chips.%s exists", (key) => {
+			expect(strings["pt-br"].postShare.chips[key]).toBeTruthy();
+		});
+	});
+
+	describe("value spot-checks — en locale", () => {
+		it("en: chips.x resolves to 'X'", () => {
+			expect(strings.en.postShare.chips.x).toBe("X");
+		});
+		it("en: chips.linkedin resolves to 'LinkedIn'", () => {
+			expect(strings.en.postShare.chips.linkedin).toBe("LinkedIn");
+		});
+		it("en: chips.copyLink resolves to 'Copy link'", () => {
+			expect(strings.en.postShare.chips.copyLink).toBe("Copy link");
+		});
+		it("en: copied resolves to 'Copied!'", () => {
+			expect(strings.en.postShare.copied).toBe("Copied!");
+		});
+		it("en: share resolves to 'Share'", () => {
+			expect(strings.en.postShare.share).toBe("Share");
+		});
+	});
+
+	describe("value spot-checks — pt-br locale", () => {
+		it("pt-br: chips.copyLink resolves to 'Copiar link'", () => {
+			expect(strings["pt-br"].postShare.chips.copyLink).toBe("Copiar link");
+		});
+		it("pt-br: copied resolves to 'Copiado!'", () => {
+			expect(strings["pt-br"].postShare.copied).toBe("Copiado!");
+		});
+		it("pt-br: share resolves to 'Compartilhar'", () => {
+			expect(strings["pt-br"].postShare.share).toBe("Compartilhar");
+		});
+	});
+
+	describe("AC-4 — module-load Zod parse succeeds", () => {
+		it.each(
+			LOCALES,
+		)("locale %s: uiStringsSchema.parse(strings[locale]) does not throw", (locale) => {
+			expect(() => uiStringsSchema.parse(strings[locale])).not.toThrow();
+		});
+	});
+});
+
 describe("uiStringsSchema — admin namespace", () => {
 	describe("sidebar keys", () => {
 		it.each(
