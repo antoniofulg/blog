@@ -1,4 +1,4 @@
-import { createFileRoute, redirect } from "@tanstack/react-router";
+import { createFileRoute, Link, redirect } from "@tanstack/react-router";
 import type { Post } from "#/db/schema";
 import { formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
@@ -33,14 +33,13 @@ function AdminDashboard() {
 	const viewHref = (post: Post) =>
 		post.lang === "en" ? `/${post.slug}` : `/pt-br/${post.slug}`;
 
-	const filters = [
-		{ label: t.filter.all, href: "/admin/", value: undefined },
-		{ label: t.filter.en, href: "/admin/?locale=en", value: "en" as const },
-		{
-			label: t.filter.ptBr,
-			href: "/admin/?locale=pt-br",
-			value: "pt-br" as const,
-		},
+	const filters: Array<{
+		label: string;
+		value: "en" | "pt-br" | undefined;
+	}> = [
+		{ label: t.filter.all, value: undefined },
+		{ label: t.filter.en, value: "en" },
+		{ label: t.filter.ptBr, value: "pt-br" },
 	];
 
 	return (
@@ -54,10 +53,14 @@ function AdminDashboard() {
 				<nav aria-label={t.filter.label} className="mt-6 flex gap-2 text-sm">
 					{filters.map((f) => {
 						const isActive = f.value === searchLocale;
+						// Client-side navigation via <Link search>; preserves SPA
+						// state (no full-page reload). search={{}} clears the locale
+						// param for the "All" chip.
 						return (
-							<a
-								key={f.href}
-								href={f.href}
+							<Link
+								key={f.value ?? "all"}
+								to="/admin/"
+								search={{ locale: f.value }}
 								aria-current={isActive ? "page" : undefined}
 								className={`rounded-md border px-3 py-1.5 text-xs font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background ${
 									isActive
@@ -66,13 +69,13 @@ function AdminDashboard() {
 								}`}
 							>
 								{f.label}
-							</a>
+							</Link>
 						);
 					})}
 				</nav>
 
-				<div className="mt-8 overflow-hidden rounded-lg border border-border bg-card">
-					<table className="w-full">
+				<div className="mt-8 overflow-x-auto rounded-lg border border-border bg-card">
+					<table className="w-full min-w-[640px]">
 						<thead>
 							<tr className="border-b border-border bg-surface">
 								<th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
