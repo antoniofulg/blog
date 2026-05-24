@@ -1,12 +1,30 @@
-import { ExternalLink, Github, Linkedin, Mail } from "lucide-react";
+import {
+	ExternalLink,
+	Github,
+	Instagram,
+	Linkedin,
+	Mail,
+	Rss,
+	Twitter,
+} from "lucide-react";
 
-type LinkKind = "github" | "linkedin" | "email" | "other";
+type LinkKind =
+	| "github"
+	| "linkedin"
+	| "email"
+	| "other"
+	| "x"
+	| "instagram"
+	| "rss";
 
 const iconByKind: Record<LinkKind, typeof Github> = {
 	github: Github,
 	linkedin: Linkedin,
 	email: Mail,
 	other: ExternalLink,
+	x: Twitter,
+	instagram: Instagram,
+	rss: Rss,
 };
 
 type Props = {

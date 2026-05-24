@@ -14,6 +14,14 @@ export const uiStringsSchema = z.object({
 		body: z.string(),
 		homeCta: z.string(),
 	}),
+	socials: z.object({
+		github: z.string(),
+		linkedin: z.string(),
+		x: z.string(),
+		instagram: z.string(),
+		rss: z.string(),
+		email: z.string(),
+	}),
 	admin: z.object({
 		sidebar: z.object({
 			posts: z.string(),
@@ -70,6 +78,14 @@ export type UIStrings = z.infer<typeof uiStringsSchema>;
 export const strings: Record<Locale, UIStrings> = {
 	en: {
 		localeSwitcher: { label: "English" },
+		socials: {
+			github: "GitHub",
+			linkedin: "LinkedIn",
+			x: "X",
+			instagram: "Instagram",
+			rss: "RSS",
+			email: "Email",
+		},
 		postMeta: {
 			publishedOn: "Published on",
 			readingTime: "min read",
@@ -133,6 +149,14 @@ export const strings: Record<Locale, UIStrings> = {
 	},
 	"pt-br": {
 		localeSwitcher: { label: "Português" },
+		socials: {
+			github: "GitHub",
+			linkedin: "LinkedIn",
+			x: "X",
+			instagram: "Instagram",
+			rss: "RSS",
+			email: "E-mail",
+		},
 		postMeta: {
 			publishedOn: "Publicado em",
 			readingTime: "min de leitura",

@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useEffect, useMemo } from "react";
 import { PostFooter } from "#/components/ui/post-footer";
 import { PostHeader } from "#/components/ui/post-header";
+import { StaticPageProfile } from "#/components/ui/static-page-profile";
 import { TranslationNotice } from "#/components/ui/translation-notice";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
 import { readingTimeMinutes } from "#/lib/reading-time";
@@ -243,30 +244,10 @@ function StaticPageView({ data }: { data: PageLoaderResult }) {
 				lang={toBcp47(data.requestedLang)}
 				aria-labelledby="page-title"
 			>
-				<header className="animate-fade-up mb-8 flex flex-col gap-4 lg:mb-12">
-					<h1
-						id="page-title"
-						className="font-heading text-3xl font-extrabold text-foreground lg:text-4xl"
-					>
-						{data.entry.frontmatter.title}
-					</h1>
-					{data.entry.frontmatter.description && (
-						<p className="text-lg leading-relaxed text-foreground-secondary">
-							{data.entry.frontmatter.description}
-						</p>
-					)}
-				</header>
-
-				<hr
-					className="animate-fade-up my-8 border-border lg:my-12"
-					style={{ animationDelay: "300ms" }}
-				/>
-
-				<div
-					className="animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border"
-					style={{ animationDelay: "300ms" }}
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
-					dangerouslySetInnerHTML={{ __html: data.html }}
+				<StaticPageProfile
+					frontmatter={data.entry.frontmatter}
+					locale={data.requestedLang}
+					html={data.html}
 				/>
 
 				<PostFooter

@@ -103,12 +103,10 @@ describe("unit: loadStaticPage", () => {
 		expect(result).toBeNull();
 	});
 
-	it("missing title: throws error with file path in message", async () => {
+	it("missing title: throws (Zod parse error)", async () => {
 		mocks.readFile.mockResolvedValue(NO_TITLE_MDX);
 
-		await expect(loadStaticPage("no-title", "en")).rejects.toThrow(
-			"Missing required frontmatter 'title'",
-		);
+		await expect(loadStaticPage("no-title", "en")).rejects.toThrow();
 	});
 
 	it("path traversal '../etc/forbidden.txt': returns null", async () => {

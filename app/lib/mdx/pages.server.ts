@@ -4,13 +4,42 @@ import { basename, extname, join } from "node:path";
 import matter from "gray-matter";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { z } from "zod";
 import type { Locale } from "#/lib/locale";
 import { renderMdx } from "#/lib/mdx/renderer.server";
 
-export type PageFrontmatter = {
-	title: string;
-	description?: string;
+export const socialKindEnum = z.enum([
+	"github",
+	"linkedin",
+	"x",
+	"instagram",
+	"rss",
+	"email",
+]);
+
+export type SocialKind = z.infer<typeof socialKindEnum>;
+
+// Links uses optional string values to allow any subset of enum keys.
+// z.record(enumKey, z.string()) in Zod v4 requires ALL enum keys; using
+// z.string().optional() as the value type allows partial records while
+// still rejecting any key that is not in socialKindEnum.
+export const pageFrontmatterSchema = z
+	.object({
+		title: z.string().min(1),
+		description: z.string().optional(),
+		avatar: z.string().optional(),
+		links: z.record(socialKindEnum, z.string().optional()).optional(),
+	})
+	.passthrough();
+
+// Strip the index signature added by .passthrough() so that PageFrontmatter
+// remains serializable through TanStack Start server functions. Passthrough
+// fields (e.g. tagline, nowUpdatedAt) still flow through at runtime — they are
+// just not reflected in the exported TypeScript type.
+type StripIndex<T> = {
+	[K in keyof T as string extends K ? never : K]: T[K];
 };
+export type PageFrontmatter = StripIndex<z.infer<typeof pageFrontmatterSchema>>;
 
 export type PageEntry = {
 	slug: string;
@@ -57,15 +86,10 @@ export async function loadStaticPage(
 	}
 
 	const { data, content: body } = matter(source);
-	if (!data.title) {
-		throw new Error(`Missing required frontmatter 'title' in ${filePath}`);
-	}
-	const frontmatter: PageFrontmatter = {
-		title: data.title as string,
-		...(data.description !== undefined
-			? { description: data.description as string }
-			: {}),
-	};
+	// pageFrontmatterSchema.parse throws ZodError on invalid frontmatter
+	// (e.g. missing title, unrecognized links keys). Error surfaces via the
+	// existing route-level error boundary.
+	const frontmatter = pageFrontmatterSchema.parse(data);
 
 	const Content = await renderMdx(body);
 	const html = renderToStaticMarkup(createElement(Content, {}));
@@ -100,17 +124,13 @@ export async function enumerateStaticPages(
 		try {
 			const source = await readFile(filePath, "utf-8");
 			const { data } = matter(source);
-			if (!data.title) continue;
+			const parsed = pageFrontmatterSchema.safeParse(data);
+			if (!parsed.success) continue;
 			entries.push({
 				slug,
 				locale,
 				filePath,
-				frontmatter: {
-					title: data.title as string,
-					...(data.description !== undefined
-						? { description: data.description as string }
-						: {}),
-				},
+				frontmatter: parsed.data,
 			});
 		} catch {
 			// skip unreadable or malformed files
