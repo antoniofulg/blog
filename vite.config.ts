@@ -98,6 +98,21 @@ const config = defineConfig({
 			// reflect what users see.
 			compressPublicAssets: { gzip: true, brotli: true },
 			rollupConfig: { external: [/^@sentry\//] },
+			// Serve Press Start 2P font CSS and woff2 at /_fontsource/press-start-2p/
+			// without inlining into the main CSS bundle. Nitro's publicAssets is used
+			// here (rather than vite-plugin-static-copy) because that plugin reads the
+			// global Vite config.build.outDir, which Nitro does NOT update — Nitro sets
+			// outDir only on the per-environment config via configEnvironment(), causing
+			// the plugin to write to "dist/" instead of ".output/public/". Nitro's
+			// publicAssets resolves correctly in both `bun run dev` and `bun run build`.
+			// See ADR-004 for the lazy-load rationale and the URL contract.
+			publicAssets: [
+				{
+					dir: "node_modules/@fontsource/press-start-2p",
+					baseURL: "/_fontsource/press-start-2p",
+					maxAge: 31536000,
+				},
+			],
 		}),
 		tailwindcss(),
 		tanstackStart({
