@@ -18,12 +18,24 @@ export type AppAuditCategory =
 	| "best-practices-fail"
 	| "sweep-error";
 
+export type FailingLighthouseAudit = {
+	id: string;
+	score: number | null;
+	weight: number;
+	displayValue?: string;
+};
+
 export type AppAuditFinding = {
 	category: AppAuditCategory;
 	severity: Severity;
 	filePath: string;
 	message: string;
 	detail?: Record<string, string | number>;
+	// Populated for `seo-score-drop` / `perf-budget-breach` /
+	// `best-practices-fail` findings so the report can name the specific
+	// Lighthouse audits that dragged the category score down (e.g.
+	// `largest-contentful-paint: 6.2 s`).
+	audits?: FailingLighthouseAudit[];
 };
 
 export type BrowserSweepResult = {
@@ -110,37 +122,37 @@ async function probe(
 		.locator("title")
 		.textContent()
 		.catch(() => null);
-	metaPresent["title"] = !!(title && title.trim());
+	metaPresent.title = !!title?.trim();
 
 	const desc = await page
 		.locator('meta[name="description"]')
 		.getAttribute("content")
 		.catch(() => null);
-	metaPresent["description"] = !!(desc && desc.trim());
+	metaPresent.description = !!desc?.trim();
 
 	const ogTitle = await page
 		.locator('meta[property="og:title"]')
 		.getAttribute("content")
 		.catch(() => null);
-	metaPresent["og:title"] = !!(ogTitle && ogTitle.trim());
+	metaPresent["og:title"] = !!ogTitle?.trim();
 
 	const ogImage = await page
 		.locator('meta[property="og:image"]')
 		.getAttribute("content")
 		.catch(() => null);
-	metaPresent["og:image"] = !!(ogImage && ogImage.trim());
+	metaPresent["og:image"] = !!ogImage?.trim();
 
 	const canonical = await page
 		.locator('link[rel="canonical"]')
 		.getAttribute("href")
 		.catch(() => null);
-	metaPresent["canonical"] = !!(canonical && canonical.trim());
+	metaPresent.canonical = !!canonical?.trim();
 
 	const viewport = await page
 		.locator('meta[name="viewport"]')
 		.getAttribute("content")
 		.catch(() => null);
-	metaPresent["viewport"] = !!(viewport && viewport.trim());
+	metaPresent.viewport = !!viewport?.trim();
 
 	const brokenImages = await page
 		.locator("img")

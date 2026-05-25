@@ -10,7 +10,7 @@
 
 import { describe, expect, it } from "vitest";
 
-import { formatBRT, formatDayMonth, formatMonth } from "#/lib/date";
+import { formatBRT, formatDate, formatDayMonth, formatMonth } from "#/lib/date";
 
 // ---------------------------------------------------------------------------
 // Fixtures
@@ -95,6 +95,41 @@ describe("formatDayMonth", () => {
 
 	it.each(INVALID_DATES)("returns empty string for invalid Date", (d) => {
 		expect(formatDayMonth(d, "en")).toBe("");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// formatDate (day + month + year)
+// ---------------------------------------------------------------------------
+
+describe("formatDate", () => {
+	it("en locale: day, short month, and year for May 23 2025", () => {
+		const result = formatDate(UTC_MAY_23_NOON, "en");
+		// en-US Intl format is typically "May 23, 2025" but tolerate ICU drift
+		// on the comma and the month abbreviation.
+		expect(result).toMatch(/may/i);
+		expect(result).toMatch(/23/);
+		expect(result).toMatch(/2025/);
+	});
+
+	it("pt-br locale: day, short month, and year for May 23 2025", () => {
+		const result = formatDate(UTC_MAY_23_NOON, "pt-br");
+		expect(result).toMatch(/mai/i);
+		expect(result).toMatch(/23/);
+		expect(result).toMatch(/2025/);
+	});
+
+	it("renders the year of a UTC instant in UTC (no off-by-one across timezones)", () => {
+		// 2024-12-31T23:30:00Z is the last 30 minutes of 2024 in UTC. In any
+		// timezone east of UTC it would already be 2025 — but the helper uses
+		// timeZone: "UTC", so the year must read as 2024.
+		const result = formatDate(new Date("2024-12-31T23:30:00Z"), "en");
+		expect(result).toMatch(/2024/);
+		expect(result).not.toMatch(/2025/);
+	});
+
+	it.each(INVALID_DATES)("returns empty string for invalid Date", (d) => {
+		expect(formatDate(d, "en")).toBe("");
 	});
 });
 

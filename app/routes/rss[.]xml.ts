@@ -1,4 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
+import { getSiteOrigin } from "#/lib/site-origin";
 
 function escapeXml(str: string): string {
 	return str
@@ -11,7 +12,7 @@ function escapeXml(str: string): string {
 
 async function getRssResponse() {
 	const { listPostsFn } = await import("#/db/queries");
-	const siteUrl = import.meta.env.VITE_SITE_URL ?? "http://localhost:3000";
+	const siteUrl = getSiteOrigin() || "http://localhost:3000";
 
 	const posts = await listPostsFn("en");
 	const feedUrl = `${siteUrl}/rss.xml`;

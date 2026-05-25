@@ -107,15 +107,21 @@ describe("unit: getAllPostsFn", () => {
 		mocks.selectChain._resolve([draft, published]);
 		const result = await getAllPostsFn();
 		expect(mocks.db.select).toHaveBeenCalledTimes(1);
-		expect(mocks.selectChain.where).not.toHaveBeenCalled();
+		// `where` IS now called — to apply the e2e-fixture exclusion filter
+		// (notLike(slug, "e2e-%")). The draft-state assertion remains: we do
+		// not filter by is_published / draft, only by the e2e slug prefix.
+		expect(mocks.selectChain.where).toHaveBeenCalledTimes(1);
 		expect(result).toHaveLength(2);
 	});
 
-	it("calls db.select().from(posts).orderBy(indexedAt DESC)", async () => {
+	it("calls db.select().from(posts).where(notLike e2e-%).orderBy(publishedAt DESC)", async () => {
 		mocks.selectChain._resolve([]);
 		await getAllPostsFn();
 		expect(mocks.db.select).toHaveBeenCalledTimes(1);
 		expect(mocks.selectChain.from).toHaveBeenCalledWith(posts);
+		// E2E fixture posts are excluded server-side via notLike(slug, "e2e-%")
+		// so they never appear in the admin dashboard alongside author content.
+		expect(mocks.selectChain.where).toHaveBeenCalledTimes(1);
 		expect(mocks.selectChain.orderBy).toHaveBeenCalledTimes(1);
 	});
 

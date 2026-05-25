@@ -8,6 +8,7 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => {
 	let pathname = "/admin";
 	let locale: "en" | "pt-br" = "en";
+	const setLocaleSpy = vi.fn();
 	return {
 		setPathname: (p: string) => {
 			pathname = p;
@@ -17,6 +18,7 @@ const mocks = vi.hoisted(() => {
 			locale = l;
 		},
 		getLocale: () => locale,
+		setLocaleSpy,
 	};
 });
 
@@ -43,8 +45,12 @@ vi.mock("@tanstack/react-router", () => ({
 }));
 
 // Provide LOCALES so that strings.ts module-level validation loop works.
+// setLocaleSpy is the spy injected into the component via useLocale().
 vi.mock("#/lib/locale", () => ({
-	useLocale: () => ({ locale: mocks.getLocale(), setLocale: () => {} }),
+	useLocale: () => ({
+		locale: mocks.getLocale(),
+		setLocale: mocks.setLocaleSpy,
+	}),
 	LOCALES: ["en", "pt-br"],
 }));
 
@@ -202,5 +208,35 @@ describe("unit: AdminSidebar pt-br locale", () => {
 		expect(
 			screen.getByText(strings["pt-br"].admin.sidebar.analytics),
 		).toBeDefined();
+	});
+});
+
+// ─── Unit: sidebar no longer hosts the lang switcher ─────────────────────────
+//
+// The language switcher moved from the sidebar to the public Header so admin
+// gets the same locale-toggle affordance as reader pages. Switcher behavior
+// is now exercised by app/tests/header.test.ts (admin branch) and the
+// tests/e2e/ux-polish.spec.ts admin lang-switcher scenario.
+
+describe("unit: AdminSidebar — switcher removed", () => {
+	beforeEach(() => {
+		mocks.setPathname("/admin");
+		mocks.setLocale("en");
+	});
+	afterEach(cleanup);
+
+	it("does NOT render the language switcher (moved to Header)", () => {
+		render(React.createElement(AdminSidebar));
+		// LanguagePair renders localeCode values "EN" / "PT" as button text.
+		// Neither must appear inside the sidebar after the move.
+		expect(screen.queryByText("EN")).toBeNull();
+		expect(screen.queryByText("PT")).toBeNull();
+	});
+
+	it("renders only the two nav-item links — no extra buttons", () => {
+		render(React.createElement(AdminSidebar));
+		// Only nav items remain; no <button> elements from a LanguageMenu.
+		expect(screen.queryAllByRole("button")).toHaveLength(0);
+		expect(screen.getAllByRole("link")).toHaveLength(2);
 	});
 });

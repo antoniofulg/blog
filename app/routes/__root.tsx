@@ -22,6 +22,7 @@ import {
 	type Locale,
 	LocaleProvider,
 } from "#/lib/locale";
+import { getSiteOrigin } from "#/lib/site-origin";
 import { ThemeProvider } from "#/lib/theme";
 import type { RouterContext } from "#/types/auth";
 import appCss from "../styles/global.css?url";
@@ -48,7 +49,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 		return { auth: { user } };
 	},
 	head: ({ matches }) => {
-		const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+		const siteUrl = getSiteOrigin();
 		const pathname = matches.at(-1)?.pathname ?? "/";
 		// Default-locale collapse: `/<DEFAULT_LOCALE>/<path>` → `/<path>`.
 		// Non-default locales (e.g. /pt-br/...) keep their prefix.
@@ -89,16 +90,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 					href: `${siteUrl}/rss.xml`,
 				},
 				{ rel: "stylesheet", href: appCss },
-				{ rel: "preconnect", href: "https://fonts.googleapis.com" },
-				{
-					rel: "preconnect",
-					href: "https://fonts.gstatic.com",
-					crossOrigin: "anonymous",
-				},
-				{
-					rel: "stylesheet",
-					href: "https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap",
-				},
 			],
 		};
 	},

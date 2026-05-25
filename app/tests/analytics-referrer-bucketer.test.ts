@@ -107,3 +107,67 @@ describe("bucketReferrer", () => {
 		expect(bucketReferrer("https://google.fake/search")).toBe("other");
 	});
 });
+
+describe("bucketReferrer — UTM share short-circuit (ADR-002)", () => {
+	const POST_URL = "https://myblog.example/en/my-post";
+	const SHARE_URL = `${POST_URL}?utm_source=blog&utm_medium=share`;
+
+	// AC-1: null referer + UTM-tagged URL → "share"
+	it("returns 'share' when referer is null and URL carries utm_source=blog&utm_medium=share", () => {
+		expect(bucketReferrer(null, SHARE_URL)).toBe("share");
+	});
+
+	// AC-2: UTM wins over Referer hostname
+	it("returns 'share' when UTM tags present even with a known LinkedIn Referer", () => {
+		expect(bucketReferrer("https://linkedin.com/feed/", SHARE_URL)).toBe(
+			"share",
+		);
+	});
+
+	// AC-3: no UTM → hostname logic still works
+	it("falls back to hostname logic when no UTM tags present", () => {
+		expect(bucketReferrer("https://linkedin.com/feed/", POST_URL)).toBe(
+			"linkedin",
+		);
+	});
+
+	// AC-4: utm_medium is required
+	it("returns 'direct' when only utm_source=blog is present (utm_medium missing)", () => {
+		expect(bucketReferrer(null, `${POST_URL}?utm_source=blog`)).toBe("direct");
+	});
+
+	// utm_medium must be exactly "share"
+	it("returns 'direct' when utm_medium is not 'share'", () => {
+		expect(
+			bucketReferrer(null, `${POST_URL}?utm_source=blog&utm_medium=organic`),
+		).toBe("direct");
+	});
+
+	// utm_source must be exactly "blog"
+	it("returns 'direct' when utm_source is not 'blog'", () => {
+		expect(
+			bucketReferrer(null, `${POST_URL}?utm_source=twitter&utm_medium=share`),
+		).toBe("direct");
+	});
+
+	// AC-5: malformed currentUrl → no throw, falls through to direct (null referer)
+	it("does not throw for malformed currentUrl; returns 'direct' (null referer fallback)", () => {
+		expect(() => bucketReferrer(null, "not-a-url")).not.toThrow();
+		expect(bucketReferrer(null, "not-a-url")).toBe("direct");
+	});
+
+	// Extra UTM params do not break attribution
+	it("returns 'share' when extra UTM params are present alongside the required pair", () => {
+		expect(
+			bucketReferrer(
+				null,
+				`${POST_URL}?utm_source=blog&utm_medium=share&utm_campaign=extra`,
+			),
+		).toBe("share");
+	});
+
+	// Backward-compatible: no 2nd arg still works
+	it("works with single argument — backward compatible with existing callers", () => {
+		expect(bucketReferrer("https://github.com/test")).toBe("github");
+	});
+});

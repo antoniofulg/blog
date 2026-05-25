@@ -4,13 +4,51 @@ import { basename, extname, join } from "node:path";
 import matter from "gray-matter";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
+import { z } from "zod";
 import type { Locale } from "#/lib/locale";
 import { renderMdx } from "#/lib/mdx/renderer.server";
+import { SOCIAL_KINDS } from "#/lib/social";
 
-export type PageFrontmatter = {
-	title: string;
-	description?: string;
+// Derived from the shared SOCIAL_KINDS const tuple so that a single edit
+// propagates to all consumers (static-page-profile.tsx, social-link.tsx).
+export const socialKindEnum = z.enum(SOCIAL_KINDS);
+
+export type SocialKind = (typeof SOCIAL_KINDS)[number];
+
+// Links uses optional string values to allow any subset of enum keys.
+// z.record(enumKey, z.string()) in Zod v4 requires ALL enum keys; using
+// z.string().optional() as the value type allows partial records while
+// still rejecting any key that is not in socialKindEnum.
+export const pageFrontmatterSchema = z
+	.object({
+		title: z.string().min(1),
+		description: z.string().optional(),
+		avatar: z.string().optional(),
+		// Optional explicit alt for the avatar image; falls back to author name
+		// when absent (StaticPageProfile default). `min(1)` so an accidental
+		// empty-string value in frontmatter does not silently produce alt="".
+		avatarAlt: z.string().min(1).optional(),
+		links: z.record(socialKindEnum, z.string().optional()).optional(),
+		// Fields present in about.mdx that previously flowed through .passthrough()
+		// without type coverage. Declared explicitly so PageFrontmatter no longer
+		// lies about runtime (issue 006 fix). .passthrough() is retained for any
+		// truly unknown future fields so existing passthrough-verified tests pass.
+		tagline: z.string().optional(),
+		// gray-matter parses YAML dates as Date objects; z.union handles both the
+		// Date (real file parse) and string (mocked unit-test) cases.
+		nowUpdatedAt: z.union([z.string(), z.date()]).optional(),
+		locale: z.string().optional(),
+	})
+	.passthrough();
+
+// Strip the index signature added by .passthrough() so that PageFrontmatter
+// remains serializable through TanStack Start server functions. Passthrough
+// fields (e.g. tagline, nowUpdatedAt) still flow through at runtime — they are
+// just not reflected in the exported TypeScript type.
+type StripIndex<T> = {
+	[K in keyof T as string extends K ? never : K]: T[K];
 };
+export type PageFrontmatter = StripIndex<z.infer<typeof pageFrontmatterSchema>>;
 
 export type PageEntry = {
 	slug: string;
@@ -57,15 +95,10 @@ export async function loadStaticPage(
 	}
 
 	const { data, content: body } = matter(source);
-	if (!data.title) {
-		throw new Error(`Missing required frontmatter 'title' in ${filePath}`);
-	}
-	const frontmatter: PageFrontmatter = {
-		title: data.title as string,
-		...(data.description !== undefined
-			? { description: data.description as string }
-			: {}),
-	};
+	// pageFrontmatterSchema.parse throws ZodError on invalid frontmatter
+	// (e.g. missing title, unrecognized links keys). Error surfaces via the
+	// existing route-level error boundary.
+	const frontmatter = pageFrontmatterSchema.parse(data);
 
 	const Content = await renderMdx(body);
 	const html = renderToStaticMarkup(createElement(Content, {}));
@@ -100,17 +133,13 @@ export async function enumerateStaticPages(
 		try {
 			const source = await readFile(filePath, "utf-8");
 			const { data } = matter(source);
-			if (!data.title) continue;
+			const parsed = pageFrontmatterSchema.safeParse(data);
+			if (!parsed.success) continue;
 			entries.push({
 				slug,
 				locale,
 				filePath,
-				frontmatter: {
-					title: data.title as string,
-					...(data.description !== undefined
-						? { description: data.description as string }
-						: {}),
-				},
+				frontmatter: parsed.data,
 			});
 		} catch {
 			// skip unreadable or malformed files

@@ -302,7 +302,13 @@ describe("unit: Header language switcher trigger label", () => {
 	});
 });
 
-// ─── unit: language switcher not rendered on admin routes ─────────────────────
+// ─── unit: language switcher rendered on admin routes (post-move) ─────────────
+//
+// The switcher used to be hidden on admin and pinned to the AdminSidebar
+// instead. It now lives in the Header for admin too so the locale-toggle
+// affordance is consistent with reader pages. The admin branch in
+// useLangSwitcher short-circuits the URL navigate (setLocale only) since
+// admin routes are not locale-prefixed.
 
 describe("unit: Header language switcher on admin routes", () => {
 	beforeEach(() => {
@@ -315,12 +321,15 @@ describe("unit: Header language switcher on admin routes", () => {
 		cleanup();
 	});
 
-	it("switcher is not rendered on /admin", async () => {
+	it("switcher IS rendered on /admin (admin gets the same affordance as reader pages)", async () => {
 		mocks.setPathname("/admin");
 		renderHeader();
 		await act(async () => {});
-		// No button carries aria-current="true" when the switcher is absent.
-		expect(document.querySelector('button[aria-current="true"]')).toBeNull();
+		// LanguagePair marks the active locale with aria-current="true".
+		// On a default-en admin context, the EN chip carries this attribute.
+		expect(
+			document.querySelector('button[aria-current="true"]'),
+		).not.toBeNull();
 	});
 
 	it("switcher is rendered on /en/blog", async () => {

@@ -14,10 +14,54 @@ export const uiStringsSchema = z.object({
 		body: z.string(),
 		homeCta: z.string(),
 	}),
+	socials: z.object({
+		github: z.string(),
+		linkedin: z.string(),
+		x: z.string(),
+		instagram: z.string(),
+		rss: z.string(),
+		email: z.string(),
+	}),
+	postShare: z.object({
+		share: z.string(),
+		chips: z.object({
+			x: z.string(),
+			linkedin: z.string(),
+			bluesky: z.string(),
+			hackernews: z.string(),
+			reddit: z.string(),
+			email: z.string(),
+			copyLink: z.string(),
+		}),
+		copied: z.string(),
+		ariaShareOn: z.string(),
+	}),
 	admin: z.object({
 		sidebar: z.object({
 			posts: z.string(),
 			analytics: z.string(),
+			navLabel: z.string(),
+		}),
+		dashboard: z.object({
+			title: z.string(),
+			subtitle: z.string(),
+			filter: z.object({
+				label: z.string(),
+				all: z.string(),
+				en: z.string(),
+				ptBr: z.string(),
+			}),
+			table: z.object({
+				title: z.string(),
+				slug: z.string(),
+				lang: z.string(),
+				published: z.string(),
+				actions: z.string(),
+			}),
+			unpublished: z.string(),
+			actions: z.object({
+				view: z.string(),
+			}),
 		}),
 		analytics: z.object({
 			pageTitle: z.string(),
@@ -70,9 +114,31 @@ export type UIStrings = z.infer<typeof uiStringsSchema>;
 export const strings: Record<Locale, UIStrings> = {
 	en: {
 		localeSwitcher: { label: "English" },
+		socials: {
+			github: "GitHub",
+			linkedin: "LinkedIn",
+			x: "X",
+			instagram: "Instagram",
+			rss: "RSS",
+			email: "Email",
+		},
 		postMeta: {
 			publishedOn: "Published on",
 			readingTime: "min read",
+		},
+		postShare: {
+			share: "Share",
+			chips: {
+				x: "X",
+				linkedin: "LinkedIn",
+				bluesky: "Bluesky",
+				hackernews: "Hacker News",
+				reddit: "Reddit",
+				email: "Email",
+				copyLink: "Copy link",
+			},
+			copied: "Copied!",
+			ariaShareOn: "Share on {platform}",
 		},
 		notFound: {
 			title: "Page not found",
@@ -83,6 +149,28 @@ export const strings: Record<Locale, UIStrings> = {
 			sidebar: {
 				posts: "Posts",
 				analytics: "Analytics",
+				navLabel: "Admin navigation",
+			},
+			dashboard: {
+				title: "Admin Dashboard",
+				subtitle: "Manage your articles and publications.",
+				filter: {
+					label: "Filter by language",
+					all: "All",
+					en: "EN",
+					ptBr: "PT-BR",
+				},
+				table: {
+					title: "Title",
+					slug: "Slug",
+					lang: "Language",
+					published: "Published",
+					actions: "Actions",
+				},
+				unpublished: "Draft",
+				actions: {
+					view: "View",
+				},
 			},
 			analytics: {
 				pageTitle: "Analytics",
@@ -133,9 +221,31 @@ export const strings: Record<Locale, UIStrings> = {
 	},
 	"pt-br": {
 		localeSwitcher: { label: "Português" },
+		socials: {
+			github: "GitHub",
+			linkedin: "LinkedIn",
+			x: "X",
+			instagram: "Instagram",
+			rss: "RSS",
+			email: "E-mail",
+		},
 		postMeta: {
 			publishedOn: "Publicado em",
 			readingTime: "min de leitura",
+		},
+		postShare: {
+			share: "Compartilhar",
+			chips: {
+				x: "X",
+				linkedin: "LinkedIn",
+				bluesky: "Bluesky",
+				hackernews: "Hacker News",
+				reddit: "Reddit",
+				email: "E-mail",
+				copyLink: "Copiar link",
+			},
+			copied: "Copiado!",
+			ariaShareOn: "Compartilhar no {platform}",
 		},
 		notFound: {
 			title: "Página não encontrada",
@@ -146,6 +256,28 @@ export const strings: Record<Locale, UIStrings> = {
 			sidebar: {
 				posts: "Posts",
 				analytics: "Analytics",
+				navLabel: "Navegação do admin",
+			},
+			dashboard: {
+				title: "Painel Admin",
+				subtitle: "Gerencie seus artigos e publicações.",
+				filter: {
+					label: "Filtrar por idioma",
+					all: "Todos",
+					en: "EN",
+					ptBr: "PT-BR",
+				},
+				table: {
+					title: "Título",
+					slug: "Slug",
+					lang: "Idioma",
+					published: "Publicado",
+					actions: "Ações",
+				},
+				unpublished: "Rascunho",
+				actions: {
+					view: "Ver",
+				},
 			},
 			analytics: {
 				pageTitle: "Analytics",

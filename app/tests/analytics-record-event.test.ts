@@ -29,6 +29,11 @@ const mocks = vi.hoisted(() => {
 	// Top-level db mock — only transaction is called from recordPostView.
 	const transaction = vi.fn();
 
+	// Spy on bucketReferrer so tests can assert it is called with two args.
+	// Implementation is restored to the real function in beforeEach after
+	// vi.resetAllMocks() clears it.
+	const bucketReferrerSpy = vi.fn();
+
 	return {
 		transaction,
 		txUpdate,
@@ -36,8 +41,17 @@ const mocks = vi.hoisted(() => {
 		txUpdateWhere,
 		txInsert,
 		txInsertValues,
+		bucketReferrerSpy,
 	};
 });
+
+// Holder for the real bucketReferrer implementation.
+// Uses vi.hoisted so it is safe to reference inside the vi.mock factory —
+// plain `let` declarations are in TDZ when the hoisted factory runs.
+const realBucketReferrerHolder = vi.hoisted(() => ({
+	fn: (_referer: string | null | undefined, _currentUrl?: string): string =>
+		"direct",
+}));
 
 // server-only guard: no-op in Node/vitest context
 vi.mock("@tanstack/react-start/server-only", () => ({}));
@@ -48,6 +62,16 @@ vi.mock("#/db/client", () => ({
 		transaction: mocks.transaction,
 	},
 }));
+
+// Spy on bucketReferrer so we can assert recordPostView passes request.url as
+// the second argument (task_03.6, ADR-002). The spy wraps the real function so
+// existing referrer-parsing tests continue to receive the correct return values.
+vi.mock("#/lib/analytics/referrer-bucketer", async (importOriginal) => {
+	const original =
+		await importOriginal<typeof import("#/lib/analytics/referrer-bucketer")>();
+	realBucketReferrerHolder.fn = original.bucketReferrer;
+	return { ...original, bucketReferrer: mocks.bucketReferrerSpy };
+});
 
 // ── Import after mocks are hoisted ────────────────────────────────────────────
 
@@ -86,6 +110,10 @@ beforeEach(() => {
 			await fn({ update: mocks.txUpdate, insert: mocks.txInsert });
 		},
 	);
+
+	// Restore bucketReferrer spy to the real implementation so existing tests
+	// continue to receive correct return values after vi.resetAllMocks().
+	mocks.bucketReferrerSpy.mockImplementation(realBucketReferrerHolder.fn);
 });
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -327,5 +355,55 @@ describe("recordPostView — V1 column constraints (AC-5)", () => {
 			unknown
 		>;
 		expect(inserted).toMatchObject({ isBot: false });
+	});
+});
+
+describe("recordPostView — bucketReferrer receives request.url as 2nd arg (task_03.6, ADR-002)", () => {
+	it("passes (Referer header, request.url) as the two args to bucketReferrer", async () => {
+		// makeRequest uses "http://localhost/test-post" as the Request URL
+		const refererValue = "https://www.linkedin.com/feed/";
+		await recordPostView({
+			postId: 1,
+			request: makeRequest(HUMAN_UA, refererValue),
+			lang: "en",
+		});
+
+		expect(mocks.bucketReferrerSpy).toHaveBeenCalledWith(
+			refererValue,
+			"http://localhost/test-post",
+		);
+	});
+
+	it("passes null Referer + request.url when no Referer header is set", async () => {
+		await recordPostView({
+			postId: 1,
+			request: makeRequest(HUMAN_UA), // no Referer header
+			lang: "en",
+		});
+
+		expect(mocks.bucketReferrerSpy).toHaveBeenCalledWith(
+			null,
+			"http://localhost/test-post",
+		);
+	});
+
+	it("inserts referrerSource='share' when request URL carries UTM share tags", async () => {
+		// Override spy for this specific test to exercise the UTM path
+		mocks.bucketReferrerSpy.mockReturnValueOnce("share");
+
+		await recordPostView({
+			postId: 1,
+			request: new Request(
+				"http://localhost/test-post?utm_source=blog&utm_medium=share",
+				{ headers: new Headers({ "User-Agent": HUMAN_UA }) },
+			),
+			lang: "en",
+		});
+
+		const inserted = mocks.txInsertValues.mock.calls[0][0] as Record<
+			string,
+			unknown
+		>;
+		expect(inserted).toMatchObject({ referrerSource: "share" });
 	});
 });

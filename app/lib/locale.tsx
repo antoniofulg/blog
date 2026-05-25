@@ -6,6 +6,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
+import { getSiteOrigin } from "#/lib/site-origin";
 
 export type Locale = "en" | "pt-br";
 
@@ -119,7 +120,7 @@ export function buildLocaleHead(
 	locale: Locale,
 	hreflang: HreflangDescriptor = { kind: "no-twin" },
 ) {
-	const siteUrl = import.meta.env.VITE_SITE_URL ?? "";
+	const siteUrl = getSiteOrigin();
 	const canonicalUrl = `${siteUrl}${LOCALE_PATHNAME[locale]}`;
 	const description = LOCALE_DESCRIPTIONS[locale];
 	// Canonical link is emitted by `__root.tsx` (single source of truth, locale-aware
@@ -171,8 +172,10 @@ export function getTwinAvailabilityForCurrentRoute(
 	route: RouteKind,
 	_targetLocale: Locale,
 ): { available: boolean; renderSwitcher: boolean } {
-	if (route.kind === "admin")
-		return { available: false, renderSwitcher: false };
+	// Admin routes have no locale-prefixed URL counterpart; the switcher only
+	// flips the localStorage/cookie locale via setLocale (no navigation). Both
+	// locales are always reachable, so render the switcher and mark available.
+	if (route.kind === "admin") return { available: true, renderSwitcher: true };
 	if (route.kind === "structural")
 		return { available: true, renderSwitcher: true };
 	return { available: route.hasTwin, renderSwitcher: true };

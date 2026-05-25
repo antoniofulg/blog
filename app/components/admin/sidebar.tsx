@@ -21,14 +21,25 @@ const NAV_ITEMS: NavItem[] = [
 	},
 ];
 
+/**
+ * AdminSidebar — nav-only surface.
+ *
+ * The language switcher used to live pinned to the sidebar bottom; it now
+ * lives in the public Header so admin gets the same locale-toggle affordance
+ * as reader pages (consistent IA). See header.tsx useLangSwitcher — the admin
+ * branch short-circuits navigation and only calls setLocale().
+ */
 export function AdminSidebar() {
 	const { locale } = useLocale();
 	const { pathname } = useLocation();
 	const t = strings[locale].admin.sidebar;
 
 	return (
-		<nav aria-label="Admin navigation" className="p-3 md:p-4">
-			{/* Mobile: horizontal row; Desktop: vertical column */}
+		<nav
+			aria-label={t.navLabel}
+			className="p-3 md:flex md:h-full md:flex-col md:p-4"
+		>
+			{/* Mobile: horizontal row; Desktop: vertical column. */}
 			<ul className="flex flex-row flex-wrap gap-1 md:flex-col">
 				{NAV_ITEMS.map(({ key, href, isActive }) => {
 					const active = isActive(pathname);
