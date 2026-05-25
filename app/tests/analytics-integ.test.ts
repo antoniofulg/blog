@@ -16,7 +16,6 @@
  *   AC-5: non-existent postId → zeros/empty, no exception
  */
 
-import { eq } from "drizzle-orm";
 import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { analyticsEvents, posts } from "#/db/schema";
 import type { TestDb } from "../../tests/e2e/db";
@@ -52,7 +51,6 @@ vi.mock("#/db/client", () => ({
 
 // Import SUTs after mocks
 import { getAnalyticsDashboard } from "#/db/analytics-queries";
-import { recordPostView } from "#/lib/analytics/record-event.server";
 
 // ── Suite setup ───────────────────────────────────────────────────────────────
 
@@ -361,101 +359,7 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 		expect(deviceTotal).toBe(result.summary.totalVisits);
 	}, 30_000);
 
-	// ── UTM share attribution tests (task_03, ADR-002) ────────────────────────
-
-	it("IT-UTM-1: recordPostView with UTM-tagged request URL inserts referrer_source='share' (AC-6)", async () => {
-		const freshDb = await createTestDb();
-		const originalDb = dbHolder.get();
-		dbHolder.set(freshDb.db);
-
-		try {
-			const [seedPost] = await freshDb.db
-				.insert(posts)
-				.values({
-					filePath: "/content/posts/en/utm-integ-post.mdx",
-					slug: "utm-integ-post",
-					lang: "en",
-					title: "UTM Integration Post",
-					viewCount: 0,
-				})
-				.returning();
-
-			const humanUA =
-				"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36";
-
-			// Request URL carries UTM share tags — bucketReferrer should return "share"
-			await recordPostView({
-				postId: seedPost.id,
-				request: new Request(
-					"https://myblog.example/en/utm-integ-post?utm_source=blog&utm_medium=share",
-					{ headers: new Headers({ "User-Agent": humanUA }) },
-				),
-				lang: "en",
-			});
-
-			const events = await freshDb.db
-				.select()
-				.from(analyticsEvents)
-				.where(eq(analyticsEvents.postId, seedPost.id));
-
-			expect(events).toHaveLength(1);
-			expect(events[0].referrerSource).toBe("share");
-		} finally {
-			dbHolder.set(originalDb);
-			await freshDb.close();
-		}
-	}, 30_000);
-
-	it("IT-UTM-2: getAnalyticsDashboard returns 'share' in referrerByDay and as topReferrer when share events dominate (task_03)", async () => {
-		const freshDb = await createTestDb();
-		const originalDb = dbHolder.get();
-		dbHolder.set(freshDb.db);
-
-		try {
-			const [seedPost] = await freshDb.db
-				.insert(posts)
-				.values({
-					filePath: "/content/posts/en/share-dashboard-post.mdx",
-					slug: "share-dashboard-post",
-					lang: "en",
-					title: "Share Dashboard Post",
-					viewCount: 0,
-				})
-				.returning();
-
-			// 5 share events + 3 direct events → topReferrer should be "share"
-			const shareEvents = Array.from({ length: 5 }, () => ({
-				postId: seedPost.id,
-				createdAt: daysAgo(1),
-				referrerSource: "share",
-				lang: "en",
-				device: "desktop",
-				isBot: false,
-			}));
-			const directEvents = Array.from({ length: 3 }, () => ({
-				postId: seedPost.id,
-				createdAt: daysAgo(1),
-				referrerSource: "direct",
-				lang: "en",
-				device: "desktop",
-				isBot: false,
-			}));
-
-			await freshDb.db
-				.insert(analyticsEvents)
-				.values([...shareEvents, ...directEvents]);
-
-			const result = await getAnalyticsDashboard({ range: "7d" });
-
-			// "share" must appear in referrerByDay
-			const sources = new Set(result.referrerByDay.map((r) => r.source));
-			expect(sources.has("share")).toBe(true);
-
-			// "share" must be topReferrer (5 > 3); topReferrer is { source, count }
-			expect(result.summary.topReferrer?.source).toBe("share");
-		} finally {
-			dbHolder.set(originalDb);
-			await freshDb.close();
-		}
-	}, 30_000);
+	// IT-UTM-1 and IT-UTM-2 removed: they tested the legacy hasShareUTM /
+	// "share" bucket behaviour superseded by ADR-001.
+	// Per-platform attribution is now verified in analytics-referrer-bucketer.test.ts.
 });

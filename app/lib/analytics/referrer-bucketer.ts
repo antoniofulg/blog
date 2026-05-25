@@ -2,8 +2,8 @@
  * V1 referrer source buckets.
  * Aligns with the `referrer_source` column domain in `analytics_events`.
  *
- * "share" is the UTM-attributed bucket: assigned when the incoming request URL
- * carries ?utm_source=blog&utm_medium=share (ADR-002).
+ * The legacy "share" bucket and hasShareUTM short-circuit were removed in
+ * favour of per-platform utm_source attribution (ADR-001).
  */
 export type ReferrerSource =
 	| "linkedin"
@@ -17,8 +17,7 @@ export type ReferrerSource =
 	| "bluesky"
 	| "mastodon"
 	| "direct"
-	| "other"
-	| "share";
+	| "other";
 
 /**
  * Canonical ordered enumeration of every `ReferrerSource` member.
@@ -47,7 +46,6 @@ export const ALL_SOURCES: readonly ReferrerSource[] = [
 	"mastodon",
 	"direct",
 	"other",
-	"share",
 ] as const;
 
 /**
@@ -122,63 +120,42 @@ function hostnameToSource(hostname: string): ReferrerSource {
 		}
 	}
 	// Google country variants: google.com, google.co.uk, google.com.br, etc.
-	// Require a recognised TLD suffix after "google." to avoid mis-classifying
-	// typosquatting domains like `google.evil.com` as "google".
+	// Two cases:
+	//   1. Bare domain: google.<tld>  (e.g. google.com.br)
+	//   2. Subdomain:   <sub>.google.<tld>  (e.g. www.google.com.br)
+	// Both require a recognised TLD to prevent typosquatting (e.g. google.evil.com).
 	const dotIdx = hostname.indexOf(".");
 	const tldSuffix = dotIdx >= 0 ? hostname.slice(dotIdx + 1) : "";
-	if (
-		(hostname.startsWith("google.") && GOOGLE_TLDS.has(tldSuffix)) ||
-		(hostname.includes(".google.") &&
-			/\.google\.(com|[a-z]{2})$/.test(hostname))
-	) {
+	if (hostname.startsWith("google.") && GOOGLE_TLDS.has(tldSuffix)) {
 		return "google";
+	}
+	const googleDotIdx = hostname.indexOf(".google.");
+	if (googleDotIdx >= 0) {
+		const afterGoogle = hostname.slice(googleDotIdx + ".google.".length);
+		if (GOOGLE_TLDS.has(afterGoogle)) {
+			return "google";
+		}
 	}
 	return "other";
 }
 
 /**
- * Returns true iff `currentUrl` carries both utm_source=blog AND utm_medium=share.
- *
- * Short-circuits `bucketReferrer` to the "share" bucket when present.
- * Swallows malformed URLs — returns false without throwing (ADR-002).
- */
-function hasShareUTM(currentUrl: string | undefined): boolean {
-	if (!currentUrl) return false;
-	try {
-		const params = new URL(currentUrl).searchParams;
-		return (
-			params.get("utm_source") === "blog" &&
-			params.get("utm_medium") === "share"
-		);
-	} catch {
-		return false;
-	}
-}
-
-/**
  * Maps a raw Referer header value to a named source bucket.
  *
- * When `currentUrl` is provided the UTM check runs first (ADR-002):
- *   - utm_source=blog AND utm_medium=share → "share" (wins over any Referer)
- *   - malformed `currentUrl`              → fall through (never throws)
- *
- * Fallback hostname logic:
+ * Hostname logic:
  * - Empty / null / undefined Referer → "direct"
  * - Malformed Referer URL            → "other" (never throws)
  * - Known hostname                   → named bucket
  * - Unknown hostname                 → "other"
  *
+ * The legacy UTM short-circuit (hasShareUTM / "share" bucket) was removed.
+ * Per-platform attribution now relies solely on Referer hostname mapping (ADR-001).
+ *
  * Pure function — no I/O, no side effects.
  */
 export function bucketReferrer(
 	referer: string | null | undefined,
-	currentUrl?: string,
 ): ReferrerSource {
-	// UTM short-circuit: ?utm_source=blog&utm_medium=share wins over any Referer.
-	// This ensures share-button click chains are attributed to "share" regardless
-	// of which platform the reader arrived from (ADR-002).
-	if (hasShareUTM(currentUrl)) return "share";
-
 	if (!referer) return "direct";
 	let url: URL;
 	try {

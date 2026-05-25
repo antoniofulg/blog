@@ -60,7 +60,6 @@ export const SOURCE_COLOR_MAP: Record<ReferrerSource, string> = {
 	mastodon: "var(--color-chart-10)",
 	direct: "var(--color-foreground-muted)",
 	other: "var(--color-border-strong)",
-	share: "var(--color-accent)",
 };
 
 // ── Pivot helper ──────────────────────────────────────────────────────────────

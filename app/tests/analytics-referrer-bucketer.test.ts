@@ -108,66 +108,55 @@ describe("bucketReferrer", () => {
 	});
 });
 
-describe("bucketReferrer — UTM share short-circuit (ADR-002)", () => {
-	const POST_URL = "https://myblog.example/en/my-post";
-	const SHARE_URL = `${POST_URL}?utm_source=blog&utm_medium=share`;
+// ── ADR-001: simplified single-arg API ──────────────────────────────────────
+// The legacy UTM short-circuit (hasShareUTM / "share" bucket) was removed.
+// These tests verify the simplified signature and hostname-only attribution.
 
-	// AC-1: null referer + UTM-tagged URL → "share"
-	it("returns 'share' when referer is null and URL carries utm_source=blog&utm_medium=share", () => {
-		expect(bucketReferrer(null, SHARE_URL)).toBe("share");
+describe("bucketReferrer — simplified API (ADR-001)", () => {
+	// null / undefined / empty → "direct"
+	it("returns 'direct' for null", () => {
+		expect(bucketReferrer(null)).toBe("direct");
 	});
 
-	// AC-2: UTM wins over Referer hostname
-	it("returns 'share' when UTM tags present even with a known LinkedIn Referer", () => {
-		expect(bucketReferrer("https://linkedin.com/feed/", SHARE_URL)).toBe(
-			"share",
+	it("returns 'direct' for empty string", () => {
+		expect(bucketReferrer("")).toBe("direct");
+	});
+
+	// Malformed URL → "other" via try/catch
+	it("returns 'other' for a string without a protocol (malformed URL)", () => {
+		expect(() => bucketReferrer("malformed-url-no-protocol")).not.toThrow();
+		expect(bucketReferrer("malformed-url-no-protocol")).toBe("other");
+	});
+
+	// Named hostname buckets
+	it("returns 'linkedin' for www.linkedin.com", () => {
+		expect(bucketReferrer("https://www.linkedin.com/in/foo")).toBe("linkedin");
+	});
+
+	it("returns 'twitter' for x.com", () => {
+		expect(bucketReferrer("https://x.com/foo")).toBe("twitter");
+	});
+
+	it("returns 'hackernews' for news.ycombinator.com", () => {
+		expect(bucketReferrer("https://news.ycombinator.com/item?id=1")).toBe(
+			"hackernews",
 		);
 	});
 
-	// AC-3: no UTM → hostname logic still works
-	it("falls back to hostname logic when no UTM tags present", () => {
-		expect(bucketReferrer("https://linkedin.com/feed/", POST_URL)).toBe(
-			"linkedin",
-		);
+	it("returns 'google' for www.google.com.br", () => {
+		expect(bucketReferrer("https://www.google.com.br/search")).toBe("google");
 	});
 
-	// AC-4: utm_medium is required
-	it("returns 'direct' when only utm_source=blog is present (utm_medium missing)", () => {
-		expect(bucketReferrer(null, `${POST_URL}?utm_source=blog`)).toBe("direct");
+	it("returns 'other' for an unknown host", () => {
+		expect(bucketReferrer("https://unknown-host.example/path")).toBe("other");
 	});
 
-	// utm_medium must be exactly "share"
-	it("returns 'direct' when utm_medium is not 'share'", () => {
-		expect(
-			bucketReferrer(null, `${POST_URL}?utm_source=blog&utm_medium=organic`),
-		).toBe("direct");
-	});
-
-	// utm_source must be exactly "blog"
-	it("returns 'direct' when utm_source is not 'blog'", () => {
-		expect(
-			bucketReferrer(null, `${POST_URL}?utm_source=twitter&utm_medium=share`),
-		).toBe("direct");
-	});
-
-	// AC-5: malformed currentUrl → no throw, falls through to direct (null referer)
-	it("does not throw for malformed currentUrl; returns 'direct' (null referer fallback)", () => {
-		expect(() => bucketReferrer(null, "not-a-url")).not.toThrow();
-		expect(bucketReferrer(null, "not-a-url")).toBe("direct");
-	});
-
-	// Extra UTM params do not break attribution
-	it("returns 'share' when extra UTM params are present alongside the required pair", () => {
-		expect(
-			bucketReferrer(
-				null,
-				`${POST_URL}?utm_source=blog&utm_medium=share&utm_campaign=extra`,
-			),
-		).toBe("share");
-	});
-
-	// Backward-compatible: no 2nd arg still works
-	it("works with single argument — backward compatible with existing callers", () => {
-		expect(bucketReferrer("https://github.com/test")).toBe("github");
+	// Compile-time check: "share" must NOT be a valid ReferrerSource.
+	// If the type still contains "share" this @ts-expect-error line will itself
+	// be a TS error (the expected error no longer occurs), failing tsc --noEmit.
+	it("type assertion: 'share' is not assignable to ReferrerSource", () => {
+		// @ts-expect-error "share" was removed from ReferrerSource (ADR-001)
+		const _source: ReferrerSource = "share";
+		void _source; // suppress unused-var lint
 	});
 });
