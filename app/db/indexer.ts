@@ -12,6 +12,8 @@ import {
 import { eq, or } from "drizzle-orm";
 import matter from "gray-matter";
 import { LOCALES, type Locale } from "#/lib/locale";
+import { findFirstCodeBlock } from "#/lib/mdx/code-blocks.server";
+import { generateOgImage } from "#/lib/og/generate";
 import { db } from "./client";
 import { posts } from "./schema";
 
@@ -112,6 +114,27 @@ export async function upsertPost(filePath: string): Promise<void> {
 		filePath = toRelativePath(filePath);
 		const slug = deriveSlug(filePath, fm.slug);
 		lang = deriveLang(filePath);
+
+		// Generate OG image only when the post has at least one fenced code block.
+		// Posts with no code block rely on the site-wide og-image.jpg fallback (ADR-002).
+		// generateOgImage already wraps its internals in try/catch and returns null;
+		// the outer try/catch here is a defensive belt-and-suspenders guard.
+		const firstCodeBlock = findFirstCodeBlock(source);
+		if (firstCodeBlock !== null) {
+			try {
+				await generateOgImage({
+					locale: lang as Locale,
+					slug,
+					title: fm.title,
+					firstCodeBlock,
+				});
+			} catch (err) {
+				console.warn(
+					`[og] generation failed for ${slug}: ${err instanceof Error ? err.message : String(err)}`,
+				);
+			}
+		}
+
 		const now = new Date();
 		await db
 			.insert(posts)
