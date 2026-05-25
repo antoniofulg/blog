@@ -1,0 +1,19 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
+  <!--
+    Source: lucide Terminal icon, hand-tuned for 16px legibility.
+    Changes from lucide default:
+    - Added rounded-rect background (rx="4") in brand accent colour.
+    - Increased stroke-width to 2.5 (was 2) for legibility at smallest favicon sizes.
+    - Adjusted polyline padding to 5/18 to give comfortable margin inside the 24px frame.
+    - This file is the rasterisation source. public/favicon.svg is the deployed
+      SVG with prefers-color-scheme light/dark media query variants.
+
+    Fallback: if sharp fails, regenerate via realfavicongenerator.net using this
+    file as the upload source.
+  -->
+  <rect width="24" height="24" rx="4" fill="#097098"/>
+  <g fill="none" stroke="#ffffff" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+    <polyline points="5 18 11 12 5 6"/>
+    <line x1="13" x2="19" y1="18" y2="18"/>
+  </g>
+</svg>

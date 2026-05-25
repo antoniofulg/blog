@@ -77,7 +77,7 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 				},
 				{
 					property: "og:image",
-					content: `${siteUrl}/og-default.png`,
+					content: `${siteUrl}/og-image.jpg`,
 				},
 				{ name: "twitter:card", content: "summary_large_image" },
 			],
@@ -89,6 +89,11 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 					title: "Antonio Fulgencio — Posts",
 					href: `${siteUrl}/rss.xml`,
 				},
+				// Favicon triplet — preferred SVG (modern browsers), ICO fallback
+				// (legacy), Apple touch icon (iOS "add to home screen").
+				{ rel: "icon", type: "image/svg+xml", href: "/favicon.svg" },
+				{ rel: "icon", type: "image/x-icon", href: "/favicon.ico" },
+				{ rel: "apple-touch-icon", href: "/apple-touch-icon.png" },
 				{ rel: "stylesheet", href: appCss },
 			],
 		};
