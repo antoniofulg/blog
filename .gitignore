@@ -34,3 +34,6 @@ docs/_reports/app-audit-*.md
 
 # Compozy workflow artifacts (PRD/TechSpec/tasks/reviews) — local-only
 .compozy/
+
+# Generated OG images (build-time output; never committed)
+public/og/
