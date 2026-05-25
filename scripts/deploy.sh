@@ -56,10 +56,17 @@ ssh -p "$VPS_PORT" \
      docker compose -f '$DEPLOY_PATH/$COMPOSE_FILE' up -d --no-deps app
 
    # Smoke test (skipped when DEPLOY_DOMAIN is unset). On failure: rollback + exit.
+   # Hits the app directly on the loopback port instead of bouncing the request
+   # through the public domain. Going via https://$DOMAIN required hairpin NAT
+   # through Cloudflare and a fresh TLS handshake, which routinely took longer
+   # than the 10-second budget on cold start and rolled deployments back even
+   # when the container itself was healthy (verified by manually curling the
+   # same image via `docker run`). \$DOMAIN is still the trigger so the smoke
+   # step stays opt-in for environments that have it set; the URL just changes.
    if [ -n \"$DOMAIN\" ]; then
-     echo '[deploy] running smoke test...'
+     echo '[deploy] running smoke test against http://localhost:3000/ ...'
      sleep 10
-     if ! curl --fail --silent --max-time 10 https://$DOMAIN > /dev/null; then
+     if ! curl --fail --silent --max-time 10 http://localhost:3000/ > /dev/null; then
        echo '[deploy] smoke test FAILED — rolling back to \${OLD_IMAGE:-previous}'
        if [ -n \"\$OLD_IMAGE\" ]; then
          docker tag \"\$OLD_IMAGE\" ghcr.io/$GHCR_OWNER/$GHCR_REPO:latest
