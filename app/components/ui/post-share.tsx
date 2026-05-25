@@ -3,8 +3,6 @@ import {
 	Linkedin,
 	Mail,
 	MessageCircle,
-	Newspaper,
-	Send,
 	Share2,
 	Twitter,
 } from "lucide-react";
@@ -49,8 +47,8 @@ type ChipConfig = {
 
 const CHIPS: ChipConfig[] = [
 	{
-		id: "x",
-		labelKey: "x",
+		id: "twitter",
+		labelKey: "twitter",
 		Icon: Twitter,
 		href: (utmUrl, title) =>
 			`https://twitter.com/intent/tweet?text=${encodeURIComponent(title)}&url=${encodeURIComponent(utmUrl)}`,
@@ -61,20 +59,6 @@ const CHIPS: ChipConfig[] = [
 		Icon: Linkedin,
 		href: (utmUrl) =>
 			`https://www.linkedin.com/sharing/share-offsite/?url=${encodeURIComponent(utmUrl)}`,
-	},
-	{
-		id: "bluesky",
-		labelKey: "bluesky",
-		Icon: Send,
-		href: (utmUrl, title) =>
-			`https://bsky.app/intent/compose?text=${encodeURIComponent(`${title} ${utmUrl}`)}`,
-	},
-	{
-		id: "hackernews",
-		labelKey: "hackernews",
-		Icon: Newspaper,
-		href: (utmUrl, title) =>
-			`https://news.ycombinator.com/submitlink?u=${encodeURIComponent(utmUrl)}&t=${encodeURIComponent(title)}`,
 	},
 	{
 		id: "reddit",
@@ -212,11 +196,11 @@ export function PostShare({ postUrl, postTitle, locale }: PostShareProps) {
 				<button
 					type="button"
 					onClick={handleCopyLink}
-					aria-label={t.chips.copyLink}
+					aria-label={t.chips.copy}
 					className="inline-flex min-h-[44px] items-center gap-2 rounded-lg border border-border bg-card px-4 py-2 text-sm font-medium text-foreground-secondary transition-colors hover:border-border-strong hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				>
 					<Copy className="h-4 w-4" aria-hidden="true" />
-					{t.chips.copyLink}
+					{t.chips.copy}
 				</button>
 			</div>
 

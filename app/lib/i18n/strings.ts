@@ -25,17 +25,11 @@ export const uiStringsSchema = z.object({
 	postShare: z.object({
 		share: z.string(),
 		chips: z.object({
-			x: z.string(),
-			linkedin: z.string(),
-			bluesky: z.string(),
-			hackernews: z.string(),
-			reddit: z.string(),
-			email: z.string(),
-			copyLink: z.string(),
-			// task-03 pre-alignment: keys matching PlatformId union for coupling test;
-			// task-04 will rename/remove the legacy x/bluesky/hackernews/copyLink keys.
 			twitter: z.string(),
+			linkedin: z.string(),
+			reddit: z.string(),
 			whatsapp: z.string(),
+			email: z.string(),
 			copy: z.string(),
 		}),
 		copied: z.string(),
@@ -134,16 +128,11 @@ export const strings: Record<Locale, UIStrings> = {
 		postShare: {
 			share: "Share",
 			chips: {
-				x: "X",
-				linkedin: "LinkedIn",
-				bluesky: "Bluesky",
-				hackernews: "Hacker News",
-				reddit: "Reddit",
-				email: "Email",
-				copyLink: "Copy link",
-				// task-03 pre-alignment (task-04 removes legacy keys above)
 				twitter: "X",
+				linkedin: "LinkedIn",
+				reddit: "Reddit",
 				whatsapp: "WhatsApp",
+				email: "Email",
 				copy: "Copy link",
 			},
 			copied: "Copied!",
@@ -245,16 +234,11 @@ export const strings: Record<Locale, UIStrings> = {
 		postShare: {
 			share: "Compartilhar",
 			chips: {
-				x: "X",
-				linkedin: "LinkedIn",
-				bluesky: "Bluesky",
-				hackernews: "Hacker News",
-				reddit: "Reddit",
-				email: "E-mail",
-				copyLink: "Copiar link",
-				// task-03 pre-alignment (task-04 removes legacy keys above)
 				twitter: "X",
+				linkedin: "LinkedIn",
+				reddit: "Reddit",
 				whatsapp: "WhatsApp",
+				email: "E-mail",
 				copy: "Copiar link",
 			},
 			copied: "Copiado!",

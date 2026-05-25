@@ -4,19 +4,42 @@ import { LOCALES } from "#/lib/locale";
 
 describe("uiStringsSchema — postShare namespace", () => {
 	const chipKeys = [
-		"x",
+		"twitter",
 		"linkedin",
-		"bluesky",
-		"hackernews",
 		"reddit",
+		"whatsapp",
 		"email",
-		"copyLink",
+		"copy",
 	] as const;
 
-	describe("chips — all 7 keys present in both locales", () => {
+	describe("chips — exactly 6 keys in both locales", () => {
+		it("en: postShare.chips has exactly 6 keys (sorted)", () => {
+			const keys = Object.keys(strings.en.postShare.chips).sort();
+			expect(keys).toEqual([
+				"copy",
+				"email",
+				"linkedin",
+				"reddit",
+				"twitter",
+				"whatsapp",
+			]);
+		});
+
+		it("pt-br: postShare.chips has exactly 6 keys (sorted)", () => {
+			const keys = Object.keys(strings["pt-br"].postShare.chips).sort();
+			expect(keys).toEqual([
+				"copy",
+				"email",
+				"linkedin",
+				"reddit",
+				"twitter",
+				"whatsapp",
+			]);
+		});
+
 		it.each(
 			LOCALES,
-		)("locale %s: all 7 chip keys are non-empty strings", (locale) => {
+		)("locale %s: all 6 chip keys are non-empty strings", (locale) => {
 			for (const key of chipKeys) {
 				expect(
 					typeof strings[locale].postShare.chips[key],
@@ -50,7 +73,7 @@ describe("uiStringsSchema — postShare namespace", () => {
 		});
 	});
 
-	describe("AC-3 — all 7 chip keys per locale", () => {
+	describe("AC-3 — all 6 chip keys per locale", () => {
 		it.each(chipKeys)("en: chips.%s exists", (key) => {
 			expect(strings.en.postShare.chips[key]).toBeTruthy();
 		});
@@ -61,14 +84,23 @@ describe("uiStringsSchema — postShare namespace", () => {
 	});
 
 	describe("value spot-checks — en locale", () => {
-		it("en: chips.x resolves to 'X'", () => {
-			expect(strings.en.postShare.chips.x).toBe("X");
+		it("en: chips.twitter resolves to 'X' (X rebrand label)", () => {
+			expect(strings.en.postShare.chips.twitter).toBe("X");
 		});
 		it("en: chips.linkedin resolves to 'LinkedIn'", () => {
 			expect(strings.en.postShare.chips.linkedin).toBe("LinkedIn");
 		});
-		it("en: chips.copyLink resolves to 'Copy link'", () => {
-			expect(strings.en.postShare.chips.copyLink).toBe("Copy link");
+		it("en: chips.reddit resolves to 'Reddit'", () => {
+			expect(strings.en.postShare.chips.reddit).toBe("Reddit");
+		});
+		it("en: chips.whatsapp resolves to 'WhatsApp'", () => {
+			expect(strings.en.postShare.chips.whatsapp).toBe("WhatsApp");
+		});
+		it("en: chips.email resolves to 'Email'", () => {
+			expect(strings.en.postShare.chips.email).toBe("Email");
+		});
+		it("en: chips.copy resolves to 'Copy link'", () => {
+			expect(strings.en.postShare.chips.copy).toBe("Copy link");
 		});
 		it("en: copied resolves to 'Copied!'", () => {
 			expect(strings.en.postShare.copied).toBe("Copied!");
@@ -79,14 +111,49 @@ describe("uiStringsSchema — postShare namespace", () => {
 	});
 
 	describe("value spot-checks — pt-br locale", () => {
-		it("pt-br: chips.copyLink resolves to 'Copiar link'", () => {
-			expect(strings["pt-br"].postShare.chips.copyLink).toBe("Copiar link");
+		it("pt-br: chips.twitter resolves to 'X' (brand name — no translation)", () => {
+			expect(strings["pt-br"].postShare.chips.twitter).toBe("X");
+		});
+		it("pt-br: chips.linkedin resolves to 'LinkedIn' (brand name — no translation)", () => {
+			expect(strings["pt-br"].postShare.chips.linkedin).toBe("LinkedIn");
+		});
+		it("pt-br: chips.whatsapp resolves to 'WhatsApp' (brand name — no translation)", () => {
+			expect(strings["pt-br"].postShare.chips.whatsapp).toBe("WhatsApp");
+		});
+		it("pt-br: chips.email resolves to 'E-mail' (translated generic term)", () => {
+			expect(strings["pt-br"].postShare.chips.email).toBe("E-mail");
+		});
+		it("pt-br: chips.copy resolves to 'Copiar link' (translated generic term)", () => {
+			expect(strings["pt-br"].postShare.chips.copy).toBe("Copiar link");
 		});
 		it("pt-br: copied resolves to 'Copiado!'", () => {
 			expect(strings["pt-br"].postShare.copied).toBe("Copiado!");
 		});
 		it("pt-br: share resolves to 'Compartilhar'", () => {
 			expect(strings["pt-br"].postShare.share).toBe("Compartilhar");
+		});
+	});
+
+	describe("brand-name keys — identical values across locales", () => {
+		it("chips.linkedin is the same in en and pt-br", () => {
+			expect(strings.en.postShare.chips.linkedin).toBe(
+				strings["pt-br"].postShare.chips.linkedin,
+			);
+		});
+		it("chips.whatsapp is the same in en and pt-br", () => {
+			expect(strings.en.postShare.chips.whatsapp).toBe(
+				strings["pt-br"].postShare.chips.whatsapp,
+			);
+		});
+		it("chips.twitter is the same in en and pt-br", () => {
+			expect(strings.en.postShare.chips.twitter).toBe(
+				strings["pt-br"].postShare.chips.twitter,
+			);
+		});
+		it("chips.reddit is the same in en and pt-br", () => {
+			expect(strings.en.postShare.chips.reddit).toBe(
+				strings["pt-br"].postShare.chips.reddit,
+			);
 		});
 	});
 

@@ -94,7 +94,7 @@ describe("unit: buildShareUrl", () => {
 
 // ── Unit: SSR default chip row ────────────────────────────────────────────────
 
-describe("unit: SSR default — 7 chips visible, no native Share button (AC-1)", () => {
+describe("unit: SSR default — 5 chips visible (4 link + 1 copy), no native Share button (AC-1)", () => {
 	beforeEach(() => {
 		// Ensure navigator.share is not defined (SSR default)
 		Object.defineProperty(navigator, "share", {
@@ -104,14 +104,14 @@ describe("unit: SSR default — 7 chips visible, no native Share button (AC-1)",
 		});
 	});
 
-	it("renders 6 platform link chips (X, LinkedIn, Bluesky, HN, Reddit, Email)", async () => {
+	it("renders 4 platform link chips (X, LinkedIn, Reddit, Email)", async () => {
 		renderShare();
 		await act(async () => {});
 		const links = screen.getAllByRole("link");
-		expect(links.length).toBe(6);
+		expect(links.length).toBe(4);
 	});
 
-	it("renders the Copy Link button (7th chip)", async () => {
+	it("renders the Copy Link button (5th chip)", async () => {
 		renderShare();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Copy link" });
@@ -168,20 +168,6 @@ describe("unit: chip hrefs contain UTM-tagged postUrl (AC-2)", () => {
 		expect(href).toMatch(/^https:\/\/twitter\.com\/intent\/tweet\?/);
 		expect(href).toContain(encodeURIComponent("utm_source=blog"));
 		expect(href).toContain(encodeURIComponent("utm_medium=share"));
-	});
-
-	it("Bluesky chip href matches bsky.app compose intent", () => {
-		const link = screen.getByRole("link", { name: "Share on Bluesky" });
-		const href = link.getAttribute("href") ?? "";
-		expect(href).toMatch(/^https:\/\/bsky\.app\/intent\/compose\?/);
-		expect(href).toContain(encodeURIComponent("utm_source=blog"));
-	});
-
-	it("HN chip href matches news.ycombinator.com/submitlink", () => {
-		const link = screen.getByRole("link", { name: "Share on Hacker News" });
-		const href = link.getAttribute("href") ?? "";
-		expect(href).toMatch(/news\.ycombinator\.com\/submitlink/);
-		expect(href).toContain(encodeURIComponent("utm_source=blog"));
 	});
 
 	it("Reddit chip href matches reddit.com/submit", () => {
