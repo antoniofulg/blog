@@ -287,19 +287,24 @@ describe("unit: buildLocaleHead", () => {
 		// og:url stays in buildLocaleHead because it is a meta property and does
 		// not collide with the root layout's link[rel=canonical]. Keeps the
 		// per-locale canonical intent visible to social-card scrapers.
+		// Path assertion only — the origin comes from `getSiteOrigin()` at
+		// request time (SITE_URL env / window.location.origin) and shouldn't
+		// be hardcoded in the test.
 		const en = buildLocaleHead("en");
 		const ogUrlEn = en.meta.find(
 			(m) => "property" in m && m.property === "og:url",
 		);
-		expect(ogUrlEn && "content" in ogUrlEn ? ogUrlEn.content : null).toBe("/");
+		const enContent =
+			ogUrlEn && "content" in ogUrlEn ? String(ogUrlEn.content) : "";
+		expect(new URL(enContent, "http://x").pathname).toBe("/");
 
 		const ptBr = buildLocaleHead("pt-br");
 		const ogUrlPt = ptBr.meta.find(
 			(m) => "property" in m && m.property === "og:url",
 		);
-		expect(ogUrlPt && "content" in ogUrlPt ? ogUrlPt.content : null).toBe(
-			"/pt-br/",
-		);
+		const ptContent =
+			ogUrlPt && "content" in ogUrlPt ? String(ogUrlPt.content) : "";
+		expect(new URL(ptContent, "http://x").pathname).toBe("/pt-br/");
 	});
 
 	it("en → og:locale 'en_US'", () => {
@@ -384,7 +389,11 @@ describe("unit: buildLocaleHead", () => {
 		const xDefault = links.find(
 			(l) => "hrefLang" in l && l.hrefLang === "x-default",
 		);
-		expect(xDefault && "href" in xDefault ? xDefault.href : null).toBe("/");
+		const href = xDefault && "href" in xDefault ? String(xDefault.href) : "";
+		// Path assertion only — `getSiteOrigin()` prepends the runtime origin
+		// (SITE_URL on SSR, window.location.origin on client) so the full URL
+		// can't be hardcoded here.
+		expect(new URL(href, "http://x").pathname).toBe("/");
 	});
 
 	it("homepage descriptor → pt-br locale href is '/pt-br/'", () => {
@@ -392,8 +401,7 @@ describe("unit: buildLocaleHead", () => {
 		const ptBrLink = links.find(
 			(l) => "hrefLang" in l && l.hrefLang === "pt-BR",
 		);
-		expect(ptBrLink && "href" in ptBrLink ? ptBrLink.href : null).toBe(
-			"/pt-br/",
-		);
+		const href = ptBrLink && "href" in ptBrLink ? String(ptBrLink.href) : "";
+		expect(new URL(href, "http://x").pathname).toBe("/pt-br/");
 	});
 });

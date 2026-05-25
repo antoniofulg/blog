@@ -87,7 +87,18 @@ const config = defineConfig({
 			},
 		},
 		devtools(),
-		nitro({ preset: "bun", rollupConfig: { external: [/^@sentry\//] } }),
+		nitro({
+			preset: "bun",
+			// Pre-compress static assets at build time so the production Nitro
+			// server can serve `.br` / `.gz` variants based on Accept-Encoding.
+			// Without this, Lighthouse measures uncompressed 866KB JS over a
+			// throttled link (~6s FCP). Real prod usually sits behind a CDN
+			// that compresses on the fly, but the audit preview hits Nitro
+			// directly — so we need build-time compression for the score to
+			// reflect what users see.
+			compressPublicAssets: { gzip: true, brotli: true },
+			rollupConfig: { external: [/^@sentry\//] },
+		}),
 		tailwindcss(),
 		tanstackStart({
 			srcDirectory: "app",

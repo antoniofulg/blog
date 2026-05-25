@@ -27,9 +27,6 @@ import { ThemeProvider } from "#/lib/theme";
 import type { RouterContext } from "#/types/auth";
 import appCss from "../styles/global.css?url";
 
-const GOOGLE_FONTS_HREF =
-	"https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap";
-
 const getAuthSession = createServerFn({ method: "GET" }).handler(async () => {
 	const { auth } = await import("#/lib/auth");
 	const request = getRequest();
@@ -93,13 +90,6 @@ export const Route = createRootRouteWithContext<RouterContext>()({
 					href: `${siteUrl}/rss.xml`,
 				},
 				{ rel: "stylesheet", href: appCss },
-				{ rel: "preconnect", href: "https://fonts.googleapis.com" },
-				{
-					rel: "preconnect",
-					href: "https://fonts.gstatic.com",
-					crossOrigin: "anonymous",
-				},
-				{ rel: "stylesheet", href: GOOGLE_FONTS_HREF },
 			],
 		};
 	},
