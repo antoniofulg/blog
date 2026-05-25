@@ -32,6 +32,11 @@ export const uiStringsSchema = z.object({
 			reddit: z.string(),
 			email: z.string(),
 			copyLink: z.string(),
+			// task-03 pre-alignment: keys matching PlatformId union for coupling test;
+			// task-04 will rename/remove the legacy x/bluesky/hackernews/copyLink keys.
+			twitter: z.string(),
+			whatsapp: z.string(),
+			copy: z.string(),
 		}),
 		copied: z.string(),
 		ariaShareOn: z.string(),
@@ -136,6 +141,10 @@ export const strings: Record<Locale, UIStrings> = {
 				reddit: "Reddit",
 				email: "Email",
 				copyLink: "Copy link",
+				// task-03 pre-alignment (task-04 removes legacy keys above)
+				twitter: "X",
+				whatsapp: "WhatsApp",
+				copy: "Copy link",
 			},
 			copied: "Copied!",
 			ariaShareOn: "Share on {platform}",
@@ -243,6 +252,10 @@ export const strings: Record<Locale, UIStrings> = {
 				reddit: "Reddit",
 				email: "E-mail",
 				copyLink: "Copiar link",
+				// task-03 pre-alignment (task-04 removes legacy keys above)
+				twitter: "X",
+				whatsapp: "WhatsApp",
+				copy: "Copiar link",
 			},
 			copied: "Copiado!",
 			ariaShareOn: "Compartilhar no {platform}",
