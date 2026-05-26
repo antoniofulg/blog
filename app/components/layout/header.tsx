@@ -1,11 +1,12 @@
 import { Link, useNavigate, useRouterState } from "@tanstack/react-router";
-import { Menu, Moon, Sun, Terminal } from "lucide-react";
+import { Menu, Terminal } from "lucide-react";
 import { useCallback, useMemo, useRef, useState } from "react";
 import {
 	LanguageMenu,
 	type LanguageMenuItemConfig,
 } from "#/components/ui/language-menu";
 import { MissingTwinDialog } from "#/components/ui/missing-twin-dialog";
+import { ThemeToggle } from "#/components/ui/theme-toggle";
 import { strings } from "#/lib/i18n/strings";
 import {
 	DEFAULT_LOCALE,
@@ -15,7 +16,6 @@ import {
 	type RouteKind,
 	useLocale,
 } from "#/lib/locale";
-import { useTheme } from "#/lib/theme";
 
 const NAV_LABELS: Record<Locale, readonly { label: string; to: string }[]> = {
 	en: [
@@ -201,7 +201,6 @@ function useLangSwitcher() {
 }
 
 export function Header() {
-	const { theme, toggle } = useTheme();
 	const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 	const langSwitcher = useLangSwitcher();
 	const {
@@ -255,19 +254,7 @@ export function Header() {
 							currentLocale={currentLocale}
 						/>
 					)}
-					<button
-						type="button"
-						onClick={toggle}
-						aria-label={headerStrings.toggleTheme}
-						aria-pressed={theme === "dark"}
-						className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted"
-					>
-						{theme === "dark" ? (
-							<Sun className="h-5 w-5" />
-						) : (
-							<Moon className="h-5 w-5" />
-						)}
-					</button>
+					<ThemeToggle locale={currentLocale} />
 					<button
 						type="button"
 						onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
@@ -308,7 +295,6 @@ function MobileMenu({
 	onClose: () => void;
 	langSwitcher: ReturnType<typeof useLangSwitcher>;
 }) {
-	const { theme, toggle } = useTheme();
 	const { currentLocale, renderSwitcher, localeItems } = langSwitcher;
 	const navLinks = NAV_LABELS[currentLocale];
 	const mobileStrings = MOBILE_STRINGS[currentLocale];
@@ -350,19 +336,7 @@ function MobileMenu({
 				))}
 			</nav>
 			<div className="flex items-center gap-3 px-5 py-4">
-				<button
-					type="button"
-					onClick={toggle}
-					aria-label={mobileStrings.toggleTheme}
-					aria-pressed={theme === "dark"}
-					className="flex h-10 w-10 items-center justify-center rounded-md bg-surface"
-				>
-					{theme === "dark" ? (
-						<Sun className="h-5 w-5 text-foreground" />
-					) : (
-						<Moon className="h-5 w-5 text-foreground" />
-					)}
-				</button>
+				<ThemeToggle locale={currentLocale} />
 				<span className="text-sm text-foreground-secondary">
 					{mobileStrings.toggleTheme}
 				</span>
