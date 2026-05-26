@@ -37,3 +37,9 @@ docs/_reports/app-audit-*.md
 
 # Generated OG images (build-time output; never committed)
 public/og/
+
+# Agent worktrees created by sub-agent dispatch hook — transient
+.worktrees/
+
+# Local Claude Code preview launch config — user-specific
+.claude/launch.json
