@@ -118,7 +118,7 @@ The file must exist at `public/og/custom-cover.png` **before the deploy runs** â
 
 Running `bun run sync` locally after editing a post takes ~200â€“500 ms longer per post due to OG card generation.
 
-> See [ADR-002: Build-time code-block OG image generation](.compozy/tasks/share-and-branding/adrs/adr-002.md) for the rationale behind this approach.
+> See ADR-002 (Build-time code-block OG image generation) in `.compozy/tasks/share-and-branding/adrs/` for the rationale behind this approach.
 
 ## Slug Rules
 
