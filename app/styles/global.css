@@ -386,8 +386,9 @@ html.cs16 * {
 
 /* CS 1.6 health-bar chrome: 24px inset-beveled track + striped yellow fill.
    Pattern lifted from ekmas/cs16.css — segmented gradient creates the
-   chunky "blocks" look on top of the scroll-driven scaleX animation. */
+   chunky "blocks" look. Sits below the sticky h-16 navbar (top: 4rem). */
 html.cs16 .reading-progress {
+  top: 4rem;
   height: 24px;
   padding: 3px;
   background-color: var(--surface);
@@ -397,7 +398,19 @@ html.cs16 .reading-progress {
   border-bottom: 1px solid var(--cs16-bevel-light);
 }
 
+/* Width-based fill in cs16 (not transform: scaleX). scaleX would rescale the
+   gradient pattern too, shrinking each 12px tile proportionally to fill
+   percent — cells render correctly only at 100%. Animating `width` instead
+   keeps every tile at its native 12px size and reveals more tiles as the bar
+   fills. transform: none cancels the scaleX inherited from .reading-progress-fill. */
+@keyframes reading-fill-width {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
 html.cs16 .reading-progress-fill {
+  transform: none;
+  width: 0;
   background-color: transparent;
   background-image: linear-gradient(
     to right,
@@ -405,6 +418,8 @@ html.cs16 .reading-progress-fill {
     transparent 2px
   );
   background-size: 12px 16px;
+  animation: reading-fill-width linear both;
+  animation-timeline: scroll(root block);
 }
 
 /*
