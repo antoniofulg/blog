@@ -1,23 +1,21 @@
 /**
- * Tests for the Press Start 2P static-asset serving configuration (task_03).
+ * Tests for the CS 1.6 ArialPixel font static-asset serving (task_03).
  *
- * Unit tests verify the source files referenced by the Nitro publicAssets rule
- * exist in node_modules and that their relative URL references are coherent.
+ * ArialPixel.ttf is vendored from ekmas/cs16.css (MIT) at
+ * `public/fonts/cs16/ArialPixel.ttf` and served by Nitro's built-in public/
+ * handler — no `publicAssets` entry required.
  *
- * Integration tests (post-build) verify the copied files land at the expected
- * paths under .output/public/ and that the default JS bundle does not inline
- * a @font-face declaration for Press Start 2P.
+ * Unit tests verify the vendored font file and the CSS that loads it both
+ * exist and reference each other correctly.
  *
- * See ADR-004: Lazy-Load Press Start 2P Inside `setTheme`.
+ * Integration tests (post-build) verify the files land at the expected paths
+ * under `.output/public/` after `bun run build`.
  *
- * Mechanism note: vite-plugin-static-copy was evaluated but does not work
- * with Nitro's environments-based build (it reads the global Vite config's
- * build.outDir which defaults to "dist", while Nitro sets outDir only on
- * the per-environment config via configEnvironment()). Nitro's publicAssets
- * is the correct mechanism — it resolves in both dev and prod.
+ * See ADR-004: Lazy-Load Press Start 2P Inside `setTheme` (font swapped to
+ * ArialPixel in the styling-adjustments commit).
  */
 
-import { existsSync, readdirSync, readFileSync, statSync } from "node:fs";
+import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 
@@ -31,164 +29,93 @@ function abs(...parts: string[]): string {
 	return join(rootDir, ...parts);
 }
 
-function findCssFiles(dir: string): string[] {
-	const results: string[] = [];
-	for (const entry of readdirSync(dir)) {
-		const full = join(dir, entry);
-		if (statSync(full).isDirectory()) {
-			results.push(...findCssFiles(full));
-		} else if (entry.endsWith(".css")) {
-			results.push(full);
-		}
-	}
-	return results;
-}
-
 // ---------------------------------------------------------------------------
-// Parity test — committed public/ copy must stay in sync with npm source
+// Unit tests — vendored ArialPixel font + the CSS that loads it
 // ---------------------------------------------------------------------------
 
-describe("cs16 committed font CSS parity", () => {
-	const committedPath = abs("public/_fontsource/press-start-2p/latin-400.css");
-	const npmSourcePath = abs(
-		"node_modules/@fontsource/press-start-2p/latin-400.css",
-	);
+describe("cs16 vendored font assets", () => {
+	const ttfPath = abs("public/fonts/cs16/ArialPixel.ttf");
+	const cssPath = abs("public/fonts/cs16/cs16-font.css");
 
-	it("public/_fontsource/press-start-2p/latin-400.css matches node_modules source (whitespace-normalized)", () => {
-		// Normalize trailing whitespace: Biome adds a trailing newline on save while
-		// the npm-published source omits it. Semantic drift (new URLs, changed font-display,
-		// added unicode-range) is caught because all meaningful tokens are compared.
-		const committed = readFileSync(committedPath, "utf-8").trim();
-		const source = readFileSync(npmSourcePath, "utf-8").trim();
-		expect(committed).toBe(source);
+	it("ArialPixel.ttf exists in public/fonts/cs16/", () => {
+		expect(existsSync(ttfPath)).toBe(true);
+	});
+
+	it("ArialPixel.ttf is non-empty (sanity check on the vendored bytes)", () => {
+		expect(statSync(ttfPath).size).toBeGreaterThan(1000);
+	});
+
+	it("cs16-font.css exists and declares @font-face for ArialPixel", () => {
+		expect(existsSync(cssPath)).toBe(true);
+		const css = readFileSync(cssPath, "utf-8");
+		expect(css).toContain("@font-face");
+		expect(css).toContain("ArialPixel");
+	});
+
+	it("cs16-font.css points its src URL at /fonts/cs16/ArialPixel.ttf", () => {
+		const css = readFileSync(cssPath, "utf-8");
+		expect(css).toContain("/fonts/cs16/ArialPixel.ttf");
+	});
+
+	it("cs16-font.css sets font-display: swap (matches non-blocking pattern of other fonts)", () => {
+		const css = readFileSync(cssPath, "utf-8");
+		expect(css).toContain("font-display: swap");
 	});
 });
 
 // ---------------------------------------------------------------------------
-// Unit tests — verify the source paths referenced by the Nitro publicAssets rule
+// Regression guard — global.css must not re-introduce a static @import
 // ---------------------------------------------------------------------------
 
-describe("cs16 static-asset source files", () => {
-	const cssPath = abs("node_modules/@fontsource/press-start-2p/latin-400.css");
-	const woff2Path = abs(
-		"node_modules/@fontsource/press-start-2p/files/press-start-2p-latin-400-normal.woff2",
-	);
-	const woffPath = abs(
-		"node_modules/@fontsource/press-start-2p/files/press-start-2p-latin-400-normal.woff",
-	);
+describe("cs16 global.css regression guard", () => {
+	const globalCss = abs("app/styles/global.css");
 
-	it("latin-400.css exists in node_modules at the path the Nitro publicAssets rule references", () => {
-		expect(existsSync(cssPath)).toBe(true);
+	it("global.css does not statically @import any cs16 font (must lazy-load via ensureCs16Font)", () => {
+		const css = readFileSync(globalCss, "utf-8");
+		// Either ArialPixel or the historical Press Start 2P import would put the
+		// font on the critical path for all visitors. Both are banned.
+		expect(css).not.toMatch(/@import\s+["'][^"']*ArialPixel/);
+		expect(css).not.toMatch(/@import\s+["'][^"']*press-start-2p/i);
 	});
 
-	it("latin-400.css contains a @font-face declaration for Press Start 2P", () => {
-		const css = readFileSync(cssPath, "utf-8");
-		expect(css).toContain("@font-face");
-		expect(css).toContain("Press Start 2P");
-	});
-
-	it("latin-400.css references ./files/press-start-2p-latin-400-normal.woff2 (relative url)", () => {
-		const css = readFileSync(cssPath, "utf-8");
-		expect(css).toContain("./files/press-start-2p-latin-400-normal.woff2");
-	});
-
-	it("woff2 file exists at the path referenced by latin-400.css", () => {
-		expect(existsSync(woff2Path)).toBe(true);
-	});
-
-	it("woff file exists at the path referenced by latin-400.css", () => {
-		expect(existsSync(woffPath)).toBe(true);
-	});
-
-	it("latin-400.css references ./files/press-start-2p-latin-400-normal.woff (fallback url)", () => {
-		const css = readFileSync(cssPath, "utf-8");
-		expect(css).toContain("./files/press-start-2p-latin-400-normal.woff");
+	it("global.css references the ArialPixel family in the .cs16 block (font is applied once loaded)", () => {
+		const css = readFileSync(globalCss, "utf-8");
+		expect(css).toContain("ArialPixel");
 	});
 });
 
 // ---------------------------------------------------------------------------
 // Integration tests — post-build artifact assertions.
-// Skip when the build output produced by this config does not exist yet.
+// Skip when the build output does not exist yet.
 // Run `bun run build` first to exercise these tests.
 // ---------------------------------------------------------------------------
 
-describe("cs16 static-asset build output", () => {
-	const outputBase = abs(".output/public/_fontsource/press-start-2p");
-	const cssOutput = join(outputBase, "latin-400.css");
-	const woff2Output = join(
-		outputBase,
-		"files/press-start-2p-latin-400-normal.woff2",
-	);
-	const woffOutput = join(
-		outputBase,
-		"files/press-start-2p-latin-400-normal.woff",
+describe("cs16 vendored-font build output", () => {
+	const ttfOutput = abs(".output/public/fonts/cs16/ArialPixel.ttf");
+	const cssOutput = abs(".output/public/fonts/cs16/cs16-font.css");
+
+	const hasBuildOutput = existsSync(ttfOutput) && existsSync(cssOutput);
+
+	it.skipIf(!hasBuildOutput)(
+		"ArialPixel.ttf lands at .output/public/fonts/cs16/ArialPixel.ttf",
+		() => {
+			expect(existsSync(ttfOutput)).toBe(true);
+		},
 	);
 
-	// Only run integration tests if our specific font CSS output exists,
-	// meaning the build has been run with the Nitro publicAssets configured.
-	const hasFontOutput = existsSync(cssOutput);
-
-	it.skipIf(!hasFontOutput)(
-		"latin-400.css lands at .output/public/_fontsource/press-start-2p/latin-400.css",
+	it.skipIf(!hasBuildOutput)(
+		"cs16-font.css lands at .output/public/fonts/cs16/cs16-font.css",
 		() => {
 			expect(existsSync(cssOutput)).toBe(true);
 		},
 	);
 
-	it.skipIf(!hasFontOutput)(
-		"copied latin-400.css has valid @font-face content (not truncated)",
+	it.skipIf(!hasBuildOutput)(
+		"copied cs16-font.css is non-empty and still references ArialPixel.ttf",
 		() => {
 			const css = readFileSync(cssOutput, "utf-8");
-			expect(css).toContain("@font-face");
-			expect(css).toContain("Press Start 2P");
-			expect(css).toContain("files/press-start-2p-latin-400-normal.woff2");
-		},
-	);
-
-	it.skipIf(!hasFontOutput)(
-		"woff2 lands at .output/public/_fontsource/press-start-2p/files/",
-		() => {
-			expect(existsSync(woff2Output)).toBe(true);
-		},
-	);
-
-	it.skipIf(!hasFontOutput)(
-		"woff lands at .output/public/_fontsource/press-start-2p/files/",
-		() => {
-			expect(existsSync(woffOutput)).toBe(true);
-		},
-	);
-
-	// AC-4: The main CSS bundle must not contain a Press Start 2P @font-face rule.
-	// This test is skipped while app/styles/global.css still carries the static
-	// @import "@fontsource/press-start-2p/latin-400.css" (removed in task_06).
-	// Once task_06 removes that import, re-run `bun run build` — this test passes.
-	const globalCss = abs("app/styles/global.css");
-	const globalCssHasFontImport = existsSync(globalCss)
-		? readFileSync(globalCss, "utf-8").includes("@fontsource/press-start-2p")
-		: false;
-
-	it.skipIf(!hasFontOutput || globalCssHasFontImport)(
-		"default CSS bundle does not contain a Press Start 2P @font-face rule (requires task_06 @import removal)",
-		() => {
-			const publicDir = abs(".output/public");
-			const allCss = findCssFiles(publicDir);
-
-			// Exclude the copied font CSS itself from the check
-			const bundleChunks = allCss.filter((f) => !f.includes("_fontsource"));
-
-			for (const chunk of bundleChunks) {
-				const content = readFileSync(chunk, "utf-8");
-				// The .cs16 { font-family: "Press Start 2P", ... } rules are expected
-				// to appear in the bundle CSS (they are needed once the font is loaded).
-				// Other @font-face rules (Inter, JetBrains Mono) are also expected.
-				// What must NOT appear is a @font-face block that declares Press Start 2P.
-				// The regex matches @font-face blocks containing "Press Start 2P" on the
-				// same rule (handles both minified and expanded output).
-				const hasPressStart2PFontFace =
-					/@font-face[^{]*\{[^}]*Press Start 2P/.test(content);
-				expect(hasPressStart2PFontFace).toBe(false);
-			}
+			expect(css).toContain("ArialPixel");
+			expect(css).toContain("/fonts/cs16/ArialPixel.ttf");
 		},
 	);
 });

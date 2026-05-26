@@ -100,9 +100,7 @@ describe("unit: ensureCs16Font", () => {
 		expect(links).toHaveLength(1);
 		const link = links[0] as HTMLLinkElement;
 		expect(link.rel).toBe("stylesheet");
-		expect(link.getAttribute("href")).toBe(
-			"/_fontsource/press-start-2p/latin-400.css",
-		);
+		expect(link.getAttribute("href")).toBe("/fonts/cs16/cs16-font.css");
 		expect(link.dataset.cs16).toBe("true");
 	});
 

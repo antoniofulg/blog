@@ -1,0 +1,17 @@
+/*
+ * CS 1.6 easter-egg theme font.
+ *
+ * ArialPixel.ttf is the bitmap font shipped by ekmas/cs16.css (MIT licensed).
+ * Vendored at public/fonts/cs16/ArialPixel.ttf so we serve same-origin without
+ * a runtime CDN dependency. Loaded only when the user activates the cs16 theme
+ * (see ensureCs16Font() in app/lib/theme.tsx).
+ *
+ * Source: https://github.com/ekmas/cs16.css/blob/main/ArialPixel.ttf
+ */
+@font-face {
+  font-family: "ArialPixel";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cs16/ArialPixel.ttf") format("truetype");
+}

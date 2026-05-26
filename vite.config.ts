@@ -98,19 +98,10 @@ const config = defineConfig({
 			// reflect what users see.
 			compressPublicAssets: { gzip: true, brotli: true },
 			rollupConfig: { external: [/^@sentry\//] },
-			// Serve Press Start 2P woff2/woff files at /_fontsource/press-start-2p/files/.
-			// Only the `files/` subdirectory is mounted here — the CSS declaration is
-			// committed to public/_fontsource/press-start-2p/latin-400.css and served
-			// by Nitro's built-in public/ handler, avoiding exposure of package.json,
-			// README.md, metadata.json, and other non-latin CSS variants from the npm
-			// package root. See ADR-004 for the lazy-load rationale and URL contract.
-			publicAssets: [
-				{
-					dir: "node_modules/@fontsource/press-start-2p/files",
-					baseURL: "/_fontsource/press-start-2p/files",
-					maxAge: 31536000,
-				},
-			],
+			// CS 1.6 ArialPixel font is vendored at public/fonts/cs16/ArialPixel.ttf
+			// and served by Nitro's built-in public/ handler. No publicAssets entry
+			// needed. See ADR-004 for the lazy-load rationale and URL contract
+			// (/fonts/cs16/cs16-font.css → /fonts/cs16/ArialPixel.ttf).
 		}),
 		tailwindcss(),
 		tanstackStart({

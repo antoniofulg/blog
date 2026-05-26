@@ -34,19 +34,19 @@ const ThemeContext = createContext<{
 let cs16FontLoaded = false;
 
 /**
- * Appends a `<link rel="stylesheet">` for the Press Start 2P font exactly once
+ * Appends a `<link rel="stylesheet">` for the ArialPixel font exactly once
  * per page load. Subsequent calls are a no-op (idempotent via module flag).
  *
  * Returns early without error when `document` is undefined (SSR path).
  *
- * URL contract (ADR-004): `/_fontsource/press-start-2p/latin-400.css`
- * served via Nitro `publicAssets` (task_03).
+ * URL contract: `/fonts/cs16/cs16-font.css` — vendored from cs16.css (MIT).
+ * Served from `public/fonts/cs16/` via Nitro's built-in public/ handler.
  */
 export function ensureCs16Font(): void {
 	if (cs16FontLoaded || typeof document === "undefined") return;
 	const link = document.createElement("link");
 	link.rel = "stylesheet";
-	link.href = "/_fontsource/press-start-2p/latin-400.css";
+	link.href = "/fonts/cs16/cs16-font.css";
 	link.dataset.cs16 = "true";
 	document.head.appendChild(link);
 	cs16FontLoaded = true;
