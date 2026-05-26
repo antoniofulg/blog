@@ -184,53 +184,69 @@
   Activated by long-press on the theme toggle in the header.
 */
 .cs16 {
-  --background: #4c5844;
-  --surface: #6b8e6c;
-  --muted: #5a6b54;
-  --card: #6b8e6c;
-  --code-bg: #3a4438;
+  /* Palette mapped from ekmas/cs16.css :root tokens. Authentic CS 1.6 menu
+     hues: muted olive panels DARKER than the page bg (inverts the usual
+     light-card-on-darker-bg pattern), softened yellow accent (not pure
+     yellow), off-white text instead of #fff. */
 
-  /* Text white by default; yellow (--accent) for hover/active/highlighted state. */
-  --foreground: #ffffff;
-  --foreground-secondary: #e6e6e6;
-  --foreground-muted: #b8b8b8;
-  --foreground-inverse: #1a1f17;
-  --foreground-code: #ffffff;
+  /* Backgrounds — surface/card sit DARKER than page bg, matching cs16.css
+     panel chrome. */
+  --background: #4a5942;          /* cs16 --bg */
+  --surface: #3e4637;             /* cs16 --secondary-bg */
+  --muted: #3e4637;               /* cs16 --secondary-bg */
+  --card: #3e4637;                /* cs16 --secondary-bg */
+  --code-bg: #292c21;             /* cs16 --border-dark — very dark code panel */
 
-  --accent: #ffc619;
-  --accent-hover: #ffd75e;
-  --accent-light: #5a6b54;
+  /* Text — off-white tints, not pure #fff. Yellow (--accent) takes over on
+     hover/focus/active per the html.cs16 highlight rules below. */
+  --foreground: #dedfd6;          /* cs16 --text */
+  --foreground-secondary: #d8ded3; /* cs16 --secondary-text */
+  --foreground-muted: #a0aa95;    /* cs16 --text-3 */
+  --foreground-inverse: #292c21;  /* cs16 --border-dark / --disabled-text */
+  --foreground-code: #dedfd6;     /* cs16 --text */
 
-  --border: #3b463c;
-  --border-strong: #a6b8a4;
+  /* Accent — muted yellow (#c4b550), hover darkens to secondary-accent. */
+  --accent: #c4b550;              /* cs16 --accent */
+  --accent-hover: #958831;        /* cs16 --secondary-accent */
+  --accent-light: #3e4637;        /* cs16 --secondary-bg — tint backgrounds */
 
+  /* Borders — dark border doubles as bevel-dark; light border matches bevel-light. */
+  --border: #292c21;              /* cs16 --border-dark */
+  --border-strong: #8c9284;       /* cs16 --border-light */
+
+  /* Status colors — kept reasonable for an olive theme. Success/warning/error
+     are not in cs16.css's palette; tuned to harmonize with the new bg. */
   --success: #7cb850;
   --warning: #e3aa3e;
   --error: #d23030;
 
-  --callout-tip: #4f6045;
-  --callout-info: #4d5a48;
-  --callout-warn: #6a5e3a;
-  --callout-error: #6b3a3a;
+  /* Callouts share the surface tone — author can override per-callout later. */
+  --callout-tip: #3e4637;
+  --callout-info: #3e4637;
+  --callout-warn: #3e4637;
+  --callout-error: #3e4637;
 
-  --tag-react: #ffc619;
-  --tag-typescript: #d4c577;
-  --tag-bun: #ffd75e;
+  --tag-react: #c4b550;
+  --tag-typescript: #d8ded3;
+  --tag-bun: #958831;
   --tag-tanstack: #d23030;
 
-  --chart-1: #ffc619;
+  /* Chart palette — 10 distinct hues that still read on the dark olive bg. */
+  --chart-1: #c4b550;
   --chart-2: #7cb850;
   --chart-3: #e3aa3e;
   --chart-4: #d23030;
-  --chart-5: #ebd784;
-  --chart-6: #a6b8a4;
-  --chart-7: #6b8e6c;
-  --chart-8: #ff955c;
-  --chart-9: #a8a87b;
-  --chart-10: #ffd75e;
+  --chart-5: #d8ded3;
+  --chart-6: #8c9284;
+  --chart-7: #5a6a50;
+  --chart-8: #958831;
+  --chart-9: #a0aa95;
+  --chart-10: #7f8c7f;
 
-  --cs16-bevel-light: #a6b8a4;
-  --cs16-bevel-dark: #3b463c;
+  /* Bevel + scrollbar-track palette — direct cs16.css mappings. */
+  --cs16-bevel-light: #8c9284;    /* cs16 --border-light */
+  --cs16-bevel-dark: #292c21;     /* cs16 --border-dark */
+  --cs16-scrollbar-track: #5a6a50; /* cs16 --scrollbar-track */
 }
 
 html.cs16 {
@@ -342,14 +358,14 @@ html.cs16 *::-webkit-scrollbar-thumb {
 
 html.cs16::-webkit-scrollbar-track,
 html.cs16 *::-webkit-scrollbar-track {
-  background: var(--code-bg);
+  background: var(--cs16-scrollbar-track);
 }
 
 /* Firefox scrollbar */
 html.cs16,
 html.cs16 * {
   scrollbar-width: auto;
-  scrollbar-color: var(--surface) var(--code-bg);
+  scrollbar-color: var(--surface) var(--cs16-scrollbar-track);
 }
 
 /*
