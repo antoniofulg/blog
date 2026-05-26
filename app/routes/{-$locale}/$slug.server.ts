@@ -12,6 +12,8 @@ export type PostLoaderResult = {
 	notTranslated: boolean;
 	availableLang: Locale | null;
 	alternateLang: Locale | null;
+	/** Absolute URL of the OG image resolved via coverImage → auto-PNG → fallback. */
+	ogImagePath: string;
 };
 
 export type PageLoaderResult = {
@@ -38,6 +40,8 @@ export async function getPostBySlugWithLangFn(
 		{ db },
 		{ posts },
 		{ default: matter },
+		{ resolveOgImagePath },
+		{ getSiteOrigin },
 	] = await Promise.all([
 		import("node:fs/promises"),
 		import("drizzle-orm"),
@@ -46,6 +50,8 @@ export async function getPostBySlugWithLangFn(
 		import("#/db/client"),
 		import("#/db/schema"),
 		import("gray-matter"),
+		import("#/lib/og/resolve.server"),
+		import("#/lib/site-origin"),
 	]);
 	const [exactPost] = await db
 		.select()
@@ -76,7 +82,7 @@ export async function getPostBySlugWithLangFn(
 			// renderMdx expects a frontmatter-stripped body; strip here so the
 			// renderer stays pure and doesn't double-parse callers that already
 			// pass body (e.g. loadStaticPage).
-			const { content: body } = matter(source);
+			const { content: body, data: frontmatterData } = matter(source);
 			const Content = await renderFn(body);
 			const html = renderToStaticMarkup(createElement(Content, {}));
 
@@ -92,6 +98,13 @@ export async function getPostBySlugWithLangFn(
 					),
 				);
 
+			const ogImagePath = resolveOgImagePath({
+				coverImage: frontmatterData.coverImage as string | undefined,
+				locale: requestedLang,
+				slug,
+				origin: getSiteOrigin(),
+			});
+
 			return {
 				kind: "post",
 				post: exactPost,
@@ -100,6 +113,7 @@ export async function getPostBySlugWithLangFn(
 				notTranslated: false,
 				availableLang: null,
 				alternateLang: altPost ? otherLang : null,
+				ogImagePath,
 			};
 		}
 		// Stale DB row — drop through to fallback / page lookup.
@@ -113,17 +127,27 @@ export async function getPostBySlugWithLangFn(
 	if (fallbackPost) {
 		const source = await safeReadMdx(fallbackPost.filePath);
 		if (source !== null) {
-			const { content: body } = matter(source);
+			const { content: body, data: frontmatterData } = matter(source);
 			const Content = await renderFn(body);
 			const html = renderToStaticMarkup(createElement(Content, {}));
+
+			const fallbackLang = fallbackPost.lang as Locale;
+			const ogImagePath = resolveOgImagePath({
+				coverImage: frontmatterData.coverImage as string | undefined,
+				locale: fallbackLang,
+				slug,
+				origin: getSiteOrigin(),
+			});
+
 			return {
 				kind: "post",
 				post: fallbackPost,
 				html,
 				requestedLang,
 				notTranslated: true,
-				availableLang: fallbackPost.lang as Locale,
+				availableLang: fallbackLang,
 				alternateLang: null,
+				ogImagePath,
 			};
 		}
 		// Stale DB row — drop through to static-page lookup.
