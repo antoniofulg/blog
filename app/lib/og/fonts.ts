@@ -8,13 +8,27 @@ export type FontEntry = {
 	style: "normal";
 };
 
+// Module-level cache — font files never change between calls within a process.
+// Avoids 3 readFileSync calls per generateOgImage invocation during content sync.
+let _fontsCache: FontEntry[] | null = null;
+
+/**
+ * Reset the font cache. Only for use in tests that need to verify font-loading
+ * error paths — do NOT call in production code.
+ */
+export function _clearFontCacheForTesting(): void {
+	_fontsCache = null;
+}
+
 /**
  * Load Inter (regular + bold) and JetBrains Mono (regular) from @fontsource/* paths.
  * Returns a satori-compatible font array.
  *
- * Reads WOFF files synchronously — called once per generateOgImage invocation (or cached by caller).
+ * Reads WOFF files synchronously on first call; subsequent calls return the cached result.
  */
 export function loadFonts(): FontEntry[] {
+	if (_fontsCache !== null) return _fontsCache;
+
 	const base = join(process.cwd(), "node_modules");
 
 	const interRegular = readFileSync(
@@ -30,7 +44,7 @@ export function loadFonts(): FontEntry[] {
 		),
 	);
 
-	return [
+	_fontsCache = [
 		{ name: "Inter", data: interRegular, weight: 400, style: "normal" },
 		{ name: "Inter", data: interBold, weight: 700, style: "normal" },
 		{
@@ -40,4 +54,5 @@ export function loadFonts(): FontEntry[] {
 			style: "normal",
 		},
 	];
+	return _fontsCache;
 }

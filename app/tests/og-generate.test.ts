@@ -4,7 +4,7 @@ import { join } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { afterAll, describe, expect, it, vi } from "vitest";
-import { loadFonts } from "#/lib/og/fonts";
+import { _clearFontCacheForTesting, loadFonts } from "#/lib/og/fonts";
 import { generateOgImage } from "#/lib/og/generate";
 import { CardTemplate } from "#/lib/og/template";
 import { truncateCode } from "#/lib/og/truncate";
@@ -317,6 +317,10 @@ describe("generateOgImage - integration", () => {
 		"AC-4: returns null and logs console.warn containing the slug when generation fails",
 		async () => {
 			const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+
+			// Clear the module-level font cache so loadFonts() actually reads from disk,
+			// allowing the mocked process.cwd() to cause an ENOENT → failure path.
+			_clearFontCacheForTesting();
 
 			// Override process.cwd() so loadFonts cannot find the font files → throws
 			const cwdSpy = vi

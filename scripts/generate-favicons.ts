@@ -236,7 +236,9 @@ async function main(): Promise<void> {
 	console.log("[favicons] Done.");
 }
 
-main().catch((err: Error) => {
-	console.error("[favicons] Fatal:", err.message);
-	process.exit(1);
-});
+if (import.meta.main) {
+	main().catch((err: Error) => {
+		console.error("[favicons] Fatal:", err.message);
+		process.exit(1);
+	});
+}

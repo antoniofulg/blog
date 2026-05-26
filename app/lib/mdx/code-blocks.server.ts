@@ -2,7 +2,7 @@ import "@tanstack/react-start/server-only";
 import remarkMdx from "remark-mdx";
 import remarkParse from "remark-parse";
 import { unified } from "unified";
-import { visit } from "unist-util-visit";
+import { EXIT, visit } from "unist-util-visit";
 
 export type CodeBlock = {
 	lang: string;
@@ -25,11 +25,11 @@ export function findFirstCodeBlock(mdxSource: string): CodeBlock | null {
 	let result: CodeBlock | null = null;
 
 	visit(tree, "code", (node: { lang?: string | null; value: string }) => {
-		if (result !== null) return;
 		result = {
 			lang: node.lang ?? "text",
 			code: node.value,
 		};
+		return EXIT;
 	});
 
 	return result;

@@ -98,8 +98,13 @@ export async function getPostBySlugWithLangFn(
 					),
 				);
 
+			const rawCover = frontmatterData.coverImage;
+			const coverImage =
+				typeof rawCover === "string" && rawCover.length > 0
+					? rawCover
+					: undefined;
 			const ogImagePath = resolveOgImagePath({
-				coverImage: frontmatterData.coverImage as string | undefined,
+				coverImage,
 				locale: requestedLang,
 				slug,
 				origin: getSiteOrigin(),
@@ -132,8 +137,13 @@ export async function getPostBySlugWithLangFn(
 			const html = renderToStaticMarkup(createElement(Content, {}));
 
 			const fallbackLang = fallbackPost.lang as Locale;
+			const rawCoverFb = frontmatterData.coverImage;
+			const coverImageFb =
+				typeof rawCoverFb === "string" && rawCoverFb.length > 0
+					? rawCoverFb
+					: undefined;
 			const ogImagePath = resolveOgImagePath({
-				coverImage: frontmatterData.coverImage as string | undefined,
+				coverImage: coverImageFb,
 				locale: fallbackLang,
 				slug,
 				origin: getSiteOrigin(),

@@ -38,7 +38,7 @@ export function resolveOgImagePath({
 }: ResolveOgImagePathInput): string {
 	// Step 1: frontmatter coverImage
 	if (coverImage) {
-		return coverImage.startsWith("http")
+		return coverImage.startsWith("http://") || coverImage.startsWith("https://")
 			? coverImage
 			: `${origin}${coverImage}`;
 	}

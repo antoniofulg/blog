@@ -257,3 +257,50 @@ describe("unit: resolveOgImagePath — absolute URL requirement", () => {
 		expect(result.startsWith("http://")).toBe(true);
 	});
 });
+
+describe("unit: resolveOgImagePath — http-prefix false-positive guard (issue-005)", () => {
+	it("treats '/http-icon.png' as a relative path, not an absolute URL", () => {
+		const result = resolveOgImagePath({
+			coverImage: "/http-icon.png",
+			locale: "en",
+			slug: "my-post",
+			origin: ORIGIN,
+			existsFn: noFile,
+		});
+		// Must be made absolute, NOT returned as-is
+		expect(result).toBe("https://blog.example.com/http-icon.png");
+	});
+
+	it("treats '/httpfoo/cover.png' as a relative path", () => {
+		const result = resolveOgImagePath({
+			coverImage: "/httpfoo/cover.png",
+			locale: "en",
+			slug: "my-post",
+			origin: ORIGIN,
+			existsFn: noFile,
+		});
+		expect(result).toBe("https://blog.example.com/httpfoo/cover.png");
+	});
+
+	it("still treats 'http://...' as an absolute URL", () => {
+		const result = resolveOgImagePath({
+			coverImage: "http://cdn.example.com/cover.png",
+			locale: "en",
+			slug: "my-post",
+			origin: ORIGIN,
+			existsFn: noFile,
+		});
+		expect(result).toBe("http://cdn.example.com/cover.png");
+	});
+
+	it("still treats 'https://...' as an absolute URL", () => {
+		const result = resolveOgImagePath({
+			coverImage: "https://cdn.example.com/cover.png",
+			locale: "en",
+			slug: "my-post",
+			origin: ORIGIN,
+			existsFn: noFile,
+		});
+		expect(result).toBe("https://cdn.example.com/cover.png");
+	});
+});

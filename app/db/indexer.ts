@@ -1,5 +1,5 @@
 import "@tanstack/react-start/server-only";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, unlink } from "node:fs/promises";
 import {
 	basename,
 	dirname,
@@ -133,6 +133,18 @@ export async function upsertPost(filePath: string): Promise<void> {
 					`[og] generation failed for ${slug}: ${err instanceof Error ? err.message : String(err)}`,
 				);
 			}
+		} else {
+			// Post no longer has a code block — delete stale OG PNG if present.
+			const ogPath = join(
+				process.cwd(),
+				"public",
+				"og",
+				lang as string,
+				`${slug}.png`,
+			);
+			await unlink(ogPath).catch(() => {
+				/* not present — no-op */
+			});
 		}
 
 		const now = new Date();
@@ -200,6 +212,21 @@ export async function removePost(filePath: string): Promise<void> {
 		await db
 			.delete(posts)
 			.where(or(eq(posts.filePath, filePath), eq(posts.filePath, normalized)));
+
+		// Best-effort OG PNG cleanup — delete public/og/{locale}/{slug}.png if present.
+		// Inner try-catch swallows errors from non-standard paths (e.g. test tmp dirs
+		// where deriveLang throws due to an unsupported locale directory name).
+		try {
+			const locale = deriveLang(normalized);
+			const slug = deriveSlug(normalized);
+			const ogPath = join(process.cwd(), "public", "og", locale, `${slug}.png`);
+			await unlink(ogPath).catch(() => {
+				/* not present — no-op */
+			});
+		} catch {
+			// Non-standard path — skip OG cleanup
+		}
+
 		console.log(
 			JSON.stringify({
 				level: "INFO",

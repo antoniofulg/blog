@@ -124,7 +124,7 @@ export async function generateOgImage(
 			didTruncate,
 			codeBg,
 			codeFg,
-			siteUrl: process.env.SITE_URL,
+			siteUrl: process.env.SITE_URL ?? "",
 		};
 
 		// Render JSX → SVG via satori
