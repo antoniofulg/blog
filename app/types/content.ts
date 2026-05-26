@@ -8,4 +8,11 @@ export type PostFrontmatter = {
 	seriesPart?: number;
 	draft?: boolean;
 	noTranslation?: boolean;
+	/**
+	 * Public path to a custom OG image for this post.
+	 * Overrides the auto-generated code-block card from the sync pipeline.
+	 * Relative paths are made absolute using the site origin.
+	 * Example: "/og/custom-cover.png"
+	 */
+	coverImage?: string;
 };

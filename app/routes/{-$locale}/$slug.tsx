@@ -40,6 +40,10 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 								},
 							]
 						: []),
+					// Override root default og:image — TanStack Start merges meta with
+					// later entries winning, so this entry from the route takes precedence
+					// over the site-wide default in __root.tsx.
+					{ property: "og:image", content: loaderData.ogImagePath },
 				],
 				links: loaderData.alternateLang
 					? [
@@ -235,6 +239,7 @@ function PostView({ data }: { data: PostLoaderResult }) {
 
 					<PostShare
 						postUrl={localeHref(post.lang as Locale, post.slug)}
+						postSlug={post.slug}
 						postTitle={post.title ?? ""}
 						locale={requestedLang}
 					/>
