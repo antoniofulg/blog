@@ -304,26 +304,37 @@ html.cs16 select {
   border-bottom: 1px solid var(--cs16-bevel-light);
 }
 
+/* Button background: page bg by default; switches to surface (panel bg) when
+   pressed. Pairs with the bevel inversion below to give the CS 1.6 "inset"
+   pressed look. Overrides any Tailwind bg-* utility applied to a <button> via
+   the html.cs16 ancestor selector specificity. */
+html.cs16 button,
+html.cs16 [role="button"] {
+  background-color: var(--background);
+}
+
 html.cs16 button:active,
 html.cs16 [role="button"]:active {
+  background-color: var(--surface);
   border-top: 1px solid var(--cs16-bevel-dark);
   border-left: 1px solid var(--cs16-bevel-dark);
   border-right: 1px solid var(--cs16-bevel-light);
   border-bottom: 1px solid var(--cs16-bevel-light);
 }
 
-/* Text turns yellow (--accent) on highlight: hover, focus-visible, active states.
-   Matches CS 1.6 menu behaviour where selected/hovered items are highlighted yellow. */
-html.cs16 a:hover,
-html.cs16 button:hover,
-html.cs16 [role="button"]:hover,
-html.cs16 [role="menuitem"]:hover,
-html.cs16 [role="menuitemradio"]:hover,
-html.cs16 [role="menuitemradio"][aria-checked="true"],
+/* Text turns yellow (--accent) only on click (active), keyboard focus, and for
+   active route / checked menu items. Hover is intentionally NOT in the list —
+   resting mouse-over uses the bevel-only feedback already on the button. */
+html.cs16 a:active,
+html.cs16 button:active,
+html.cs16 [role="button"]:active,
+html.cs16 [role="menuitem"]:active,
+html.cs16 [role="menuitemradio"]:active,
 html.cs16 a:focus-visible,
 html.cs16 button:focus-visible,
 html.cs16 [role="button"]:focus-visible,
 html.cs16 [role="menuitemradio"]:focus-visible,
+html.cs16 [role="menuitemradio"][aria-checked="true"],
 html.cs16 [aria-current="page"],
 html.cs16 [data-status="active"] {
   color: var(--accent);

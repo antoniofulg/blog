@@ -225,6 +225,7 @@ export function Header() {
 						locale:
 							currentLocale === DEFAULT_LOCALE ? undefined : currentLocale,
 					}}
+					activeOptions={{ exact: true }}
 					className="flex items-center gap-2"
 				>
 					<Terminal className="h-6 w-6 text-accent" />
@@ -238,6 +239,7 @@ export function Header() {
 						<Link
 							key={link.to}
 							to={link.to}
+							activeOptions={{ exact: true }}
 							className="text-sm font-medium text-foreground-secondary transition-colors hover:text-accent"
 						>
 							{link.label}
@@ -328,6 +330,7 @@ function MobileMenu({
 					<Link
 						key={link.to}
 						to={link.to}
+						activeOptions={{ exact: true }}
 						onClick={onClose}
 						className="flex h-13 items-center border-b border-border text-base font-medium text-foreground-secondary"
 					>
