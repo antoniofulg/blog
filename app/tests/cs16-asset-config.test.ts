@@ -45,6 +45,26 @@ function findCssFiles(dir: string): string[] {
 }
 
 // ---------------------------------------------------------------------------
+// Parity test — committed public/ copy must stay in sync with npm source
+// ---------------------------------------------------------------------------
+
+describe("cs16 committed font CSS parity", () => {
+	const committedPath = abs("public/_fontsource/press-start-2p/latin-400.css");
+	const npmSourcePath = abs(
+		"node_modules/@fontsource/press-start-2p/latin-400.css",
+	);
+
+	it("public/_fontsource/press-start-2p/latin-400.css matches node_modules source (whitespace-normalized)", () => {
+		// Normalize trailing whitespace: Biome adds a trailing newline on save while
+		// the npm-published source omits it. Semantic drift (new URLs, changed font-display,
+		// added unicode-range) is caught because all meaningful tokens are compared.
+		const committed = readFileSync(committedPath, "utf-8").trim();
+		const source = readFileSync(npmSourcePath, "utf-8").trim();
+		expect(committed).toBe(source);
+	});
+});
+
+// ---------------------------------------------------------------------------
 // Unit tests — verify the source paths referenced by the Nitro publicAssets rule
 // ---------------------------------------------------------------------------
 
