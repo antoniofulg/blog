@@ -1,6 +1,7 @@
+// The createServerFn RPC wrapper for this handler lives in dispatch-theme-event.ts
+// (a non-.server. file) so the client bundle can import it without TanStack Start's
+// import-protection plugin rejecting it. Do not add a createServerFn call here.
 import "@tanstack/react-start/server-only";
-import { createServerFn } from "@tanstack/react-start";
-import { getRequest } from "@tanstack/react-start/server";
 import { isBotUserAgent } from "#/lib/analytics/bot-filter";
 import { detectDevice } from "#/lib/analytics/device-detector";
 import { bucketReferrer } from "#/lib/analytics/referrer-bucketer";
@@ -79,27 +80,3 @@ export async function recordThemeEventHandler({
 		return { recorded: false };
 	}
 }
-
-/**
- * Records a cs16 theme activation event.
- *
- * Composes:
- *  - bot-filter: skips DB writes for known bots
- *  - referrer-bucketer: classifies Referer header into a named source
- *  - device-detector: classifies User-Agent into mobile/tablet/desktop
- *
- * The INSERT runs against the `theme_events` table (ADR-003).
- * Does not write to `analytics_events` — theme events are route-agnostic
- * and carry no post_id.
- *
- * Never throws — analytics failures MUST NOT surface to the visitor.
- * Any exception is caught, logged as a structured JSON line, and returns
- * { recorded: false }.
- *
- * No session check required — theme events fire for anonymous visitors.
- */
-export const recordThemeEvent = createServerFn({ method: "POST" })
-	.inputValidator((data: RecordThemeEventInput) => data)
-	.handler(({ data }) =>
-		recordThemeEventHandler({ data, request: getRequest() }),
-	);

@@ -4,13 +4,14 @@
  *
  * Acceptance criteria exercised:
  *   AC-1: ArrowDown opens the popover from the focused toggle button.
- *   AC-2: Space opens the popover from the focused toggle button.
+ *   AC-2: Space does NOT open the popover — uses native button click → toggle().
  *   AC-3: Menu items (Light/Dark/CS 1.6) exist in DOM even when open===false
  *         (Popover.Portal forceMount), with `hidden` on Content toggling AT-visibility.
  *   AC-4: Selecting CS 1.6 after ArrowDown-open calls setTheme with source:'keyboard'.
+ *         ArrowDown-open moves focus to first menuitemradio (ARIA menu-button pattern).
  *   AC-5: Selecting CS 1.6 after long-press-open calls setTheme with source:'long-press'.
  *   AC-6: Short-click calls toggle(), popover stays closed.
- *   aria: button has aria-haspopup="menu", aria-expanded, aria-keyshortcuts.
+ *   aria: button has aria-haspopup="menu", aria-expanded, aria-keyshortcuts="ArrowDown".
  *
  * File is .ts (not .tsx) per project convention — React.createElement used throughout.
  */
@@ -146,10 +147,10 @@ afterEach(() => {
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
-// Unit: keyboard handler — ArrowDown and Space open the popover
+// Unit: keyboard handler — ArrowDown opens the popover; Space uses native click
 // ═════════════════════════════════════════════════════════════════════════════
 
-describe("unit: handleKeyDown — ArrowDown and Space open the popover", () => {
+describe("unit: handleKeyDown — ArrowDown opens the popover", () => {
 	it("AC-1: ArrowDown opens the popover (aria-expanded goes false→true)", () => {
 		renderToggle();
 		const btn = getToggleBtn();
@@ -159,13 +160,15 @@ describe("unit: handleKeyDown — ArrowDown and Space open the popover", () => {
 		expect(btn.getAttribute("aria-expanded")).toBe("true");
 	});
 
-	it("AC-2: Space opens the popover (aria-expanded goes false→true)", () => {
+	it("AC-2: Space does NOT open the popover via handleKeyDown (uses native click → toggle)", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
 		fireEvent.keyDown(btn, { key: " " });
-		expect(btn.getAttribute("aria-expanded")).toBe("true");
+		// Space is not intercepted by handleKeyDown; popover stays closed.
+		// Native click event fires separately (via browser Space-on-button) calling toggle().
+		expect(btn.getAttribute("aria-expanded")).toBe("false");
 	});
 
 	it("ArrowDown calls preventDefault to suppress native scroll", () => {
@@ -179,7 +182,7 @@ describe("unit: handleKeyDown — ArrowDown and Space open the popover", () => {
 		expect(preventSpy).toHaveBeenCalledOnce();
 	});
 
-	it("Space calls preventDefault to suppress native form submit / page scroll", () => {
+	it("Space does NOT call preventDefault — uses native button activation", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
@@ -187,7 +190,7 @@ describe("unit: handleKeyDown — ArrowDown and Space open the popover", () => {
 		const preventSpy = vi.spyOn(event, "preventDefault");
 		fireEvent(btn, event);
 
-		expect(preventSpy).toHaveBeenCalledOnce();
+		expect(preventSpy).not.toHaveBeenCalled();
 	});
 
 	it("Tab key does NOT open the popover", () => {
@@ -241,11 +244,9 @@ describe("unit: aria attributes on the toggle button", () => {
 		expect(btn.getAttribute("aria-expanded")).toBe("true");
 	});
 
-	it("has aria-keyshortcuts='ArrowDown Space'", () => {
+	it("has aria-keyshortcuts='ArrowDown' (Space uses native button activation, not disclosed)", () => {
 		renderToggle();
-		expect(getToggleBtn().getAttribute("aria-keyshortcuts")).toBe(
-			"ArrowDown Space",
-		);
+		expect(getToggleBtn().getAttribute("aria-keyshortcuts")).toBe("ArrowDown");
 	});
 });
 
@@ -299,6 +300,28 @@ describe("unit: forceMount — menu items exist in DOM regardless of open state"
 });
 
 // ═════════════════════════════════════════════════════════════════════════════
+// Unit: focus management — ARIA menu-button focus-to-first-item on ArrowDown
+// ═════════════════════════════════════════════════════════════════════════════
+
+describe("unit: focus management — ArrowDown moves focus to first menuitemradio", () => {
+	it("ArrowDown opens popover and moves focus to the first menu item", async () => {
+		// Focus-to-first-item is provided by:
+		//   1. Radix Popover's built-in FocusTrap (on open state transitions),
+		//   2. the useEffect belt-and-suspenders ensuring the correct element in
+		//      browsers where the hidden-attribute toggle may suppress Radix's trap.
+		renderToggle();
+		const btn = getToggleBtn();
+
+		await act(async () => {
+			fireEvent.keyDown(btn, { key: "ArrowDown" });
+		});
+
+		const items = screen.getAllByRole("menuitemradio");
+		expect(document.activeElement).toBe(items[0]);
+	});
+});
+
+// ═════════════════════════════════════════════════════════════════════════════
 // Unit: source attribution — keyboard vs long-press (mocked setTheme)
 // ═════════════════════════════════════════════════════════════════════════════
 
@@ -317,15 +340,16 @@ describe("unit: source attribution — keyboard path sets source='keyboard'", ()
 		expect(mocks.mockSetTheme).toHaveBeenCalledWith("cs16", "keyboard");
 	});
 
-	it("AC-4: Space then pick CS 1.6 also calls setTheme with source:'keyboard'", () => {
+	it("Space does NOT open popover — toggle() is called via native click instead", () => {
+		// Space keydown no longer intercepted; native button fires click → toggle().
+		// This test verifies the popover source attribution path is not triggered by Space.
 		renderToggle();
 		const btn = getToggleBtn();
 
 		fireEvent.keyDown(btn, { key: " " });
-		const cs16Btn = screen.getAllByRole("menuitemradio")[2];
-		fireEvent.click(cs16Btn);
-
-		expect(mocks.mockSetTheme).toHaveBeenCalledWith("cs16", "keyboard");
+		// Popover remains closed — no menu item to click.
+		expect(btn.getAttribute("aria-expanded")).toBe("false");
+		expect(mocks.mockSetTheme).not.toHaveBeenCalled();
 	});
 });
 

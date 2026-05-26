@@ -1,6 +1,6 @@
 import * as Popover from "@radix-ui/react-popover";
 import { Gamepad2, Moon, Sun } from "lucide-react";
-import { useCallback, useRef, useState } from "react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import type { Locale } from "#/lib/locale";
 import { type Theme, type ThemeSource, useTheme } from "#/lib/theme";
 
@@ -52,6 +52,7 @@ export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
 	 * correctly. Per ADR-002: only cs16 activations are telemetry-recorded.
 	 */
 	const sourceRef = useRef<ThemeSource>("long-press");
+	const firstItemRef = useRef<HTMLButtonElement>(null);
 	const labels = labelsByLocale[locale];
 	const Icon = themeIcon[theme] ?? Moon;
 
@@ -90,14 +91,16 @@ export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
 
 	/**
 	 * Keyboard handler for WCAG 2.5.1 / ARIA menu-button pattern.
-	 * `ArrowDown` and `Space` open the theme popover. Both call `preventDefault`
-	 * so the browser does not scroll (ArrowDown) or trigger native form submit
-	 * (Space). The `source` ref is set to `'keyboard'` before opening so that
-	 * any subsequent theme pick in `pickTheme` carries the correct attribution.
+	 * `ArrowDown` opens the theme popover and calls `preventDefault` to suppress
+	 * native scroll. `Space` is intentionally NOT handled here — it follows native
+	 * button semantics (fires a click → toggle()). The `source` ref is set to
+	 * `'keyboard'` before opening so that any subsequent theme pick in `pickTheme`
+	 * carries the correct attribution. `aria-keyshortcuts` advertises `ArrowDown`
+	 * as the disclosed shortcut.
 	 */
 	const handleKeyDown = useCallback(
 		(event: React.KeyboardEvent<HTMLButtonElement>) => {
-			if (event.key === "ArrowDown" || event.key === " ") {
+			if (event.key === "ArrowDown") {
 				event.preventDefault();
 				sourceRef.current = "keyboard";
 				setOpen(true);
@@ -105,6 +108,19 @@ export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
 		},
 		[],
 	);
+
+	/**
+	 * ARIA menu-button focus management (WCAG 2.1 SC 2.1.1).
+	 * When the popover opens via keyboard (sourceRef === 'keyboard'), move focus
+	 * to the first menu item so keyboard-only users can navigate immediately with
+	 * arrow keys without pressing Tab. Pointer-triggered opens are excluded because
+	 * moving focus away from the mouse position is jarring for pointer users.
+	 */
+	useEffect(() => {
+		if (open && sourceRef.current === "keyboard") {
+			firstItemRef.current?.focus();
+		}
+	}, [open]);
 
 	const pickTheme = useCallback(
 		(next: Theme) => {
@@ -129,7 +145,7 @@ export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
 					aria-label={labels.toggle}
 					aria-haspopup="menu"
 					aria-expanded={open}
-					aria-keyshortcuts="ArrowDown Space"
+					aria-keyshortcuts="ArrowDown"
 					title={labels.hint}
 					className="flex h-10 w-10 select-none items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 				>
@@ -146,6 +162,7 @@ export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
 					className="z-50 min-w-[10rem] rounded-md border border-border bg-card p-1 text-foreground shadow-lg outline-none"
 				>
 					<ThemeOption
+						ref={firstItemRef}
 						active={theme === "light"}
 						label={labels.light}
 						icon={Sun}
@@ -169,29 +186,29 @@ export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
 	);
 }
 
-function ThemeOption({
-	active,
-	label,
-	icon: Icon,
-	onSelect,
-}: {
+type ThemeOptionProps = {
 	active: boolean;
 	label: string;
 	icon: typeof Sun;
 	onSelect: () => void;
-}) {
-	return (
-		<button
-			type="button"
-			role="menuitemradio"
-			aria-checked={active}
-			onClick={onSelect}
-			className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none ${
-				active ? "bg-muted font-semibold" : ""
-			}`}
-		>
-			<Icon className="h-4 w-4" aria-hidden="true" />
-			<span>{label}</span>
-		</button>
-	);
-}
+};
+
+const ThemeOption = forwardRef<HTMLButtonElement, ThemeOptionProps>(
+	function ThemeOption({ active, label, icon: Icon, onSelect }, ref) {
+		return (
+			<button
+				ref={ref}
+				type="button"
+				role="menuitemradio"
+				aria-checked={active}
+				onClick={onSelect}
+				className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none ${
+					active ? "bg-muted font-semibold" : ""
+				}`}
+			>
+				<Icon className="h-4 w-4" aria-hidden="true" />
+				<span>{label}</span>
+			</button>
+		);
+	},
+);
