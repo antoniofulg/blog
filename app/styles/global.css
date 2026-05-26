@@ -306,20 +306,40 @@ html.cs16 select {
 
 /* Button background: page bg by default; switches to surface (panel bg) when
    pressed. Pairs with the bevel inversion below to give the CS 1.6 "inset"
-   pressed look. Overrides any Tailwind bg-* utility applied to a <button> via
-   the html.cs16 ancestor selector specificity. */
+   pressed look. Includes <a> elements that carry a button-shape Tailwind
+   utility (bg-card / bg-surface / bg-muted) so navigation links rendered as
+   button-look chrome (e.g., the "← Posts" back link, "Read in Portuguese"
+   alt-locale link, share-network anchors) match real <button> chrome. */
 html.cs16 button,
-html.cs16 [role="button"] {
+html.cs16 [role="button"],
+html.cs16 a.bg-card,
+html.cs16 a.bg-surface,
+html.cs16 a.bg-muted {
   background-color: var(--background);
 }
 
 html.cs16 button:active,
-html.cs16 [role="button"]:active {
+html.cs16 [role="button"]:active,
+html.cs16 a.bg-card:active,
+html.cs16 a.bg-surface:active,
+html.cs16 a.bg-muted:active {
   background-color: var(--surface);
   border-top: 1px solid var(--cs16-bevel-dark);
   border-left: 1px solid var(--cs16-bevel-dark);
   border-right: 1px solid var(--cs16-bevel-light);
   border-bottom: 1px solid var(--cs16-bevel-light);
+}
+
+/* Hover MUST NOT turn text yellow per the design rule "text white default,
+   yellow only on click/active". Tailwind `hover:text-accent` utilities on
+   individual elements still fire by default — this rule overrides them via
+   the html.cs16 ancestor specificity bump so hover stays at the resting
+   foreground color. Click (:active) + :focus-visible still go yellow via
+   the dedicated rule below. */
+html.cs16 a:hover,
+html.cs16 button:hover,
+html.cs16 [role="button"]:hover {
+  color: inherit;
 }
 
 /* Text turns yellow (--accent) only on click (active), keyboard focus, and for
