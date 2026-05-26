@@ -188,7 +188,12 @@ function PostView({ data }: { data: PostLoaderResult }) {
 
 	return (
 		<div className="px-5 py-16 lg:px-20 lg:py-24">
-			<div className="reading-progress" aria-hidden="true" />
+			<div
+				className="reading-progress fixed inset-x-0 top-0 z-[60] h-[2px]"
+				aria-hidden="true"
+			>
+				<div className="reading-progress-fill h-full origin-left bg-accent" />
+			</div>
 			<article
 				className="mx-auto max-w-3xl"
 				lang={toBcp47(post.lang as Locale)}

@@ -352,39 +352,59 @@ html.cs16 * {
   scrollbar-color: var(--surface) var(--code-bg);
 }
 
-/* Reset bevel + radius for the reading-progress bar — it's a fixed 2px sliver. */
-html.cs16 .reading-progress {
-  border: none !important;
-}
-
 /*
   Reading progress bar for post pages.
-  CSS scroll-driven animation — zero JS, no layout thrash.
-  Support: Chrome 115+, Firefox 110+, Safari 17.2+ (2026 baseline ~90%).
-  Fallback: bar stays at scaleX(0) (invisible) on unsupported browsers.
-  z-60 sits above the sticky header (z-50) without displacing it.
+
+  Two-element structure:
+    .reading-progress       — fixed-position track. Position, inset, z-index,
+                              and base height are Tailwind utilities on the JSX
+                              (app/routes/{-$locale}/$slug.tsx).
+    .reading-progress-fill  — scroll-scaled fill. Owns the scroll-timeline
+                              animation Tailwind v4 cannot express as a utility.
+
+  CS 1.6 mode replaces the 2px sliver with a 24px inset-beveled track and
+  a striped yellow gradient — see html.cs16 overrides below.
+
+  Scroll-driven animation support: Chrome 115+, Firefox 110+, Safari 17.2+
+  (2026 baseline ~90%). Fallback: fill stays at scaleX(0). z-60 sits above
+  the sticky header (z-50) without displacing it.
 */
 @keyframes reading-fill {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
 
-.reading-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: var(--color-accent);
-  transform-origin: left;
-  transform: scaleX(0);
-  z-index: 60;
+.reading-progress-fill {
+  transform: scaleX(0); /* fallback for browsers without animation-timeline */
   animation: reading-fill linear both;
   animation-timeline: scroll(root block);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reading-progress { display: none; }
+}
+
+/* CS 1.6 health-bar chrome: 24px inset-beveled track + striped yellow fill.
+   Pattern lifted from ekmas/cs16.css — segmented gradient creates the
+   chunky "blocks" look on top of the scroll-driven scaleX animation. */
+html.cs16 .reading-progress {
+  height: 24px;
+  padding: 3px;
+  background-color: var(--surface);
+  border-top: 1px solid var(--cs16-bevel-dark);
+  border-left: 1px solid var(--cs16-bevel-dark);
+  border-right: 1px solid var(--cs16-bevel-light);
+  border-bottom: 1px solid var(--cs16-bevel-light);
+}
+
+html.cs16 .reading-progress-fill {
+  background-color: transparent;
+  background-image: linear-gradient(
+    to right,
+    var(--accent) 8px,
+    transparent 2px
+  );
+  background-size: 12px 16px;
 }
 
 /*
