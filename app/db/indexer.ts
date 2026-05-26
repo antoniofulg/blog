@@ -209,6 +209,16 @@ export async function removePost(filePath: string): Promise<void> {
 		// relative. Matching both forms lets cleanup catch either kind without a
 		// separate migration.
 		const normalized = toRelativePath(filePath);
+
+		// Read the resolved slug from the DB BEFORE deleting — the row may store
+		// a frontmatter-overridden slug that differs from the filename slug.
+		// Using only deriveSlug(normalized) would unlink the wrong OG PNG when
+		// frontmatter slug ≠ filename (e.g. intro.mdx with slug: getting-started).
+		const [row] = await db
+			.select({ slug: posts.slug })
+			.from(posts)
+			.where(or(eq(posts.filePath, filePath), eq(posts.filePath, normalized)));
+
 		await db
 			.delete(posts)
 			.where(or(eq(posts.filePath, filePath), eq(posts.filePath, normalized)));
@@ -218,7 +228,9 @@ export async function removePost(filePath: string): Promise<void> {
 		// where deriveLang throws due to an unsupported locale directory name).
 		try {
 			const locale = deriveLang(normalized);
-			const slug = deriveSlug(normalized);
+			// Prefer DB-stored slug (frontmatter-aware); fall back to filename slug
+			// only when the row was already absent (never indexed or already deleted).
+			const slug = row?.slug ?? deriveSlug(normalized);
 			const ogPath = join(process.cwd(), "public", "og", locale, `${slug}.png`);
 			await unlink(ogPath).catch(() => {
 				/* not present — no-op */

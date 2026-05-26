@@ -26,6 +26,11 @@ export type PageLoaderResult = {
 
 export type SlugLoaderResult = PostLoaderResult | PageLoaderResult;
 
+/** Narrows an unknown frontmatter value to a non-empty string or `undefined`. */
+function normalizeCoverImage(raw: unknown): string | undefined {
+	return typeof raw === "string" && raw.length > 0 ? raw : undefined;
+}
+
 export async function getPostBySlugWithLangFn(
 	slug: string,
 	requestedLang: Locale,
@@ -98,13 +103,8 @@ export async function getPostBySlugWithLangFn(
 					),
 				);
 
-			const rawCover = frontmatterData.coverImage;
-			const coverImage =
-				typeof rawCover === "string" && rawCover.length > 0
-					? rawCover
-					: undefined;
 			const ogImagePath = resolveOgImagePath({
-				coverImage,
+				coverImage: normalizeCoverImage(frontmatterData.coverImage),
 				locale: requestedLang,
 				slug,
 				origin: getSiteOrigin(),
@@ -137,13 +137,8 @@ export async function getPostBySlugWithLangFn(
 			const html = renderToStaticMarkup(createElement(Content, {}));
 
 			const fallbackLang = fallbackPost.lang as Locale;
-			const rawCoverFb = frontmatterData.coverImage;
-			const coverImageFb =
-				typeof rawCoverFb === "string" && rawCoverFb.length > 0
-					? rawCoverFb
-					: undefined;
 			const ogImagePath = resolveOgImagePath({
-				coverImage: coverImageFb,
+				coverImage: normalizeCoverImage(frontmatterData.coverImage),
 				locale: fallbackLang,
 				slug,
 				origin: getSiteOrigin(),

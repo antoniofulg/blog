@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => {
 	const selectWhere = vi.fn().mockResolvedValue([]);
 	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
 	const select = vi.fn().mockReturnValue({ from: selectFrom });
+	const mockUnlink = vi.fn().mockResolvedValue(undefined);
 	return {
 		insert,
 		values,
@@ -33,6 +34,7 @@ const mocks = vi.hoisted(() => {
 		selectFrom,
 		selectWhere,
 		orderBy,
+		mockUnlink,
 	};
 });
 
@@ -43,6 +45,13 @@ vi.mock("#/db/client", () => ({
 		select: mocks.select,
 	},
 }));
+
+// Preserve real readFile/readdir so fixture reads in upsertPost tests work;
+// mock only unlink so removePost OG cleanup path is observable in tests.
+vi.mock("node:fs/promises", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("node:fs/promises")>();
+	return { ...actual, unlink: mocks.mockUnlink };
+});
 
 // Mock OG generator — returns null by default; individual tests can override.
 // This also keeps existing unit tests fast (no real satori render).
@@ -76,6 +85,7 @@ function resetMocks() {
 	mocks.selectWhere.mockResolvedValue([]);
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
+	mocks.mockUnlink.mockResolvedValue(undefined);
 }
 
 // ─── Unit: upsertPost ────────────────────────────────────────────────────────
@@ -258,6 +268,51 @@ describe("unit: removePost", () => {
 		await removePost("content/hello.mdx");
 		expect(mocks.deleteChain).toHaveBeenCalledWith(posts);
 		expect(mocks.deleteWhere).toHaveBeenCalledTimes(1);
+	});
+
+	it("calls db.select() before db.delete() to resolve the stored slug", async () => {
+		// Use a path with a valid locale dir so deriveLang succeeds inside
+		// the OG cleanup branch. Slug from DB is irrelevant for ordering.
+		mocks.selectWhere.mockResolvedValueOnce([{ slug: "getting-started" }]);
+		await removePost(join(FIXTURES, "en", "intro.mdx"));
+
+		const selectOrder = mocks.select.mock.invocationCallOrder[0];
+		const deleteOrder = mocks.deleteChain.mock.invocationCallOrder[0];
+		expect(selectOrder).toBeLessThan(deleteOrder);
+	});
+});
+
+// ─── Unit: removePost — OG slug cleanup ──────────────────────────────────────
+
+describe("unit: removePost — OG slug cleanup", () => {
+	beforeEach(resetMocks);
+
+	it("uses DB-stored slug for OG unlink when frontmatter slug differs from filename", async () => {
+		// Simulate: file is `intro.mdx` but DB row stores `getting-started` slug.
+		mocks.selectWhere.mockResolvedValueOnce([{ slug: "getting-started" }]);
+		await removePost(join(FIXTURES, "en", "intro.mdx"));
+
+		expect(mocks.mockUnlink).toHaveBeenCalledWith(
+			join(process.cwd(), "public", "og", "en", "getting-started.png"),
+		);
+	});
+
+	it("falls back to filename slug for OG unlink when DB row is not found", async () => {
+		// No DB row — e.g. file was never indexed.
+		mocks.selectWhere.mockResolvedValueOnce([]);
+		await removePost(join(FIXTURES, "en", "intro.mdx"));
+
+		expect(mocks.mockUnlink).toHaveBeenCalledWith(
+			join(process.cwd(), "public", "og", "en", "intro.png"),
+		);
+	});
+
+	it("skips OG unlink entirely for paths with unsupported locale directory", async () => {
+		// deriveLang throws for non-locale dirs; OG cleanup must be skipped silently.
+		mocks.selectWhere.mockResolvedValueOnce([{ slug: "some-slug" }]);
+		await removePost("content/hello.mdx"); // "content" is not a valid locale
+
+		expect(mocks.mockUnlink).not.toHaveBeenCalled();
 	});
 });
 

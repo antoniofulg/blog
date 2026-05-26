@@ -408,6 +408,68 @@ describe("unit: TranslationNotice", () => {
 	});
 });
 
+// ─── Unit: normalizeCoverImage (via ogImagePath) ─────────────────────────────
+
+describe("unit: getPostBySlugWithLangFn — normalizeCoverImage behaviour", () => {
+	beforeEach(resetMocks);
+
+	it("non-empty string coverImage → ogImagePath reflects it", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: /images/my-cover.png\n---\n# Post\n\nContent",
+		);
+		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		// resolveOgImagePath prepends origin (empty in test env) for relative paths
+		expect(result.ogImagePath).toContain("/images/my-cover.png");
+	});
+
+	it("empty string coverImage → ogImagePath falls back (not the empty string)", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: ''\n---\n# Post\n\nContent",
+		);
+		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		// Empty string → normalizeCoverImage returns undefined → PNG/fallback path
+		expect(result.ogImagePath).not.toBe("");
+		expect(result.ogImagePath).not.toContain("my-cover");
+	});
+
+	it("non-string coverImage (number) → ogImagePath falls back to site default", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: 0\n---\n# Post\n\nContent",
+		);
+		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		// Non-string → normalizeCoverImage returns undefined → falls through to
+		// auto-PNG check (PNG doesn't exist in test env) → og-image.jpg fallback
+		expect(result.ogImagePath).toContain("og-image.jpg");
+	});
+
+	it("fallback branch: non-empty string coverImage → ogImagePath reflects it", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: /images/cover.png\n---\n# Fallback Post\n\nContent",
+		);
+		// exact match miss, fallback hit
+		mocks.selectWhere
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([makePost({ lang: "pt-br" })]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		expect(result.ogImagePath).toContain("/images/cover.png");
+	});
+});
+
 // ─── Unit: discriminated union (kind field) ───────────────────────────────────
 
 describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
