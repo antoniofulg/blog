@@ -386,9 +386,19 @@ html.cs16 * {
 
 /* CS 1.6 health-bar chrome: 24px inset-beveled track + striped yellow fill.
    Pattern lifted from ekmas/cs16.css — segmented gradient creates the
-   chunky "blocks" look. Sits below the sticky h-16 navbar (top: 4rem). */
+   chunky "blocks" look.
+
+   Positioning swap: light/dark uses Tailwind `fixed inset-x-0 top-0` (2px sliver
+   pinned to viewport top). cs16 overrides to `position: sticky; top: 4rem`
+   so the bar lives in document flow and tracks the sticky navbar's actual
+   on-screen position — at scroll 0 with the WipBanner visible, the bar
+   sits naturally below banner+navbar; once the banner scrolls out and the
+   navbar sticks at viewport y=0, the bar sticks at viewport y=64 (=4rem)
+   flush below it. `inset-inline: auto` cancels Tailwind's inset-x-0. */
 html.cs16 .reading-progress {
+  position: sticky;
   top: 4rem;
+  inset-inline: auto;
   height: 24px;
   padding: 3px;
   background-color: var(--surface);
