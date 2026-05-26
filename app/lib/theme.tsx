@@ -109,14 +109,17 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 		(next: Theme, source: ThemeSource = "long-press") => {
 			if (next === "cs16") {
 				ensureCs16Font();
-				// Dynamic import keeps record-theme-event.server.ts out of the static
-				// module graph for theme.tsx. This avoids TanStack Start Vite plugin
-				// conflicts in the test environment while preserving the fire-and-forget
-				// semantics in production (the import resolves to the client stub).
+				// Dynamic import of the non-.server. wrapper (dispatch-theme-event.ts)
+				// avoids TanStack Start's import-protection plugin, which blocks any
+				// *.server.* import from the client bundle. dispatch-theme-event.ts
+				// defines a createServerFn() whose handler delegates to the actual
+				// server fn in record-theme-event.server.ts — transparent to the caller.
 				// Failures are silently swallowed — analytics MUST NOT surface to visitors.
-				import("#/lib/analytics/record-theme-event.server")
-					.then(({ recordThemeEvent }) =>
-						recordThemeEvent({ data: { theme: "cs16", source, lang: locale } }),
+				import("#/lib/analytics/dispatch-theme-event")
+					.then(({ dispatchThemeEvent }) =>
+						dispatchThemeEvent({
+							data: { theme: "cs16", source, lang: locale },
+						}),
 					)
 					.catch(() => {
 						// Silently swallow — analytics failures MUST NOT surface to the visitor.

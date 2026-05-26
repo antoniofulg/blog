@@ -159,7 +159,15 @@ describe("cs16 static-asset build output", () => {
 
 			for (const chunk of bundleChunks) {
 				const content = readFileSync(chunk, "utf-8");
-				expect(content).not.toContain("Press Start 2P");
+				// The .cs16 { font-family: "Press Start 2P", ... } rules are expected
+				// to appear in the bundle CSS (they are needed once the font is loaded).
+				// Other @font-face rules (Inter, JetBrains Mono) are also expected.
+				// What must NOT appear is a @font-face block that declares Press Start 2P.
+				// The regex matches @font-face blocks containing "Press Start 2P" on the
+				// same rule (handles both minified and expanded output).
+				const hasPressStart2PFontFace =
+					/@font-face[^{]*\{[^}]*Press Start 2P/.test(content);
+				expect(hasPressStart2PFontFace).toBe(false);
 			}
 		},
 	);

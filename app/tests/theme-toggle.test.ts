@@ -71,9 +71,11 @@ vi.mock("#/lib/theme", async (importOriginal) => {
 	};
 });
 
-// Intercept analytics server fn used by the real ThemeProvider in integration tests.
-vi.mock("#/lib/analytics/record-theme-event.server", () => ({
-	recordThemeEvent: mocks.recordThemeEvent,
+// Intercept the dispatch-theme-event wrapper used by theme.tsx.
+// theme.tsx dynamically imports dispatchThemeEvent from dispatch-theme-event.ts
+// (a non-.server. wrapper) to avoid TanStack Start's import-protection plugin.
+vi.mock("#/lib/analytics/dispatch-theme-event", () => ({
+	dispatchThemeEvent: mocks.recordThemeEvent,
 }));
 
 // ── Imports (after vi.mock declarations) ─────────────────────────────────────

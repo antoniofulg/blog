@@ -14,8 +14,17 @@
 @import "@fontsource/inter/latin-700.css";
 @import "@fontsource/jetbrains-mono/latin-400.css";
 @import "@fontsource/jetbrains-mono/latin-700.css";
+/*
+ * Easter-egg CS 1.6 theme font — lazy-loaded (ADR-004).
+ * NOT imported here; injected at runtime via ensureCs16Font() in theme.tsx
+ * when the user first activates cs16. Saves ~30 KB from the critical-path
+ * CSS bundle for visitors who never activate the easter-egg theme.
+ * Served via Nitro publicAssets at the /_fontsource/ path (task_03).
+ * The `.cs16` block below applies the font once the <link> is in the DOM.
+ */
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant cs16 (&:where(.cs16, .cs16 *));
 
 @theme {
   --font-family-heading: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -166,6 +175,151 @@
   --chart-8: #FB923C;
   --chart-9: #A3E635;
   --chart-10: #C084FC;
+}
+
+/*
+  Easter-egg theme: CS 1.6 menu UI.
+  Inspired by ekmas/cs16.css. Olive panels, bevel edges, pixel font.
+  Activated by long-press on the theme toggle in the header.
+*/
+.cs16 {
+  --background: #4c5844;
+  --surface: #6b8e6c;
+  --muted: #5a6b54;
+  --card: #6b8e6c;
+  --code-bg: #3a4438;
+
+  --foreground: #ebd784;
+  --foreground-secondary: #d4c577;
+  --foreground-muted: #a8a87b;
+  --foreground-inverse: #1a1f17;
+  --foreground-code: #ffe58a;
+
+  --accent: #ffc619;
+  --accent-hover: #ffd75e;
+  --accent-light: #5a6b54;
+
+  --border: #3b463c;
+  --border-strong: #a6b8a4;
+
+  --success: #7cb850;
+  --warning: #e3aa3e;
+  --error: #d23030;
+
+  --callout-tip: #4f6045;
+  --callout-info: #4d5a48;
+  --callout-warn: #6a5e3a;
+  --callout-error: #6b3a3a;
+
+  --tag-react: #ffc619;
+  --tag-typescript: #d4c577;
+  --tag-bun: #ffd75e;
+  --tag-tanstack: #d23030;
+
+  --chart-1: #ffc619;
+  --chart-2: #7cb850;
+  --chart-3: #e3aa3e;
+  --chart-4: #d23030;
+  --chart-5: #ebd784;
+  --chart-6: #a6b8a4;
+  --chart-7: #6b8e6c;
+  --chart-8: #ff955c;
+  --chart-9: #a8a87b;
+  --chart-10: #ffd75e;
+
+  --cs16-bevel-light: #a6b8a4;
+  --cs16-bevel-dark: #3b463c;
+}
+
+html.cs16 {
+  font-size: 13px;
+  font-family: "Press Start 2P", "Courier New", monospace;
+  image-rendering: pixelated;
+}
+
+html.cs16 body {
+  font-family: "Press Start 2P", "Courier New", monospace;
+  letter-spacing: 0;
+  line-height: 1.6;
+}
+
+html.cs16 code,
+html.cs16 pre,
+html.cs16 kbd {
+  font-family: "Press Start 2P", "Courier New", monospace;
+}
+
+/* Sharp pixel edges — override any Tailwind rounded-* utility. */
+html.cs16 *,
+html.cs16 *::before,
+html.cs16 *::after {
+  border-radius: 0 !important;
+}
+
+/* Beveled panels — light top/left, dark bottom/right (CS 1.6 menu). */
+html.cs16 button,
+html.cs16 [role="button"],
+html.cs16 .bg-card,
+html.cs16 .bg-surface,
+html.cs16 .bg-muted,
+html.cs16 input,
+html.cs16 textarea,
+html.cs16 select {
+  border-top: 2px solid var(--cs16-bevel-light);
+  border-left: 2px solid var(--cs16-bevel-light);
+  border-right: 2px solid var(--cs16-bevel-dark);
+  border-bottom: 2px solid var(--cs16-bevel-dark);
+}
+
+html.cs16 button:active,
+html.cs16 [role="button"]:active {
+  border-top: 2px solid var(--cs16-bevel-dark);
+  border-left: 2px solid var(--cs16-bevel-dark);
+  border-right: 2px solid var(--cs16-bevel-light);
+  border-bottom: 2px solid var(--cs16-bevel-light);
+}
+
+/* Crosshair cursor on interactive elements — CS-iconic without ruining reading. */
+html.cs16 button,
+html.cs16 a,
+html.cs16 [role="button"],
+html.cs16 [role="menuitemradio"],
+html.cs16 summary {
+  cursor: crosshair;
+}
+
+/* Chunky pixel scrollbar (webkit / blink only). */
+html.cs16::-webkit-scrollbar,
+html.cs16 *::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+  background: var(--background);
+}
+
+html.cs16::-webkit-scrollbar-thumb,
+html.cs16 *::-webkit-scrollbar-thumb {
+  background: var(--surface);
+  border-top: 2px solid var(--cs16-bevel-light);
+  border-left: 2px solid var(--cs16-bevel-light);
+  border-right: 2px solid var(--cs16-bevel-dark);
+  border-bottom: 2px solid var(--cs16-bevel-dark);
+}
+
+html.cs16::-webkit-scrollbar-track,
+html.cs16 *::-webkit-scrollbar-track {
+  background: var(--code-bg);
+}
+
+/* Firefox scrollbar */
+html.cs16,
+html.cs16 * {
+  scrollbar-width: auto;
+  scrollbar-color: var(--surface) var(--code-bg);
+}
+
+/* Reset bevel + radius for the reading-progress bar — it's a fixed 2px sliver. */
+html.cs16 .reading-progress {
+  border: none !important;
 }
 
 /*

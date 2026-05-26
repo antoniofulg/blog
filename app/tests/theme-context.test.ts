@@ -30,12 +30,12 @@ const mocks = vi.hoisted(() => ({
 	recordThemeEvent: vi.fn(() => Promise.resolve({ recorded: true })),
 }));
 
-// Replace the analytics server fn module.
-// theme.tsx uses a dynamic import for recordThemeEvent (inside setTheme), so
-// vi.mock intercepts it correctly without the static import chain issues that
-// occur with @tanstack/react-start/server-only in the jsdom environment.
-vi.mock("#/lib/analytics/record-theme-event.server", () => ({
-	recordThemeEvent: mocks.recordThemeEvent,
+// Replace the dispatch-theme-event wrapper used by theme.tsx.
+// theme.tsx dynamically imports dispatchThemeEvent from dispatch-theme-event.ts
+// (a non-.server. file) to avoid TanStack Start's import-protection plugin.
+// vi.mock intercepts the dynamic import correctly at test time.
+vi.mock("#/lib/analytics/dispatch-theme-event", () => ({
+	dispatchThemeEvent: mocks.recordThemeEvent,
 }));
 
 // ─── jsdom environment setup ──────────────────────────────────────────────────
