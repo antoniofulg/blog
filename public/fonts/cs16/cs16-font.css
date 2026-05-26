@@ -1,12 +1,26 @@
 /*
- * CS 1.6 easter-egg theme font.
+ * CS 1.6 easter-egg theme fonts.
  *
- * ArialPixel.ttf is the bitmap font shipped by ekmas/cs16.css (MIT licensed).
- * Vendored at public/fonts/cs16/ArialPixel.ttf so we serve same-origin without
- * a runtime CDN dependency. Loaded only when the user activates the cs16 theme
- * (see ensureCs16Font() in app/lib/theme.tsx).
+ * Two @font-face declarations share the family name "ArialPixel" so the
+ * browser picks the right file per Unicode codepoint via `unicode-range`:
  *
- * Source: https://github.com/ekmas/cs16.css/blob/main/ArialPixel.ttf
+ *   - ArialPixel.ttf       — covers Basic Latin (U+0020-007E). The font
+ *                            from ekmas/cs16.css. Authentic CS 1.6 menu
+ *                            chrome. Has no usable glyphs above U+007E.
+ *   - Pixelify Sans (latin) — covers Latin-1 Supplement + Latin Extended
+ *                             so pt-br accented chars (ã, é, ç, õ, á, í,
+ *                             ó, ú, â, ê, ô) render in a matching pixel
+ *                             style instead of falling through to the
+ *                             system sans fallback. Subset taken from
+ *                             @fontsource/pixelify-sans (OFL).
+ *
+ * Both fonts are vendored same-origin at public/fonts/cs16/ and loaded
+ * lazily by ensureCs16Font() in app/lib/theme.tsx — they only download
+ * when a visitor activates the cs16 theme.
+ *
+ * Sources:
+ *   https://github.com/ekmas/cs16.css/blob/main/ArialPixel.ttf
+ *   https://cdn.jsdelivr.net/npm/@fontsource/pixelify-sans/files/pixelify-sans-latin-400-normal.woff2
  */
 @font-face {
   font-family: "ArialPixel";
@@ -14,4 +28,16 @@
   font-weight: 400;
   font-display: swap;
   src: url("/fonts/cs16/ArialPixel.ttf") format("truetype");
+  unicode-range: U+0020-007E;
+}
+
+@font-face {
+  font-family: "ArialPixel";
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/cs16/pixelify-sans-latin-400.woff2") format("woff2");
+  /* Latin-1 Supplement + Latin Extended-A + Latin Extended-B — covers every
+     accented codepoint used in pt-br plus most western European locales. */
+  unicode-range: U+0080-024F;
 }

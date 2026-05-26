@@ -35,6 +35,7 @@ function abs(...parts: string[]): string {
 
 describe("cs16 vendored font assets", () => {
 	const ttfPath = abs("public/fonts/cs16/ArialPixel.ttf");
+	const pixelifyPath = abs("public/fonts/cs16/pixelify-sans-latin-400.woff2");
 	const cssPath = abs("public/fonts/cs16/cs16-font.css");
 
 	it("ArialPixel.ttf exists in public/fonts/cs16/", () => {
@@ -45,6 +46,14 @@ describe("cs16 vendored font assets", () => {
 		expect(statSync(ttfPath).size).toBeGreaterThan(1000);
 	});
 
+	it("pixelify-sans-latin-400.woff2 exists as the Latin-1+Latin-Extended fallback", () => {
+		expect(existsSync(pixelifyPath)).toBe(true);
+	});
+
+	it("pixelify-sans-latin-400.woff2 is non-empty", () => {
+		expect(statSync(pixelifyPath).size).toBeGreaterThan(1000);
+	});
+
 	it("cs16-font.css exists and declares @font-face for ArialPixel", () => {
 		expect(existsSync(cssPath)).toBe(true);
 		const css = readFileSync(cssPath, "utf-8");
@@ -52,14 +61,36 @@ describe("cs16 vendored font assets", () => {
 		expect(css).toContain("ArialPixel");
 	});
 
-	it("cs16-font.css points its src URL at /fonts/cs16/ArialPixel.ttf", () => {
+	it("cs16-font.css declares two @font-face blocks under the same family name (unicode-range fallback chain)", () => {
 		const css = readFileSync(cssPath, "utf-8");
-		expect(css).toContain("/fonts/cs16/ArialPixel.ttf");
+		// Match the rule head (`@font-face {`) so prose mentions inside the
+		// file's top comment do not count as declarations.
+		const fontFaceCount = (css.match(/@font-face\s*\{/g) ?? []).length;
+		expect(fontFaceCount).toBe(2);
+		// Both blocks must use the same family name so the browser picks the
+		// matching file per codepoint via unicode-range, not per stack order.
+		const familyDecls = css.match(/font-family:\s*"ArialPixel"/g) ?? [];
+		expect(familyDecls.length).toBe(2);
 	});
 
-	it("cs16-font.css sets font-display: swap (matches non-blocking pattern of other fonts)", () => {
+	it("cs16-font.css scopes ArialPixel.ttf to Basic Latin (U+0020-007E)", () => {
 		const css = readFileSync(cssPath, "utf-8");
-		expect(css).toContain("font-display: swap");
+		// First @font-face references the .ttf; its unicode-range must be ASCII printable.
+		expect(css).toContain("/fonts/cs16/ArialPixel.ttf");
+		expect(css).toContain("U+0020-007E");
+	});
+
+	it("cs16-font.css scopes the Pixelify Sans fallback to Latin-1 Supplement + Latin Extended (U+0080-024F)", () => {
+		const css = readFileSync(cssPath, "utf-8");
+		expect(css).toContain("/fonts/cs16/pixelify-sans-latin-400.woff2");
+		// Covers ã (U+00E3), é (U+00E9), ç (U+00E7), õ (U+00F5), á (U+00E1) etc.
+		expect(css).toContain("U+0080-024F");
+	});
+
+	it("cs16-font.css sets font-display: swap on both blocks (non-blocking pattern)", () => {
+		const css = readFileSync(cssPath, "utf-8");
+		const swapCount = (css.match(/font-display:\s*swap/g) ?? []).length;
+		expect(swapCount).toBe(2);
 	});
 });
 
