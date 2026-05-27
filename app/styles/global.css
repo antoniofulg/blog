@@ -288,10 +288,21 @@ html.cs16 .bg-muted {
   border-bottom: 1px solid var(--cs16-bevel-dark);
 }
 
-/* Authentic CS 1.6 button geometry: top 4px, sides 5px, bottom 3px (in REM). */
+/* Authentic CS 1.6 button geometry: tight 4px vertical padding, no enforced
+   min-height. Tailwind's `min-h-[44px]` (touch-target rule for light/dark)
+   and `py-*` utilities both get overridden so button-look chrome sits
+   compact like the original CS 1.6 menus. Horizontal padding is left to
+   whatever Tailwind utility (px-3, px-4, px-6) the component declares.
+   Includes the same button-look <a> selectors as the bg rule above so the
+   geometry matches across <button>, [role=button], and link-as-button. */
 html.cs16 button,
-html.cs16 [role="button"] {
-  padding: 0.25rem 0.3125rem 0.1875rem;
+html.cs16 [role="button"],
+html.cs16 a.bg-card,
+html.cs16 a.bg-surface,
+html.cs16 a.bg-muted {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  min-height: 0;
 }
 
 /* Inset bevel: form fields — dark top/left, light bottom/right (CS 1.6 input). */
