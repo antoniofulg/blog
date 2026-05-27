@@ -53,6 +53,7 @@ export function PostFooter({ publishedAt, postLang, requestedLang }: Props) {
 				params={{
 					locale: requestedLang === DEFAULT_LOCALE ? undefined : requestedLang,
 				}}
+				activeOptions={{ exact: true }}
 				className="inline-flex min-h-[44px] items-center gap-1.5 self-start rounded-md border border-border bg-card px-4 text-sm font-medium text-foreground-secondary transition-colors hover:border-border-strong hover:bg-surface hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			>
 				<ArrowLeft className="h-4 w-4" aria-hidden="true" />
