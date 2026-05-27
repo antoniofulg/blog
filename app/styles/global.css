@@ -487,6 +487,12 @@ html.cs16 .reading-progress-fill {
 html.cs16 .wip-banner {
   background-color: var(--surface);
   color: var(--foreground);
+  /* Inset bevel — dark top/left, light bottom/right. Same recessed-panel
+     look as the reading-progress track and cs16 form fields. */
+  border-top: 1px solid var(--cs16-bevel-dark);
+  border-left: 1px solid var(--cs16-bevel-dark);
+  border-right: 1px solid var(--cs16-bevel-light);
+  border-bottom: 1px solid var(--cs16-bevel-light);
 }
 
 html.cs16 .wip-banner button {
