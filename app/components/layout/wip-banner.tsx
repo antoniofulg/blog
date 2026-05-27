@@ -58,7 +58,7 @@ export function WipBanner() {
 	if (!visible) return null;
 
 	return (
-		<div className="bg-accent text-foreground-inverse">
+		<div className="wip-banner bg-accent text-foreground-inverse">
 			<div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-5 py-2 text-sm font-medium">
 				<span>{t.message}</span>
 				<button

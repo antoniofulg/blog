@@ -479,6 +479,24 @@ html.cs16 .reading-progress-fill {
   animation-timeline: scroll(root block);
 }
 
+/* CS 1.6 WipBanner: yellow bg is too loud against the muted olive palette.
+   Swap to the dark surface tone with white text + white close-button icon.
+   Same "theme styling stays in the theme block" pattern as .reading-progress —
+   the .wip-banner class on the component is just a CSS hook, no theme logic
+   in the JSX (per components.md forward-boundary rule). */
+html.cs16 .wip-banner {
+  background-color: var(--surface);
+  color: var(--foreground);
+}
+
+html.cs16 .wip-banner button {
+  color: var(--foreground);
+}
+
+html.cs16 .wip-banner button:hover {
+  background-color: var(--muted);
+}
+
 /*
   Navbar entrance animation.
   Header descends from translateY(-8px) — opposite direction to page content
