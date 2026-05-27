@@ -1,9 +1,9 @@
 /**
- * Tests for the CS 1.6 ArialPixel font static-asset serving (task_03).
+ * Tests for the CS 1.6 VT323 font static-asset serving (task_03).
  *
- * ArialPixel.ttf is vendored from ekmas/cs16.css (MIT) at
- * `public/fonts/cs16/ArialPixel.ttf` and served by Nitro's built-in public/
- * handler — no `publicAssets` entry required.
+ * VT323 is vendored from @fontsource/vt323 (OFL) at
+ * `public/fonts/cs16/vt323-latin-400.woff2` and served by Nitro's built-in
+ * public/ handler — no `publicAssets` entry required.
  *
  * Unit tests verify the vendored font file and the CSS that loads it both
  * exist and reference each other correctly.
@@ -11,8 +11,9 @@
  * Integration tests (post-build) verify the files land at the expected paths
  * under `.output/public/` after `bun run build`.
  *
- * See ADR-004: Lazy-Load Press Start 2P Inside `setTheme` (font swapped to
- * ArialPixel in the styling-adjustments commit).
+ * See ADR-004: Lazy-Load Press Start 2P Inside `setTheme` (the font has
+ * since cycled Press Start 2P → ArialPixel → VT323; the ADR's lazy-load
+ * mechanism is unchanged).
  */
 
 import { existsSync, readFileSync, statSync } from "node:fs";
@@ -30,67 +31,44 @@ function abs(...parts: string[]): string {
 }
 
 // ---------------------------------------------------------------------------
-// Unit tests — vendored ArialPixel font + the CSS that loads it
+// Unit tests — vendored VT323 font + the CSS that loads it
 // ---------------------------------------------------------------------------
 
 describe("cs16 vendored font assets", () => {
-	const ttfPath = abs("public/fonts/cs16/ArialPixel.ttf");
-	const pixelifyPath = abs("public/fonts/cs16/pixelify-sans-latin-400.woff2");
+	const woff2Path = abs("public/fonts/cs16/vt323-latin-400.woff2");
 	const cssPath = abs("public/fonts/cs16/cs16-font.css");
 
-	it("ArialPixel.ttf exists in public/fonts/cs16/", () => {
-		expect(existsSync(ttfPath)).toBe(true);
+	it("vt323-latin-400.woff2 exists in public/fonts/cs16/", () => {
+		expect(existsSync(woff2Path)).toBe(true);
 	});
 
-	it("ArialPixel.ttf is non-empty (sanity check on the vendored bytes)", () => {
-		expect(statSync(ttfPath).size).toBeGreaterThan(1000);
+	it("vt323-latin-400.woff2 is non-empty (sanity check on the vendored bytes)", () => {
+		expect(statSync(woff2Path).size).toBeGreaterThan(1000);
 	});
 
-	it("pixelify-sans-latin-400.woff2 exists as the Latin-1+Latin-Extended fallback", () => {
-		expect(existsSync(pixelifyPath)).toBe(true);
-	});
-
-	it("pixelify-sans-latin-400.woff2 is non-empty", () => {
-		expect(statSync(pixelifyPath).size).toBeGreaterThan(1000);
-	});
-
-	it("cs16-font.css exists and declares @font-face for ArialPixel", () => {
+	it("cs16-font.css exists and declares @font-face for VT323", () => {
 		expect(existsSync(cssPath)).toBe(true);
 		const css = readFileSync(cssPath, "utf-8");
 		expect(css).toContain("@font-face");
-		expect(css).toContain("ArialPixel");
+		expect(css).toContain("VT323");
 	});
 
-	it("cs16-font.css declares two @font-face blocks under the same family name (unicode-range fallback chain)", () => {
+	it("cs16-font.css points its src URL at /fonts/cs16/vt323-latin-400.woff2", () => {
+		const css = readFileSync(cssPath, "utf-8");
+		expect(css).toContain("/fonts/cs16/vt323-latin-400.woff2");
+	});
+
+	it("cs16-font.css declares exactly one @font-face block (no fallback chain needed)", () => {
 		const css = readFileSync(cssPath, "utf-8");
 		// Match the rule head (`@font-face {`) so prose mentions inside the
 		// file's top comment do not count as declarations.
 		const fontFaceCount = (css.match(/@font-face\s*\{/g) ?? []).length;
-		expect(fontFaceCount).toBe(2);
-		// Both blocks must use the same family name so the browser picks the
-		// matching file per codepoint via unicode-range, not per stack order.
-		const familyDecls = css.match(/font-family:\s*"ArialPixel"/g) ?? [];
-		expect(familyDecls.length).toBe(2);
+		expect(fontFaceCount).toBe(1);
 	});
 
-	it("cs16-font.css scopes ArialPixel.ttf to Basic Latin (U+0020-007E)", () => {
+	it("cs16-font.css sets font-display: swap (non-blocking pattern)", () => {
 		const css = readFileSync(cssPath, "utf-8");
-		// First @font-face references the .ttf; its unicode-range must be ASCII printable.
-		expect(css).toContain("/fonts/cs16/ArialPixel.ttf");
-		expect(css).toContain("U+0020-007E");
-	});
-
-	it("cs16-font.css scopes the Pixelify Sans fallback to Latin-1 Supplement + Latin Extended (U+0080-024F)", () => {
-		const css = readFileSync(cssPath, "utf-8");
-		expect(css).toContain("/fonts/cs16/pixelify-sans-latin-400.woff2");
-		// Covers ã (U+00E3), é (U+00E9), ç (U+00E7), õ (U+00F5), á (U+00E1) etc.
-		expect(css).toContain("U+0080-024F");
-	});
-
-	it("cs16-font.css sets font-display: swap on both blocks (non-blocking pattern)", () => {
-		const css = readFileSync(cssPath, "utf-8");
-		const swapCount = (css.match(/font-display:\s*swap/g) ?? []).length;
-		expect(swapCount).toBe(2);
+		expect(css).toContain("font-display: swap");
 	});
 });
 
@@ -103,15 +81,17 @@ describe("cs16 global.css regression guard", () => {
 
 	it("global.css does not statically @import any cs16 font (must lazy-load via ensureCs16Font)", () => {
 		const css = readFileSync(globalCss, "utf-8");
-		// Either ArialPixel or the historical Press Start 2P import would put the
-		// font on the critical path for all visitors. Both are banned.
-		expect(css).not.toMatch(/@import\s+["'][^"']*ArialPixel/);
+		// Historical cs16 fonts (Press Start 2P, ArialPixel) are explicitly banned
+		// alongside the current VT323 — any static @import puts the font on the
+		// critical path for all visitors, defeating the lazy-load design.
 		expect(css).not.toMatch(/@import\s+["'][^"']*press-start-2p/i);
+		expect(css).not.toMatch(/@import\s+["'][^"']*ArialPixel/);
+		expect(css).not.toMatch(/@import\s+["'][^"']*vt323/i);
 	});
 
-	it("global.css references the ArialPixel family in the .cs16 block (font is applied once loaded)", () => {
+	it("global.css references the VT323 family in the .cs16 block (font is applied once loaded)", () => {
 		const css = readFileSync(globalCss, "utf-8");
-		expect(css).toContain("ArialPixel");
+		expect(css).toContain("VT323");
 	});
 });
 
@@ -122,15 +102,15 @@ describe("cs16 global.css regression guard", () => {
 // ---------------------------------------------------------------------------
 
 describe("cs16 vendored-font build output", () => {
-	const ttfOutput = abs(".output/public/fonts/cs16/ArialPixel.ttf");
+	const woff2Output = abs(".output/public/fonts/cs16/vt323-latin-400.woff2");
 	const cssOutput = abs(".output/public/fonts/cs16/cs16-font.css");
 
-	const hasBuildOutput = existsSync(ttfOutput) && existsSync(cssOutput);
+	const hasBuildOutput = existsSync(woff2Output) && existsSync(cssOutput);
 
 	it.skipIf(!hasBuildOutput)(
-		"ArialPixel.ttf lands at .output/public/fonts/cs16/ArialPixel.ttf",
+		"vt323-latin-400.woff2 lands at .output/public/fonts/cs16/vt323-latin-400.woff2",
 		() => {
-			expect(existsSync(ttfOutput)).toBe(true);
+			expect(existsSync(woff2Output)).toBe(true);
 		},
 	);
 
@@ -142,11 +122,11 @@ describe("cs16 vendored-font build output", () => {
 	);
 
 	it.skipIf(!hasBuildOutput)(
-		"copied cs16-font.css is non-empty and still references ArialPixel.ttf",
+		"copied cs16-font.css is non-empty and still references the vendored woff2",
 		() => {
 			const css = readFileSync(cssOutput, "utf-8");
-			expect(css).toContain("ArialPixel");
-			expect(css).toContain("/fonts/cs16/ArialPixel.ttf");
+			expect(css).toContain("VT323");
+			expect(css).toContain("/fonts/cs16/vt323-latin-400.woff2");
 		},
 	);
 });

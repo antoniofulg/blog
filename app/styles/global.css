@@ -250,7 +250,7 @@
 }
 
 html.cs16 {
-  font-family: "ArialPixel", system-ui, sans-serif;
+  font-family: "VT323", ui-monospace, monospace;
   /* image-rendering: pixelated intentionally omitted — it is an inherited property
      and would degrade <img> content (photos, avatars) with stair-stepped aliasing.
      The pixel-art feel comes from the "ArialPixel" bitmap font, not from this rule. */
@@ -264,7 +264,7 @@ html.cs16 {
 }
 
 html.cs16 body {
-  font-family: "ArialPixel", system-ui, sans-serif;
+  font-family: "VT323", ui-monospace, monospace;
   letter-spacing: 0;
   line-height: 1.6;
 }
@@ -272,7 +272,7 @@ html.cs16 body {
 html.cs16 code,
 html.cs16 pre,
 html.cs16 kbd {
-  font-family: "ArialPixel", ui-monospace, monospace;
+  font-family: "VT323", ui-monospace, monospace;
 }
 
 /* Raised bevel: buttons + surfaces — light top/left, dark bottom/right (CS 1.6 menu).
