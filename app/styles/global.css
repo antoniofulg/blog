@@ -569,6 +569,40 @@ html.dark .shiki span {
 }
 
 /*
+  cs16 syntax highlighting: reuse the dark Shiki token colors so code reads
+  identically to dark mode, but force the background to our --code-bg
+  (#292c21, the cs16 dark olive) so the block sits in the theme's palette
+  instead of shiki-dark-bg's neutral slate. Bevel + zero radius applied via
+  the html.cs16 .prose pre + .bg-code-bg overrides below.
+*/
+html.cs16 .shiki,
+html.cs16 .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--code-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/*
+  Kill rounded corners on every clickable / code surface in cs16.
+  Token-level --radius-* overrides cover Tailwind rounded-{sm,md,lg,xl}
+  utilities, but explicit border-radius on .prose pre (12px hard-coded)
+  and Tailwind's plain `.rounded` (literal 0.25rem, not tokenised) bypass
+  the token swap — zero them out here.
+*/
+html.cs16 button,
+html.cs16 [role="button"],
+html.cs16 a.bg-card,
+html.cs16 a.bg-surface,
+html.cs16 a.bg-muted,
+html.cs16 .prose pre,
+html.cs16 .bg-code-bg,
+html.cs16 .rounded {
+  border-radius: 0;
+}
+
+/*
   MDX prose code blocks: apply rounded corners and border to match the
   hand-rolled CodeBlock component in code-block.tsx. Shiki renders raw <pre>
   with inline background styles; Tailwind Typography doesn't add shape or border.
