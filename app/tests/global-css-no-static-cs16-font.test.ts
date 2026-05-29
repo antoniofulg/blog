@@ -1,12 +1,13 @@
 /**
- * Guards against accidental re-introduction of the static Press Start 2P
- * @import in app/styles/global.css (task_06, AC-1).
+ * Guards against accidental re-introduction of a static cs16-font @import
+ * in app/styles/global.css (task_06, AC-1).
  *
- * The font is now lazy-loaded at runtime via ensureCs16Font() in theme.tsx
- * (ADR-004). The @import was removed to eliminate ~30 KB from the
+ * The cs16 font cycled Press Start 2P → ArialPixel → VT323; whichever is
+ * current is lazy-loaded at runtime via ensureCs16Font() in theme.tsx
+ * (ADR-004). The @import was removed to keep the cs16 font off the
  * critical-path CSS bundle for visitors who never activate cs16.
  *
- * If these tests break, someone re-added the static import — remove it and
+ * If these tests break, someone re-added a static import — remove it and
  * rely on the ensureCs16Font() runtime injection instead.
  */
 
@@ -41,9 +42,9 @@ describe("global.css — no static Press Start 2P import (task_06 AC-1)", () => 
 // ---------------------------------------------------------------------------
 
 describe("global.css — cs16 font-family rules still present", () => {
-	it("contains the html.cs16 body font-family rule for Press Start 2P", () => {
+	it("contains the html.cs16 body font-family rule for VT323", () => {
 		expect(globalCss).toContain("html.cs16 body");
-		expect(globalCss).toContain('"Press Start 2P"');
+		expect(globalCss).toContain('"VT323"');
 	});
 
 	it("contains the @custom-variant cs16 declaration", () => {
