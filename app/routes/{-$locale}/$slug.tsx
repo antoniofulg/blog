@@ -187,59 +187,66 @@ function PostView({ data }: { data: PostLoaderResult }) {
 	const readingTime = useMemo(() => readingTimeMinutes(html), [html]);
 
 	return (
-		<div className="px-5 py-16 lg:px-20 lg:py-24">
-			<div className="reading-progress" aria-hidden="true" />
-			<article
-				className="mx-auto max-w-3xl"
-				lang={toBcp47(post.lang as Locale)}
-				aria-labelledby="post-title"
+		<>
+			<div
+				className="reading-progress fixed inset-x-0 top-0 z-[60] h-[2px]"
+				aria-hidden="true"
 			>
-				{notTranslated && availableLang && (
-					<div className="mb-10">
-						<TranslationNotice
-							requestedLang={requestedLang}
-							availableLang={availableLang}
-						/>
-					</div>
-				)}
+				<div className="reading-progress-fill h-full origin-left bg-accent" />
+			</div>
+			<div className="px-5 py-16 lg:px-20 lg:py-24">
+				<article
+					className="mx-auto max-w-3xl"
+					lang={toBcp47(post.lang as Locale)}
+					aria-labelledby="post-title"
+				>
+					{notTranslated && availableLang && (
+						<div className="mb-10">
+							<TranslationNotice
+								requestedLang={requestedLang}
+								availableLang={availableLang}
+							/>
+						</div>
+					)}
 
-				<PostHeader
-					title={post.title}
-					description={post.description}
-					publishedAt={post.publishedAt}
-					postLang={post.lang as Locale}
-					requestedLang={requestedLang}
-					slug={post.slug}
-					readingTime={readingTime}
-					viewCount={post.viewCount}
-					alternateLang={alternateLang}
-				/>
+					<PostHeader
+						title={post.title}
+						description={post.description}
+						publishedAt={post.publishedAt}
+						postLang={post.lang as Locale}
+						requestedLang={requestedLang}
+						slug={post.slug}
+						readingTime={readingTime}
+						viewCount={post.viewCount}
+						alternateLang={alternateLang}
+					/>
 
-				<hr
-					className="animate-fade-up my-8 border-border lg:my-12"
-					style={{ animationDelay: "300ms" }}
-				/>
+					<hr
+						className="animate-fade-up my-8 border-border lg:my-12"
+						style={{ animationDelay: "300ms" }}
+					/>
 
-				<div
-					className="animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover focus-visible:prose-a:outline-none focus-visible:prose-a:ring-2 focus-visible:prose-a:ring-accent focus-visible:prose-a:ring-offset-4 focus-visible:prose-a:ring-offset-background prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border"
-					style={{ animationDelay: "300ms" }}
-					// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
-					dangerouslySetInnerHTML={{ __html: html }}
-				/>
+					<div
+						className="animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover focus-visible:prose-a:outline-none focus-visible:prose-a:ring-2 focus-visible:prose-a:ring-accent focus-visible:prose-a:ring-offset-4 focus-visible:prose-a:ring-offset-background prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border"
+						style={{ animationDelay: "300ms" }}
+						// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
+						dangerouslySetInnerHTML={{ __html: html }}
+					/>
 
-				<PostShare
-					postUrl={localeHref(post.lang as Locale, post.slug)}
-					postTitle={post.title ?? ""}
-					locale={requestedLang}
-				/>
+					<PostShare
+						postUrl={localeHref(post.lang as Locale, post.slug)}
+						postTitle={post.title ?? ""}
+						locale={requestedLang}
+					/>
 
-				<PostFooter
-					publishedAt={post.publishedAt}
-					postLang={post.lang as Locale}
-					requestedLang={requestedLang}
-				/>
-			</article>
-		</div>
+					<PostFooter
+						publishedAt={post.publishedAt}
+						postLang={post.lang as Locale}
+						requestedLang={requestedLang}
+					/>
+				</article>
+			</div>
+		</>
 	);
 }
 

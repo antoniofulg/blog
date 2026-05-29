@@ -36,6 +36,12 @@ const mocks = vi.hoisted(() => {
 	return { navigate, setPathname, getPathname, setMatches, getMatches };
 });
 
+// theme.tsx calls recordThemeEvent via dynamic import inside setTheme.
+// Mock the module so test renders don't hit the server-only guard.
+vi.mock("#/lib/analytics/record-theme-event.server", () => ({
+	recordThemeEvent: vi.fn(() => Promise.resolve({ recorded: true })),
+}));
+
 vi.mock("@tanstack/react-router", () => ({
 	Link: ({
 		children,

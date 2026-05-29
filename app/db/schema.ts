@@ -63,3 +63,22 @@ export const analyticsEvents = pgTable(
 
 export type AnalyticsEvent = typeof analyticsEvents.$inferSelect;
 export type NewAnalyticsEvent = typeof analyticsEvents.$inferInsert;
+
+export const themeEvents = pgTable(
+	"theme_events",
+	{
+		id: bigserial("id", { mode: "number" }).primaryKey(),
+		createdAt: timestamp("created_at", { withTimezone: true })
+			.notNull()
+			.defaultNow(),
+		theme: text("theme").notNull(),
+		source: text("source").notNull(),
+		lang: text("lang").notNull(),
+		device: text("device").notNull(),
+		referrerSource: text("referrer_source").notNull(),
+	},
+	(t) => [index("idx_theme_events_created").on(t.createdAt.desc())],
+);
+
+export type ThemeEvent = typeof themeEvents.$inferSelect;
+export type NewThemeEvent = typeof themeEvents.$inferInsert;

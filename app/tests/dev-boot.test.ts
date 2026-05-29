@@ -2,10 +2,25 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
+// Watcher subprocess handle shape — pid/kill optional so tests can simulate a
+// spawn() that returns no pid (the guard then skips the pidfile write).
+type WatcherProc = {
+	pid?: number;
+	unref: () => void;
+	kill?: (signal?: unknown) => unknown;
+};
+
 const mocks = vi.hoisted(() => ({
 	execFileSync: vi.fn(),
-	spawn: vi.fn(() => ({ unref: vi.fn() })),
+	spawn: vi.fn(
+		(): WatcherProc => ({ pid: 4242, unref: vi.fn(), kill: vi.fn() }),
+	),
 	syncAll: vi.fn().mockResolvedValue(undefined),
+	existsSync: vi.fn(() => false),
+	readFileSync: vi.fn(() => ""),
+	writeFileSync: vi.fn(),
+	mkdirSync: vi.fn(),
+	rmSync: vi.fn(),
 }));
 
 vi.mock("node:child_process", () => ({
@@ -13,10 +28,19 @@ vi.mock("node:child_process", () => ({
 	spawn: mocks.spawn,
 }));
 
+vi.mock("node:fs", () => ({
+	existsSync: mocks.existsSync,
+	readFileSync: mocks.readFileSync,
+	writeFileSync: mocks.writeFileSync,
+	mkdirSync: mocks.mkdirSync,
+	rmSync: mocks.rmSync,
+}));
+
 vi.mock("#/db/indexer", () => ({
 	syncAll: mocks.syncAll,
 }));
 
+import { join } from "node:path";
 import { runDevBoot } from "../../app/lib/dev-boot";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
@@ -24,8 +48,13 @@ import { runDevBoot } from "../../app/lib/dev-boot";
 function resetAll() {
 	vi.clearAllMocks();
 	mocks.execFileSync.mockReturnValue(undefined);
-	mocks.spawn.mockReturnValue({ unref: vi.fn() });
+	mocks.spawn.mockReturnValue({ pid: 4242, unref: vi.fn(), kill: vi.fn() });
 	mocks.syncAll.mockResolvedValue(undefined);
+	mocks.existsSync.mockReturnValue(false);
+	mocks.readFileSync.mockReturnValue("");
+	mocks.writeFileSync.mockReturnValue(undefined);
+	mocks.mkdirSync.mockReturnValue(undefined);
+	mocks.rmSync.mockReturnValue(undefined);
 }
 
 // ─── Unit: invocation count ───────────────────────────────────────────────────
@@ -157,5 +186,74 @@ describe("unit: runDevBoot — [sync] log messages", () => {
 			msgs.some((m) => m.includes("[sync]") && m.includes("sync_failed")),
 		).toBe(true);
 		errorSpy.mockRestore();
+	});
+});
+
+// ─── Unit: watcher lifecycle (orphan-leak guard) ──────────────────────────────
+
+describe("unit: runDevBoot — watcher lifecycle (leak guard)", () => {
+	beforeEach(resetAll);
+	afterEach(vi.restoreAllMocks);
+
+	const PID_FILE_SUFFIX = join(".tanstack", "content-watcher.pid");
+
+	it("writes the spawned watcher PID to the content-watcher pidfile", async () => {
+		mocks.spawn.mockReturnValue({ pid: 4242, unref: vi.fn(), kill: vi.fn() });
+		await runDevBoot();
+		const pidWrite = mocks.writeFileSync.mock.calls.find((c) =>
+			String(c[0]).endsWith(PID_FILE_SUFFIX),
+		);
+		expect(pidWrite).toBeDefined();
+		expect(pidWrite?.[1]).toBe("4242");
+	});
+
+	it("does not write a pidfile when spawn returns no pid", async () => {
+		mocks.spawn.mockReturnValue({ unref: vi.fn() });
+		await runDevBoot();
+		expect(mocks.writeFileSync).not.toHaveBeenCalled();
+	});
+
+	it("reaps a live stale watcher (SIGTERM) before spawning a new one", async () => {
+		mocks.existsSync.mockReturnValue(true);
+		mocks.readFileSync.mockReturnValue("9999");
+		const killSpy = vi.spyOn(process, "kill").mockImplementation(() => true);
+
+		await runDevBoot();
+
+		// Liveness probe (signal 0) then the actual termination.
+		expect(killSpy).toHaveBeenCalledWith(9999, 0);
+		expect(killSpy).toHaveBeenCalledWith(9999, "SIGTERM");
+		// Stale pidfile cleared after the reap.
+		expect(mocks.rmSync).toHaveBeenCalled();
+		killSpy.mockRestore();
+	});
+
+	it("does not SIGTERM when no pidfile exists", async () => {
+		mocks.existsSync.mockReturnValue(false);
+		const killSpy = vi.spyOn(process, "kill").mockImplementation(() => true);
+
+		await runDevBoot();
+
+		expect(killSpy).not.toHaveBeenCalledWith(9999, "SIGTERM");
+		killSpy.mockRestore();
+	});
+
+	it("skips SIGTERM when the recorded PID is already dead", async () => {
+		mocks.existsSync.mockReturnValue(true);
+		mocks.readFileSync.mockReturnValue("9999");
+		const killSpy = vi
+			.spyOn(process, "kill")
+			.mockImplementation((_pid, signal) => {
+				if (signal === 0) throw new Error("ESRCH"); // probe: not alive
+				return true;
+			});
+
+		await runDevBoot();
+
+		expect(killSpy).toHaveBeenCalledWith(9999, 0);
+		expect(killSpy).not.toHaveBeenCalledWith(9999, "SIGTERM");
+		// Stale pidfile still cleared so it never re-triggers.
+		expect(mocks.rmSync).toHaveBeenCalled();
+		killSpy.mockRestore();
 	});
 });

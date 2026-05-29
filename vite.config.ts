@@ -98,6 +98,10 @@ const config = defineConfig({
 			// reflect what users see.
 			compressPublicAssets: { gzip: true, brotli: true },
 			rollupConfig: { external: [/^@sentry\//] },
+			// CS 1.6 ArialPixel font is vendored at public/fonts/cs16/ArialPixel.ttf
+			// and served by Nitro's built-in public/ handler. No publicAssets entry
+			// needed. See ADR-004 for the lazy-load rationale and URL contract
+			// (/fonts/cs16/cs16-font.css → /fonts/cs16/ArialPixel.ttf).
 		}),
 		tailwindcss(),
 		tanstackStart({

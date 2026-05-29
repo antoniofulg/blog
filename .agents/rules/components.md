@@ -22,3 +22,4 @@ Allowed imports: #/lib/theme, #/types/*, external packages, other #/components/*
 - Components with useEffect that fetches data (use loader + Route.useLoaderData())
 - Components importing auth client (#/lib/auth.client) for session checks
 - Barrel index.ts files in components/ directories
+- Components embedding theme-specific styling (`bg-[#4c5844]` literals, `cs16:` Tailwind variant overrides, inline `.cs16` selectors). Theme styling lives in the theme's CSS block under `app/styles/global.css`; the `cs16:` variant is reserved for documented exceptions noted in the relevant ADR.

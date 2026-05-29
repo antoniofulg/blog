@@ -1,28 +1,218 @@
-import { Moon, Sun } from "lucide-react";
+import * as Popover from "@radix-ui/react-popover";
+import { Gamepad2, Moon, Sun } from "lucide-react";
+import { forwardRef, useCallback, useEffect, useRef, useState } from "react";
 import type { Locale } from "#/lib/locale";
-import { useTheme } from "#/lib/theme";
+import { type Theme, type ThemeSource, useTheme } from "#/lib/theme";
 
-const ariaLabelByLocale: Record<Locale, string> = {
-	en: "Toggle theme",
-	"pt-br": "Alternar tema",
+const LONG_PRESS_MS = 500;
+
+type Labels = {
+	toggle: string;
+	menu: string;
+	light: string;
+	dark: string;
+	cs16: string;
+	hint: string;
+};
+
+const labelsByLocale: Record<Locale, Labels> = {
+	en: {
+		toggle: "Toggle theme",
+		menu: "Pick a theme",
+		light: "Light",
+		dark: "Dark",
+		cs16: "CS 1.6",
+		hint: "Long-press for more themes",
+	},
+	"pt-br": {
+		toggle: "Alternar tema",
+		menu: "Escolha um tema",
+		light: "Claro",
+		dark: "Escuro",
+		cs16: "CS 1.6",
+		hint: "Pressione e segure para mais temas",
+	},
+};
+
+const themeIcon: Record<Theme, typeof Sun> = {
+	light: Sun,
+	dark: Moon,
+	cs16: Gamepad2,
 };
 
 export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
-	const { theme, toggle } = useTheme();
+	const { theme, toggle, setTheme } = useTheme();
+	const [open, setOpen] = useState(false);
+	const timerRef = useRef<number | null>(null);
+	const longPressed = useRef(false);
+	/**
+	 * Tracks how the popover was last opened so `pickTheme` forwards the
+	 * correct `source` to `setTheme`. Defaults to `'long-press'` (the original
+	 * path) so any residual call without an explicit open event is attributed
+	 * correctly. Per ADR-002: only cs16 activations are telemetry-recorded.
+	 */
+	const sourceRef = useRef<ThemeSource>("long-press");
+	const firstItemRef = useRef<HTMLButtonElement>(null);
+	const labels = labelsByLocale[locale];
+	const Icon = themeIcon[theme] ?? Moon;
+
+	const clearTimer = useCallback(() => {
+		if (timerRef.current !== null) {
+			window.clearTimeout(timerRef.current);
+			timerRef.current = null;
+		}
+	}, []);
+
+	const handlePointerDown = useCallback(() => {
+		longPressed.current = false;
+		clearTimer();
+		timerRef.current = window.setTimeout(() => {
+			sourceRef.current = "long-press";
+			longPressed.current = true;
+			setOpen(true);
+		}, LONG_PRESS_MS);
+	}, [clearTimer]);
+
+	const handlePointerUp = useCallback(() => {
+		clearTimer();
+	}, [clearTimer]);
+
+	const handleClick = useCallback(
+		(event: React.MouseEvent<HTMLButtonElement>) => {
+			if (longPressed.current) {
+				event.preventDefault();
+				longPressed.current = false;
+				return;
+			}
+			toggle();
+		},
+		[toggle],
+	);
+
+	/**
+	 * Keyboard handler for WCAG 2.5.1 / ARIA menu-button pattern.
+	 * `ArrowDown` opens the theme popover and calls `preventDefault` to suppress
+	 * native scroll. `Space` is intentionally NOT handled here — it follows native
+	 * button semantics (fires a click → toggle()). The `source` ref is set to
+	 * `'keyboard'` before opening so that any subsequent theme pick in `pickTheme`
+	 * carries the correct attribution. `aria-keyshortcuts` advertises `ArrowDown`
+	 * as the disclosed shortcut.
+	 */
+	const handleKeyDown = useCallback(
+		(event: React.KeyboardEvent<HTMLButtonElement>) => {
+			if (event.key === "ArrowDown") {
+				event.preventDefault();
+				sourceRef.current = "keyboard";
+				setOpen(true);
+			}
+		},
+		[],
+	);
+
+	/**
+	 * ARIA menu-button focus management (WCAG 2.1 SC 2.1.1).
+	 * When the popover opens via keyboard (sourceRef === 'keyboard'), move focus
+	 * to the first menu item so keyboard-only users can navigate immediately with
+	 * arrow keys without pressing Tab. Pointer-triggered opens are excluded because
+	 * moving focus away from the mouse position is jarring for pointer users.
+	 */
+	useEffect(() => {
+		if (open && sourceRef.current === "keyboard") {
+			firstItemRef.current?.focus();
+		}
+	}, [open]);
+
+	const pickTheme = useCallback(
+		(next: Theme) => {
+			// Forward the active ROUTE locale (the `locale` prop is route-derived in
+			// the header for public routes) so theme_events.lang reflects the page
+			// the user activated cs16 on — not their persisted locale preference,
+			// which can disagree with the URL on first visits.
+			setTheme(next, sourceRef.current, locale);
+			setOpen(false);
+		},
+		[setTheme, locale],
+	);
 
 	return (
-		<button
-			type="button"
-			onClick={toggle}
-			aria-label={ariaLabelByLocale[locale]}
-			aria-pressed={theme === "dark"}
-			className="flex h-10 w-10 items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
-		>
-			{theme === "dark" ? (
-				<Sun className="h-5 w-5" aria-hidden="true" />
-			) : (
-				<Moon className="h-5 w-5" aria-hidden="true" />
-			)}
-		</button>
+		<Popover.Root open={open} onOpenChange={setOpen}>
+			<Popover.Anchor asChild>
+				<button
+					type="button"
+					onPointerDown={handlePointerDown}
+					onPointerUp={handlePointerUp}
+					onPointerLeave={handlePointerUp}
+					onPointerCancel={handlePointerUp}
+					onClick={handleClick}
+					onKeyDown={handleKeyDown}
+					onContextMenu={(e) => e.preventDefault()}
+					aria-label={labels.toggle}
+					aria-haspopup="menu"
+					aria-expanded={open}
+					aria-keyshortcuts="ArrowDown"
+					title={labels.hint}
+					className="flex h-10 w-10 select-none items-center justify-center rounded-md bg-surface text-foreground transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				>
+					<Icon className="h-5 w-5" aria-hidden="true" />
+				</button>
+			</Popover.Anchor>
+			<Popover.Portal forceMount>
+				<Popover.Content
+					hidden={!open}
+					align="end"
+					sideOffset={8}
+					role="menu"
+					aria-label={labels.menu}
+					className="z-50 min-w-[10rem] rounded-md border border-border bg-card p-1 text-foreground shadow-lg outline-none"
+				>
+					<ThemeOption
+						ref={firstItemRef}
+						active={theme === "light"}
+						label={labels.light}
+						icon={Sun}
+						onSelect={() => pickTheme("light")}
+					/>
+					<ThemeOption
+						active={theme === "dark"}
+						label={labels.dark}
+						icon={Moon}
+						onSelect={() => pickTheme("dark")}
+					/>
+					<ThemeOption
+						active={theme === "cs16"}
+						label={labels.cs16}
+						icon={Gamepad2}
+						onSelect={() => pickTheme("cs16")}
+					/>
+				</Popover.Content>
+			</Popover.Portal>
+		</Popover.Root>
 	);
 }
+
+type ThemeOptionProps = {
+	active: boolean;
+	label: string;
+	icon: typeof Sun;
+	onSelect: () => void;
+};
+
+const ThemeOption = forwardRef<HTMLButtonElement, ThemeOptionProps>(
+	function ThemeOption({ active, label, icon: Icon, onSelect }, ref) {
+		return (
+			<button
+				ref={ref}
+				type="button"
+				role="menuitemradio"
+				aria-checked={active}
+				onClick={onSelect}
+				className={`flex w-full items-center gap-2 rounded px-3 py-2 text-left text-sm transition-colors hover:bg-muted focus-visible:bg-muted focus-visible:outline-none ${
+					active ? "bg-muted font-semibold" : ""
+				}`}
+			>
+				<Icon className="h-4 w-4" aria-hidden="true" />
+				<span>{label}</span>
+			</button>
+		);
+	},
+);

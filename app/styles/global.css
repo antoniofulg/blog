@@ -14,8 +14,18 @@
 @import "@fontsource/inter/latin-700.css";
 @import "@fontsource/jetbrains-mono/latin-400.css";
 @import "@fontsource/jetbrains-mono/latin-700.css";
+/*
+ * Easter-egg CS 1.6 theme font — lazy-loaded (ADR-004).
+ * NOT imported here; injected at runtime via ensureCs16Font() in theme.tsx
+ * when the user first activates cs16. Saves ~11 KB ArialPixel.ttf from the
+ * critical-path CSS bundle for visitors who never activate the easter-egg.
+ * The TTF is vendored at public/fonts/cs16/ArialPixel.ttf (from ekmas/cs16.css,
+ * MIT) and served by Nitro's built-in public/ handler.
+ * The `.cs16` block below applies the font once the <link> is in the DOM.
+ */
 
 @custom-variant dark (&:where(.dark, .dark *));
+@custom-variant cs16 (&:where(.cs16, .cs16 *));
 
 @theme {
   --font-family-heading: "Inter", ui-sans-serif, system-ui, sans-serif;
@@ -169,33 +179,339 @@
 }
 
 /*
+  Easter-egg theme: CS 1.6 menu UI.
+  Inspired by ekmas/cs16.css. Olive panels, bevel edges, pixel font.
+  Activated by long-press on the theme toggle in the header.
+*/
+.cs16 {
+  /* Palette mapped from ekmas/cs16.css :root tokens. Authentic CS 1.6 menu
+     hues: muted olive panels DARKER than the page bg (inverts the usual
+     light-card-on-darker-bg pattern), softened yellow accent (not pure
+     yellow), off-white text instead of #fff. */
+
+  /* Backgrounds — surface/card sit DARKER than page bg, matching cs16.css
+     panel chrome. */
+  --background: #4a5942;          /* cs16 --bg */
+  --surface: #3e4637;             /* cs16 --secondary-bg */
+  --muted: #3e4637;               /* cs16 --secondary-bg */
+  --card: #3e4637;                /* cs16 --secondary-bg */
+  --code-bg: #292c21;             /* cs16 --border-dark — very dark code panel */
+
+  /* Text — off-white tints, not pure #fff. Yellow (--accent) takes over on
+     hover/focus/active per the html.cs16 highlight rules below. */
+  --foreground: #dedfd6;          /* cs16 --text */
+  --foreground-secondary: #d8ded3; /* cs16 --secondary-text */
+  --foreground-muted: #a0aa95;    /* cs16 --text-3 */
+  --foreground-inverse: #292c21;  /* cs16 --border-dark / --disabled-text */
+  --foreground-code: #dedfd6;     /* cs16 --text */
+
+  /* Accent — muted yellow (#c4b550), hover darkens to secondary-accent. */
+  --accent: #c4b550;              /* cs16 --accent */
+  --accent-hover: #958831;        /* cs16 --secondary-accent */
+  --accent-light: #3e4637;        /* cs16 --secondary-bg — tint backgrounds */
+
+  /* Borders — dark border doubles as bevel-dark; light border matches bevel-light. */
+  --border: #292c21;              /* cs16 --border-dark */
+  --border-strong: #8c9284;       /* cs16 --border-light */
+
+  /* Status colors — kept reasonable for an olive theme. Success/warning/error
+     are not in cs16.css's palette; tuned to harmonize with the new bg. */
+  --success: #7cb850;
+  --warning: #e3aa3e;
+  --error: #d23030;
+
+  /* Callouts share the surface tone — author can override per-callout later. */
+  --callout-tip: #3e4637;
+  --callout-info: #3e4637;
+  --callout-warn: #3e4637;
+  --callout-error: #3e4637;
+
+  --tag-react: #c4b550;
+  --tag-typescript: #d8ded3;
+  --tag-bun: #958831;
+  --tag-tanstack: #d23030;
+
+  /* Chart palette — 10 distinct hues that still read on the dark olive bg. */
+  --chart-1: #c4b550;
+  --chart-2: #7cb850;
+  --chart-3: #e3aa3e;
+  --chart-4: #d23030;
+  --chart-5: #d8ded3;
+  --chart-6: #8c9284;
+  --chart-7: #5a6a50;
+  --chart-8: #958831;
+  --chart-9: #a0aa95;
+  --chart-10: #7f8c7f;
+
+  /* Bevel + scrollbar-track palette — direct cs16.css mappings. */
+  --cs16-bevel-light: #8c9284;    /* cs16 --border-light */
+  --cs16-bevel-dark: #292c21;     /* cs16 --border-dark */
+  --cs16-scrollbar-track: #5a6a50; /* cs16 --scrollbar-track */
+}
+
+html.cs16 {
+  font-family: "VT323", ui-monospace, monospace;
+  /* image-rendering: pixelated intentionally omitted — it is an inherited property
+     and would degrade <img> content (photos, avatars) with stair-stepped aliasing.
+     The pixel-art feel comes from the "ArialPixel" bitmap font, not from this rule. */
+
+  /* Zero-out Tailwind radius tokens so every rounded-* utility renders sharp
+     inside cs16 without universal-selector or !important overhead. */
+  --radius-sm: 0;
+  --radius-md: 0;
+  --radius-lg: 0;
+  --radius-xl: 0;
+}
+
+html.cs16 body {
+  font-family: "VT323", ui-monospace, monospace;
+  letter-spacing: 0;
+  line-height: 1.6;
+}
+
+html.cs16 code,
+html.cs16 pre,
+html.cs16 kbd {
+  font-family: "VT323", ui-monospace, monospace;
+}
+
+/* Raised bevel: buttons + surfaces — light top/left, dark bottom/right (CS 1.6 menu).
+   1px borders + tight padding match cs16.css's authentic button chrome. */
+html.cs16 button,
+html.cs16 [role="button"],
+html.cs16 .bg-card,
+html.cs16 .bg-surface,
+html.cs16 .bg-muted {
+  border-top: 1px solid var(--cs16-bevel-light);
+  border-left: 1px solid var(--cs16-bevel-light);
+  border-right: 1px solid var(--cs16-bevel-dark);
+  border-bottom: 1px solid var(--cs16-bevel-dark);
+}
+
+/* Authentic CS 1.6 button geometry: tight 4px vertical padding, no enforced
+   min-height. Tailwind's `min-h-[44px]` (touch-target rule for light/dark)
+   and `py-*` utilities both get overridden so button-look chrome sits
+   compact like the original CS 1.6 menus. Horizontal padding is left to
+   whatever Tailwind utility (px-3, px-4, px-6) the component declares.
+   Includes the same button-look <a> selectors as the bg rule above so the
+   geometry matches across <button>, [role=button], and link-as-button. */
+html.cs16 button,
+html.cs16 [role="button"],
+html.cs16 a.bg-card,
+html.cs16 a.bg-surface,
+html.cs16 a.bg-muted {
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+  min-height: 0;
+}
+
+/* Inset bevel: form fields — dark top/left, light bottom/right (CS 1.6 input). */
+html.cs16 input,
+html.cs16 textarea,
+html.cs16 select {
+  border-top: 1px solid var(--cs16-bevel-dark);
+  border-left: 1px solid var(--cs16-bevel-dark);
+  border-right: 1px solid var(--cs16-bevel-light);
+  border-bottom: 1px solid var(--cs16-bevel-light);
+}
+
+/* Button background: page bg by default; switches to surface (panel bg) when
+   pressed. Pairs with the bevel inversion below to give the CS 1.6 "inset"
+   pressed look. Includes <a> elements that carry a button-shape Tailwind
+   utility (bg-card / bg-surface / bg-muted) so navigation links rendered as
+   button-look chrome (e.g., the "← Posts" back link, "Read in Portuguese"
+   alt-locale link, share-network anchors) match real <button> chrome. */
+html.cs16 button,
+html.cs16 [role="button"],
+html.cs16 a.bg-card,
+html.cs16 a.bg-surface,
+html.cs16 a.bg-muted {
+  background-color: var(--background);
+}
+
+html.cs16 button:active,
+html.cs16 [role="button"]:active,
+html.cs16 a.bg-card:active,
+html.cs16 a.bg-surface:active,
+html.cs16 a.bg-muted:active {
+  background-color: var(--surface);
+  border-top: 1px solid var(--cs16-bevel-dark);
+  border-left: 1px solid var(--cs16-bevel-dark);
+  border-right: 1px solid var(--cs16-bevel-light);
+  border-bottom: 1px solid var(--cs16-bevel-light);
+}
+
+/* Hover MUST NOT turn text yellow per the design rule "text white default,
+   yellow only on click/active". Tailwind `hover:text-accent` utilities on
+   individual elements still fire by default — this rule overrides them via
+   the html.cs16 ancestor specificity bump so hover stays at the resting
+   foreground color. Click (:active) + :focus-visible still go yellow via
+   the dedicated rule below. */
+html.cs16 a:hover,
+html.cs16 button:hover,
+html.cs16 [role="button"]:hover {
+  color: inherit;
+}
+
+/* Text turns yellow (--accent) only on click (active), keyboard focus, and for
+   active route / checked menu items. Hover is intentionally NOT in the list —
+   resting mouse-over uses the bevel-only feedback already on the button. */
+html.cs16 a:active,
+html.cs16 button:active,
+html.cs16 [role="button"]:active,
+html.cs16 [role="menuitem"]:active,
+html.cs16 [role="menuitemradio"]:active,
+html.cs16 a:focus-visible,
+html.cs16 button:focus-visible,
+html.cs16 [role="button"]:focus-visible,
+html.cs16 [role="menuitemradio"]:focus-visible,
+html.cs16 [role="menuitemradio"][aria-checked="true"],
+html.cs16 [aria-current="page"],
+html.cs16 [data-status="active"] {
+  color: var(--accent);
+}
+
+/* Pointer cursor on clickable elements (replaces earlier crosshair experiment). */
+html.cs16 button,
+html.cs16 a,
+html.cs16 [role="button"],
+html.cs16 [role="menuitem"],
+html.cs16 [role="menuitemradio"],
+html.cs16 summary {
+  cursor: pointer;
+}
+
+/* Chunky pixel scrollbar (webkit / blink only). */
+html.cs16::-webkit-scrollbar,
+html.cs16 *::-webkit-scrollbar {
+  width: 16px;
+  height: 16px;
+  background: var(--background);
+}
+
+html.cs16::-webkit-scrollbar-thumb,
+html.cs16 *::-webkit-scrollbar-thumb {
+  background: var(--surface);
+  border-top: 1px solid var(--cs16-bevel-light);
+  border-left: 1px solid var(--cs16-bevel-light);
+  border-right: 1px solid var(--cs16-bevel-dark);
+  border-bottom: 1px solid var(--cs16-bevel-dark);
+}
+
+html.cs16::-webkit-scrollbar-track,
+html.cs16 *::-webkit-scrollbar-track {
+  background: var(--cs16-scrollbar-track);
+}
+
+/* Firefox scrollbar */
+html.cs16,
+html.cs16 * {
+  scrollbar-width: auto;
+  scrollbar-color: var(--surface) var(--cs16-scrollbar-track);
+}
+
+/*
   Reading progress bar for post pages.
-  CSS scroll-driven animation — zero JS, no layout thrash.
-  Support: Chrome 115+, Firefox 110+, Safari 17.2+ (2026 baseline ~90%).
-  Fallback: bar stays at scaleX(0) (invisible) on unsupported browsers.
-  z-60 sits above the sticky header (z-50) without displacing it.
+
+  Two-element structure:
+    .reading-progress       — fixed-position track. Position, inset, z-index,
+                              and base height are Tailwind utilities on the JSX
+                              (app/routes/{-$locale}/$slug.tsx).
+    .reading-progress-fill  — scroll-scaled fill. Owns the scroll-timeline
+                              animation Tailwind v4 cannot express as a utility.
+
+  CS 1.6 mode replaces the 2px sliver with a 24px inset-beveled track and
+  a striped yellow gradient — see html.cs16 overrides below.
+
+  Scroll-driven animation support: Chrome 115+, Firefox 110+, Safari 17.2+
+  (2026 baseline ~90%). Fallback: fill stays at scaleX(0). z-60 sits above
+  the sticky header (z-50) without displacing it.
 */
 @keyframes reading-fill {
   from { transform: scaleX(0); }
   to { transform: scaleX(1); }
 }
 
-.reading-progress {
-  position: fixed;
-  top: 0;
-  left: 0;
-  right: 0;
-  height: 2px;
-  background-color: var(--color-accent);
-  transform-origin: left;
-  transform: scaleX(0);
-  z-index: 60;
+.reading-progress-fill {
+  transform: scaleX(0); /* fallback for browsers without animation-timeline */
   animation: reading-fill linear both;
   animation-timeline: scroll(root block);
 }
 
 @media (prefers-reduced-motion: reduce) {
   .reading-progress { display: none; }
+}
+
+/* CS 1.6 health-bar chrome: 24px inset-beveled track + striped yellow fill.
+   Pattern lifted from ekmas/cs16.css — segmented gradient creates the
+   chunky "blocks" look.
+
+   Positioning swap: light/dark uses Tailwind `fixed inset-x-0 top-0` (2px sliver
+   pinned to viewport top). cs16 overrides to `position: sticky; top: 4rem`
+   so the bar lives in document flow and tracks the sticky navbar's actual
+   on-screen position — at scroll 0 with the WipBanner visible, the bar
+   sits naturally below banner+navbar; once the banner scrolls out and the
+   navbar sticks at viewport y=0, the bar sticks at viewport y=64 (=4rem)
+   flush below it. `inset-inline: auto` cancels Tailwind's inset-x-0. */
+html.cs16 .reading-progress {
+  position: sticky;
+  top: 4rem;
+  inset-inline: auto;
+  height: 24px;
+  padding: 3px;
+  background-color: var(--surface);
+  border-top: 1px solid var(--cs16-bevel-dark);
+  border-left: 1px solid var(--cs16-bevel-dark);
+  border-right: 1px solid var(--cs16-bevel-light);
+  border-bottom: 1px solid var(--cs16-bevel-light);
+}
+
+/* Width-based fill in cs16 (not transform: scaleX). scaleX would rescale the
+   gradient pattern too, shrinking each 12px tile proportionally to fill
+   percent — cells render correctly only at 100%. Animating `width` instead
+   keeps every tile at its native 12px size and reveals more tiles as the bar
+   fills. transform: none cancels the scaleX inherited from .reading-progress-fill. */
+@keyframes reading-fill-width {
+  from { width: 0; }
+  to { width: 100%; }
+}
+
+html.cs16 .reading-progress-fill {
+  transform: none;
+  width: 0;
+  background-color: transparent;
+  background-image: linear-gradient(
+    to right,
+    var(--accent) 8px,
+    transparent 2px
+  );
+  background-size: 12px 16px;
+  animation: reading-fill-width linear both;
+  animation-timeline: scroll(root block);
+}
+
+/* CS 1.6 WipBanner: yellow bg is too loud against the muted olive palette.
+   Swap to the dark surface tone with white text + white close-button icon.
+   Same "theme styling stays in the theme block" pattern as .reading-progress —
+   the .wip-banner class on the component is just a CSS hook, no theme logic
+   in the JSX (per components.md forward-boundary rule). */
+html.cs16 .wip-banner {
+  background-color: var(--surface);
+  color: var(--foreground);
+  /* Inset bevel — dark top/left, light bottom/right. Same recessed-panel
+     look as the reading-progress track and cs16 form fields. */
+  border-top: 1px solid var(--cs16-bevel-dark);
+  border-left: 1px solid var(--cs16-bevel-dark);
+  border-right: 1px solid var(--cs16-bevel-light);
+  border-bottom: 1px solid var(--cs16-bevel-light);
+}
+
+html.cs16 .wip-banner button {
+  color: var(--foreground);
+}
+
+html.cs16 .wip-banner button:hover {
+  background-color: var(--muted);
 }
 
 /*
@@ -267,6 +583,40 @@ html.dark .shiki span {
   font-style: var(--shiki-dark-font-style) !important;
   font-weight: var(--shiki-dark-font-weight) !important;
   text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/*
+  cs16 syntax highlighting: reuse the dark Shiki token colors so code reads
+  identically to dark mode, but force the background to our --code-bg
+  (#292c21, the cs16 dark olive) so the block sits in the theme's palette
+  instead of shiki-dark-bg's neutral slate. Bevel + zero radius applied via
+  the html.cs16 .prose pre + .bg-code-bg overrides below.
+*/
+html.cs16 .shiki,
+html.cs16 .shiki span {
+  color: var(--shiki-dark) !important;
+  background-color: var(--code-bg) !important;
+  font-style: var(--shiki-dark-font-style) !important;
+  font-weight: var(--shiki-dark-font-weight) !important;
+  text-decoration: var(--shiki-dark-text-decoration) !important;
+}
+
+/*
+  Kill rounded corners on every clickable / code surface in cs16.
+  Token-level --radius-* overrides cover Tailwind rounded-{sm,md,lg,xl}
+  utilities, but explicit border-radius on .prose pre (12px hard-coded)
+  and Tailwind's plain `.rounded` (literal 0.25rem, not tokenised) bypass
+  the token swap — zero them out here.
+*/
+html.cs16 button,
+html.cs16 [role="button"],
+html.cs16 a.bg-card,
+html.cs16 a.bg-surface,
+html.cs16 a.bg-muted,
+html.cs16 .prose pre,
+html.cs16 .bg-code-bg,
+html.cs16 .rounded {
+  border-radius: 0;
 }
 
 /*
