@@ -157,6 +157,21 @@ describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
 		});
 	});
 
+	it("explicit lang arg overrides the context locale in the recorded payload", async () => {
+		// P2 fix: the toggle passes the active ROUTE locale. When provided it must
+		// win over the persisted-preference context locale (here the provider
+		// default "en"), so activating cs16 on a /pt-br/ route records "pt-br".
+		const { result } = makeProviderHook();
+
+		await act(async () => {
+			result.current.setTheme("cs16", "keyboard", "pt-br");
+		});
+
+		expect(mocks.recordThemeEvent).toHaveBeenCalledWith({
+			data: { theme: "cs16", source: "keyboard", lang: "pt-br" },
+		});
+	});
+
 	it("AC-4: setTheme('dark') does NOT dispatch recordThemeEvent", async () => {
 		const { result } = makeProviderHook();
 

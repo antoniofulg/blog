@@ -124,10 +124,14 @@ export function ThemeToggle({ locale = "en" }: { locale?: Locale }) {
 
 	const pickTheme = useCallback(
 		(next: Theme) => {
-			setTheme(next, sourceRef.current);
+			// Forward the active ROUTE locale (the `locale` prop is route-derived in
+			// the header for public routes) so theme_events.lang reflects the page
+			// the user activated cs16 on — not their persisted locale preference,
+			// which can disagree with the URL on first visits.
+			setTheme(next, sourceRef.current, locale);
 			setOpen(false);
 		},
-		[setTheme],
+		[setTheme, locale],
 	);
 
 	return (

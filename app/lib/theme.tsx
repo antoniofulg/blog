@@ -5,7 +5,7 @@ import {
 	useEffect,
 	useState,
 } from "react";
-import { useLocale } from "#/lib/locale";
+import { type Locale, useLocale } from "#/lib/locale";
 
 export type Theme = "light" | "dark" | "cs16";
 
@@ -20,7 +20,7 @@ export type ThemeSource = "long-press" | "keyboard";
 const ThemeContext = createContext<{
 	theme: Theme;
 	toggle: () => void;
-	setTheme: (theme: Theme, source?: ThemeSource) => void;
+	setTheme: (theme: Theme, source?: ThemeSource, lang?: Locale) => void;
 }>({ theme: "light", toggle: () => {}, setTheme: () => {} });
 
 /**
@@ -104,11 +104,18 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 	 * @param next   Target theme.
 	 * @param source Attribution source — defaults to 'long-press' so existing
 	 *               call sites (theme-toggle.tsx pickTheme) stay valid unchanged.
+	 * @param lang   Locale recorded in theme_events.lang. Callers SHOULD pass the
+	 *               active ROUTE locale (theme-toggle forwards its route-derived
+	 *               `locale` prop) so analytics reflect the page the user activated
+	 *               cs16 on. Falls back to the persisted-preference context locale
+	 *               only when omitted — that fallback can disagree with the URL on
+	 *               first visits, which is exactly why the toggle passes it.
 	 */
 	const setTheme = useCallback(
-		(next: Theme, source: ThemeSource = "long-press") => {
+		(next: Theme, source: ThemeSource = "long-press", lang?: Locale) => {
 			if (next === "cs16") {
 				ensureCs16Font();
+				const recordedLang = lang ?? locale;
 				// Dynamic import of the non-.server. wrapper (dispatch-theme-event.ts)
 				// avoids TanStack Start's import-protection plugin, which blocks any
 				// *.server.* import from the client bundle. dispatch-theme-event.ts
@@ -118,7 +125,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 				import("#/lib/analytics/dispatch-theme-event")
 					.then(({ dispatchThemeEvent }) =>
 						dispatchThemeEvent({
-							data: { theme: "cs16", source, lang: locale },
+							data: { theme: "cs16", source, lang: recordedLang },
 						}),
 					)
 					.catch(() => {

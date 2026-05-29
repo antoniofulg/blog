@@ -337,7 +337,27 @@ describe("unit: source attribution — keyboard path sets source='keyboard'", ()
 		const cs16Btn = screen.getAllByRole("menuitemradio")[2];
 		fireEvent.click(cs16Btn);
 
-		expect(mocks.mockSetTheme).toHaveBeenCalledWith("cs16", "keyboard");
+		// Third arg is the route locale (default "en" render) so theme_events.lang
+		// follows the page, not the persisted preference.
+		expect(mocks.mockSetTheme).toHaveBeenCalledWith("cs16", "keyboard", "en");
+	});
+
+	it("forwards the route locale prop as the third setTheme arg (pt-br route)", () => {
+		renderToggle("pt-br");
+		// pt-br render localizes the aria-label, so query by the pt-br name.
+		const btn = screen.getByRole("button", { name: "Alternar tema" });
+
+		fireEvent.keyDown(btn, { key: "ArrowDown" });
+		const cs16Btn = screen.getAllByRole("menuitemradio")[2];
+		fireEvent.click(cs16Btn);
+
+		// Proves the P2 fix: activating cs16 on a /pt-br/ route records lang "pt-br"
+		// regardless of the persisted locale preference.
+		expect(mocks.mockSetTheme).toHaveBeenCalledWith(
+			"cs16",
+			"keyboard",
+			"pt-br",
+		);
 	});
 
 	it("Space does NOT open popover — toggle() is called via native click instead", () => {
@@ -378,7 +398,7 @@ describe("unit: source attribution — long-press path sets source='long-press'"
 		const cs16Btn = screen.getAllByRole("menuitemradio")[2];
 		fireEvent.click(cs16Btn);
 
-		expect(mocks.mockSetTheme).toHaveBeenCalledWith("cs16", "long-press");
+		expect(mocks.mockSetTheme).toHaveBeenCalledWith("cs16", "long-press", "en");
 	});
 });
 
