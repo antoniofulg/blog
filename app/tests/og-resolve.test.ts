@@ -30,6 +30,31 @@ describe("unit: resolveOgImagePath — coverImage priority (step 1)", () => {
 		expect(result).toBe("https://blog.example.com/custom.png");
 	});
 
+	it("inserts a leading slash for a relative coverImage that omits it", () => {
+		// Author wrote `og/custom-cover.png` (no leading slash). Without
+		// normalisation `${origin}${coverImage}` yields the invalid
+		// `https://blog.example.comog/custom-cover.png`.
+		const result = resolveOgImagePath({
+			coverImage: "og/custom-cover.png",
+			locale: "en",
+			slug: "my-post",
+			origin: ORIGIN,
+			existsFn: noFile,
+		});
+		expect(result).toBe("https://blog.example.com/og/custom-cover.png");
+	});
+
+	it("does not double the slash for a relative coverImage that already has one", () => {
+		const result = resolveOgImagePath({
+			coverImage: "/og/custom-cover.png",
+			locale: "en",
+			slug: "my-post",
+			origin: ORIGIN,
+			existsFn: noFile,
+		});
+		expect(result).toBe("https://blog.example.com/og/custom-cover.png");
+	});
+
 	it("returns absolute http coverImage unchanged", () => {
 		const result = resolveOgImagePath({
 			coverImage: "https://cdn.example.com/cover.png",

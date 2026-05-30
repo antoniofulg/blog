@@ -38,9 +38,15 @@ export function resolveOgImagePath({
 }: ResolveOgImagePathInput): string {
 	// Step 1: frontmatter coverImage
 	if (coverImage) {
-		return coverImage.startsWith("http://") || coverImage.startsWith("https://")
-			? coverImage
-			: `${origin}${coverImage}`;
+		if (coverImage.startsWith("http://") || coverImage.startsWith("https://")) {
+			return coverImage;
+		}
+		// Relative public path (CONTENT.md documents the field as "relative to
+		// public/"). Authors may omit the leading slash (`og/cover.png` instead
+		// of `/og/cover.png`); without normalising, `${origin}${coverImage}`
+		// would produce `https://siteog/cover.png`. Ensure exactly one slash.
+		const path = coverImage.startsWith("/") ? coverImage : `/${coverImage}`;
+		return `${origin}${path}`;
 	}
 
 	// Step 2: auto-generated PNG

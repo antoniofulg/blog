@@ -112,15 +112,23 @@ Record COUNT(*) result: `_____________________` (must be 0)
 
 ### Step 5: Verify analytics bucketing (synthetic share click)
 
-From a browser or curl, send a request to a published post URL with a LinkedIn-like Referer:
+> **Do NOT use `curl` for this step.** Post-view events are recorded by the
+> hydrated page's `useEffect` calling the `incrementViewCount` server function
+> — a raw `curl` GET fetches the HTML but never runs that client code, so it
+> inserts no row. A `-H "Referer: ..."` header also does nothing: the bucketer
+> reads the client-reported `document.referrer` / `utm_source`, not the request
+> header. The deterministic way to drive a known bucket is the `utm_source`
+> query param, which the client forwards to the server function.
 
-```bash
-curl -s -o /dev/null -w "%{http_code}" \
-  -H "Referer: https://www.linkedin.com/feed/" \
-  "https://<site>/<slug>"
+In a **real browser** (so hydration runs), open a published post URL tagged
+with a known source. Use a fresh tab / incognito window so the `sessionStorage`
+view guard does not suppress the increment:
+
+```
+https://<site>/<slug>?utm_source=linkedin&utm_medium=social&utm_campaign=<slug>
 ```
 
-Then query the DB:
+Wait for the page to finish loading, then query the DB:
 
 ```bash
 PGPASSWORD="$DB_PASSWORD" psql \
@@ -133,6 +141,11 @@ PGPASSWORD="$DB_PASSWORD" psql \
 Record the row here (expected `referrer_source = 'linkedin'`): `_____________________`
 
 **AC-3**: A row with `referrer_source = 'linkedin'` must appear.
+
+> Alternative (no browser): insert a synthetic event directly, e.g.
+> `INSERT INTO analytics_events (post_id, referrer_source, lang, device) VALUES (<id>, 'linkedin', 'en', 'desktop');`
+> — useful for a pure DB smoke test, but it bypasses the client→server path so
+> it does not exercise the real attribution flow.
 
 ---
 
