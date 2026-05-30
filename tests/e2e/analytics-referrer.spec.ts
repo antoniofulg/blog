@@ -279,5 +279,47 @@ publicTest.describe(
 				}
 			},
 		);
+
+		publicTest(
+			"internal post-to-post navigation → direct bucket (self-host referer)",
+			async ({ page }) => {
+				const state = await getState();
+				const { db, close } = await openTestDb(state.connectionString);
+
+				try {
+					// First hop: land on a DIFFERENT post FROM an external referer.
+					// We don't assert on this post's row — it only exists to leave
+					// `document.referrer` pointing at our own origin for the second
+					// navigation.
+					await page.goto(`/${state.enOnlyPostSlug}`, {
+						referer: "https://www.linkedin.com/feed/",
+					});
+					await page.waitForLoadState("load");
+
+					const lastIdBefore =
+						(await latestEventForPost(db, state.fixturePostId))?.id ?? 0;
+
+					// Second hop: click-equivalent navigation to a DIFFERENT post on
+					// the same origin. `document.referrer` is now the first post's
+					// URL on our own host, so the bucketer must resolve it to
+					// `direct` (internal hop), NOT `other`.
+					await page.goto(`/${state.fixturePostSlug}`);
+					await page.waitForLoadState("load");
+
+					await expect
+						.poll(
+							async () =>
+								(await latestEventForPost(db, state.fixturePostId))?.id ?? 0,
+							{ timeout: 7_000 },
+						)
+						.toBeGreaterThan(lastIdBefore);
+
+					const last = await latestEventForPost(db, state.fixturePostId);
+					expect(last?.referrerSource).toBe("direct");
+				} finally {
+					await close();
+				}
+			},
+		);
 	},
 );

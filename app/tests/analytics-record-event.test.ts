@@ -372,6 +372,7 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
 			utmSource: null,
 			referer: refererValue,
+			selfHost: null,
 		});
 		expect(mocks.bucketEventSpy).toHaveBeenCalledTimes(1);
 	});
@@ -386,6 +387,7 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
 			utmSource: null,
 			referer: null,
+			selfHost: null,
 		});
 	});
 
@@ -400,6 +402,19 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
 			utmSource: "whatsapp",
 			referer: null,
+			selfHost: null,
+		});
+	});
+
+	it("forwards the request Host header as selfHost so internal hops bucket direct", async () => {
+		const req = makeRequest(HUMAN_UA, "https://example.test/post-a");
+		req.headers.set("Host", "example.test");
+		await recordPostView({ postId: 1, request: req, lang: "en" });
+
+		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
+			utmSource: null,
+			referer: "https://example.test/post-a",
+			selfHost: "example.test",
 		});
 	});
 
@@ -414,6 +429,7 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
 			utmSource: null,
 			referer: "https://github.com/tanstack",
+			selfHost: null,
 		});
 	});
 });

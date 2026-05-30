@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp } from "lucide-react";
 import type { AnalyticsDashboardData } from "#/db/analytics-queries";
+import { resolveSourceLabel } from "#/lib/analytics/source-label";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
 
@@ -87,7 +88,7 @@ export function SummaryCards({ summary, locale }: SummaryCardsProps) {
 				label={t.topReferrer}
 				value={
 					topReferrer !== null
-						? `${topReferrer.source} (${topReferrer.count})`
+						? `${resolveSourceLabel(topReferrer.source, locale)} (${topReferrer.count})`
 						: "—"
 				}
 			/>

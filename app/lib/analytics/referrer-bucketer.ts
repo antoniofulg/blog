@@ -213,16 +213,57 @@ export function bucketReferrer(
 	return hostnameToSource(url.hostname);
 }
 
+/** Extract the bare hostname from a `Host` header or a full URL string. */
+function extractHostname(value: string | null | undefined): string | null {
+	if (!value) return null;
+	const trimmed = value.trim();
+	if (trimmed.length === 0) return null;
+	// Only treat the value as a URL when it carries a scheme. `new URL` would
+	// otherwise mis-parse a bare `host:port` Host header (e.g. "localhost:4173")
+	// as scheme "localhost:" with an empty hostname.
+	if (trimmed.includes("://")) {
+		try {
+			return new URL(trimmed).hostname.toLowerCase() || null;
+		} catch {
+			return null;
+		}
+	}
+	// Bare `host:port` (the `Host` header form) → strip the port.
+	return trimmed.split(":")[0]?.toLowerCase() || null;
+}
+
 /**
- * Compose `bucketUtmSource` + `bucketReferrer` with the prefer-utm rule.
- * Callers (e.g. `recordPostView`) should use this rather than calling the
- * sub-bucketers in sequence; the precedence is documented here once.
+ * Compose `bucketUtmSource` + `bucketReferrer` with the prefer-utm rule and
+ * self-host detection. Callers (e.g. `recordPostView`) should use this rather
+ * than calling the sub-bucketers in sequence; the precedence is documented
+ * here once:
+ *
+ *   1. A known `utm_source` wins outright (survives share-intent redirects).
+ *   2. A referer whose hostname matches the site's own host (`selfHost`) is
+ *      an internal navigation — bucketed `direct`. Without this rule the
+ *      second pageview in a session (reader clicks from post A to post B)
+ *      carries `document.referrer = https://<selfHost>/post-a`, which the
+ *      hostname map does not recognise and would mislabel as `other`. The
+ *      WhatsApp arrival that started the session is attributed once (to
+ *      `whatsapp`); subsequent internal hops are `direct`.
+ *   3. Otherwise fall back to plain hostname bucketing.
  */
 export function bucketEvent(input: {
 	utmSource?: string | null;
 	referer?: string | null;
+	/** The site's own host (from the request `Host` header). */
+	selfHost?: string | null;
 }): ReferrerSource {
 	const fromUtm = bucketUtmSource(input.utmSource);
 	if (fromUtm) return fromUtm;
+
+	const selfHost = extractHostname(input.selfHost);
+	const refererHost = extractHostname(input.referer);
+	if (selfHost && refererHost) {
+		if (refererHost === selfHost || refererHost.endsWith(`.${selfHost}`)) {
+			return "direct";
+		}
+	}
+
 	return bucketReferrer(input.referer);
 }

@@ -163,9 +163,20 @@ describe("SummaryCards — null topReferrer (AC-3)", () => {
 		expect(dashes.length).toBeGreaterThanOrEqual(1);
 	});
 
-	it("renders referrer source + count when topReferrer is not null", () => {
+	it("renders the localized referrer label + count when topReferrer is not null", () => {
 		renderCards(makeSummary({ topReferrer: { source: "linkedin", count: 7 } }));
-		expect(screen.getByText("linkedin (7)")).toBeDefined();
+		// Raw bucket "linkedin" is mapped to its display label "LinkedIn".
+		expect(screen.getByText("LinkedIn (7)")).toBeDefined();
+	});
+
+	it("maps the whatsapp bucket to its WhatsApp label", () => {
+		renderCards(makeSummary({ topReferrer: { source: "whatsapp", count: 3 } }));
+		expect(screen.getByText("WhatsApp (3)")).toBeDefined();
+	});
+
+	it("maps the direct bucket to its Direct label", () => {
+		renderCards(makeSummary({ topReferrer: { source: "direct", count: 5 } }));
+		expect(screen.getByText("Direct (5)")).toBeDefined();
 	});
 });
 

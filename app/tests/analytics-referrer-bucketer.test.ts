@@ -237,3 +237,57 @@ describe("bucketEvent — utm_source takes precedence over Referer", () => {
 		expect(bucketEvent({ utmSource: "x", referer: null })).toBe("twitter");
 	});
 });
+
+describe("bucketEvent — self-host referer is internal → direct", () => {
+	it("buckets a same-host referer as direct (internal post-to-post hop)", () => {
+		const result = bucketEvent({
+			referer: "https://antoniofulg.tech/react-suspense-typescript",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("direct");
+	});
+
+	it("ignores the port on the Host header when comparing", () => {
+		const result = bucketEvent({
+			referer: "http://localhost/some-post",
+			selfHost: "localhost:4173",
+		});
+		expect(result).toBe("direct");
+	});
+
+	it("treats a subdomain of the self-host as internal", () => {
+		const result = bucketEvent({
+			referer: "https://www.antoniofulg.tech/post",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("direct");
+	});
+
+	it("still buckets a known external host normally when selfHost is set", () => {
+		const result = bucketEvent({
+			referer: "https://www.linkedin.com/feed/",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("linkedin");
+	});
+
+	it("utm_source still wins over an internal referer", () => {
+		// A reader who arrived from WhatsApp and then navigated internally to a
+		// post that still carries ?utm_source=whatsapp is attributed to
+		// whatsapp, not direct.
+		const result = bucketEvent({
+			utmSource: "whatsapp",
+			referer: "https://antoniofulg.tech/post-a",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("whatsapp");
+	});
+
+	it("falls back to 'other' for an external unknown host (no selfHost match)", () => {
+		const result = bucketEvent({
+			referer: "https://some-random-blog.example/article",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("other");
+	});
+});

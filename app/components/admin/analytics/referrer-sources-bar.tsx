@@ -15,6 +15,7 @@ import {
 	ALL_SOURCES,
 	type ReferrerSource,
 } from "#/lib/analytics/referrer-bucketer";
+import { resolveSourceLabel } from "#/lib/analytics/source-label";
 import { formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
@@ -173,6 +174,7 @@ export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 								<Bar
 									key={source}
 									dataKey={source}
+									name={resolveSourceLabel(source, locale)}
 									stackId="referrers"
 									fill={SOURCE_COLOR_MAP[source]}
 								/>
@@ -194,7 +196,7 @@ export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 								// biome-ignore lint/suspicious/noArrayIndexKey: sr-only table rows have no stable id; index is safe here
 								<tr key={i}>
 									<td>{row.date}</td>
-									<td>{row.source}</td>
+									<td>{resolveSourceLabel(row.source, locale)}</td>
 									<td>{row.count}</td>
 								</tr>
 							))}

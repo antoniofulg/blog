@@ -92,10 +92,13 @@ export async function recordPostView(
 	// click on a wa.me / twitter.com/intent / etc. share intent — which
 	// strips `document.referrer` along the redirect chain — still resolves
 	// to the originating platform (whatsapp / twitter / …) rather than
-	// `direct`.
+	// `direct`. `selfHost` lets it recognise internal post-to-post hops
+	// (where `document.referrer` is one of our own URLs) and bucket them as
+	// `direct` instead of `other`.
 	const referrerSource = bucketEvent({
 		utmSource: utmSource ?? null,
 		referer,
+		selfHost: request.headers.get("Host"),
 	});
 	const device = detectDevice(ua);
 
