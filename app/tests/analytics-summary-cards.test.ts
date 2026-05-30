@@ -183,14 +183,15 @@ describe("SummaryCards — null topReferrer (AC-3)", () => {
 // ── AC-4: topLanguage → pt-br label + count ──────────────────────────────────
 
 describe("SummaryCards — topLanguage rendering (AC-4)", () => {
-	it("renders pt-br lang and count when topLanguage={ lang:'pt-br', count:42 }", () => {
+	it("renders the localized pt-br label and count when topLanguage={ lang:'pt-br', count:42 }", () => {
 		renderCards(makeSummary({ topLanguage: { lang: "pt-br", count: 42 } }));
-		expect(screen.getByText("pt-br (42)")).toBeDefined();
+		// Raw "pt-br" maps to the EN admin label "Portuguese".
+		expect(screen.getByText("Portuguese (42)")).toBeDefined();
 	});
 
-	it("renders en lang and count when topLanguage={ lang:'en', count:60 }", () => {
+	it("renders the localized en label and count when topLanguage={ lang:'en', count:60 }", () => {
 		renderCards(makeSummary({ topLanguage: { lang: "en", count: 60 } }));
-		expect(screen.getByText("en (60)")).toBeDefined();
+		expect(screen.getByText("English (60)")).toBeDefined();
 	});
 
 	it("renders em-dash when topLanguage is null", () => {

@@ -66,6 +66,9 @@ test.describe("analytics dashboard", { tag: ["@admin", "@smoke"] }, () => {
 			await expect(
 				authedPage.getByRole("region", { name: "Device Split" }),
 			).toBeVisible();
+			await expect(
+				authedPage.getByRole("region", { name: "Language Split" }),
+			).toBeVisible();
 
 			// Default URL has no postId (no active filter)
 			const url = new URL(authedPage.url());

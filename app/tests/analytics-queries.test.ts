@@ -81,6 +81,8 @@ function seedMock(overrides: {
 				mobile: 10,
 				tablet: 5,
 				desktop: 35,
+				langEn: 30,
+				langPtBr: 20,
 			},
 		],
 		topReferrer = [{ source: "google", cnt: 20 }],
@@ -301,6 +303,24 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		});
 		const result = await getAnalyticsDashboard({ range: "30d" });
 		expect(result.deviceSplit).toEqual({ mobile: 40, tablet: 20, desktop: 40 });
+	});
+
+	it("maps languageSplit from conditional sums", async () => {
+		seedMock({
+			summary: [
+				{
+					totalVisits: 100,
+					uniquePosts: 5,
+					mobile: 40,
+					tablet: 20,
+					desktop: 40,
+					langEn: 70,
+					langPtBr: 30,
+				},
+			],
+		});
+		const result = await getAnalyticsDashboard({ range: "30d" });
+		expect(result.languageSplit).toEqual({ en: 70, "pt-br": 30 });
 	});
 
 	it("topReferrer is null when no referrer rows returned", async () => {

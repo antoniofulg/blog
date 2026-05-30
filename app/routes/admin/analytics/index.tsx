@@ -11,6 +11,7 @@ import { AnalyticsDashboardSkeleton } from "#/components/admin/analytics/analyti
 import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
 import { DeviceSplitDonut } from "#/components/admin/analytics/device-split-donut";
 import { FilterChip } from "#/components/admin/analytics/filter-chip";
+import { LanguageSplitPie } from "#/components/admin/analytics/language-split-pie";
 import { RangeSelector } from "#/components/admin/analytics/range-selector";
 import { ReferrerSourcesBar } from "#/components/admin/analytics/referrer-sources-bar";
 import { SummaryCards } from "#/components/admin/analytics/summary-cards";
@@ -140,6 +141,15 @@ export function AnalyticsDashboard() {
 					/>
 					<DeviceSplitDonut
 						deviceSplit={data.deviceSplit}
+						locale={locale}
+						postId={postId}
+					/>
+				</div>
+
+				{/* Language split pie */}
+				<div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
+					<LanguageSplitPie
+						languageSplit={data.languageSplit}
 						locale={locale}
 						postId={postId}
 					/>

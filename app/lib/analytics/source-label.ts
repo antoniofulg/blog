@@ -20,3 +20,17 @@ export function resolveSourceLabel(source: string, locale: Locale): string {
 	>;
 	return labels[source] ?? source;
 }
+
+/**
+ * Resolve a raw `analytics_events.lang` value (`en` / `pt-br`) to its display
+ * label for the given UI locale (e.g. `en` → "English" / "Inglês"). Falls back
+ * to the raw value for any unexpected language code so the UI degrades to the
+ * stored string rather than rendering `undefined`.
+ */
+export function resolveLanguageLabel(lang: string, locale: Locale): string {
+	const labels = strings[locale].admin.analytics.languages as Record<
+		string,
+		string | undefined
+	>;
+	return labels[lang] ?? lang;
+}

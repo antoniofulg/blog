@@ -76,6 +76,7 @@ export const uiStringsSchema = z.object({
 				referrerSources: z.string(),
 				topPosts: z.string(),
 				deviceSplit: z.string(),
+				languageSplit: z.string(),
 			}),
 			range: z.object({
 				"7d": z.string(),
@@ -94,6 +95,13 @@ export const uiStringsSchema = z.object({
 				columnDate: z.string(),
 				columnSource: z.string(),
 				columnDevice: z.string(),
+			}),
+			// Display labels for the two content locales, keyed by the raw
+			// `analytics_events.lang` value. Used by the Top Language summary
+			// card and the language-split pie.
+			languages: z.object({
+				en: z.string(),
+				"pt-br": z.string(),
 			}),
 			// Display labels for every `ReferrerSource` bucket. Keyed by the
 			// raw bucket value stored in `analytics_events.referrer_source`.
@@ -205,6 +213,7 @@ export const strings: Record<Locale, UIStrings> = {
 					referrerSources: "Referrer Sources",
 					topPosts: "Top Posts",
 					deviceSplit: "Device Split",
+					languageSplit: "Language Split",
 				},
 				range: {
 					"7d": "Last 7 days",
@@ -223,6 +232,10 @@ export const strings: Record<Locale, UIStrings> = {
 					columnDate: "Date",
 					columnSource: "Source",
 					columnDevice: "Device",
+				},
+				languages: {
+					en: "English",
+					"pt-br": "Portuguese",
 				},
 				sources: {
 					linkedin: "LinkedIn",
@@ -328,6 +341,7 @@ export const strings: Record<Locale, UIStrings> = {
 					referrerSources: "Origens de acesso",
 					topPosts: "Posts mais acessados",
 					deviceSplit: "Dispositivos",
+					languageSplit: "Idiomas",
 				},
 				range: {
 					"7d": "Últimos 7 dias",
@@ -346,6 +360,10 @@ export const strings: Record<Locale, UIStrings> = {
 					columnDate: "Data",
 					columnSource: "Origem",
 					columnDevice: "Dispositivo",
+				},
+				languages: {
+					en: "Inglês",
+					"pt-br": "Português",
 				},
 				sources: {
 					linkedin: "LinkedIn",
