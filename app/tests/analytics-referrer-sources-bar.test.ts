@@ -187,7 +187,7 @@ describe("pivotReferrerByDay", () => {
 
 describe("SOURCE_COLOR_MAP", () => {
 	const CSS_VAR_RE = /^var\(--color-[\w-]+\)$/;
-	const CHART_VAR_RE = /^var\(--color-chart-\d+\)$/;
+	const SOURCE_VAR_RE = /^var\(--color-source-[\w-]+\)$/;
 
 	it("maps all 14 ReferrerSource buckets to a CSS custom property", () => {
 		const expectedSources = [
@@ -217,7 +217,7 @@ describe("SOURCE_COLOR_MAP", () => {
 		}
 	});
 
-	it("named sources (linkedin→mastodon) use chart color tokens", () => {
+	it("named platforms use their brand-source color tokens", () => {
 		const namedSources = [
 			"linkedin",
 			"google",
@@ -229,17 +229,38 @@ describe("SOURCE_COLOR_MAP", () => {
 			"medium",
 			"bluesky",
 			"mastodon",
+			"whatsapp",
+			"email",
 		] as const;
 		for (const source of namedSources) {
-			expect(SOURCE_COLOR_MAP[source]).toMatch(CHART_VAR_RE);
+			expect(SOURCE_COLOR_MAP[source]).toMatch(SOURCE_VAR_RE);
 		}
 	});
 
-	it("catch-all buckets (direct, other) use distinct semantic tokens, not chart tokens", () => {
+	it("every named platform maps to a DISTINCT brand color (no collisions)", () => {
+		const named = [
+			"linkedin",
+			"google",
+			"github",
+			"twitter",
+			"reddit",
+			"hackernews",
+			"dev.to",
+			"medium",
+			"bluesky",
+			"mastodon",
+			"whatsapp",
+			"email",
+		] as const;
+		const colors = named.map((s) => SOURCE_COLOR_MAP[s]);
+		expect(new Set(colors).size).toBe(named.length);
+	});
+
+	it("catch-all buckets (direct, other) use distinct semantic tokens, not brand tokens", () => {
 		// Catch-all buckets must NOT share colors with named sources —
-		// they use muted semantic tokens for visual distinction.
-		expect(SOURCE_COLOR_MAP.direct).not.toMatch(CHART_VAR_RE);
-		expect(SOURCE_COLOR_MAP.other).not.toMatch(CHART_VAR_RE);
+		// they use muted semantic tokens so author/unknown traffic recedes.
+		expect(SOURCE_COLOR_MAP.direct).not.toMatch(SOURCE_VAR_RE);
+		expect(SOURCE_COLOR_MAP.other).not.toMatch(SOURCE_VAR_RE);
 		expect(SOURCE_COLOR_MAP.direct).not.toBe(SOURCE_COLOR_MAP.other);
 	});
 });

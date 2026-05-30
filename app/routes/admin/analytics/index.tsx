@@ -131,12 +131,11 @@ export function AnalyticsDashboard() {
 					/>
 				</div>
 
-				{/* Bottom row: top posts + device split — tasks 15, 16 */}
+				{/* Split row: language + device pies side by side */}
 				<div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-					<TopPostsTable
-						topPosts={data.topPosts}
+					<LanguageSplitPie
+						languageSplit={data.languageSplit}
 						locale={locale}
-						onRowClick={handleRowClick}
 						postId={postId}
 					/>
 					<DeviceSplitDonut
@@ -146,11 +145,12 @@ export function AnalyticsDashboard() {
 					/>
 				</div>
 
-				{/* Language split pie */}
-				<div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-					<LanguageSplitPie
-						languageSplit={data.languageSplit}
+				{/* Top posts — full-width final row */}
+				<div className="mt-4">
+					<TopPostsTable
+						topPosts={data.topPosts}
 						locale={locale}
+						onRowClick={handleRowClick}
 						postId={postId}
 					/>
 				</div>
