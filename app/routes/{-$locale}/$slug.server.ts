@@ -255,17 +255,17 @@ export const getPostBySlugWithLang = createServerFn({ method: "GET" })
 
 export const incrementViewCount = createServerFn({ method: "POST" })
 	.inputValidator((input: IncrementViewCountInput) => {
-		if (typeof input?.id !== "number" || !Number.isFinite(input.id)) {
-			throw new Error("incrementViewCount: id must be a finite number");
+		if (
+			typeof input?.id !== "number" ||
+			!Number.isInteger(input.id) ||
+			input.id <= 0
+		) {
+			throw new Error("incrementViewCount: id must be a positive integer");
 		}
-		const referrer =
-			typeof input.referrer === "string" && input.referrer.length > 0
-				? input.referrer
-				: null;
-		const utmSource =
-			typeof input.utmSource === "string" && input.utmSource.length > 0
-				? input.utmSource
-				: null;
+		const cap = (s: string | null, max: number): string | null =>
+			typeof s === "string" && s.length > 0 ? s.slice(0, max) : null;
+		const referrer = cap(input.referrer, 2048);
+		const utmSource = cap(input.utmSource, 64);
 		return { id: input.id, referrer, utmSource };
 	})
 	.handler(async ({ data }) => incrementViewCountFn(data));

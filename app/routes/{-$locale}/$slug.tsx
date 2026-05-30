@@ -207,6 +207,8 @@ function PostView({ data }: { data: PostLoaderResult }) {
 				referrer: document.referrer || null,
 				utmSource: utmSource && utmSource.length > 0 ? utmSource : null,
 			},
+		}).catch(() => {
+			// Analytics is best-effort; a failed increment must not surface to the reader.
 		});
 	}, [post.id]);
 
