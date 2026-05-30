@@ -185,7 +185,15 @@ function PostView({ data }: { data: PostLoaderResult }) {
 		const key = `viewed-${post.id}`;
 		if (sessionStorage.getItem(key)) return;
 		sessionStorage.setItem(key, "1");
-		incrementViewCount({ data: post.id });
+		// Forward `document.referrer` explicitly. The browser sets the
+		// `Referer` header on this server-fn POST to the current post URL
+		// (same-origin), so reading the request header on the server would
+		// always bucket arrivals as "direct"/"other". Sending the navigator-
+		// reported referrer is the only way to surface the real upstream
+		// source (linkedin, x.com, etc.) in analytics_events.
+		incrementViewCount({
+			data: { id: post.id, referrer: document.referrer || null },
+		});
 	}, [post.id]);
 
 	const readingTime = useMemo(() => readingTimeMinutes(html), [html]);

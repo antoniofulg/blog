@@ -177,7 +177,23 @@ export async function getPostBySlugWithLangFn(
 	throw notFound();
 }
 
-export async function incrementViewCountFn(id: number): Promise<void> {
+export type IncrementViewCountInput = {
+	id: number;
+	/**
+	 * Client-reported `document.referrer` at the moment the post mounted.
+	 * `null` when the navigation had no referrer (direct visit / fresh tab).
+	 * Override the request's `Referer` header because the browser sets that
+	 * header to the current post URL on same-origin server-fn fetches, which
+	 * loses the original upstream source.
+	 */
+	referrer: string | null;
+};
+
+export async function incrementViewCountFn(
+	input: IncrementViewCountInput,
+): Promise<void> {
+	const { id, referrer } = input;
+
 	// Gate on bot check first — no DB I/O for bot requests.
 	const [{ getRequest }, { isBotUserAgent }] = await Promise.all([
 		import("@tanstack/react-start/server"),
@@ -188,8 +204,7 @@ export async function incrementViewCountFn(id: number): Promise<void> {
 
 	if (isBotUserAgent(request.headers.get("User-Agent"))) return;
 
-	// Read lang server-side so the client call signature (`{ data: post.id }`)
-	// stays unchanged — the client useEffect does not need to pass lang.
+	// Read lang server-side so the client only forwards `{ id, referrer }`.
 	const [{ db }, { posts }, { eq }] = await Promise.all([
 		import("#/db/client"),
 		import("#/db/schema"),
@@ -208,7 +223,7 @@ export async function incrementViewCountFn(id: number): Promise<void> {
 	const { recordPostView } = await import(
 		"#/lib/analytics/record-event.server"
 	);
-	await recordPostView({ postId: id, request, lang });
+	await recordPostView({ postId: id, request, lang, referrer });
 }
 
 export function validateLocaleInput(data: { slug: string; lang: string }): {
@@ -231,5 +246,14 @@ export const getPostBySlugWithLang = createServerFn({ method: "GET" })
 	});
 
 export const incrementViewCount = createServerFn({ method: "POST" })
-	.inputValidator((id: number) => id)
-	.handler(async ({ data: id }) => incrementViewCountFn(id));
+	.inputValidator((input: IncrementViewCountInput) => {
+		if (typeof input?.id !== "number" || !Number.isFinite(input.id)) {
+			throw new Error("incrementViewCount: id must be a finite number");
+		}
+		const referrer =
+			typeof input.referrer === "string" && input.referrer.length > 0
+				? input.referrer
+				: null;
+		return { id: input.id, referrer };
+	})
+	.handler(async ({ data }) => incrementViewCountFn(data));

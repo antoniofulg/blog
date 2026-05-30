@@ -282,11 +282,14 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 describe("unit: incrementViewCountFn", () => {
 	beforeEach(resetMocks);
 
-	it("delegates to recordPostView with correct postId and lang (human UA)", async () => {
+	it("delegates to recordPostView with correct postId, lang, and referrer (human UA)", async () => {
 		// Provide the post row for the lang lookup inside incrementViewCountFn.
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
 
-		await incrementViewCountFn(42);
+		await incrementViewCountFn({
+			id: 42,
+			referrer: "https://www.linkedin.com/feed",
+		});
 
 		// recordPostView must be called exactly once with the right input shape.
 		expect(mocks.recordPostView).toHaveBeenCalledTimes(1);
@@ -294,16 +297,27 @@ describe("unit: incrementViewCountFn", () => {
 			postId: 42,
 			request: expect.any(Request),
 			lang: "en",
+			referrer: "https://www.linkedin.com/feed",
 		});
 
 		// No direct db.update — counter is handled inside recordPostView.
 		expect(mocks.update).not.toHaveBeenCalled();
 	});
 
+	it("forwards a null referrer when navigation had no upstream source", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
+
+		await incrementViewCountFn({ id: 42, referrer: null });
+
+		expect(mocks.recordPostView).toHaveBeenCalledWith(
+			expect.objectContaining({ postId: 42, referrer: null }),
+		);
+	});
+
 	it("pt-br post lang is forwarded to recordPostView correctly", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "pt-br" }]);
 
-		await incrementViewCountFn(7);
+		await incrementViewCountFn({ id: 7, referrer: null });
 
 		expect(mocks.recordPostView).toHaveBeenCalledWith(
 			expect.objectContaining({ postId: 7, lang: "pt-br" }),
@@ -320,7 +334,7 @@ describe("unit: incrementViewCountFn", () => {
 			}),
 		);
 
-		await incrementViewCountFn(42);
+		await incrementViewCountFn({ id: 42, referrer: null });
 
 		// Bot is identified before any DB I/O; recordPostView must NOT be called.
 		expect(mocks.recordPostView).not.toHaveBeenCalled();
@@ -333,7 +347,7 @@ describe("unit: incrementViewCountFn", () => {
 		// Lang lookup returns no rows.
 		mocks.selectWhere.mockResolvedValueOnce([]);
 
-		await incrementViewCountFn(999);
+		await incrementViewCountFn({ id: 999, referrer: null });
 
 		expect(mocks.recordPostView).not.toHaveBeenCalled();
 		expect(mocks.update).not.toHaveBeenCalled();

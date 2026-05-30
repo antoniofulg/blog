@@ -9,8 +9,18 @@ import { bucketReferrer } from "#/lib/analytics/referrer-bucketer";
  */
 export type RecordPostViewInput = {
 	postId: number;
-	request: Request; // source of headers (UA, Referer, Accept-Language)
+	request: Request; // source of headers (UA, Accept-Language)
 	lang: "en" | "pt-br"; // canonical post locale
+	/**
+	 * Optional client-reported referrer (`document.referrer`). When provided,
+	 * it overrides the request's `Referer` header — the increment server-fn
+	 * fetch is same-origin, so the browser always sets that header to the
+	 * current post URL, which would otherwise bucket every visit as
+	 * "direct"/"other" regardless of the real upstream source. `null` /
+	 * empty string means the navigation had no referrer (treated the same
+	 * as "direct" by the bucketer).
+	 */
+	referrer?: string | null;
 };
 
 /**
@@ -44,10 +54,25 @@ export type RecordPostViewResult = {
 export async function recordPostView(
 	input: RecordPostViewInput,
 ): Promise<RecordPostViewResult> {
-	const { postId, request, lang } = input;
+	const { postId, request, lang, referrer } = input;
 
 	const ua = request.headers.get("User-Agent");
-	const referer = request.headers.get("Referer");
+	// Prefer the explicit `referrer` argument over the request header. The
+	// header is the URL of the page that made the same-origin fetch (always
+	// the post itself); the explicit value is `document.referrer` from the
+	// browser, which actually identifies the upstream source. `null` is the
+	// "client said there is no upstream" signal — empty string is normalised
+	// to it too. Only fall back to the request header when the caller did
+	// NOT supply the field at all (the integration tests in
+	// `analytics-record-event.test.ts` rely on this legacy path).
+	let referer: string | null;
+	if (referrer === undefined) {
+		referer = request.headers.get("Referer");
+	} else if (referrer === null || referrer.length === 0) {
+		referer = null;
+	} else {
+		referer = referrer;
+	}
 
 	// Bot gate: short-circuit before any DB access.
 	// Bots are rejected here; no counter bump, no event row.
