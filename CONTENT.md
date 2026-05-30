@@ -110,11 +110,11 @@ coverImage: /og/custom-cover.png
 ---
 ```
 
-The file must exist at `public/og/custom-cover.png` **before the deploy runs** — it is not auto-generated; you supply it.
+The file must exist at `public/og/custom-cover.png` **before the deploy runs** — it is not auto-generated; you supply it. Custom covers placed directly under `public/og/` **are tracked by git** and ship in the deploy artifact; commit them with your post.
 
 ### Auto-generated cards and `public/og/`
 
-`bun run sync` generates OG cards for every post that has at least one fenced code block and writes them to `public/og/<locale>/<slug>.png`. The `public/og/` directory is **gitignored** — cards are regenerated on every sync and will never appear in `git status`.
+`bun run sync` generates OG cards for every post that has at least one fenced code block and writes them to `public/og/<locale>/<slug>.png`. Only the per-locale subdirectories (`public/og/<locale>/`) are **gitignored** — auto-generated cards are regenerated on every sync and never appear in `git status`. Author-supplied covers placed at the root of `public/og/` are committed normally.
 
 Running `bun run sync` locally after editing a post takes ~200–500 ms longer per post due to OG card generation.
 

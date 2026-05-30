@@ -35,8 +35,12 @@ docs/_reports/app-audit-*.md
 # Compozy workflow artifacts (PRD/TechSpec/tasks/reviews) — local-only
 .compozy/
 
-# Generated OG images (build-time output; never committed)
-public/og/
+# Auto-generated OG cards (written by `bun run sync` to public/og/<locale>/<slug>.png).
+# Ignore only the per-locale subdirectories so the generated cards stay out of
+# git, while author-supplied custom covers placed directly in public/og/
+# (e.g. coverImage: /og/custom-cover.png, per CONTENT.md) remain tracked and
+# ship in the deploy artifact.
+public/og/*/
 
 # Agent worktrees created by sub-agent dispatch hook — transient
 .worktrees/
