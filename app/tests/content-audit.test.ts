@@ -523,7 +523,7 @@ describe("writeReport", () => {
 		expect(dataRow).toBeDefined();
 		// Row must not split into extra columns from an unescaped pipe
 		// Use negative lookbehind to not split on escaped \| sequences
-		const cols = dataRow!.split(/(?<!\\)\|/).filter((c) => c.trim() !== "");
+		const cols = dataRow?.split(/(?<!\\)\|/).filter((c) => c.trim() !== "");
 		expect(cols).toHaveLength(6);
 	});
 

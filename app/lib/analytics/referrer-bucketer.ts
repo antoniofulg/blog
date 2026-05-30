@@ -16,6 +16,8 @@ export type ReferrerSource =
 	| "medium"
 	| "bluesky"
 	| "mastodon"
+	| "whatsapp"
+	| "email"
 	| "direct"
 	| "other";
 
@@ -44,6 +46,8 @@ export const ALL_SOURCES: readonly ReferrerSource[] = [
 	"medium",
 	"bluesky",
 	"mastodon",
+	"whatsapp",
+	"email",
 	"direct",
 	"other",
 ] as const;
@@ -140,6 +144,48 @@ function hostnameToSource(hostname: string): ReferrerSource {
 }
 
 /**
+ * Map a `utm_source` value to a `ReferrerSource` bucket. Returns `null` for
+ * unknown / missing / empty values so callers can fall back to Referer-based
+ * bucketing without a sentinel string.
+ *
+ * Why this exists alongside `bucketReferrer`: clicks on platform share
+ * intents (wa.me, twitter.com/intent, etc.) often arrive at the post with
+ * an empty `document.referrer` — the intermediate redirect strips it — but
+ * the `utm_source` query param we emit from PostShare survives the round
+ * trip. Without consulting it, every WhatsApp / X / LinkedIn share that
+ * came through our own platform links would bucket as `direct`.
+ *
+ * Matching is case-insensitive against the literal `utm_source` value we
+ * emit from `app/lib/share/platforms.ts`; anything not in that set is
+ * treated as untrusted and returns `null`.
+ *
+ * Pure function — no I/O, no side effects.
+ */
+const UTM_SOURCE_MAP: Readonly<Record<string, ReferrerSource>> = {
+	twitter: "twitter",
+	x: "twitter",
+	linkedin: "linkedin",
+	reddit: "reddit",
+	whatsapp: "whatsapp",
+	email: "email",
+	hackernews: "hackernews",
+	bluesky: "bluesky",
+	mastodon: "mastodon",
+	github: "github",
+	"dev.to": "dev.to",
+	medium: "medium",
+};
+
+export function bucketUtmSource(
+	utmSource: string | null | undefined,
+): ReferrerSource | null {
+	if (!utmSource) return null;
+	const key = utmSource.trim().toLowerCase();
+	if (key.length === 0) return null;
+	return UTM_SOURCE_MAP[key] ?? null;
+}
+
+/**
  * Maps a raw Referer header value to a named source bucket.
  *
  * Hostname logic:
@@ -148,8 +194,9 @@ function hostnameToSource(hostname: string): ReferrerSource {
  * - Known hostname                   → named bucket
  * - Unknown hostname                 → "other"
  *
- * The legacy UTM short-circuit (hasShareUTM / "share" bucket) was removed.
- * Per-platform attribution now relies solely on Referer hostname mapping (ADR-001).
+ * `bucketUtmSource` should be consulted FIRST by composite callers (see
+ * `bucketEvent`); this function intentionally ignores query strings to keep
+ * the hostname-only contract unambiguous.
  *
  * Pure function — no I/O, no side effects.
  */
@@ -164,4 +211,18 @@ export function bucketReferrer(
 		return "other";
 	}
 	return hostnameToSource(url.hostname);
+}
+
+/**
+ * Compose `bucketUtmSource` + `bucketReferrer` with the prefer-utm rule.
+ * Callers (e.g. `recordPostView`) should use this rather than calling the
+ * sub-bucketers in sequence; the precedence is documented here once.
+ */
+export function bucketEvent(input: {
+	utmSource?: string | null;
+	referer?: string | null;
+}): ReferrerSource {
+	const fromUtm = bucketUtmSource(input.utmSource);
+	if (fromUtm) return fromUtm;
+	return bucketReferrer(input.referer);
 }

@@ -289,6 +289,7 @@ describe("unit: incrementViewCountFn", () => {
 		await incrementViewCountFn({
 			id: 42,
 			referrer: "https://www.linkedin.com/feed",
+			utmSource: null,
 		});
 
 		// recordPostView must be called exactly once with the right input shape.
@@ -298,6 +299,7 @@ describe("unit: incrementViewCountFn", () => {
 			request: expect.any(Request),
 			lang: "en",
 			referrer: "https://www.linkedin.com/feed",
+			utmSource: null,
 		});
 
 		// No direct db.update — counter is handled inside recordPostView.
@@ -307,7 +309,7 @@ describe("unit: incrementViewCountFn", () => {
 	it("forwards a null referrer when navigation had no upstream source", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
 
-		await incrementViewCountFn({ id: 42, referrer: null });
+		await incrementViewCountFn({ id: 42, referrer: null, utmSource: null });
 
 		expect(mocks.recordPostView).toHaveBeenCalledWith(
 			expect.objectContaining({ postId: 42, referrer: null }),
@@ -317,7 +319,7 @@ describe("unit: incrementViewCountFn", () => {
 	it("pt-br post lang is forwarded to recordPostView correctly", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "pt-br" }]);
 
-		await incrementViewCountFn({ id: 7, referrer: null });
+		await incrementViewCountFn({ id: 7, referrer: null, utmSource: null });
 
 		expect(mocks.recordPostView).toHaveBeenCalledWith(
 			expect.objectContaining({ postId: 7, lang: "pt-br" }),
@@ -334,7 +336,7 @@ describe("unit: incrementViewCountFn", () => {
 			}),
 		);
 
-		await incrementViewCountFn({ id: 42, referrer: null });
+		await incrementViewCountFn({ id: 42, referrer: null, utmSource: null });
 
 		// Bot is identified before any DB I/O; recordPostView must NOT be called.
 		expect(mocks.recordPostView).not.toHaveBeenCalled();
@@ -347,7 +349,7 @@ describe("unit: incrementViewCountFn", () => {
 		// Lang lookup returns no rows.
 		mocks.selectWhere.mockResolvedValueOnce([]);
 
-		await incrementViewCountFn({ id: 999, referrer: null });
+		await incrementViewCountFn({ id: 999, referrer: null, utmSource: null });
 
 		expect(mocks.recordPostView).not.toHaveBeenCalled();
 		expect(mocks.update).not.toHaveBeenCalled();

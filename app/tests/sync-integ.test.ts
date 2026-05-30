@@ -30,7 +30,7 @@ describe.skipIf(port5432Free)("integration: sync script", () => {
 		const pg = await import("postgres");
 		sql = pg.default(DB_URL);
 		tmpDir = await mkdtemp(join(tmpdir(), "sync-integ-"));
-		await sql`DELETE FROM posts WHERE file_path LIKE ${tmpdir() + "/%"}`;
+		await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpdir()}/%`}`;
 	});
 
 	afterAll(async () => {

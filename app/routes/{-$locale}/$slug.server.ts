@@ -187,12 +187,20 @@ export type IncrementViewCountInput = {
 	 * loses the original upstream source.
 	 */
 	referrer: string | null;
+	/**
+	 * Value of the `utm_source` query param on the post URL at the moment
+	 * the page mounted. Forwarded so the server can prefer it over the
+	 * `Referer` fallback — share-intent redirects (wa.me, twitter intent,
+	 * etc.) routinely strip the referrer, leaving the UTM as the only
+	 * surviving attribution signal. `null` when the param is absent.
+	 */
+	utmSource: string | null;
 };
 
 export async function incrementViewCountFn(
 	input: IncrementViewCountInput,
 ): Promise<void> {
-	const { id, referrer } = input;
+	const { id, referrer, utmSource } = input;
 
 	// Gate on bot check first — no DB I/O for bot requests.
 	const [{ getRequest }, { isBotUserAgent }] = await Promise.all([
@@ -223,7 +231,7 @@ export async function incrementViewCountFn(
 	const { recordPostView } = await import(
 		"#/lib/analytics/record-event.server"
 	);
-	await recordPostView({ postId: id, request, lang, referrer });
+	await recordPostView({ postId: id, request, lang, referrer, utmSource });
 }
 
 export function validateLocaleInput(data: { slug: string; lang: string }): {
@@ -254,6 +262,10 @@ export const incrementViewCount = createServerFn({ method: "POST" })
 			typeof input.referrer === "string" && input.referrer.length > 0
 				? input.referrer
 				: null;
-		return { id: input.id, referrer };
+		const utmSource =
+			typeof input.utmSource === "string" && input.utmSource.length > 0
+				? input.utmSource
+				: null;
+		return { id: input.id, referrer, utmSource };
 	})
 	.handler(async ({ data }) => incrementViewCountFn(data));

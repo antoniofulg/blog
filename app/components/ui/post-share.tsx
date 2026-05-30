@@ -41,6 +41,16 @@ type ChipProps = {
 	onCopy: () => Promise<void>;
 	/** ARIA role override — "menuitem" in dropdown context (ADR-005). */
 	itemRole?: React.AriaRole;
+	/**
+	 * When true (admin dropdown), every chip — including platform ones —
+	 * writes the platform-tagged URL to the clipboard instead of opening a
+	 * share-intent in a new tab. The admin dashboard is a private surface;
+	 * authors typically grab a URL to paste into Slack, an email, or a DM
+	 * client, not bounce through twitter.com/intent. The "copy" chip in this
+	 * mode still copies the un-tagged canonical URL.
+	 */
+	copyOnly?: boolean;
+	onCopyTagged?: (taggedUrl: string) => Promise<void>;
 };
 
 function Chip({
@@ -52,6 +62,8 @@ function Chip({
 	ariaLabel,
 	onCopy,
 	itemRole,
+	copyOnly = false,
+	onCopyTagged,
 }: ChipProps) {
 	const { id, Icon, href } = platform;
 	const taggedUrl = buildTaggedUrl(canonicalUrl, id as PlatformId, postSlug);
@@ -61,6 +73,21 @@ function Chip({
 			<button
 				type="button"
 				onClick={onCopy}
+				aria-label={ariaLabel}
+				role={itemRole}
+				className={CHIP_CLASS}
+			>
+				<Icon className="h-4 w-4" aria-hidden="true" />
+				{label}
+			</button>
+		);
+	}
+
+	if (copyOnly) {
+		return (
+			<button
+				type="button"
+				onClick={() => onCopyTagged?.(taggedUrl)}
 				aria-label={ariaLabel}
 				role={itemRole}
 				className={CHIP_CLASS}
@@ -157,8 +184,12 @@ export function PostShare({
 	async function handleCopyLink() {
 		// Copy writes canonical URL — no UTM tagging for clipboard (ADR-001 amendment).
 		const copyUrl = buildTaggedUrl(canonicalUrl, "copy", postSlug);
+		await writeAndConfirm(copyUrl);
+	}
+
+	async function writeAndConfirm(url: string) {
 		try {
-			await navigator.clipboard.writeText(copyUrl);
+			await navigator.clipboard.writeText(url);
 			setCopied(true);
 			// Cancel any previous pending reset before starting a new one so rapid
 			// double-clicks don't leave orphaned timers.
@@ -188,8 +219,12 @@ export function PostShare({
 		}
 	}
 
-	/** Renders all 6 chips; optionally attaches itemRole for dropdown context. */
-	function renderChips(itemRole?: React.AriaRole) {
+	/**
+	 * Renders all 6 chips; optionally attaches itemRole for dropdown context.
+	 * `copyOnly` is set for the admin dropdown so platform chips write the
+	 * tagged URL to the clipboard instead of opening a share intent.
+	 */
+	function renderChips(itemRole?: React.AriaRole, copyOnly = false) {
 		return SHARE_PLATFORMS.map((platform) => {
 			const label = t.chips[platform.labelKey];
 			const ariaLabel =
@@ -207,6 +242,8 @@ export function PostShare({
 					ariaLabel={ariaLabel}
 					onCopy={handleCopyLink}
 					itemRole={itemRole}
+					copyOnly={copyOnly}
+					onCopyTagged={writeAndConfirm}
 				/>
 			);
 		});
@@ -272,7 +309,7 @@ export function PostShare({
 					sideOffset={4}
 					className="z-50 flex flex-col gap-1 rounded-lg border border-border bg-card p-2 shadow-md"
 				>
-					{renderChips("menuitem")}
+					{renderChips("menuitem", true)}
 					{/* Clipboard confirmation inside dropdown */}
 					<output
 						aria-live="polite"

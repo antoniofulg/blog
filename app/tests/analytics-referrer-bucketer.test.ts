@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { ReferrerSource } from "#/lib/analytics/referrer-bucketer";
-import { bucketReferrer } from "#/lib/analytics/referrer-bucketer";
+import {
+	bucketEvent,
+	bucketReferrer,
+	bucketUtmSource,
+} from "#/lib/analytics/referrer-bucketer";
 
 // AC-6: importing the module must not trigger any DB connection.
 // Verified implicitly: referrer-bucketer.ts has no DB imports; this import
@@ -158,5 +162,78 @@ describe("bucketReferrer — simplified API (ADR-001)", () => {
 		// @ts-expect-error "share" was removed from ReferrerSource (ADR-001)
 		const _source: ReferrerSource = "share";
 		void _source; // suppress unused-var lint
+	});
+});
+
+// ── bucketUtmSource ─────────────────────────────────────────────────────────
+
+describe("bucketUtmSource", () => {
+	it("returns null for null / undefined / empty", () => {
+		expect(bucketUtmSource(null)).toBeNull();
+		expect(bucketUtmSource(undefined)).toBeNull();
+		expect(bucketUtmSource("")).toBeNull();
+		expect(bucketUtmSource("   ")).toBeNull();
+	});
+
+	it("maps known utm_source values to the matching bucket", () => {
+		expect(bucketUtmSource("whatsapp")).toBe("whatsapp");
+		expect(bucketUtmSource("email")).toBe("email");
+		expect(bucketUtmSource("linkedin")).toBe("linkedin");
+		expect(bucketUtmSource("twitter")).toBe("twitter");
+		expect(bucketUtmSource("reddit")).toBe("reddit");
+	});
+
+	it("aliases utm_source=x to the twitter bucket", () => {
+		// The PostShare component currently emits utm_source=twitter, but the
+		// "x" alias future-proofs the bucket for the rebrand.
+		expect(bucketUtmSource("x")).toBe("twitter");
+	});
+
+	it("normalises case and surrounding whitespace", () => {
+		expect(bucketUtmSource("WhatsApp")).toBe("whatsapp");
+		expect(bucketUtmSource("  LinkedIn  ")).toBe("linkedin");
+	});
+
+	it("returns null for unknown utm_source values (anti-spoofing)", () => {
+		expect(bucketUtmSource("evil-source")).toBeNull();
+		expect(bucketUtmSource("not-a-platform")).toBeNull();
+	});
+});
+
+// ── bucketEvent (composite) ─────────────────────────────────────────────────
+
+describe("bucketEvent — utm_source takes precedence over Referer", () => {
+	it("prefers a known utm_source over a known Referer host", () => {
+		// Share-intent click: utm_source survives the redirect, Referer is the
+		// intermediate hop (or empty). The utm wins.
+		const result = bucketEvent({
+			utmSource: "whatsapp",
+			referer: "https://news.ycombinator.com/item?id=1",
+		});
+		expect(result).toBe("whatsapp");
+	});
+
+	it("falls back to Referer when utm_source is missing", () => {
+		expect(bucketEvent({ referer: "https://www.linkedin.com/" })).toBe(
+			"linkedin",
+		);
+	});
+
+	it("falls back to Referer when utm_source is an unknown value", () => {
+		expect(
+			bucketEvent({
+				utmSource: "not-a-platform",
+				referer: "https://github.com/foo",
+			}),
+		).toBe("github");
+	});
+
+	it("returns 'direct' when both signals are missing", () => {
+		expect(bucketEvent({ utmSource: null, referer: null })).toBe("direct");
+		expect(bucketEvent({})).toBe("direct");
+	});
+
+	it("aliases utm_source=x to the twitter bucket end-to-end", () => {
+		expect(bucketEvent({ utmSource: "x", referer: null })).toBe("twitter");
 	});
 });

@@ -46,9 +46,13 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 	);
 
 	test(
-		"LinkedIn chip href contains correct UTM params",
+		"LinkedIn chip copies the tagged URL to the clipboard (no intent open)",
 		async ({ authedPage }) => {
 			const state = await getState();
+
+			await authedPage
+				.context()
+				.grantPermissions(["clipboard-read", "clipboard-write"]);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
@@ -59,22 +63,34 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 				name: "Share on LinkedIn",
 			});
 			await expect(linkedinChip).toBeVisible();
+			// Admin dropdown chips are buttons (variant="dropdown" + copyOnly).
+			// Authors share via Slack / DMs / email, not by bouncing through
+			// linkedin.com/sharing — so the chip writes the platform-tagged
+			// URL to the clipboard instead of opening a share intent.
+			expect(await linkedinChip.evaluate((el) => el.tagName)).toBe("BUTTON");
 
-			const href = await linkedinChip.getAttribute("href");
-			expect(href).toBeTruthy();
-			// The LinkedIn share-intent URL encodes the tagged URL in its `url` param.
-			// Decoding the full href surfaces the embedded UTM params.
-			const decodedHref = decodeURIComponent(href ?? "");
-			expect(decodedHref).toContain("utm_source=linkedin");
-			expect(decodedHref).toContain("utm_medium=social");
-			expect(decodedHref).toContain(`utm_campaign=${state.fixturePostSlug}`);
+			await authedPage.bringToFront();
+			await linkedinChip.click();
+			await expect(authedPage.getByRole("status")).toHaveText("Copied!");
+
+			const clipboardText = await authedPage.evaluate(() =>
+				navigator.clipboard.readText(),
+			);
+			expect(clipboardText).toContain(state.fixturePostSlug);
+			expect(clipboardText).toContain("utm_source=linkedin");
+			expect(clipboardText).toContain("utm_medium=social");
+			expect(clipboardText).toContain(`utm_campaign=${state.fixturePostSlug}`);
 		},
 	);
 
 	test(
-		"Twitter chip href contains correct UTM params",
+		"Twitter chip copies the tagged URL to the clipboard (no intent open)",
 		async ({ authedPage }) => {
 			const state = await getState();
+
+			await authedPage
+				.context()
+				.grantPermissions(["clipboard-read", "clipboard-write"]);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
@@ -86,13 +102,19 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 				name: "Share on X",
 			});
 			await expect(twitterChip).toBeVisible();
+			expect(await twitterChip.evaluate((el) => el.tagName)).toBe("BUTTON");
 
-			const href = await twitterChip.getAttribute("href");
-			expect(href).toBeTruthy();
-			const decodedHref = decodeURIComponent(href ?? "");
-			expect(decodedHref).toContain("utm_source=twitter");
-			expect(decodedHref).toContain("utm_medium=social");
-			expect(decodedHref).toContain(`utm_campaign=${state.fixturePostSlug}`);
+			await authedPage.bringToFront();
+			await twitterChip.click();
+			await expect(authedPage.getByRole("status")).toHaveText("Copied!");
+
+			const clipboardText = await authedPage.evaluate(() =>
+				navigator.clipboard.readText(),
+			);
+			expect(clipboardText).toContain(state.fixturePostSlug);
+			expect(clipboardText).toContain("utm_source=twitter");
+			expect(clipboardText).toContain("utm_medium=social");
+			expect(clipboardText).toContain(`utm_campaign=${state.fixturePostSlug}`);
 		},
 	);
 

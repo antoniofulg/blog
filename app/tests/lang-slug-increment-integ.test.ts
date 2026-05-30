@@ -137,6 +137,7 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 		await incrementViewCountFn({
 			id: seededPost.id,
 			referrer: "https://github.com/tanstack",
+			utmSource: null,
 		});
 
 		// AC-1: view_count incremented
@@ -181,7 +182,11 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 			}),
 		);
 
-		await incrementViewCountFn({ id: seededPost.id, referrer: null });
+		await incrementViewCountFn({
+			id: seededPost.id,
+			referrer: null,
+			utmSource: null,
+		});
 
 		// AC-2: view_count unchanged
 		const [unchangedPost] = await testDb.db
@@ -209,7 +214,11 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 
 		// Should resolve without throwing even for a non-existent post id.
 		await expect(
-			incrementViewCountFn({ id: 999_999_999, referrer: null }),
+			incrementViewCountFn({
+				id: 999_999_999,
+				referrer: null,
+				utmSource: null,
+			}),
 		).resolves.toBeUndefined();
 
 		const events = await testDb.db

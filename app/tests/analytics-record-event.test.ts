@@ -29,10 +29,10 @@ const mocks = vi.hoisted(() => {
 	// Top-level db mock — only transaction is called from recordPostView.
 	const transaction = vi.fn();
 
-	// Spy on bucketReferrer so tests can assert call arguments.
-	// Implementation is restored to the real function in beforeEach after
-	// vi.resetAllMocks() clears it.
-	const bucketReferrerSpy = vi.fn();
+	// Spy on bucketEvent so tests can assert the composite call (utm + referer)
+	// that `recordPostView` makes. The real implementation is restored in
+	// beforeEach after vi.resetAllMocks() clears it.
+	const bucketEventSpy = vi.fn();
 
 	return {
 		transaction,
@@ -41,15 +41,18 @@ const mocks = vi.hoisted(() => {
 		txUpdateWhere,
 		txInsert,
 		txInsertValues,
-		bucketReferrerSpy,
+		bucketEventSpy,
 	};
 });
 
-// Holder for the real bucketReferrer implementation.
+// Holder for the real bucketEvent implementation.
 // Uses vi.hoisted so it is safe to reference inside the vi.mock factory —
 // plain `let` declarations are in TDZ when the hoisted factory runs.
-const realBucketReferrerHolder = vi.hoisted(() => ({
-	fn: (_referer: string | null | undefined): string => "direct",
+const realBucketEventHolder = vi.hoisted(() => ({
+	fn: (_input: {
+		utmSource?: string | null;
+		referer?: string | null;
+	}): string => "direct",
 }));
 
 // server-only guard: no-op in Node/vitest context
@@ -62,13 +65,14 @@ vi.mock("#/db/client", () => ({
 	},
 }));
 
-// Spy on bucketReferrer so we can assert call arguments (ADR-001: single-arg).
-// The spy wraps the real function so referrer-parsing tests receive correct values.
+// Spy on bucketEvent so we can assert the composite (utm + referer) call
+// that `recordPostView` issues. The spy wraps the real function so
+// referrer-parsing tests still receive correct return values.
 vi.mock("#/lib/analytics/referrer-bucketer", async (importOriginal) => {
 	const original =
 		await importOriginal<typeof import("#/lib/analytics/referrer-bucketer")>();
-	realBucketReferrerHolder.fn = original.bucketReferrer;
-	return { ...original, bucketReferrer: mocks.bucketReferrerSpy };
+	realBucketEventHolder.fn = original.bucketEvent;
+	return { ...original, bucketEvent: mocks.bucketEventSpy };
 });
 
 // ── Import after mocks are hoisted ────────────────────────────────────────────
@@ -109,9 +113,9 @@ beforeEach(() => {
 		},
 	);
 
-	// Restore bucketReferrer spy to the real implementation so existing tests
+	// Restore bucketEvent spy to the real implementation so existing tests
 	// continue to receive correct return values after vi.resetAllMocks().
-	mocks.bucketReferrerSpy.mockImplementation(realBucketReferrerHolder.fn);
+	mocks.bucketEventSpy.mockImplementation(realBucketEventHolder.fn);
 });
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
@@ -356,8 +360,8 @@ describe("recordPostView — V1 column constraints (AC-5)", () => {
 	});
 });
 
-describe("recordPostView — bucketReferrer receives only Referer (ADR-001)", () => {
-	it("passes only the Referer header to bucketReferrer (no 2nd arg)", async () => {
+describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
+	it("forwards the Referer header when no explicit referrer/utmSource is set", async () => {
 		const refererValue = "https://www.linkedin.com/feed/";
 		await recordPostView({
 			postId: 1,
@@ -365,17 +369,51 @@ describe("recordPostView — bucketReferrer receives only Referer (ADR-001)", ()
 			lang: "en",
 		});
 
-		expect(mocks.bucketReferrerSpy).toHaveBeenCalledWith(refererValue);
-		expect(mocks.bucketReferrerSpy).toHaveBeenCalledTimes(1);
+		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
+			utmSource: null,
+			referer: refererValue,
+		});
+		expect(mocks.bucketEventSpy).toHaveBeenCalledTimes(1);
 	});
 
-	it("passes null when no Referer header is present", async () => {
+	it("forwards null referer when no Referer header is present and no override", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA), // no Referer header
 			lang: "en",
 		});
 
-		expect(mocks.bucketReferrerSpy).toHaveBeenCalledWith(null);
+		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
+			utmSource: null,
+			referer: null,
+		});
+	});
+
+	it("forwards the explicit utmSource argument verbatim", async () => {
+		await recordPostView({
+			postId: 1,
+			request: makeRequest(HUMAN_UA),
+			lang: "en",
+			utmSource: "whatsapp",
+		});
+
+		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
+			utmSource: "whatsapp",
+			referer: null,
+		});
+	});
+
+	it("explicit referrer argument overrides the Referer header", async () => {
+		await recordPostView({
+			postId: 1,
+			request: makeRequest(HUMAN_UA, "https://this-must-be-ignored.example"),
+			lang: "en",
+			referrer: "https://github.com/tanstack",
+		});
+
+		expect(mocks.bucketEventSpy).toHaveBeenCalledWith({
+			utmSource: null,
+			referer: "https://github.com/tanstack",
+		});
 	});
 });

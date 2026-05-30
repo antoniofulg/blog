@@ -169,6 +169,61 @@ publicTest.describe(
 			});
 		}
 
+		// ── utm_source scenarios ──────────────────────────────────────────────
+		// Click on a share-intent link (wa.me, twitter intent, etc.) strips
+		// document.referrer in the redirect chain, leaving the post URL
+		// with `?utm_source=<platform>` as the only attribution signal. The
+		// server should prefer the UTM over the (missing) referrer.
+		const UTM_SCENARIOS = [
+			{
+				label: "?utm_source=whatsapp with no referrer → whatsapp bucket",
+				utmSource: "whatsapp",
+				expectedSource: "whatsapp",
+			},
+			{
+				label: "?utm_source=email with no referrer → email bucket",
+				utmSource: "email",
+				expectedSource: "email",
+			},
+			{
+				label: "?utm_source=linkedin overrides a Google referer",
+				utmSource: "linkedin",
+				expectedSource: "linkedin",
+				referer: "https://www.google.com/search?q=foo",
+			},
+		] as const;
+
+		for (const scenario of UTM_SCENARIOS) {
+			publicTest(scenario.label, async ({ page }) => {
+				const state = await getState();
+				const { db, close } = await openTestDb(state.connectionString);
+
+				try {
+					const lastIdBefore =
+						(await latestEventForPost(db, state.fixturePostId))?.id ?? 0;
+
+					const url = `/${state.fixturePostSlug}?utm_source=${scenario.utmSource}&utm_medium=social&utm_campaign=${state.fixturePostSlug}`;
+					await page.goto(url, {
+						referer: "referer" in scenario ? scenario.referer : undefined,
+					});
+					await page.waitForLoadState("load");
+
+					await expect
+						.poll(
+							async () =>
+								(await latestEventForPost(db, state.fixturePostId))?.id ?? 0,
+							{ timeout: 7_000 },
+						)
+						.toBeGreaterThan(lastIdBefore);
+
+					const last = await latestEventForPost(db, state.fixturePostId);
+					expect(last?.referrerSource).toBe(scenario.expectedSource);
+				} finally {
+					await close();
+				}
+			});
+		}
+
 		publicTest(
 			"no upstream referrer → direct bucket",
 			async ({ page }) => {

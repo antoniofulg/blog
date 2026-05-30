@@ -30,7 +30,7 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		tmpDir = await mkdtemp(join(tmpdir(), "indexer-integ-"));
 		// Remove orphaned rows from previous runs (different tmpDirs) to prevent
 		// slug-lang unique constraint violations across runs.
-		await sql`DELETE FROM posts WHERE file_path LIKE ${tmpdir() + "/%"}`;
+		await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpdir()}/%`}`;
 	});
 
 	afterAll(async () => {

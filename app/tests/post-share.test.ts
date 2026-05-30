@@ -484,21 +484,39 @@ describe("unit: dropdown variant — popover open/close + ARIA roles (AC-6)", ()
 		expect(items.length).toBe(6);
 	});
 
-	it("chips inside open popover have role='menuitem' and emit per-platform UTM URLs", async () => {
+	it("chips inside open popover are buttons that copy the per-platform UTM URL", async () => {
+		const writeText = vi.fn().mockResolvedValue(undefined);
+		Object.defineProperty(navigator, "clipboard", {
+			configurable: true,
+			value: { writeText },
+		});
+
 		renderDropdown();
 		await act(async () => {});
 		const trigger = screen.getByRole("button", { name: "Share post" });
 		await act(async () => {
 			fireEvent.click(trigger);
 		});
+
+		// Admin dropdown chips are <button> not <a> — clicking writes the
+		// tagged URL to the clipboard instead of opening a share intent.
+		// Authors typically grab a URL to paste into Slack / DMs / email,
+		// so the admin variant never bounces through twitter.com/intent.
 		const linkedinItem = screen.getAllByRole("menuitem").find((el) => {
 			const label = el.getAttribute("aria-label") ?? "";
 			return label.includes("LinkedIn");
 		});
 		expect(linkedinItem).toBeDefined();
-		const href = (linkedinItem as HTMLElement).getAttribute("href") ?? "";
-		expect(href).toContain(encodeURIComponent("utm_source=linkedin"));
-		expect(href).toContain(encodeURIComponent("utm_medium=social"));
+		expect((linkedinItem as HTMLElement).tagName).toBe("BUTTON");
+
+		await act(async () => {
+			fireEvent.click(linkedinItem as HTMLElement);
+		});
+
+		expect(writeText).toHaveBeenCalledTimes(1);
+		const copied = writeText.mock.calls[0]?.[0] as string;
+		expect(copied).toContain("utm_source=linkedin");
+		expect(copied).toContain("utm_medium=social");
 	});
 
 	it("pressing Escape closes the popover", async () => {

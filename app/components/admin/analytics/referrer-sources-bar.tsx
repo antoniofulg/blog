@@ -58,6 +58,13 @@ export const SOURCE_COLOR_MAP: Record<ReferrerSource, string> = {
 	medium: "var(--color-chart-8)",
 	bluesky: "var(--color-chart-9)",
 	mastodon: "var(--color-chart-10)",
+	// New share-driven buckets — only ever arrive via `utm_source` because
+	// neither WhatsApp nor an email client expose a discoverable hostname
+	// in `document.referrer`. Reuse the existing chart-1 / chart-7 hues:
+	// chart-1 is LinkedIn-pink-ish, chart-7 is dev.to-cyan-ish — close
+	// enough conceptually (chat-app / personal) without burning new tokens.
+	whatsapp: "var(--color-chart-1)",
+	email: "var(--color-chart-7)",
 	direct: "var(--color-foreground-muted)",
 	other: "var(--color-border-strong)",
 };

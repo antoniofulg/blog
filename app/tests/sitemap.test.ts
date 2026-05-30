@@ -225,7 +225,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		const entries = await getSitemapEntriesFn();
 		const enEntry = entries.find((e) => e.loc.endsWith("/shared-post"));
 		expect(enEntry?.alternates).toHaveLength(2);
-		const langs = enEntry!.alternates.map((a) => a.hreflang);
+		const langs = enEntry?.alternates.map((a) => a.hreflang);
 		expect(langs).toContain("en");
 		expect(langs).toContain("pt-BR");
 	});
@@ -239,7 +239,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		const entries = await getSitemapEntriesFn();
 		const ptbrEntry = entries.find((e) => e.loc.includes("/pt-br/shared-post"));
 		expect(ptbrEntry?.alternates).toHaveLength(2);
-		const langs = ptbrEntry!.alternates.map((a) => a.hreflang);
+		const langs = ptbrEntry?.alternates.map((a) => a.hreflang);
 		expect(langs).toContain("en");
 		expect(langs).toContain("pt-BR");
 	});
@@ -319,7 +319,7 @@ describe("unit: getSitemapEntriesFn — static page entries", () => {
 		const entries = await getSitemapEntriesFn();
 		const enAbout = entries.find((e) => e.loc.endsWith("/about"));
 		expect(enAbout?.alternates).toHaveLength(2);
-		const langs = enAbout!.alternates.map((a) => a.hreflang);
+		const langs = enAbout?.alternates.map((a) => a.hreflang);
 		expect(langs).toContain("en");
 		expect(langs).toContain("pt-BR");
 	});

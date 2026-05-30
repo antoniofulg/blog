@@ -1,7 +1,7 @@
 import "@tanstack/react-start/server-only";
 import { isBotUserAgent } from "#/lib/analytics/bot-filter";
 import { detectDevice } from "#/lib/analytics/device-detector";
-import { bucketReferrer } from "#/lib/analytics/referrer-bucketer";
+import { bucketEvent } from "#/lib/analytics/referrer-bucketer";
 
 /**
  * Input to the analytics boundary.
@@ -21,6 +21,14 @@ export type RecordPostViewInput = {
 	 * as "direct" by the bucketer).
 	 */
 	referrer?: string | null;
+	/**
+	 * Optional client-reported `utm_source` query param from the post URL.
+	 * When set to a known platform (twitter / linkedin / whatsapp / …) it
+	 * takes precedence over `referrer` for source bucketing — share-intent
+	 * redirects routinely strip the referrer, so the UTM is the only
+	 * attribution signal that survives wa.me / twitter.com/intent / etc.
+	 */
+	utmSource?: string | null;
 };
 
 /**
@@ -54,7 +62,7 @@ export type RecordPostViewResult = {
 export async function recordPostView(
 	input: RecordPostViewInput,
 ): Promise<RecordPostViewResult> {
-	const { postId, request, lang, referrer } = input;
+	const { postId, request, lang, referrer, utmSource } = input;
 
 	const ua = request.headers.get("User-Agent");
 	// Prefer the explicit `referrer` argument over the request header. The
@@ -80,7 +88,15 @@ export async function recordPostView(
 		return { recorded: false, counterIncremented: false };
 	}
 
-	const referrerSource = bucketReferrer(referer);
+	// `bucketEvent` prefers `utm_source` over `Referer` when present, so a
+	// click on a wa.me / twitter.com/intent / etc. share intent — which
+	// strips `document.referrer` along the redirect chain — still resolves
+	// to the originating platform (whatsapp / twitter / …) rather than
+	// `direct`.
+	const referrerSource = bucketEvent({
+		utmSource: utmSource ?? null,
+		referer,
+	});
 	const device = detectDevice(ua);
 
 	try {

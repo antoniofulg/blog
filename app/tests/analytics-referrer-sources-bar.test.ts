@@ -189,7 +189,7 @@ describe("SOURCE_COLOR_MAP", () => {
 	const CSS_VAR_RE = /^var\(--color-[\w-]+\)$/;
 	const CHART_VAR_RE = /^var\(--color-chart-\d+\)$/;
 
-	it("maps all 12 ReferrerSource buckets to a CSS custom property", () => {
+	it("maps all 14 ReferrerSource buckets to a CSS custom property", () => {
 		const expectedSources = [
 			"linkedin",
 			"google",
@@ -201,6 +201,8 @@ describe("SOURCE_COLOR_MAP", () => {
 			"medium",
 			"bluesky",
 			"mastodon",
+			"whatsapp",
+			"email",
 			"direct",
 			"other",
 		] as const;
