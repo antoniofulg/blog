@@ -110,11 +110,13 @@ coverImage: /og/custom-cover.png
 ---
 ```
 
-The file must exist at `public/og/custom-cover.png` **before the deploy runs** — it is not auto-generated; you supply it. Custom covers placed directly under `public/og/` **are tracked by git** and ship in the deploy artifact; commit them with your post.
+The file must exist at `public/og/custom-cover.png` **before the deploy runs** — it is not auto-generated; you supply it. Custom covers placed directly under `public/og/` are tracked by git and ship in the deploy artifact; commit them with your post.
 
 ### Auto-generated cards and `public/og/`
 
-`bun run sync` generates OG cards for every post that has at least one fenced code block and writes them to `public/og/<locale>/<slug>.png`. Only the per-locale subdirectories (`public/og/<locale>/`) are **gitignored** — auto-generated cards are regenerated on every sync and never appear in `git status`. Author-supplied covers placed at the root of `public/og/` are committed normally.
+`bun run sync` generates OG cards for every post that has at least one fenced code block and writes them to `public/og/<locale>/<slug>.png`. These cards **are committed to git** — they must ship inside the Docker image so the production app can serve them. The deploy's one-off `bun run sync` container is discarded (`--rm`), and the runner serves static files from the build-time bundle, so an uncommitted card would 404 in production and fall back to `/og-image.jpg`.
+
+**Authoring workflow:** after adding or editing a post that contains code, run `bun run sync` locally and commit the regenerated `public/og/<locale>/<slug>.png` alongside the post. `git status` will show the new or changed card.
 
 Running `bun run sync` locally after editing a post takes ~200–500 ms longer per post due to OG card generation.
 
