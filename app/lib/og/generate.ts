@@ -78,13 +78,12 @@ export async function generateOgImage(
 		let tokenLines: TokenLine[] | null = null;
 		let codeBg = DEFAULT_BG;
 		let codeFg = DEFAULT_FG;
-		let didTruncate = false;
 
 		if (firstCodeBlock !== null) {
-			const { lines, didTruncate: truncated } = truncateCode(
-				firstCodeBlock.code,
-			);
-			didTruncate = truncated;
+			// truncateCode still caps the block to 10 lines / 600 chars; the
+			// template clips any remaining overflow visually and always renders
+			// the bottom fade, so the boolean truncation flag is no longer needed.
+			const { lines } = truncateCode(firstCodeBlock.code);
 
 			const highlighter = await getHighlighter();
 			let result: {
@@ -121,7 +120,6 @@ export async function generateOgImage(
 		const templateProps: CardTemplateProps = {
 			title,
 			tokenLines,
-			didTruncate,
 			codeBg,
 			codeFg,
 			siteUrl: process.env.SITE_URL ?? "",

@@ -140,7 +140,6 @@ describe("CardTemplate", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "Hello World",
 			tokenLines: null,
-			didTruncate: false,
 			codeBg: "#24292e",
 			codeFg: "#e1e4e8",
 		});
@@ -152,7 +151,6 @@ describe("CardTemplate", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "My Unique Title 42",
 			tokenLines: null,
-			didTruncate: false,
 			codeBg: "#24292e",
 			codeFg: "#e1e4e8",
 		});
@@ -165,7 +163,6 @@ describe("CardTemplate", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "Code Post",
 			tokenLines,
-			didTruncate: false,
 			codeBg: "#24292e",
 			codeFg: "#e1e4e8",
 		});
@@ -177,7 +174,6 @@ describe("CardTemplate", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "T",
 			tokenLines: null,
-			didTruncate: false,
 			codeBg: "#24292e",
 			codeFg: "#e1e4e8",
 		});
@@ -190,7 +186,6 @@ describe("CardTemplate", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "Test",
 			tokenLines,
-			didTruncate: false,
 			codeBg: "#24292e",
 			codeFg: "#e1e4e8",
 		});

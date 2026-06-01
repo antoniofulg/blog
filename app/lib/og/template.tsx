@@ -9,8 +9,6 @@ export type CardTemplateProps = {
 	title: string;
 	/** Pre-tokenized lines from Shiki codeToTokens. Null when the post has no code block. */
 	tokenLines: TokenLine[] | null;
-	/** True when code was truncated — triggers a fade gradient at the bottom of the code area */
-	didTruncate: boolean;
 	/** Background color from Shiki theme (e.g. "#24292e" for github-dark) */
 	codeBg: string;
 	/** Foreground/default text color from Shiki theme */
@@ -56,7 +54,6 @@ const TOKEN_SPAN_STYLE = {
 export function CardTemplate({
 	title,
 	tokenLines,
-	didTruncate,
 	codeBg,
 	codeFg,
 	siteUrl,
@@ -77,10 +74,16 @@ export function CardTemplate({
 				padding: "48px",
 			}}
 		>
-			{/* Title */}
+			{/* Title — pinned with flexShrink: 0 so the full title always renders
+			    at its natural height. Without this, a long (multi-line) title's
+			    flex box is shrunk by the engine and its text overflows downward
+			    into the code block below. The code block (flexGrow: 1, minHeight:
+			    0, overflow: hidden) absorbs the squeeze and clips its bottom
+			    lines instead — title takes priority over code. */}
 			<div
 				style={{
 					display: "flex",
+					flexShrink: 0,
 					fontSize: 56,
 					fontWeight: 700,
 					color: TITLE_COLOR,
@@ -99,6 +102,13 @@ export function CardTemplate({
 						display: "flex",
 						flexDirection: "column",
 						flexGrow: 1,
+						// flexShrink + minHeight: 0 let this block shrink BELOW its
+						// intrinsic content height when a tall title claims the space,
+						// so overflow: hidden clips the bottom code lines (the title
+						// stays whole). Without minHeight: 0 a flex column refuses to
+						// shrink past its content and the title would be pushed off-card.
+						flexShrink: 1,
+						minHeight: 0,
 						backgroundColor: codeBg,
 						borderRadius: 8,
 						padding: "20px 24px",
@@ -126,19 +136,21 @@ export function CardTemplate({
 						</div>
 					))}
 
-					{/* Fade-out gradient when code was truncated */}
-					{didTruncate && (
-						<div
-							style={{
-								position: "absolute",
-								bottom: 0,
-								left: 0,
-								right: 0,
-								height: 80,
-								backgroundImage: `linear-gradient(to bottom, transparent, ${codeBg})`,
-							}}
-						/>
-					)}
+					{/* Bottom fade — always rendered. It signals "more code below"
+					    whether the code was cut by truncateCode OR clipped because a
+					    long title shrank the block. On short, fully-visible code the
+					    fade blends transparent→codeBg over empty background and is
+					    effectively invisible, so it is safe to render unconditionally. */}
+					<div
+						style={{
+							position: "absolute",
+							bottom: 0,
+							left: 0,
+							right: 0,
+							height: 80,
+							backgroundImage: `linear-gradient(to bottom, transparent, ${codeBg})`,
+						}}
+					/>
 				</div>
 			) : (
 				/* No code block — empty flex spacer so footer stays at bottom */
