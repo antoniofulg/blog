@@ -1,6 +1,10 @@
 import { describe, expect, it } from "vitest";
 import type { ReferrerSource } from "#/lib/analytics/referrer-bucketer";
-import { bucketReferrer } from "#/lib/analytics/referrer-bucketer";
+import {
+	bucketEvent,
+	bucketReferrer,
+	bucketUtmSource,
+} from "#/lib/analytics/referrer-bucketer";
 
 // AC-6: importing the module must not trigger any DB connection.
 // Verified implicitly: referrer-bucketer.ts has no DB imports; this import
@@ -108,66 +112,182 @@ describe("bucketReferrer", () => {
 	});
 });
 
-describe("bucketReferrer — UTM share short-circuit (ADR-002)", () => {
-	const POST_URL = "https://myblog.example/en/my-post";
-	const SHARE_URL = `${POST_URL}?utm_source=blog&utm_medium=share`;
+// ── ADR-001: simplified single-arg API ──────────────────────────────────────
+// The legacy UTM short-circuit (hasShareUTM / "share" bucket) was removed.
+// These tests verify the simplified signature and hostname-only attribution.
 
-	// AC-1: null referer + UTM-tagged URL → "share"
-	it("returns 'share' when referer is null and URL carries utm_source=blog&utm_medium=share", () => {
-		expect(bucketReferrer(null, SHARE_URL)).toBe("share");
+describe("bucketReferrer — simplified API (ADR-001)", () => {
+	// null / undefined / empty → "direct"
+	it("returns 'direct' for null", () => {
+		expect(bucketReferrer(null)).toBe("direct");
 	});
 
-	// AC-2: UTM wins over Referer hostname
-	it("returns 'share' when UTM tags present even with a known LinkedIn Referer", () => {
-		expect(bucketReferrer("https://linkedin.com/feed/", SHARE_URL)).toBe(
-			"share",
+	it("returns 'direct' for empty string", () => {
+		expect(bucketReferrer("")).toBe("direct");
+	});
+
+	// Malformed URL → "other" via try/catch
+	it("returns 'other' for a string without a protocol (malformed URL)", () => {
+		expect(() => bucketReferrer("malformed-url-no-protocol")).not.toThrow();
+		expect(bucketReferrer("malformed-url-no-protocol")).toBe("other");
+	});
+
+	// Named hostname buckets
+	it("returns 'linkedin' for www.linkedin.com", () => {
+		expect(bucketReferrer("https://www.linkedin.com/in/foo")).toBe("linkedin");
+	});
+
+	it("returns 'twitter' for x.com", () => {
+		expect(bucketReferrer("https://x.com/foo")).toBe("twitter");
+	});
+
+	it("returns 'hackernews' for news.ycombinator.com", () => {
+		expect(bucketReferrer("https://news.ycombinator.com/item?id=1")).toBe(
+			"hackernews",
 		);
 	});
 
-	// AC-3: no UTM → hostname logic still works
-	it("falls back to hostname logic when no UTM tags present", () => {
-		expect(bucketReferrer("https://linkedin.com/feed/", POST_URL)).toBe(
+	it("returns 'google' for www.google.com.br", () => {
+		expect(bucketReferrer("https://www.google.com.br/search")).toBe("google");
+	});
+
+	it("returns 'other' for an unknown host", () => {
+		expect(bucketReferrer("https://unknown-host.example/path")).toBe("other");
+	});
+
+	// Compile-time check: "share" must NOT be a valid ReferrerSource.
+	// If the type still contains "share" this @ts-expect-error line will itself
+	// be a TS error (the expected error no longer occurs), failing tsc --noEmit.
+	it("type assertion: 'share' is not assignable to ReferrerSource", () => {
+		// @ts-expect-error "share" was removed from ReferrerSource (ADR-001)
+		const _source: ReferrerSource = "share";
+		void _source; // suppress unused-var lint
+	});
+});
+
+// ── bucketUtmSource ─────────────────────────────────────────────────────────
+
+describe("bucketUtmSource", () => {
+	it("returns null for null / undefined / empty", () => {
+		expect(bucketUtmSource(null)).toBeNull();
+		expect(bucketUtmSource(undefined)).toBeNull();
+		expect(bucketUtmSource("")).toBeNull();
+		expect(bucketUtmSource("   ")).toBeNull();
+	});
+
+	it("maps known utm_source values to the matching bucket", () => {
+		expect(bucketUtmSource("whatsapp")).toBe("whatsapp");
+		expect(bucketUtmSource("email")).toBe("email");
+		expect(bucketUtmSource("linkedin")).toBe("linkedin");
+		expect(bucketUtmSource("twitter")).toBe("twitter");
+		expect(bucketUtmSource("reddit")).toBe("reddit");
+	});
+
+	it("aliases utm_source=x to the twitter bucket", () => {
+		// The PostShare component currently emits utm_source=twitter, but the
+		// "x" alias future-proofs the bucket for the rebrand.
+		expect(bucketUtmSource("x")).toBe("twitter");
+	});
+
+	it("normalises case and surrounding whitespace", () => {
+		expect(bucketUtmSource("WhatsApp")).toBe("whatsapp");
+		expect(bucketUtmSource("  LinkedIn  ")).toBe("linkedin");
+	});
+
+	it("returns null for unknown utm_source values (anti-spoofing)", () => {
+		expect(bucketUtmSource("evil-source")).toBeNull();
+		expect(bucketUtmSource("not-a-platform")).toBeNull();
+	});
+});
+
+// ── bucketEvent (composite) ─────────────────────────────────────────────────
+
+describe("bucketEvent — utm_source takes precedence over Referer", () => {
+	it("prefers a known utm_source over a known Referer host", () => {
+		// Share-intent click: utm_source survives the redirect, Referer is the
+		// intermediate hop (or empty). The utm wins.
+		const result = bucketEvent({
+			utmSource: "whatsapp",
+			referer: "https://news.ycombinator.com/item?id=1",
+		});
+		expect(result).toBe("whatsapp");
+	});
+
+	it("falls back to Referer when utm_source is missing", () => {
+		expect(bucketEvent({ referer: "https://www.linkedin.com/" })).toBe(
 			"linkedin",
 		);
 	});
 
-	// AC-4: utm_medium is required
-	it("returns 'direct' when only utm_source=blog is present (utm_medium missing)", () => {
-		expect(bucketReferrer(null, `${POST_URL}?utm_source=blog`)).toBe("direct");
-	});
-
-	// utm_medium must be exactly "share"
-	it("returns 'direct' when utm_medium is not 'share'", () => {
+	it("falls back to Referer when utm_source is an unknown value", () => {
 		expect(
-			bucketReferrer(null, `${POST_URL}?utm_source=blog&utm_medium=organic`),
-		).toBe("direct");
+			bucketEvent({
+				utmSource: "not-a-platform",
+				referer: "https://github.com/foo",
+			}),
+		).toBe("github");
 	});
 
-	// utm_source must be exactly "blog"
-	it("returns 'direct' when utm_source is not 'blog'", () => {
-		expect(
-			bucketReferrer(null, `${POST_URL}?utm_source=twitter&utm_medium=share`),
-		).toBe("direct");
+	it("returns 'direct' when both signals are missing", () => {
+		expect(bucketEvent({ utmSource: null, referer: null })).toBe("direct");
+		expect(bucketEvent({})).toBe("direct");
 	});
 
-	// AC-5: malformed currentUrl → no throw, falls through to direct (null referer)
-	it("does not throw for malformed currentUrl; returns 'direct' (null referer fallback)", () => {
-		expect(() => bucketReferrer(null, "not-a-url")).not.toThrow();
-		expect(bucketReferrer(null, "not-a-url")).toBe("direct");
+	it("aliases utm_source=x to the twitter bucket end-to-end", () => {
+		expect(bucketEvent({ utmSource: "x", referer: null })).toBe("twitter");
+	});
+});
+
+describe("bucketEvent — self-host referer is internal → direct", () => {
+	it("buckets a same-host referer as direct (internal post-to-post hop)", () => {
+		const result = bucketEvent({
+			referer: "https://antoniofulg.tech/react-suspense-typescript",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("direct");
 	});
 
-	// Extra UTM params do not break attribution
-	it("returns 'share' when extra UTM params are present alongside the required pair", () => {
-		expect(
-			bucketReferrer(
-				null,
-				`${POST_URL}?utm_source=blog&utm_medium=share&utm_campaign=extra`,
-			),
-		).toBe("share");
+	it("ignores the port on the Host header when comparing", () => {
+		const result = bucketEvent({
+			referer: "http://localhost/some-post",
+			selfHost: "localhost:4173",
+		});
+		expect(result).toBe("direct");
 	});
 
-	// Backward-compatible: no 2nd arg still works
-	it("works with single argument — backward compatible with existing callers", () => {
-		expect(bucketReferrer("https://github.com/test")).toBe("github");
+	it("treats a subdomain of the self-host as internal", () => {
+		const result = bucketEvent({
+			referer: "https://www.antoniofulg.tech/post",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("direct");
+	});
+
+	it("still buckets a known external host normally when selfHost is set", () => {
+		const result = bucketEvent({
+			referer: "https://www.linkedin.com/feed/",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("linkedin");
+	});
+
+	it("utm_source still wins over an internal referer", () => {
+		// A reader who arrived from WhatsApp and then navigated internally to a
+		// post that still carries ?utm_source=whatsapp is attributed to
+		// whatsapp, not direct.
+		const result = bucketEvent({
+			utmSource: "whatsapp",
+			referer: "https://antoniofulg.tech/post-a",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("whatsapp");
+	});
+
+	it("falls back to 'other' for an external unknown host (no selfHost match)", () => {
+		const result = bucketEvent({
+			referer: "https://some-random-blog.example/article",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("other");
 	});
 });

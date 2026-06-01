@@ -59,6 +59,7 @@ export type AnalyticsDashboardData = {
 		sparkline: number[];
 	}>;
 	deviceSplit: { mobile: number; tablet: number; desktop: number };
+	languageSplit: { en: number; "pt-br": number };
 };
 
 // ── Input validation schema ───────────────────────────────────────────────────
@@ -278,7 +279,7 @@ export async function getAnalyticsDashboard(
 		referrerDayRows,
 		topPostsRows,
 	] = await Promise.all([
-		// Q1: summary totals + device split (merged to save one query)
+		// Q1: summary totals + device split + language split (merged to save queries)
 		db
 			.select({
 				totalVisits: count(),
@@ -286,6 +287,8 @@ export async function getAnalyticsDashboard(
 				mobile: sql<number>`COALESCE(sum(CASE WHEN ${analyticsEvents.device} = 'mobile' THEN 1 ELSE 0 END), 0)`,
 				tablet: sql<number>`COALESCE(sum(CASE WHEN ${analyticsEvents.device} = 'tablet' THEN 1 ELSE 0 END), 0)`,
 				desktop: sql<number>`COALESCE(sum(CASE WHEN ${analyticsEvents.device} = 'desktop' THEN 1 ELSE 0 END), 0)`,
+				langEn: sql<number>`COALESCE(sum(CASE WHEN ${analyticsEvents.lang} = 'en' THEN 1 ELSE 0 END), 0)`,
+				langPtBr: sql<number>`COALESCE(sum(CASE WHEN ${analyticsEvents.lang} = 'pt-br' THEN 1 ELSE 0 END), 0)`,
 			})
 			.from(analyticsEvents)
 			.where(conditions),
@@ -416,6 +419,8 @@ export async function getAnalyticsDashboard(
 		mobile: 0,
 		tablet: 0,
 		desktop: 0,
+		langEn: 0,
+		langPtBr: 0,
 	};
 
 	return {
@@ -466,6 +471,10 @@ export async function getAnalyticsDashboard(
 			mobile: Number(sr.mobile),
 			tablet: Number(sr.tablet),
 			desktop: Number(sr.desktop),
+		},
+		languageSplit: {
+			en: Number(sr.langEn),
+			"pt-br": Number(sr.langPtBr),
 		},
 	};
 }

@@ -12,6 +12,8 @@ export type PostLoaderResult = {
 	notTranslated: boolean;
 	availableLang: Locale | null;
 	alternateLang: Locale | null;
+	/** Absolute URL of the OG image resolved via coverImage → auto-PNG → fallback. */
+	ogImagePath: string;
 };
 
 export type PageLoaderResult = {
@@ -23,6 +25,11 @@ export type PageLoaderResult = {
 };
 
 export type SlugLoaderResult = PostLoaderResult | PageLoaderResult;
+
+/** Narrows an unknown frontmatter value to a non-empty string or `undefined`. */
+function normalizeCoverImage(raw: unknown): string | undefined {
+	return typeof raw === "string" && raw.length > 0 ? raw : undefined;
+}
 
 export async function getPostBySlugWithLangFn(
 	slug: string,
@@ -38,6 +45,8 @@ export async function getPostBySlugWithLangFn(
 		{ db },
 		{ posts },
 		{ default: matter },
+		{ resolveOgImagePath },
+		{ getSiteOrigin },
 	] = await Promise.all([
 		import("node:fs/promises"),
 		import("drizzle-orm"),
@@ -46,6 +55,8 @@ export async function getPostBySlugWithLangFn(
 		import("#/db/client"),
 		import("#/db/schema"),
 		import("gray-matter"),
+		import("#/lib/og/resolve.server"),
+		import("#/lib/site-origin"),
 	]);
 	const [exactPost] = await db
 		.select()
@@ -76,7 +87,7 @@ export async function getPostBySlugWithLangFn(
 			// renderMdx expects a frontmatter-stripped body; strip here so the
 			// renderer stays pure and doesn't double-parse callers that already
 			// pass body (e.g. loadStaticPage).
-			const { content: body } = matter(source);
+			const { content: body, data: frontmatterData } = matter(source);
 			const Content = await renderFn(body);
 			const html = renderToStaticMarkup(createElement(Content, {}));
 
@@ -92,6 +103,13 @@ export async function getPostBySlugWithLangFn(
 					),
 				);
 
+			const ogImagePath = resolveOgImagePath({
+				coverImage: normalizeCoverImage(frontmatterData.coverImage),
+				locale: requestedLang,
+				slug,
+				origin: getSiteOrigin(),
+			});
+
 			return {
 				kind: "post",
 				post: exactPost,
@@ -100,6 +118,7 @@ export async function getPostBySlugWithLangFn(
 				notTranslated: false,
 				availableLang: null,
 				alternateLang: altPost ? otherLang : null,
+				ogImagePath,
 			};
 		}
 		// Stale DB row — drop through to fallback / page lookup.
@@ -113,17 +132,27 @@ export async function getPostBySlugWithLangFn(
 	if (fallbackPost) {
 		const source = await safeReadMdx(fallbackPost.filePath);
 		if (source !== null) {
-			const { content: body } = matter(source);
+			const { content: body, data: frontmatterData } = matter(source);
 			const Content = await renderFn(body);
 			const html = renderToStaticMarkup(createElement(Content, {}));
+
+			const fallbackLang = fallbackPost.lang as Locale;
+			const ogImagePath = resolveOgImagePath({
+				coverImage: normalizeCoverImage(frontmatterData.coverImage),
+				locale: fallbackLang,
+				slug,
+				origin: getSiteOrigin(),
+			});
+
 			return {
 				kind: "post",
 				post: fallbackPost,
 				html,
 				requestedLang,
 				notTranslated: true,
-				availableLang: fallbackPost.lang as Locale,
+				availableLang: fallbackLang,
 				alternateLang: null,
+				ogImagePath,
 			};
 		}
 		// Stale DB row — drop through to static-page lookup.
@@ -148,7 +177,31 @@ export async function getPostBySlugWithLangFn(
 	throw notFound();
 }
 
-export async function incrementViewCountFn(id: number): Promise<void> {
+export type IncrementViewCountInput = {
+	id: number;
+	/**
+	 * Client-reported `document.referrer` at the moment the post mounted.
+	 * `null` when the navigation had no referrer (direct visit / fresh tab).
+	 * Override the request's `Referer` header because the browser sets that
+	 * header to the current post URL on same-origin server-fn fetches, which
+	 * loses the original upstream source.
+	 */
+	referrer: string | null;
+	/**
+	 * Value of the `utm_source` query param on the post URL at the moment
+	 * the page mounted. Forwarded so the server can prefer it over the
+	 * `Referer` fallback — share-intent redirects (wa.me, twitter intent,
+	 * etc.) routinely strip the referrer, leaving the UTM as the only
+	 * surviving attribution signal. `null` when the param is absent.
+	 */
+	utmSource: string | null;
+};
+
+export async function incrementViewCountFn(
+	input: IncrementViewCountInput,
+): Promise<void> {
+	const { id, referrer, utmSource } = input;
+
 	// Gate on bot check first — no DB I/O for bot requests.
 	const [{ getRequest }, { isBotUserAgent }] = await Promise.all([
 		import("@tanstack/react-start/server"),
@@ -159,8 +212,7 @@ export async function incrementViewCountFn(id: number): Promise<void> {
 
 	if (isBotUserAgent(request.headers.get("User-Agent"))) return;
 
-	// Read lang server-side so the client call signature (`{ data: post.id }`)
-	// stays unchanged — the client useEffect does not need to pass lang.
+	// Read lang server-side so the client only forwards `{ id, referrer }`.
 	const [{ db }, { posts }, { eq }] = await Promise.all([
 		import("#/db/client"),
 		import("#/db/schema"),
@@ -179,7 +231,7 @@ export async function incrementViewCountFn(id: number): Promise<void> {
 	const { recordPostView } = await import(
 		"#/lib/analytics/record-event.server"
 	);
-	await recordPostView({ postId: id, request, lang });
+	await recordPostView({ postId: id, request, lang, referrer, utmSource });
 }
 
 export function validateLocaleInput(data: { slug: string; lang: string }): {
@@ -202,5 +254,18 @@ export const getPostBySlugWithLang = createServerFn({ method: "GET" })
 	});
 
 export const incrementViewCount = createServerFn({ method: "POST" })
-	.inputValidator((id: number) => id)
-	.handler(async ({ data: id }) => incrementViewCountFn(id));
+	.inputValidator((input: IncrementViewCountInput) => {
+		if (
+			typeof input?.id !== "number" ||
+			!Number.isInteger(input.id) ||
+			input.id <= 0
+		) {
+			throw new Error("incrementViewCount: id must be a positive integer");
+		}
+		const cap = (s: string | null, max: number): string | null =>
+			typeof s === "string" && s.length > 0 ? s.slice(0, max) : null;
+		const referrer = cap(input.referrer, 2048);
+		const utmSource = cap(input.utmSource, 64);
+		return { id: input.id, referrer, utmSource };
+	})
+	.handler(async ({ data }) => incrementViewCountFn(data));

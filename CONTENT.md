@@ -50,6 +50,7 @@ No admin toggle, no flag flip, no post-merge step. Write → commit → push →
 | `series` | string | English-canonical series slug (e.g. `react-performance`). |
 | `seriesPart` | integer | 1-based position within the series. Required when `series` is set. |
 | `cover` | string | Relative path under `public/` (e.g. `images/react-suspense/cover.jpg`). |
+| `coverImage` | string | Public path to a custom OG social preview image (e.g. `/og/custom-cover.png`). Overrides the auto-generated code card. See [Cover image (OG preview)](#cover-image-og-preview). |
 
 `series` and `seriesPart` are interdependent — both must be set together or both omitted. CI blocks a post that sets one without the other.
 
@@ -89,6 +90,37 @@ For `slug: react-suspense-typescript`:
 - Inline: `public/images/react-suspense-typescript/diagram.png`
 
 Reference in MDX with a root-relative path: `![Alt text](/images/react-suspense-typescript/cover.jpg)`
+
+## Cover image (OG preview)
+
+When you share a post on social platforms (LinkedIn, X/Twitter, etc.), the preview card image comes from the first available source in this order:
+
+1. **`coverImage` frontmatter field** — your own image, used exactly as specified.
+2. **Auto-generated code card** — a 1200×630 branded image built from the post's first fenced code block and title, generated automatically by `bun run sync` for posts that contain code.
+3. **Site-wide profile photo** — `/og-image.jpg`. Used for posts with no code blocks and no `coverImage`.
+
+### Setting a custom OG image
+
+Add `coverImage` to your post's frontmatter with a path **relative to `public/`**:
+
+```yaml
+---
+title: "My Post Title"
+coverImage: /og/custom-cover.png
+---
+```
+
+The file must exist at `public/og/custom-cover.png` **before the deploy runs** — it is not auto-generated; you supply it. Custom covers placed directly under `public/og/` are tracked by git and ship in the deploy artifact; commit them with your post.
+
+### Auto-generated cards and `public/og/`
+
+`bun run sync` generates OG cards for every post that has at least one fenced code block and writes them to `public/og/<locale>/<slug>.png`. These cards **are committed to git** — they must ship inside the Docker image so the production app can serve them. The deploy's one-off `bun run sync` container is discarded (`--rm`), and the runner serves static files from the build-time bundle, so an uncommitted card would 404 in production and fall back to `/og-image.jpg`.
+
+**Authoring workflow:** after adding or editing a post that contains code, run `bun run sync` locally and commit the regenerated `public/og/<locale>/<slug>.png` alongside the post. `git status` will show the new or changed card.
+
+Running `bun run sync` locally after editing a post takes ~200–500 ms longer per post due to OG card generation.
+
+> See ADR-002 (Build-time code-block OG image generation) in `.compozy/tasks/share-and-branding/adrs/` for the rationale behind this approach.
 
 ## Slug Rules
 

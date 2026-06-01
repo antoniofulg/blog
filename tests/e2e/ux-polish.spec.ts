@@ -95,7 +95,7 @@ publicTest.describe("/about social row", { tag: ["@public", "@smoke"] }, () => {
 
 publicTest.describe("post share row", { tag: ["@public", "@smoke"] }, () => {
 	publicTest(
-		"desktop: 7 chips visible; Copy Link writes UTM-tagged URL to clipboard",
+		"desktop: 6 chips visible; Copy Link writes UTM-tagged URL to clipboard",
 		async ({ page }) => {
 			const state = await getState();
 
@@ -120,7 +120,12 @@ publicTest.describe("post share row", { tag: ["@public", "@smoke"] }, () => {
 			await page.goto(`/${state.fixturePostSlug}`);
 			await page.waitForLoadState("load");
 
-			// 6 social share links — PostShare chips (a elements).
+			// 5 social share links + 1 Copy Link button — PostShare chips.
+			// Platform set was reduced from 7 → 6 (Bluesky + Hacker News
+			// removed) in `feat(i18n): align postShare.chips to 6-platform
+			// set` and `feat(share): postShare refactor — variant prop +
+			// 6-platform utm scheme`. Order follows
+			// `app/lib/share/platforms.ts` SHARE_PLATFORMS.
 			// aria-labels: "Share on {platform}" (strings.en.postShare.ariaShareOn)
 			await expect(
 				page.getByRole("link", { name: "Share on X" }),
@@ -129,33 +134,43 @@ publicTest.describe("post share row", { tag: ["@public", "@smoke"] }, () => {
 				page.getByRole("link", { name: "Share on LinkedIn" }),
 			).toBeVisible();
 			await expect(
-				page.getByRole("link", { name: "Share on Bluesky" }),
-			).toBeVisible();
-			await expect(
-				page.getByRole("link", { name: "Share on Hacker News" }),
-			).toBeVisible();
-			await expect(
 				page.getByRole("link", { name: "Share on Reddit" }),
+			).toBeVisible();
+			await expect(
+				page.getByRole("link", { name: "Share on WhatsApp" }),
 			).toBeVisible();
 			await expect(
 				page.getByRole("link", { name: "Share on Email" }),
 			).toBeVisible();
 
-			// 1 Copy Link button — aria-label = strings.en.postShare.chips.copyLink
+			// 1 Copy Link button — aria-label = strings.en.postShare.chips.copy
 			const copyBtn = page.getByRole("button", { name: "Copy link" });
 			await expect(copyBtn).toBeVisible();
 
-			// Click Copy Link → triggers navigator.clipboard.writeText(utmUrl)
+			// Verify no orphaned chips remain from the legacy 7-platform set.
+			await expect(
+				page.getByRole("link", { name: "Share on Bluesky" }),
+			).toHaveCount(0);
+			await expect(
+				page.getByRole("link", { name: "Share on Hacker News" }),
+			).toHaveCount(0);
+
+			// Click Copy Link → writes the canonical URL to clipboard. Per the
+			// ADR-001 amendment in `refactor(analytics): drop hasShareUTM +
+			// share bucket`, clipboard copies are NOT UTM-tagged because the
+			// paste destination is unknown and tagging would pollute downstream
+			// attribution. UTM tagging now applies only to the named-platform
+			// share-intent links (twitter/linkedin/reddit/whatsapp/email).
 			await copyBtn.click();
 
-			// Clipboard content must include UTM attribution params (ADR-002)
 			const clipboardText = (await page.evaluate(
 				() =>
 					(window as unknown as Record<string, unknown>).__clipboardCapture ??
 					"",
 			)) as string;
-			expect(clipboardText).toContain("utm_source=blog");
-			expect(clipboardText).toContain("utm_medium=share");
+			expect(clipboardText).not.toContain("utm_source");
+			expect(clipboardText).not.toContain("utm_medium");
+			expect(clipboardText).toContain(state.fixturePostSlug);
 		},
 	);
 

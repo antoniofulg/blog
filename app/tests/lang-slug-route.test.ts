@@ -282,11 +282,15 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 describe("unit: incrementViewCountFn", () => {
 	beforeEach(resetMocks);
 
-	it("delegates to recordPostView with correct postId and lang (human UA)", async () => {
+	it("delegates to recordPostView with correct postId, lang, and referrer (human UA)", async () => {
 		// Provide the post row for the lang lookup inside incrementViewCountFn.
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
 
-		await incrementViewCountFn(42);
+		await incrementViewCountFn({
+			id: 42,
+			referrer: "https://www.linkedin.com/feed",
+			utmSource: null,
+		});
 
 		// recordPostView must be called exactly once with the right input shape.
 		expect(mocks.recordPostView).toHaveBeenCalledTimes(1);
@@ -294,16 +298,28 @@ describe("unit: incrementViewCountFn", () => {
 			postId: 42,
 			request: expect.any(Request),
 			lang: "en",
+			referrer: "https://www.linkedin.com/feed",
+			utmSource: null,
 		});
 
 		// No direct db.update — counter is handled inside recordPostView.
 		expect(mocks.update).not.toHaveBeenCalled();
 	});
 
+	it("forwards a null referrer when navigation had no upstream source", async () => {
+		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
+
+		await incrementViewCountFn({ id: 42, referrer: null, utmSource: null });
+
+		expect(mocks.recordPostView).toHaveBeenCalledWith(
+			expect.objectContaining({ postId: 42, referrer: null }),
+		);
+	});
+
 	it("pt-br post lang is forwarded to recordPostView correctly", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "pt-br" }]);
 
-		await incrementViewCountFn(7);
+		await incrementViewCountFn({ id: 7, referrer: null, utmSource: null });
 
 		expect(mocks.recordPostView).toHaveBeenCalledWith(
 			expect.objectContaining({ postId: 7, lang: "pt-br" }),
@@ -320,7 +336,7 @@ describe("unit: incrementViewCountFn", () => {
 			}),
 		);
 
-		await incrementViewCountFn(42);
+		await incrementViewCountFn({ id: 42, referrer: null, utmSource: null });
 
 		// Bot is identified before any DB I/O; recordPostView must NOT be called.
 		expect(mocks.recordPostView).not.toHaveBeenCalled();
@@ -333,7 +349,7 @@ describe("unit: incrementViewCountFn", () => {
 		// Lang lookup returns no rows.
 		mocks.selectWhere.mockResolvedValueOnce([]);
 
-		await incrementViewCountFn(999);
+		await incrementViewCountFn({ id: 999, referrer: null, utmSource: null });
 
 		expect(mocks.recordPostView).not.toHaveBeenCalled();
 		expect(mocks.update).not.toHaveBeenCalled();
@@ -405,6 +421,68 @@ describe("unit: TranslationNotice", () => {
 			}),
 		);
 		expect(enHtml.toLowerCase()).not.toContain("post");
+	});
+});
+
+// ─── Unit: normalizeCoverImage (via ogImagePath) ─────────────────────────────
+
+describe("unit: getPostBySlugWithLangFn — normalizeCoverImage behaviour", () => {
+	beforeEach(resetMocks);
+
+	it("non-empty string coverImage → ogImagePath reflects it", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: /images/my-cover.png\n---\n# Post\n\nContent",
+		);
+		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		// resolveOgImagePath prepends origin (empty in test env) for relative paths
+		expect(result.ogImagePath).toContain("/images/my-cover.png");
+	});
+
+	it("empty string coverImage → ogImagePath falls back (not the empty string)", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: ''\n---\n# Post\n\nContent",
+		);
+		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		// Empty string → normalizeCoverImage returns undefined → PNG/fallback path
+		expect(result.ogImagePath).not.toBe("");
+		expect(result.ogImagePath).not.toContain("my-cover");
+	});
+
+	it("non-string coverImage (number) → ogImagePath falls back to site default", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: 0\n---\n# Post\n\nContent",
+		);
+		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		// Non-string → normalizeCoverImage returns undefined → falls through to
+		// auto-PNG check (PNG doesn't exist in test env) → og-image.jpg fallback
+		expect(result.ogImagePath).toContain("og-image.jpg");
+	});
+
+	it("fallback branch: non-empty string coverImage → ogImagePath reflects it", async () => {
+		mocks.readFile.mockResolvedValueOnce(
+			"---\ncoverImage: /images/cover.png\n---\n# Fallback Post\n\nContent",
+		);
+		// exact match miss, fallback hit
+		mocks.selectWhere
+			.mockResolvedValueOnce([])
+			.mockResolvedValueOnce([makePost({ lang: "pt-br" })]);
+
+		const result = await getPostBySlugWithLangFn("react-suspense", "en");
+		expect(result.kind).toBe("post");
+		if (result.kind !== "post") return;
+		expect(result.ogImagePath).toContain("/images/cover.png");
 	});
 });
 

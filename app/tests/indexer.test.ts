@@ -23,6 +23,7 @@ const mocks = vi.hoisted(() => {
 	const selectWhere = vi.fn().mockResolvedValue([]);
 	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
 	const select = vi.fn().mockReturnValue({ from: selectFrom });
+	const mockUnlink = vi.fn().mockResolvedValue(undefined);
 	return {
 		insert,
 		values,
@@ -33,6 +34,7 @@ const mocks = vi.hoisted(() => {
 		selectFrom,
 		selectWhere,
 		orderBy,
+		mockUnlink,
 	};
 });
 
@@ -44,9 +46,29 @@ vi.mock("#/db/client", () => ({
 	},
 }));
 
+// Preserve real readFile/readdir so fixture reads in upsertPost tests work;
+// mock only unlink so removePost OG cleanup path is observable in tests.
+vi.mock("node:fs/promises", async (importOriginal) => {
+	const actual = await importOriginal<typeof import("node:fs/promises")>();
+	return { ...actual, unlink: mocks.mockUnlink };
+});
+
+// Mock OG generator — returns null by default; individual tests can override.
+// This also keeps existing unit tests fast (no real satori render).
+vi.mock("#/lib/og/generate", () => ({
+	generateOgImage: vi.fn().mockResolvedValue(null),
+}));
+
+// Mock code-block walker — returns null by default.
+vi.mock("#/lib/mdx/code-blocks.server", () => ({
+	findFirstCodeBlock: vi.fn().mockReturnValue(null),
+}));
+
 import { removePost, syncAll, upsertPost } from "#/db/indexer";
 import { listPostsFn } from "#/db/queries";
 import { posts } from "#/db/schema";
+import { findFirstCodeBlock } from "#/lib/mdx/code-blocks.server";
+import { generateOgImage } from "#/lib/og/generate";
 
 const FIXTURES = join(import.meta.dirname, "fixtures");
 
@@ -63,6 +85,7 @@ function resetMocks() {
 	mocks.selectWhere.mockResolvedValue([]);
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
+	mocks.mockUnlink.mockResolvedValue(undefined);
 }
 
 // ─── Unit: upsertPost ────────────────────────────────────────────────────────
@@ -246,6 +269,51 @@ describe("unit: removePost", () => {
 		expect(mocks.deleteChain).toHaveBeenCalledWith(posts);
 		expect(mocks.deleteWhere).toHaveBeenCalledTimes(1);
 	});
+
+	it("calls db.select() before db.delete() to resolve the stored slug", async () => {
+		// Use a path with a valid locale dir so deriveLang succeeds inside
+		// the OG cleanup branch. Slug from DB is irrelevant for ordering.
+		mocks.selectWhere.mockResolvedValueOnce([{ slug: "getting-started" }]);
+		await removePost(join(FIXTURES, "en", "intro.mdx"));
+
+		const selectOrder = mocks.select.mock.invocationCallOrder[0];
+		const deleteOrder = mocks.deleteChain.mock.invocationCallOrder[0];
+		expect(selectOrder).toBeLessThan(deleteOrder);
+	});
+});
+
+// ─── Unit: removePost — OG slug cleanup ──────────────────────────────────────
+
+describe("unit: removePost — OG slug cleanup", () => {
+	beforeEach(resetMocks);
+
+	it("uses DB-stored slug for OG unlink when frontmatter slug differs from filename", async () => {
+		// Simulate: file is `intro.mdx` but DB row stores `getting-started` slug.
+		mocks.selectWhere.mockResolvedValueOnce([{ slug: "getting-started" }]);
+		await removePost(join(FIXTURES, "en", "intro.mdx"));
+
+		expect(mocks.mockUnlink).toHaveBeenCalledWith(
+			join(process.cwd(), "public", "og", "en", "getting-started.png"),
+		);
+	});
+
+	it("falls back to filename slug for OG unlink when DB row is not found", async () => {
+		// No DB row — e.g. file was never indexed.
+		mocks.selectWhere.mockResolvedValueOnce([]);
+		await removePost(join(FIXTURES, "en", "intro.mdx"));
+
+		expect(mocks.mockUnlink).toHaveBeenCalledWith(
+			join(process.cwd(), "public", "og", "en", "intro.png"),
+		);
+	});
+
+	it("skips OG unlink entirely for paths with unsupported locale directory", async () => {
+		// deriveLang throws for non-locale dirs; OG cleanup must be skipped silently.
+		mocks.selectWhere.mockResolvedValueOnce([{ slug: "some-slug" }]);
+		await removePost("content/hello.mdx"); // "content" is not a valid locale
+
+		expect(mocks.mockUnlink).not.toHaveBeenCalled();
+	});
 });
 
 // ─── Unit: syncAll ───────────────────────────────────────────────────────────
@@ -358,5 +426,85 @@ describe("unit: listPostsFn", () => {
 		const whereArg = mocks.selectWhere.mock.calls[0][0];
 		expect(whereArg).toBeDefined();
 		expect(extractSQLParams(whereArg)).toContain("pt-br");
+	});
+});
+
+// ─── Unit: upsertPost — OG integration ──────────────────────────────────────
+
+describe("unit: upsertPost — OG integration", () => {
+	beforeEach(resetMocks);
+
+	it("calls generateOgImage with correct locale/slug/title after frontmatter parse", async () => {
+		vi.mocked(findFirstCodeBlock).mockReturnValue({
+			lang: "typescript",
+			code: "const x = 1;",
+		});
+		vi.mocked(generateOgImage).mockResolvedValue("/og/en/hello-world.png");
+
+		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
+
+		expect(generateOgImage).toHaveBeenCalledOnce();
+		const callArg = vi.mocked(generateOgImage).mock.calls[0]?.[0];
+		expect(callArg?.locale).toBe("en");
+		expect(callArg?.slug).toBe("hello-world");
+		expect(callArg?.title).toBe("Hello World");
+		expect(callArg?.firstCodeBlock).toEqual({
+			lang: "typescript",
+			code: "const x = 1;",
+		});
+	});
+
+	it("skips generateOgImage when walker returns null (no code block)", async () => {
+		vi.mocked(findFirstCodeBlock).mockReturnValue(null);
+
+		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
+
+		// generateOgImage must NOT be called when there is no code block (AC-4)
+		expect(generateOgImage).not.toHaveBeenCalled();
+		// DB upsert must still happen
+		expect(mocks.insert).toHaveBeenCalledWith(posts);
+	});
+
+	it("AC-5: generateOgImage returning null does not interrupt DB upsert", async () => {
+		vi.mocked(findFirstCodeBlock).mockReturnValue({
+			lang: "ts",
+			code: "const x = 1;",
+		});
+		// Simulate OG generation returning null (internal failure)
+		vi.mocked(generateOgImage).mockResolvedValue(null);
+
+		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
+
+		// DB upsert must still have been called despite OG returning null
+		expect(mocks.insert).toHaveBeenCalledWith(posts);
+		expect(mocks.onConflictDoUpdate).toHaveBeenCalledTimes(1);
+	});
+
+	it("AC-5b: generateOgImage throwing does not interrupt DB upsert", async () => {
+		vi.mocked(findFirstCodeBlock).mockReturnValue({
+			lang: "ts",
+			code: "const x = 1;",
+		});
+		vi.mocked(generateOgImage).mockRejectedValue(
+			new Error("simulated OG crash"),
+		);
+
+		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
+
+		// DB upsert must still have been called despite OG error
+		expect(mocks.insert).toHaveBeenCalledWith(posts);
+		expect(mocks.onConflictDoUpdate).toHaveBeenCalledTimes(1);
+	});
+
+	it("calls findFirstCodeBlock with the MDX source string", async () => {
+		vi.mocked(findFirstCodeBlock).mockReturnValue(null);
+		vi.mocked(generateOgImage).mockResolvedValue(null);
+
+		await upsertPost(join(FIXTURES, "en", "with-code.mdx"));
+
+		expect(findFirstCodeBlock).toHaveBeenCalledOnce();
+		const sourceArg = vi.mocked(findFirstCodeBlock).mock.calls[0]?.[0];
+		expect(typeof sourceArg).toBe("string");
+		expect(sourceArg).toContain("typescript");
 	});
 });

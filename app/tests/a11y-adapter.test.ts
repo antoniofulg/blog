@@ -8,8 +8,6 @@ import { analyzeA11y } from "#/lib/app-audit/a11y-adapter.server";
 
 vi.mock("@axe-core/playwright", () => {
 	class AxeBuilder {
-		constructor(_opts: { page: Page }) {}
-
 		withTags(_tags: string[]) {
 			return this;
 		}

@@ -15,6 +15,7 @@ import {
 	ALL_SOURCES,
 	type ReferrerSource,
 } from "#/lib/analytics/referrer-bucketer";
+import { resolveSourceLabel } from "#/lib/analytics/source-label";
 import { formatDayMonth } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
@@ -48,19 +49,26 @@ type Props = {
  * LinkedIn/Google in almost every indie-blog dataset.
  */
 export const SOURCE_COLOR_MAP: Record<ReferrerSource, string> = {
-	linkedin: "var(--color-chart-1)",
-	google: "var(--color-chart-2)",
-	github: "var(--color-chart-3)",
-	twitter: "var(--color-chart-4)",
-	reddit: "var(--color-chart-5)",
-	hackernews: "var(--color-chart-6)",
-	"dev.to": "var(--color-chart-7)",
-	medium: "var(--color-chart-8)",
-	bluesky: "var(--color-chart-9)",
-	mastodon: "var(--color-chart-10)",
+	// Each named platform maps to its brand-identity hue (defined as a
+	// theme-aware token in global.css), so the stacked bar reads like the
+	// share buttons: WhatsApp green, X near-black, LinkedIn blue, etc. The
+	// two generic buckets stay on neutral semantic tokens so author content
+	// (`direct`) and unrecognised referers (`other`) recede behind the
+	// named platforms.
+	linkedin: "var(--color-source-linkedin)",
+	google: "var(--color-source-google)",
+	github: "var(--color-source-github)",
+	twitter: "var(--color-source-twitter)",
+	reddit: "var(--color-source-reddit)",
+	hackernews: "var(--color-source-hackernews)",
+	"dev.to": "var(--color-source-devto)",
+	medium: "var(--color-source-medium)",
+	bluesky: "var(--color-source-bluesky)",
+	mastodon: "var(--color-source-mastodon)",
+	whatsapp: "var(--color-source-whatsapp)",
+	email: "var(--color-source-email)",
 	direct: "var(--color-foreground-muted)",
 	other: "var(--color-border-strong)",
-	share: "var(--color-accent)",
 };
 
 // ── Pivot helper ──────────────────────────────────────────────────────────────
@@ -167,6 +175,7 @@ export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 								<Bar
 									key={source}
 									dataKey={source}
+									name={resolveSourceLabel(source, locale)}
 									stackId="referrers"
 									fill={SOURCE_COLOR_MAP[source]}
 								/>
@@ -188,7 +197,7 @@ export function ReferrerSourcesBar({ referrerByDay, locale, postId }: Props) {
 								// biome-ignore lint/suspicious/noArrayIndexKey: sr-only table rows have no stable id; index is safe here
 								<tr key={i}>
 									<td>{row.date}</td>
-									<td>{row.source}</td>
+									<td>{resolveSourceLabel(row.source, locale)}</td>
 									<td>{row.count}</td>
 								</tr>
 							))}

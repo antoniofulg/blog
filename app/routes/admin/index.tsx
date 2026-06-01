@@ -1,8 +1,10 @@
 import { createFileRoute, Link, redirect } from "@tanstack/react-router";
+import { PostShare } from "#/components/ui/post-share";
 import type { Post } from "#/db/schema";
 import { formatDate } from "#/lib/date";
 import { strings } from "#/lib/i18n/strings";
-import { useLocale } from "#/lib/locale";
+import { type Locale, localeHref, useLocale } from "#/lib/locale";
+import { getSiteOrigin } from "#/lib/site-origin";
 import { getAllPosts } from "./index.server";
 
 const isLocale = (v: unknown): v is "en" | "pt-br" =>
@@ -90,6 +92,12 @@ function AdminDashboard() {
 								<th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
 									{t.table.published}
 								</th>
+								<th
+									scope="col"
+									className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted"
+								>
+									{t.table.share}
+								</th>
 								<th className="px-4 py-3 text-left text-xs font-semibold uppercase tracking-wider text-foreground-muted">
 									{t.table.actions}
 								</th>
@@ -111,6 +119,15 @@ function AdminDashboard() {
 										{post.publishedAt
 											? formatDate(post.publishedAt, locale)
 											: strings[locale].admin.dashboard.unpublished}
+									</td>
+									<td className="px-4 py-3">
+										<PostShare
+											variant="dropdown"
+											postUrl={`${getSiteOrigin()}${localeHref(post.lang as Locale, post.slug)}`}
+											postSlug={post.slug}
+											postTitle={post.title ?? ""}
+											locale={post.lang as Locale}
+										/>
 									</td>
 									<td className="px-4 py-3">
 										<a

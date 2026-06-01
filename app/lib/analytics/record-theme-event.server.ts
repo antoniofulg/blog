@@ -46,7 +46,7 @@ export async function recordThemeEventHandler({
 	}
 
 	const device = detectDevice(ua);
-	const referrerSource = bucketReferrer(referer, request.url);
+	const referrerSource = bucketReferrer(referer);
 	const { theme, source, lang } = data;
 
 	try {

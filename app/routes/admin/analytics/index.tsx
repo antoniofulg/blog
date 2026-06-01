@@ -11,6 +11,7 @@ import { AnalyticsDashboardSkeleton } from "#/components/admin/analytics/analyti
 import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
 import { DeviceSplitDonut } from "#/components/admin/analytics/device-split-donut";
 import { FilterChip } from "#/components/admin/analytics/filter-chip";
+import { LanguageSplitPie } from "#/components/admin/analytics/language-split-pie";
 import { RangeSelector } from "#/components/admin/analytics/range-selector";
 import { ReferrerSourcesBar } from "#/components/admin/analytics/referrer-sources-bar";
 import { SummaryCards } from "#/components/admin/analytics/summary-cards";
@@ -130,17 +131,26 @@ export function AnalyticsDashboard() {
 					/>
 				</div>
 
-				{/* Bottom row: top posts + device split — tasks 15, 16 */}
+				{/* Split row: language + device pies side by side */}
 				<div className="mt-4 grid grid-cols-1 gap-4 lg:grid-cols-2">
-					<TopPostsTable
-						topPosts={data.topPosts}
+					<LanguageSplitPie
+						languageSplit={data.languageSplit}
 						locale={locale}
-						onRowClick={handleRowClick}
 						postId={postId}
 					/>
 					<DeviceSplitDonut
 						deviceSplit={data.deviceSplit}
 						locale={locale}
+						postId={postId}
+					/>
+				</div>
+
+				{/* Top posts — full-width final row */}
+				<div className="mt-4">
+					<TopPostsTable
+						topPosts={data.topPosts}
+						locale={locale}
+						onRowClick={handleRowClick}
 						postId={postId}
 					/>
 				</div>

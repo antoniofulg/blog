@@ -125,12 +125,20 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 			new Request("http://localhost/incr-integ-human", {
 				headers: {
 					"User-Agent": HUMAN_UA,
-					Referer: "https://github.com/tanstack",
+					// `Referer` is set but ignored — the increment fetch is
+					// same-origin so the browser would always put the post
+					// URL here, hence we now route the upstream source
+					// through the explicit `referrer` argument instead.
+					Referer: "https://this-header-must-be-ignored.example",
 				},
 			}),
 		);
 
-		await incrementViewCountFn(seededPost.id);
+		await incrementViewCountFn({
+			id: seededPost.id,
+			referrer: "https://github.com/tanstack",
+			utmSource: null,
+		});
 
 		// AC-1: view_count incremented
 		const [updatedPost] = await testDb.db
@@ -140,7 +148,8 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 
 		expect(updatedPost.viewCount).toBe(1);
 
-		// AC-1: one event row inserted
+		// AC-1: one event row inserted with `referrer_source` derived from the
+		// explicit `referrer` argument (NOT the request's `Referer` header).
 		const events = await testDb.db
 			.select()
 			.from(analyticsEvents)
@@ -151,6 +160,7 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 			postId: seededPost.id,
 			lang: "en",
 			isBot: false,
+			referrerSource: "github",
 		});
 	}, 30_000);
 
@@ -172,7 +182,11 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 			}),
 		);
 
-		await incrementViewCountFn(seededPost.id);
+		await incrementViewCountFn({
+			id: seededPost.id,
+			referrer: null,
+			utmSource: null,
+		});
 
 		// AC-2: view_count unchanged
 		const [unchangedPost] = await testDb.db
@@ -199,7 +213,13 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 		);
 
 		// Should resolve without throwing even for a non-existent post id.
-		await expect(incrementViewCountFn(999_999_999)).resolves.toBeUndefined();
+		await expect(
+			incrementViewCountFn({
+				id: 999_999_999,
+				referrer: null,
+				utmSource: null,
+			}),
+		).resolves.toBeUndefined();
 
 		const events = await testDb.db
 			.select()

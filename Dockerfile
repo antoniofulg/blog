@@ -31,6 +31,12 @@ COPY --from=builder /app/scripts/sync.ts ./scripts/sync.ts
 COPY --from=builder /app/app/content ./app/content
 COPY --from=builder /app/app/db ./app/db
 COPY --from=builder /app/app/lib ./app/lib
+# public/ is also bundled into .output/public/ by Nitro for static serving, but
+# resolveOgImagePath() probes process.cwd()/public/og/<locale>/<slug>.png at
+# request time to decide between an auto-generated card and the site fallback.
+# Copy public/ into the runner so that existence check sees the committed OG
+# cards; without it every generated card resolves to the /og-image.jpg fallback.
+COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 

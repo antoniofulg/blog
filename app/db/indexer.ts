@@ -1,5 +1,5 @@
 import "@tanstack/react-start/server-only";
-import { readdir, readFile } from "node:fs/promises";
+import { readdir, readFile, unlink } from "node:fs/promises";
 import {
 	basename,
 	dirname,
@@ -12,6 +12,8 @@ import {
 import { eq, or } from "drizzle-orm";
 import matter from "gray-matter";
 import { LOCALES, type Locale } from "#/lib/locale";
+import { findFirstCodeBlock } from "#/lib/mdx/code-blocks.server";
+import { generateOgImage } from "#/lib/og/generate";
 import { db } from "./client";
 import { posts } from "./schema";
 
@@ -112,6 +114,39 @@ export async function upsertPost(filePath: string): Promise<void> {
 		filePath = toRelativePath(filePath);
 		const slug = deriveSlug(filePath, fm.slug);
 		lang = deriveLang(filePath);
+
+		// Generate OG image only when the post has at least one fenced code block.
+		// Posts with no code block rely on the site-wide og-image.jpg fallback (ADR-002).
+		// generateOgImage already wraps its internals in try/catch and returns null;
+		// the outer try/catch here is a defensive belt-and-suspenders guard.
+		const firstCodeBlock = findFirstCodeBlock(source);
+		if (firstCodeBlock !== null) {
+			try {
+				await generateOgImage({
+					locale: lang as Locale,
+					slug,
+					title: fm.title,
+					firstCodeBlock,
+				});
+			} catch (err) {
+				console.warn(
+					`[og] generation failed for ${slug}: ${err instanceof Error ? err.message : String(err)}`,
+				);
+			}
+		} else {
+			// Post no longer has a code block — delete stale OG PNG if present.
+			const ogPath = join(
+				process.cwd(),
+				"public",
+				"og",
+				lang as string,
+				`${slug}.png`,
+			);
+			await unlink(ogPath).catch(() => {
+				/* not present — no-op */
+			});
+		}
+
 		const now = new Date();
 		await db
 			.insert(posts)
@@ -174,9 +209,36 @@ export async function removePost(filePath: string): Promise<void> {
 		// relative. Matching both forms lets cleanup catch either kind without a
 		// separate migration.
 		const normalized = toRelativePath(filePath);
+
+		// Read the resolved slug from the DB BEFORE deleting — the row may store
+		// a frontmatter-overridden slug that differs from the filename slug.
+		// Using only deriveSlug(normalized) would unlink the wrong OG PNG when
+		// frontmatter slug ≠ filename (e.g. intro.mdx with slug: getting-started).
+		const [row] = await db
+			.select({ slug: posts.slug })
+			.from(posts)
+			.where(or(eq(posts.filePath, filePath), eq(posts.filePath, normalized)));
+
 		await db
 			.delete(posts)
 			.where(or(eq(posts.filePath, filePath), eq(posts.filePath, normalized)));
+
+		// Best-effort OG PNG cleanup — delete public/og/{locale}/{slug}.png if present.
+		// Inner try-catch swallows errors from non-standard paths (e.g. test tmp dirs
+		// where deriveLang throws due to an unsupported locale directory name).
+		try {
+			const locale = deriveLang(normalized);
+			// Prefer DB-stored slug (frontmatter-aware); fall back to filename slug
+			// only when the row was already absent (never indexed or already deleted).
+			const slug = row?.slug ?? deriveSlug(normalized);
+			const ogPath = join(process.cwd(), "public", "og", locale, `${slug}.png`);
+			await unlink(ogPath).catch(() => {
+				/* not present — no-op */
+			});
+		} catch {
+			// Non-standard path — skip OG cleanup
+		}
+
 		console.log(
 			JSON.stringify({
 				level: "INFO",

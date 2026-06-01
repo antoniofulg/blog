@@ -25,13 +25,12 @@ export const uiStringsSchema = z.object({
 	postShare: z.object({
 		share: z.string(),
 		chips: z.object({
-			x: z.string(),
+			twitter: z.string(),
 			linkedin: z.string(),
-			bluesky: z.string(),
-			hackernews: z.string(),
 			reddit: z.string(),
+			whatsapp: z.string(),
 			email: z.string(),
-			copyLink: z.string(),
+			copy: z.string(),
 		}),
 		copied: z.string(),
 		ariaShareOn: z.string(),
@@ -56,6 +55,7 @@ export const uiStringsSchema = z.object({
 				slug: z.string(),
 				lang: z.string(),
 				published: z.string(),
+				share: z.string(),
 				actions: z.string(),
 			}),
 			unpublished: z.string(),
@@ -76,6 +76,7 @@ export const uiStringsSchema = z.object({
 				referrerSources: z.string(),
 				topPosts: z.string(),
 				deviceSplit: z.string(),
+				languageSplit: z.string(),
 			}),
 			range: z.object({
 				"7d": z.string(),
@@ -94,6 +95,33 @@ export const uiStringsSchema = z.object({
 				columnDate: z.string(),
 				columnSource: z.string(),
 				columnDevice: z.string(),
+			}),
+			// Display labels for the two content locales, keyed by the raw
+			// `analytics_events.lang` value. Used by the Top Language summary
+			// card and the language-split pie.
+			languages: z.object({
+				en: z.string(),
+				"pt-br": z.string(),
+			}),
+			// Display labels for every `ReferrerSource` bucket. Keyed by the
+			// raw bucket value stored in `analytics_events.referrer_source`.
+			// Proper-noun platforms stay identical across locales; only the
+			// generic buckets (`direct`, `other`) are translated.
+			sources: z.object({
+				linkedin: z.string(),
+				google: z.string(),
+				github: z.string(),
+				twitter: z.string(),
+				reddit: z.string(),
+				hackernews: z.string(),
+				"dev.to": z.string(),
+				medium: z.string(),
+				bluesky: z.string(),
+				mastodon: z.string(),
+				whatsapp: z.string(),
+				email: z.string(),
+				direct: z.string(),
+				other: z.string(),
 			}),
 			filter: z.object({
 				activeChip: z.string(),
@@ -129,13 +157,12 @@ export const strings: Record<Locale, UIStrings> = {
 		postShare: {
 			share: "Share",
 			chips: {
-				x: "X",
+				twitter: "X",
 				linkedin: "LinkedIn",
-				bluesky: "Bluesky",
-				hackernews: "Hacker News",
 				reddit: "Reddit",
+				whatsapp: "WhatsApp",
 				email: "Email",
-				copyLink: "Copy link",
+				copy: "Copy link",
 			},
 			copied: "Copied!",
 			ariaShareOn: "Share on {platform}",
@@ -165,6 +192,7 @@ export const strings: Record<Locale, UIStrings> = {
 					slug: "Slug",
 					lang: "Language",
 					published: "Published",
+					share: "Share",
 					actions: "Actions",
 				},
 				unpublished: "Draft",
@@ -185,6 +213,7 @@ export const strings: Record<Locale, UIStrings> = {
 					referrerSources: "Referrer Sources",
 					topPosts: "Top Posts",
 					deviceSplit: "Device Split",
+					languageSplit: "Language Split",
 				},
 				range: {
 					"7d": "Last 7 days",
@@ -203,6 +232,26 @@ export const strings: Record<Locale, UIStrings> = {
 					columnDate: "Date",
 					columnSource: "Source",
 					columnDevice: "Device",
+				},
+				languages: {
+					en: "English",
+					"pt-br": "Portuguese",
+				},
+				sources: {
+					linkedin: "LinkedIn",
+					google: "Google",
+					github: "GitHub",
+					twitter: "X",
+					reddit: "Reddit",
+					hackernews: "Hacker News",
+					"dev.to": "DEV",
+					medium: "Medium",
+					bluesky: "Bluesky",
+					mastodon: "Mastodon",
+					whatsapp: "WhatsApp",
+					email: "Email",
+					direct: "Direct",
+					other: "Other",
 				},
 				filter: {
 					activeChip: "Filtered by post:",
@@ -236,13 +285,12 @@ export const strings: Record<Locale, UIStrings> = {
 		postShare: {
 			share: "Compartilhar",
 			chips: {
-				x: "X",
+				twitter: "X",
 				linkedin: "LinkedIn",
-				bluesky: "Bluesky",
-				hackernews: "Hacker News",
 				reddit: "Reddit",
+				whatsapp: "WhatsApp",
 				email: "E-mail",
-				copyLink: "Copiar link",
+				copy: "Copiar link",
 			},
 			copied: "Copiado!",
 			ariaShareOn: "Compartilhar no {platform}",
@@ -272,6 +320,7 @@ export const strings: Record<Locale, UIStrings> = {
 					slug: "Slug",
 					lang: "Idioma",
 					published: "Publicado",
+					share: "Compartilhar",
 					actions: "Ações",
 				},
 				unpublished: "Rascunho",
@@ -292,6 +341,7 @@ export const strings: Record<Locale, UIStrings> = {
 					referrerSources: "Origens de acesso",
 					topPosts: "Posts mais acessados",
 					deviceSplit: "Dispositivos",
+					languageSplit: "Idiomas",
 				},
 				range: {
 					"7d": "Últimos 7 dias",
@@ -310,6 +360,26 @@ export const strings: Record<Locale, UIStrings> = {
 					columnDate: "Data",
 					columnSource: "Origem",
 					columnDevice: "Dispositivo",
+				},
+				languages: {
+					en: "Inglês",
+					"pt-br": "Português",
+				},
+				sources: {
+					linkedin: "LinkedIn",
+					google: "Google",
+					github: "GitHub",
+					twitter: "X",
+					reddit: "Reddit",
+					hackernews: "Hacker News",
+					"dev.to": "DEV",
+					medium: "Medium",
+					bluesky: "Bluesky",
+					mastodon: "Mastodon",
+					whatsapp: "WhatsApp",
+					email: "E-mail",
+					direct: "Direto",
+					other: "Outros",
 				},
 				filter: {
 					activeChip: "Filtrado por post:",

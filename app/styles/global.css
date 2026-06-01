@@ -82,6 +82,22 @@
   --color-chart-8: var(--chart-8);
   --color-chart-9: var(--chart-9);
   --color-chart-10: var(--chart-10);
+
+  /* Referrer-source brand colors — each maps to the platform's identity
+     hue so the stacked bar reads like the share buttons (WhatsApp green,
+     X near-black, LinkedIn blue, …). Defined per-theme below. */
+  --color-source-linkedin: var(--source-linkedin);
+  --color-source-google: var(--source-google);
+  --color-source-github: var(--source-github);
+  --color-source-twitter: var(--source-twitter);
+  --color-source-reddit: var(--source-reddit);
+  --color-source-hackernews: var(--source-hackernews);
+  --color-source-devto: var(--source-devto);
+  --color-source-medium: var(--source-medium);
+  --color-source-bluesky: var(--source-bluesky);
+  --color-source-mastodon: var(--source-mastodon);
+  --color-source-whatsapp: var(--source-whatsapp);
+  --color-source-email: var(--source-email);
 }
 
 :root {
@@ -129,6 +145,21 @@
   --chart-8: #EA580C;
   --chart-9: #65A30D;
   --chart-10: #7E22CE;
+
+  /* Referrer-source brand colors — light mode. Each is the platform's
+     identity hue, darkened where needed for ≥3:1 contrast on #FFFFFF. */
+  --source-linkedin: #0A66C2;
+  --source-google: #4285F4;
+  --source-github: #6E5494;
+  --source-twitter: #0F1419;
+  --source-reddit: #FF4500;
+  --source-hackernews: #FF6600;
+  --source-devto: #2F3C7E;
+  --source-medium: #1A8917;
+  --source-bluesky: #0085FF;
+  --source-mastodon: #6364FF;
+  --source-whatsapp: #25D366;
+  --source-email: #64748B;
 }
 
 .dark {
@@ -176,6 +207,21 @@
   --chart-8: #FB923C;
   --chart-9: #A3E635;
   --chart-10: #C084FC;
+
+  /* Referrer-source brand colors — dark mode. Lightened so the near-black
+     brands (X, dev.to) and mid-tones stay ≥3:1 on the #1E2838 card. */
+  --source-linkedin: #4D9FE8;
+  --source-google: #7BAAF7;
+  --source-github: #B9A4D9;
+  --source-twitter: #E7E9EA;
+  --source-reddit: #FF7847;
+  --source-hackernews: #FF9233;
+  --source-devto: #8B9BE8;
+  --source-medium: #4CC44C;
+  --source-bluesky: #4DA8FF;
+  --source-mastodon: #9293FF;
+  --source-whatsapp: #4AE383;
+  --source-email: #94A3B8;
 }
 
 /*

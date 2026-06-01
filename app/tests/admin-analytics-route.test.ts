@@ -208,6 +208,7 @@ function makeDashboardData() {
 			},
 		],
 		deviceSplit: { mobile: 30, tablet: 10, desktop: 60 },
+		languageSplit: { en: 60, "pt-br": 40 },
 	};
 }
 

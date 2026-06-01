@@ -2,8 +2,8 @@
  * V1 referrer source buckets.
  * Aligns with the `referrer_source` column domain in `analytics_events`.
  *
- * "share" is the UTM-attributed bucket: assigned when the incoming request URL
- * carries ?utm_source=blog&utm_medium=share (ADR-002).
+ * The legacy "share" bucket and hasShareUTM short-circuit were removed in
+ * favour of per-platform utm_source attribution (ADR-001).
  */
 export type ReferrerSource =
 	| "linkedin"
@@ -16,9 +16,10 @@ export type ReferrerSource =
 	| "medium"
 	| "bluesky"
 	| "mastodon"
+	| "whatsapp"
+	| "email"
 	| "direct"
-	| "other"
-	| "share";
+	| "other";
 
 /**
  * Canonical ordered enumeration of every `ReferrerSource` member.
@@ -45,9 +46,10 @@ export const ALL_SOURCES: readonly ReferrerSource[] = [
 	"medium",
 	"bluesky",
 	"mastodon",
+	"whatsapp",
+	"email",
 	"direct",
 	"other",
-	"share",
 ] as const;
 
 /**
@@ -122,63 +124,85 @@ function hostnameToSource(hostname: string): ReferrerSource {
 		}
 	}
 	// Google country variants: google.com, google.co.uk, google.com.br, etc.
-	// Require a recognised TLD suffix after "google." to avoid mis-classifying
-	// typosquatting domains like `google.evil.com` as "google".
+	// Two cases:
+	//   1. Bare domain: google.<tld>  (e.g. google.com.br)
+	//   2. Subdomain:   <sub>.google.<tld>  (e.g. www.google.com.br)
+	// Both require a recognised TLD to prevent typosquatting (e.g. google.evil.com).
 	const dotIdx = hostname.indexOf(".");
 	const tldSuffix = dotIdx >= 0 ? hostname.slice(dotIdx + 1) : "";
-	if (
-		(hostname.startsWith("google.") && GOOGLE_TLDS.has(tldSuffix)) ||
-		(hostname.includes(".google.") &&
-			/\.google\.(com|[a-z]{2})$/.test(hostname))
-	) {
+	if (hostname.startsWith("google.") && GOOGLE_TLDS.has(tldSuffix)) {
 		return "google";
+	}
+	const googleDotIdx = hostname.indexOf(".google.");
+	if (googleDotIdx >= 0) {
+		const afterGoogle = hostname.slice(googleDotIdx + ".google.".length);
+		if (GOOGLE_TLDS.has(afterGoogle)) {
+			return "google";
+		}
 	}
 	return "other";
 }
 
 /**
- * Returns true iff `currentUrl` carries both utm_source=blog AND utm_medium=share.
+ * Map a `utm_source` value to a `ReferrerSource` bucket. Returns `null` for
+ * unknown / missing / empty values so callers can fall back to Referer-based
+ * bucketing without a sentinel string.
  *
- * Short-circuits `bucketReferrer` to the "share" bucket when present.
- * Swallows malformed URLs — returns false without throwing (ADR-002).
+ * Why this exists alongside `bucketReferrer`: clicks on platform share
+ * intents (wa.me, twitter.com/intent, etc.) often arrive at the post with
+ * an empty `document.referrer` — the intermediate redirect strips it — but
+ * the `utm_source` query param we emit from PostShare survives the round
+ * trip. Without consulting it, every WhatsApp / X / LinkedIn share that
+ * came through our own platform links would bucket as `direct`.
+ *
+ * Matching is case-insensitive against the literal `utm_source` value we
+ * emit from `app/lib/share/platforms.ts`; anything not in that set is
+ * treated as untrusted and returns `null`.
+ *
+ * Pure function — no I/O, no side effects.
  */
-function hasShareUTM(currentUrl: string | undefined): boolean {
-	if (!currentUrl) return false;
-	try {
-		const params = new URL(currentUrl).searchParams;
-		return (
-			params.get("utm_source") === "blog" &&
-			params.get("utm_medium") === "share"
-		);
-	} catch {
-		return false;
-	}
+const UTM_SOURCE_MAP: Readonly<Record<string, ReferrerSource>> = {
+	twitter: "twitter",
+	x: "twitter",
+	linkedin: "linkedin",
+	reddit: "reddit",
+	whatsapp: "whatsapp",
+	email: "email",
+	hackernews: "hackernews",
+	bluesky: "bluesky",
+	mastodon: "mastodon",
+	github: "github",
+	"dev.to": "dev.to",
+	medium: "medium",
+};
+
+export function bucketUtmSource(
+	utmSource: string | null | undefined,
+): ReferrerSource | null {
+	if (!utmSource) return null;
+	const key = utmSource.trim().toLowerCase();
+	if (key.length === 0) return null;
+	return UTM_SOURCE_MAP[key] ?? null;
 }
 
 /**
  * Maps a raw Referer header value to a named source bucket.
  *
- * When `currentUrl` is provided the UTM check runs first (ADR-002):
- *   - utm_source=blog AND utm_medium=share → "share" (wins over any Referer)
- *   - malformed `currentUrl`              → fall through (never throws)
- *
- * Fallback hostname logic:
+ * Hostname logic:
  * - Empty / null / undefined Referer → "direct"
  * - Malformed Referer URL            → "other" (never throws)
  * - Known hostname                   → named bucket
  * - Unknown hostname                 → "other"
  *
+ * `bucketUtmSource` should be consulted FIRST by composite callers (see
+ * `bucketEvent`); this function intentionally ignores query strings to keep
+ * the hostname-only contract unambiguous.
+ *
  * Pure function — no I/O, no side effects.
  */
 export function bucketReferrer(
 	referer: string | null | undefined,
-	currentUrl?: string,
 ): ReferrerSource {
-	// UTM short-circuit: ?utm_source=blog&utm_medium=share wins over any Referer.
-	// This ensures share-button click chains are attributed to "share" regardless
-	// of which platform the reader arrived from (ADR-002).
-	if (hasShareUTM(currentUrl)) return "share";
-
 	if (!referer) return "direct";
 	let url: URL;
 	try {
@@ -187,4 +211,59 @@ export function bucketReferrer(
 		return "other";
 	}
 	return hostnameToSource(url.hostname);
+}
+
+/** Extract the bare hostname from a `Host` header or a full URL string. */
+function extractHostname(value: string | null | undefined): string | null {
+	if (!value) return null;
+	const trimmed = value.trim();
+	if (trimmed.length === 0) return null;
+	// Only treat the value as a URL when it carries a scheme. `new URL` would
+	// otherwise mis-parse a bare `host:port` Host header (e.g. "localhost:4173")
+	// as scheme "localhost:" with an empty hostname.
+	if (trimmed.includes("://")) {
+		try {
+			return new URL(trimmed).hostname.toLowerCase() || null;
+		} catch {
+			return null;
+		}
+	}
+	// Bare `host:port` (the `Host` header form) → strip the port.
+	return trimmed.split(":")[0]?.toLowerCase() || null;
+}
+
+/**
+ * Compose `bucketUtmSource` + `bucketReferrer` with the prefer-utm rule and
+ * self-host detection. Callers (e.g. `recordPostView`) should use this rather
+ * than calling the sub-bucketers in sequence; the precedence is documented
+ * here once:
+ *
+ *   1. A known `utm_source` wins outright (survives share-intent redirects).
+ *   2. A referer whose hostname matches the site's own host (`selfHost`) is
+ *      an internal navigation — bucketed `direct`. Without this rule the
+ *      second pageview in a session (reader clicks from post A to post B)
+ *      carries `document.referrer = https://<selfHost>/post-a`, which the
+ *      hostname map does not recognise and would mislabel as `other`. The
+ *      WhatsApp arrival that started the session is attributed once (to
+ *      `whatsapp`); subsequent internal hops are `direct`.
+ *   3. Otherwise fall back to plain hostname bucketing.
+ */
+export function bucketEvent(input: {
+	utmSource?: string | null;
+	referer?: string | null;
+	/** The site's own host (from the request `Host` header). */
+	selfHost?: string | null;
+}): ReferrerSource {
+	const fromUtm = bucketUtmSource(input.utmSource);
+	if (fromUtm) return fromUtm;
+
+	const selfHost = extractHostname(input.selfHost);
+	const refererHost = extractHostname(input.referer);
+	if (selfHost && refererHost) {
+		if (refererHost === selfHost || refererHost.endsWith(`.${selfHost}`)) {
+			return "direct";
+		}
+	}
+
+	return bucketReferrer(input.referer);
 }

@@ -40,6 +40,10 @@ export const Route = createFileRoute("/{-$locale}/$slug")({
 								},
 							]
 						: []),
+					// Override root default og:image — TanStack Start merges meta with
+					// later entries winning, so this entry from the route takes precedence
+					// over the site-wide default in __root.tsx.
+					{ property: "og:image", content: loaderData.ogImagePath },
 				],
 				links: loaderData.alternateLang
 					? [
@@ -181,7 +185,31 @@ function PostView({ data }: { data: PostLoaderResult }) {
 		const key = `viewed-${post.id}`;
 		if (sessionStorage.getItem(key)) return;
 		sessionStorage.setItem(key, "1");
-		incrementViewCount({ data: post.id });
+		// Forward `document.referrer` AND `utm_source` explicitly:
+		//
+		//  * The browser sets the `Referer` header on this server-fn POST to
+		//    the current post URL (same-origin), so reading the request
+		//    header on the server would always bucket arrivals as
+		//    "direct" / "other". `document.referrer` survives the upstream
+		//    navigation and identifies the real source for organic clicks.
+		//  * For share-intent clicks (wa.me, twitter.com/intent, etc.) the
+		//    intermediate redirect often strips the referrer entirely, so
+		//    `document.referrer` is empty. The `utm_source` query param we
+		//    emit from `PostShare` survives that round trip, so we forward
+		//    it as the primary signal — the server prefers it over the
+		//    `Referer` fallback when present.
+		const utmSource = new URLSearchParams(window.location.search).get(
+			"utm_source",
+		);
+		incrementViewCount({
+			data: {
+				id: post.id,
+				referrer: document.referrer || null,
+				utmSource: utmSource && utmSource.length > 0 ? utmSource : null,
+			},
+		}).catch(() => {
+			// Analytics is best-effort; a failed increment must not surface to the reader.
+		});
 	}, [post.id]);
 
 	const readingTime = useMemo(() => readingTimeMinutes(html), [html]);
@@ -235,6 +263,7 @@ function PostView({ data }: { data: PostLoaderResult }) {
 
 					<PostShare
 						postUrl={localeHref(post.lang as Locale, post.slug)}
+						postSlug={post.slug}
 						postTitle={post.title ?? ""}
 						locale={requestedLang}
 					/>
