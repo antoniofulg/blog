@@ -30,6 +30,7 @@ vi.mock("#/lib/locale", () => ({
 import { strings } from "#/lib/i18n/strings";
 // Import under test — AFTER mocks
 import {
+	buildNativeShareUrl,
 	buildTaggedUrl,
 	type PlatformId,
 	SHARE_PLATFORMS,
@@ -154,6 +155,50 @@ describe("unit: buildTaggedUrl — relative URL fallback (SSR safety)", () => {
 		const result = buildTaggedUrl("/my-slug?foo=bar", "reddit", "my-slug");
 		// should use & not ? as separator
 		expect(result).toMatch(/foo=bar&utm_source=reddit/);
+	});
+});
+
+// ── Unit: buildNativeShareUrl (native share sheet) ────────────────────────────
+
+describe("unit: buildNativeShareUrl", () => {
+	it("tags an absolute URL with utm_medium=social and utm_campaign=<slug>", () => {
+		const result = buildNativeShareUrl(
+			"https://blog.example.com/my-post",
+			"my-post",
+		);
+		const u = new URL(result);
+		expect(u.searchParams.get("utm_medium")).toBe("social");
+		expect(u.searchParams.get("utm_campaign")).toBe("my-post");
+	});
+
+	it("does NOT set a utm_source (native destination is unknown — ADR-001)", () => {
+		const result = buildNativeShareUrl(
+			"https://blog.example.com/my-post",
+			"my-post",
+		);
+		expect(new URL(result).searchParams.has("utm_source")).toBe(false);
+	});
+
+	it("preserves existing query params on an absolute URL", () => {
+		const result = buildNativeShareUrl(
+			"https://blog.example.com/my-post?ref=x",
+			"my-post",
+		);
+		const u = new URL(result);
+		expect(u.searchParams.get("ref")).toBe("x");
+		expect(u.searchParams.get("utm_campaign")).toBe("my-post");
+	});
+
+	it("falls back to naive concat for a relative URL (SSR safety)", () => {
+		const result = buildNativeShareUrl("/my-post", "my-post");
+		expect(result).toContain("utm_medium=social");
+		expect(result).toContain("utm_campaign=my-post");
+		expect(result).not.toContain("utm_source=");
+	});
+
+	it("uses & separator when the relative URL already has params", () => {
+		const result = buildNativeShareUrl("/my-post?foo=bar", "my-post");
+		expect(result).toMatch(/foo=bar&utm_medium=social/);
 	});
 });
 

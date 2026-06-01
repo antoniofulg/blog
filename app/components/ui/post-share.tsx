@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
 import {
+	buildNativeShareUrl,
 	buildTaggedUrl,
 	type PlatformId,
 	SHARE_PLATFORMS,
@@ -202,8 +203,12 @@ export function PostShare({
 
 	async function handleNativeShare() {
 		try {
+			// Share a campaign-tagged URL rather than the bare canonical one, so
+			// native-sheet shares are not stripped of all UTM attribution. The
+			// destination is unknown (the OS routes it), so we do not claim a
+			// per-platform utm_source — see buildNativeShareUrl / ADR-001.
 			await navigator.share({
-				url: canonicalUrl,
+				url: buildNativeShareUrl(canonicalUrl, postSlug),
 				title: postTitle,
 				text: postTitle,
 			});

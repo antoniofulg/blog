@@ -370,18 +370,28 @@ describe("unit: native share branch applies only to inline variant (AC-4)", () =
 		expect(btn.querySelector("svg")).not.toBeNull();
 	});
 
-	it("inline: clicking Share button calls navigator.share with canonical URL (no UTM)", async () => {
+	it("inline: clicking Share button calls navigator.share with a campaign-tagged URL (utm_medium=social, no utm_source)", async () => {
 		renderInline();
 		await act(async () => {});
 		const shareBtn = screen.getByRole("button", { name: "Share" });
 		await act(async () => {
 			fireEvent.click(shareBtn);
 		});
-		expect(shareSpy).toHaveBeenCalledWith({
-			url: POST_URL,
-			title: POST_TITLE,
-			text: POST_TITLE,
-		});
+		expect(shareSpy).toHaveBeenCalledTimes(1);
+		const arg = shareSpy.mock.calls[0][0] as {
+			url: string;
+			title: string;
+			text: string;
+		};
+		expect(arg.title).toBe(POST_TITLE);
+		expect(arg.text).toBe(POST_TITLE);
+		// Native share carries campaign attribution but no per-platform source —
+		// the OS routes it to an unknown destination (ADR-001).
+		const shared = new URL(arg.url);
+		expect(shared.origin + shared.pathname).toBe(POST_URL);
+		expect(shared.searchParams.get("utm_medium")).toBe("social");
+		expect(shared.searchParams.get("utm_campaign")).toBe(POST_SLUG);
+		expect(shared.searchParams.has("utm_source")).toBe(false);
 	});
 
 	it("inline: Share button text reads 'Compartilhar' in pt-br locale", async () => {

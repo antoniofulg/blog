@@ -139,3 +139,36 @@ export function buildTaggedUrl(
 		return `${canonicalUrl}${sep}utm_source=${config.utmSource}&utm_medium=social&utm_campaign=${encodeURIComponent(slug)}`;
 	}
 }
+
+/**
+ * Builds a UTM-tagged URL for the native share sheet (`navigator.share`).
+ *
+ * Unlike the platform chips, the OS share sheet routes to a destination we
+ * cannot know at share time (WhatsApp, Messages, Mail, …). ADR-001 adopted a
+ * per-platform `utm_source` scheme and deliberately dropped the generic
+ * "share" source bucket, so a native share has no honest per-platform source
+ * to claim. We therefore tag it with `utm_medium=social` + `utm_campaign=<slug>`
+ * only — this keeps post-level campaign attribution for any external analytics
+ * tool and stops `navigator.share` from emitting a bare canonical URL, without
+ * inventing a per-platform source the data can't support.
+ *
+ * Internally the referrer-bucketer keys on `utm_source`; with none present a
+ * native-share arrival resolves via `document.referrer` (typically `direct`),
+ * which is the per-platform-attribution tradeoff ADR-001 accepted.
+ *
+ * Pure function — SSR/test-safe. Exported for direct unit testing.
+ */
+export function buildNativeShareUrl(
+	canonicalUrl: string,
+	slug: string,
+): string {
+	try {
+		const u = new URL(canonicalUrl);
+		u.searchParams.set("utm_medium", "social");
+		u.searchParams.set("utm_campaign", slug);
+		return u.toString();
+	} catch {
+		const sep = canonicalUrl.includes("?") ? "&" : "?";
+		return `${canonicalUrl}${sep}utm_medium=social&utm_campaign=${encodeURIComponent(slug)}`;
+	}
+}
