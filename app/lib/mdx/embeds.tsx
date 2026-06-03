@@ -1,5 +1,5 @@
 import type { ComponentType } from "react";
-import { TicTacToe } from "#/components/ui/tic-tac-toe";
+import { TicTacToe } from "#/components/posts/tic-tac-toe";
 
 /**
  * Allowlist of components embeddable inside MDX posts.

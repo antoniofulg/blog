@@ -1,6 +1,6 @@
 // @vitest-environment jsdom
 /**
- * Tests for app/components/ui/tic-tac-toe.tsx — the interactive demo embedded
+ * Tests for app/components/posts/tic-tac-toe.tsx — the interactive demo embedded
  * at the end of the Spec-Driven Development post.
  *
  * Exercises the exact logic the post arrives at after its review round:
@@ -14,7 +14,7 @@
 import { cleanup, fireEvent, render, screen } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { calculateWinner, TicTacToe } from "#/components/ui/tic-tac-toe";
+import { calculateWinner, TicTacToe } from "#/components/posts/tic-tac-toe";
 
 afterEach(cleanup);
 

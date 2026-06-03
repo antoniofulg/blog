@@ -13,7 +13,7 @@
 import { cleanup, render } from "@testing-library/react";
 import React from "react";
 import { afterEach, describe, expect, it } from "vitest";
-import { TicTacToe } from "#/components/ui/tic-tac-toe";
+import { TicTacToe } from "#/components/posts/tic-tac-toe";
 import { EMBEDS, Embed } from "#/lib/mdx/embeds";
 
 afterEach(cleanup);

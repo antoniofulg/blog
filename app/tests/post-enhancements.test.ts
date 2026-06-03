@@ -14,7 +14,7 @@ import {
 const COPY_LABELS = { copy: "Copy code", copied: "Copied!" };
 
 // Headings TicTacToe renders per locale — used to assert the island mounted and
-// that `locale` was injected into its props (see app/components/ui/tic-tac-toe).
+// that `locale` was injected into its props (see app/components/posts/tic-tac-toe).
 const TTT_HEADING_EN = "Try it: tic-tac-toe";
 const TTT_HEADING_PT = "Experimente: jogo da velha";
 
