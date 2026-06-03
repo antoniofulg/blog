@@ -107,8 +107,10 @@ function checkIcon(): Element {
  * 2. Injects one `<button class="code-copy-button">` carrying design-token
  *    classes, hidden by default and revealed on `:hover` / `:focus-visible`.
  *
- * The localized `aria-label`, click handler, and "Copied!" feedback are wired
- * client-side by the post initializer (task_04) — this transformer owns only the
+ * The button ships a generic static `aria-label` ("Copy code") so it has an
+ * accessible name before client JS runs (WCAG 4.1.2) and for no-JS readers; the
+ * post initializer (task_04) overwrites it with the localized label and wires the
+ * click handler and "Copied!" feedback. This transformer owns only the
  * compile-time markup. Inline `code` spans never reach the `pre` hook (Shiki runs
  * on fenced blocks only), so they get no button.
  */
@@ -124,7 +126,14 @@ export function copyButtonTransformer(): ShikiTransformer {
 			const button: Element = {
 				type: "element",
 				tagName: "button",
-				properties: { type: "button", class: [...BUTTON_CLASSES] },
+				properties: {
+					type: "button",
+					// Generic static accessible name so the focusable control is named
+					// before client JS runs (WCAG 4.1.2) and for no-JS readers;
+					// `wireCopyButtons` overwrites it with the localized label once wired.
+					"aria-label": "Copy code",
+					class: [...BUTTON_CLASSES],
+				},
 				// Both glyphs ship in the markup; `[data-copied]` CSS toggles which is
 				// visible (copy → check) so sighted users get visible feedback (G1).
 				children: [copyIcon(), checkIcon()],

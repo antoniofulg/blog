@@ -21,20 +21,17 @@ import {
 // dynamic import from this server-reachable route file fails the SSR build.
 // Wrapping the dynamic import in `createClientOnlyFn` (same pattern as the
 // `import("#/lib/auth.client")` in login.tsx) strips the client body from the
-// server bundle, so the marker never enters the server graph. Returns the
-// initializer's cleanup; resolves to undefined on the server (the effect that
-// calls it only runs client-side).
-const runPostEnhancements = createClientOnlyFn(
-	async (
-		root: HTMLElement,
-		options: { locale: Locale; copyLabels: { copy: string; copied: string } },
-	) => {
-		const { initPostEnhancements } = await import(
-			"#/lib/mdx/post-enhancements.client"
-		);
-		return initPostEnhancements(root, options);
-	},
-);
+// server bundle, so the marker never enters the server graph. This loads ONLY
+// the initializer reference — execution is deferred to the effect so the
+// `cancelled` flag can gate the call itself (not just teardown), preventing a
+// mount against a container that navigation already replaced. Resolves to
+// undefined on the server (the effect that calls it only runs client-side).
+const loadPostEnhancements = createClientOnlyFn(async () => {
+	const { initPostEnhancements } = await import(
+		"#/lib/mdx/post-enhancements.client"
+	);
+	return initPostEnhancements;
+});
 
 export const Route = createFileRoute("/{-$locale}/$slug")({
 	loader: async ({ params }) => {
@@ -214,19 +211,18 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 		// keys the effect: navigating to another post re-injects the body and re-wires.
 		const { copy, copied } = strings[requestedLang].codeCopy;
 		// The initializer is loaded through a client-only dynamic import (see
-		// `runPostEnhancements`), so it resolves on a microtask. The `cancelled`
-		// flag tears down cleanly if the post unmounts before the chunk resolves.
+		// `loadPostEnhancements`), so it resolves on a microtask. The `cancelled`
+		// flag gates the initializer CALL — not just teardown — so a fast
+		// post→post / locale switch that runs cleanup before the chunk resolves
+		// never mounts embeds over the already-replaced container (issue_001 r2).
 		let cleanup: (() => void) | undefined;
 		let cancelled = false;
-		void runPostEnhancements(root, {
-			locale: requestedLang,
-			copyLabels: { copy, copied },
-		})?.then((teardown) => {
-			if (cancelled) {
-				teardown?.();
-				return;
-			}
-			cleanup = teardown;
+		void loadPostEnhancements()?.then((init) => {
+			if (cancelled || !init) return;
+			cleanup = init(root, {
+				locale: requestedLang,
+				copyLabels: { copy, copied },
+			});
 		});
 		return () => {
 			cancelled = true;
@@ -309,6 +305,10 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 					/>
 
 					<div
+						// Key by `html` so navigation mounts a fresh node and unmounts the
+						// previous post's subtree, instead of swapping innerHTML in place —
+						// keeps each post's embed roots isolated (ADR-004, issue_001 r2).
+						key={html}
 						ref={bodyRef}
 						className="animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover focus-visible:prose-a:outline-none focus-visible:prose-a:ring-2 focus-visible:prose-a:ring-accent focus-visible:prose-a:ring-offset-4 focus-visible:prose-a:ring-offset-background prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border"
 						style={{ animationDelay: "300ms" }}

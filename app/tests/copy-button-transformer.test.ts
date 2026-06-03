@@ -88,6 +88,14 @@ describe("copyButtonTransformer", () => {
 		expect(buttons[0].properties?.type).toBe("button");
 	});
 
+	it("ships a static aria-label so the button is named pre-JS (WCAG 4.1.2)", () => {
+		const pre = highlightToPre("const x = 1");
+		const [button] = collectByTag(pre, "button");
+		// The control is focusable and in the a11y tree at compile time; without a
+		// static name it has an empty accessible name until `wireCopyButtons` runs.
+		expect(button.properties?.["aria-label"]).toBe("Copy code");
+	});
+
 	it("button carries the stable client-hook class", () => {
 		const pre = highlightToPre("const x = 1");
 		const [button] = collectByTag(pre, "button");

@@ -56,11 +56,21 @@ const initSpy = vi.mocked(initPostEnhancements);
 
 // TicTacToe headings per locale — proof the embed island mounted with its locale.
 const TTT_HEADING_EN = "Try it: tic-tac-toe";
+const TTT_HEADING_PTBR = "Experimente: jogo da velha";
 
 // Static HTML carrying both enhancement markers, mirroring renderMdx output: a
 // fenced block (raw-source <pre> + copy button) and an embed placeholder.
 const HTML_WITH_FEATURES =
 	`<pre ${RAW_SOURCE_ATTR}="const a = 1;"><code>const a = 1;</code>` +
+	`<button type="button" class="${COPY_BUTTON_CLASS}"></button></pre>` +
+	`<div data-embed="tic-tac-toe" data-props="{}">` +
+	`<span class="embed-fallback">Interactive demo — requires JavaScript.</span></div>`;
+
+// A distinct second body (different raw source) so navigating to it changes the
+// `html` key — exercises the post→post in-place body-swap path, not a same-html
+// re-render.
+const HTML_WITH_FEATURES_B =
+	`<pre ${RAW_SOURCE_ATTR}="const b = 2;"><code>const b = 2;</code>` +
 	`<button type="button" class="${COPY_BUTTON_CLASS}"></button></pre>` +
 	`<div data-embed="tic-tac-toe" data-props="{}">` +
 	`<span class="embed-fallback">Interactive demo — requires JavaScript.</span></div>`;
@@ -200,6 +210,57 @@ describe("PostView: initializer cleanup (AC-3)", () => {
 
 		unmount();
 		expect(cleanupFn).toHaveBeenCalledTimes(1);
+	});
+
+	it("tears down and re-initializes exactly once on post change (no stale double-mount)", async () => {
+		const { rerender } = render(
+			createElement(PostView, {
+				data: makeData({ html: HTML_WITH_FEATURES }),
+			}),
+		);
+
+		// First init resolves on a microtask (dynamic import); capture its cleanup
+		// and wait for the embed to mount over post A's marker.
+		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
+		const firstCleanup = initSpy.mock.results[0]?.value as ReturnType<
+			typeof vi.fn
+		>;
+		await waitFor(() => {
+			const node = document.querySelector<HTMLElement>("[data-embed]");
+			expect(node?.textContent).toContain(TTT_HEADING_EN);
+		});
+
+		// Navigate to a different post on the SAME instance: new html + pt-br locale.
+		// This is the post→post body-swap path that issue_001 (r2) regresses on and
+		// the AC-3 unmount-only test never covered.
+		rerender(
+			createElement(PostView, {
+				data: makeData({
+					html: HTML_WITH_FEATURES_B,
+					requestedLang: "pt-br" as Locale,
+					post: makePost({ id: 2, slug: "second", lang: "pt-br" }),
+				}),
+			}),
+		);
+
+		// The first post's cleanup ran exactly once, and the initializer re-ran
+		// exactly once more — no third stale run from the prior import promise.
+		await waitFor(() => expect(firstCleanup).toHaveBeenCalledTimes(1));
+		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(2));
+
+		// The container holds exactly one mounted embed (re-rendered in the new
+		// pt-br locale) and one copy live region — proof no duplicate roots survived
+		// the post change and the re-init used the new locale. The copy live region
+		// is `output[aria-atomic="true"]`; TicTacToe's own status <output> has no
+		// aria-atomic, so this selector isolates the copy-wiring region.
+		await waitFor(() => {
+			const embeds = document.querySelectorAll("[data-embed]");
+			expect(embeds).toHaveLength(1);
+			expect(embeds[0]?.textContent).toContain(TTT_HEADING_PTBR);
+		});
+		expect(
+			document.querySelectorAll('output[aria-atomic="true"]'),
+		).toHaveLength(1);
 	});
 });
 
