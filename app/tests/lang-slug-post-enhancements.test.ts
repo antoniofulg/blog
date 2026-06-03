@@ -193,6 +193,48 @@ describe("PostView: initializer wiring (AC-2)", () => {
 			},
 		});
 	});
+
+	// ─── Regression: untranslated fallback post must NOT flip locale on hydration ──
+	// (slug, pt-br) -> fallback en: the server SSRs the body in English (post.lang),
+	// so the client initializer must use the served content language (post.lang),
+	// not the requested URL locale, or the copy buttons / embed re-label themselves
+	// in pt-br after hydration while the article body stays English (issue_001 r5).
+	it("untranslated fallback post initializes enhancements in the served content language, not the requested locale", async () => {
+		render(
+			createElement(PostView, {
+				data: makeData({
+					// URL asked for pt-br, but only the en post exists.
+					requestedLang: "pt-br" as Locale,
+					post: makePost({ lang: "en" }),
+					notTranslated: true,
+					availableLang: "en" as Locale,
+					html: HTML_WITH_FEATURES,
+				}),
+			}),
+		);
+
+		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
+		const [, opts] = initSpy.mock.calls[0] ?? [];
+		// Aligned with the English body the server rendered — NOT the pt-br URL locale.
+		expect(opts).toEqual({
+			locale: "en",
+			copyLabels: {
+				copy: strings.en.codeCopy.copy,
+				copied: strings.en.codeCopy.copied,
+			},
+		});
+
+		// The embed mounts in English too — proof the hydrated UI matches the body.
+		await waitFor(() => {
+			const node = document.querySelector<HTMLElement>("[data-embed]");
+			expect(node?.textContent).toContain(TTT_HEADING_EN);
+		});
+		expect(document.body.textContent).not.toContain(TTT_HEADING_PTBR);
+		const button = document.querySelector<HTMLButtonElement>(
+			`button.${COPY_BUTTON_CLASS}`,
+		);
+		expect(button?.getAttribute("aria-label")).toBe(strings.en.codeCopy.copy);
+	});
 });
 
 // ─── AC-3: cleanup on unmount ─────────────────────────────────────────────────

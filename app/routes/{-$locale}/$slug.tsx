@@ -207,12 +207,22 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 	// over this subtree (ADR-003 / ADR-004); cleanup runs on post change / unmount.
 	const bodyRef = useRef<HTMLDivElement>(null);
 
+	// The enhancement UI (copy labels + embed locale) MUST match the language the
+	// body was actually SSR-rendered in, which is `post.lang` — not `requestedLang`.
+	// For untranslated fallback posts (notTranslated, requestedLang !== post.lang)
+	// the server renders in the fallback language, so initializing the client with
+	// `requestedLang` would re-label the copy buttons and re-mount the embed in the
+	// requested locale on hydration, flipping the enhancement UI out of sync with
+	// the English body (issue_001 r5). Keying off `post.lang` keeps SSR and hydrated
+	// output aligned for both exact-match and fallback posts.
+	const contentLang = post.lang as Locale;
+
 	useEffect(() => {
 		const root = bodyRef.current;
 		if (!root || !html) return;
 		// `html` is 1:1 with post identity and also changes on locale switch, so it
 		// keys the effect: navigating to another post re-injects the body and re-wires.
-		const { copy, copied } = strings[requestedLang].codeCopy;
+		const { copy, copied } = strings[contentLang].codeCopy;
 		// The initializer is loaded through a client-only dynamic import (see
 		// `loadPostEnhancements`), so it resolves on a microtask. The `cancelled`
 		// flag gates the initializer CALL — not just teardown — so a fast
@@ -223,7 +233,7 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 		void loadPostEnhancements().then((init) => {
 			if (cancelled || !init) return;
 			cleanup = init(root, {
-				locale: requestedLang,
+				locale: contentLang,
 				copyLabels: { copy, copied },
 			});
 		});
@@ -231,7 +241,7 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 			cancelled = true;
 			cleanup?.();
 		};
-	}, [html, requestedLang]);
+	}, [html, contentLang]);
 
 	useEffect(() => {
 		// Session guard prevents repeated increments on refresh or dev reload.
