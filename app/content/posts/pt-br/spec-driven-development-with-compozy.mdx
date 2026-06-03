@@ -1,0 +1,265 @@
+---
+title: "Compozy: o orquestrador que transforma o Spec-Driven Development em código real"
+slug: spec-driven-development-with-compozy
+description: "O que é Spec-Driven Development e como o Compozy torna isso prático: council de ideias, PRD, execução de tasks em daemon e rounds de review. Tudo num exemplo real, construir um jogo da velha em React, do primeiro prompt até os fixes."
+publishedAt: 2026-06-03
+category: tooling
+---
+
+O jeito rápido de construir uma feature com um agente de IA é abrir um chat, descrever o que você quer e deixar ele escrever código até a coisa mais ou menos funcionar. Parece produtivo. E é, por mais ou menos um dia. Aí você volta depois, não lembra por que o agente tomou metade das decisões, não acha registro nenhum delas, e descobre que a feature "pronta" quebrou silenciosamente uma regra que ninguém chegou a escrever.
+
+Tem um nome pro caminho oposto: **Spec-Driven Development** (SDD). E tem uma ferramenta que torna esse caminho prático sem virar burocracia: o [Compozy](https://github.com/compozy/compozy). Conheci o Compozy no curso *IA para Devs*, do Pedro Nauck e do Rodrigo Branas, dois caras que valem a pena acompanhar. Este blog inteiro nasceu desse fluxo, mas em vez de te mostrar o blog, vou construir uma coisa do zero na sua frente: um jogo da velha em React, do primeiro prompt até os fixes do review.
+
+## O que é Spec-Driven Development
+
+A ideia central é uma só: a **especificação é a fonte da verdade**, não o código. Você decide o *quê* e o *porquê* antes do *como*, registra isso num documento durável, e só então deixa o agente implementar contra uma spec aprovada. O código vira a saída do processo, não o processo.
+
+Na prática isso vira um pipeline curto, onde cada fase produz um artefato que a próxima consome:
+
+```text
+ideia -> PRD -> tech spec -> tasks -> execução -> review
+```
+
+A diferença pro prompt-and-pray não está na primeira hora, quando os dois cospem código parecido. Está duas semanas depois, quando você precisa lembrar por que algo foi feito daquele jeito. No SDD a resposta está num arquivo ao lado do código. No outro, está numa janela de chat que você já fechou.
+
+O Compozy é um CLI em Go que orquestra esse pipeline inteiro e dispara o agente de código que você usa (Claude, Codex, Copilot, Cursor, Gemini) através de um runtime comum. Os artefatos de planejamento ficam como markdown em `.compozy/tasks/<slug>/`, no disco, ao lado do código e fora de qualquer transcript de chat. Commitar esses arquivos é opcional: você versiona no git pra ter o histórico, ou deixa no `.gitignore` e confia no catálogo que o daemon mantém em `global.db`. (Aqui no blog, eles são gitignored: o que guia o build são as specs, não o fato de elas estarem no repo.)
+
+## Instalando o Compozy
+
+Escolha um dos métodos. Homebrew é o mais direto:
+
+```sh
+brew install compozy/compozy/compozy
+```
+
+```sh
+npm install -g @compozy/cli      # via npm
+```
+
+```sh
+go install github.com/compozy/compozy/cmd/compozy@latest   # via Go
+```
+
+Confira a versão (vai importar daqui a pouco):
+
+```sh
+compozy version
+# compozy version 0.2.7 (commit=7363565 date=2026-05-27T...)
+```
+
+Depois rode o setup uma vez. Ele instala as skills core do Compozy no seu agente:
+
+```sh
+compozy setup
+```
+
+O Compozy não roda o modelo sozinho. Ele dirige um runtime ACP que você instala à parte (o Claude Agent, por exemplo). É esse runtime que escreve o código; o Compozy decide *o que* mandar e *quando*.
+
+## A extensão cy-idea-factory (e o tal do `<tag>`)
+
+A fase de ideação, com o council de advisors, vem numa extensão opcional: a `cy-idea-factory`. Instalação em três comandos:
+
+```sh
+compozy ext install --yes compozy/compozy --remote github --ref v0.2.7 --subdir extensions/cy-idea-factory
+compozy ext enable cy-idea-factory
+compozy setup
+```
+
+Repara no `--ref v0.2.7`. Esse foi exatamente o ponto que me travou na primeira vez, então vale parar aqui.
+
+O `<tag>` da documentação **não** é uma versão qualquer: é uma git tag real do repositório `compozy/compozy`, e as tags de release são prefixadas com `v`. A armadilha é óbvia depois que você vê: eu rodei com `--ref 0.2.7` e o install falhou, porque a tag no GitHub é `v0.2.7`, com o `v`. O número sem o `v` não existe como ref.
+
+A regra prática: pegue a sua versão com `compozy version`, prefixe com `v`, e use isso no `--ref`. Se você está no Compozy 0.2.7, a tag é `v0.2.7`. Casar a tag da extensão com a versão do seu CLI também evita instalar uma extensão de uma versão incompatível.
+
+Confirma que ficou ativa:
+
+```sh
+compozy ext list
+# cy-idea-factory  enabled
+```
+
+## Mãos à obra: um jogo da velha
+
+Daqui pra frente é o fluxo SDD completo. O escopo que vou seguir é o MVP: dois jogadores no mesmo dispositivo, detecção de vitória e empate, e um botão de reiniciar. Sem IA, sem online, sem placar. (Spoiler: o council vai tentar me empurrar o online, e eu vou recusar.)
+
+### 1. Ideação: o council entra em campo
+
+Começo com a ideia crua:
+
+```sh
+/cy-idea-factory um jogo da velha em React pro blog
+```
+
+A skill não sai escrevendo. Primeiro ela faz de 3 a 6 perguntas, uma por mensagem, pra refinar escopo e intenção. As minhas vieram mais ou menos assim:
+
+```text
+P1 — Qual o tamanho ideal do V1?
+  A) MVP — só 2 jogadores no mesmo dispositivo
+  B) Completo — com IA pra jogar sozinho
+  C) Plataforma — partidas online, salas, ranking
+> A
+
+P2 — Quão ambicioso isso deve ser?
+  A) Quick win — esforço pequeno, valida numa tarde
+  B) Strategic bet — esforço maior, abre caminho pra mais
+  C) Compounding — fica mais valioso com o tempo
+> A
+
+P3 — Onde ele roda?
+> Numa rota do blog, /jogo-da-velha
+```
+
+Com o escopo refinado, ela faz pesquisa em paralelo (codebase + web) e então convoca o **council**: um grupo de advisors, cada um um subagente com uma perspectiva própria. O roster vem do `compozy setup`, e a skill seleciona de 3 a 5 conforme a complexidade do dilema. Pro jogo da velha, três bastaram:
+
+```text
+Council (3 advisors): pragmatic-engineer, architect-advisor, devils-advocate
+
+devils-advocate — "Jogo da velha sem oponente cansa em dois minutos.
+  Se o objetivo é alguém *jogar*, o online ou a IA não são V2, são o produto."
+
+pragmatic-engineer — "O MVP local valida o tabuleiro, o turno e a
+  detecção de vitória numa tarde. Online arrasta WebSocket, salas e estado
+  de servidor pra dentro de um exemplo de tutorial. Fora de escopo."
+
+architect-advisor — "Se a chance de virar IA depois é real, modele o estado
+  desde já como uma função pura (board, jogada) -> board. A IA só lê esse
+  estado. Não acopla a lógica de jogo ao componente."
+```
+
+A tensão é real e o council não a varre pra baixo do tapete: ela vira uma exclusão explícita do V1 e uma oportunidade de V2. Eu fico com o MVP local (era o objetivo: praticar SDD num exemplo pequeno), mas levo o conselho do architect pra dentro: a lógica de jogo vai ser uma função pura, fácil de plugar numa IA depois. Essa decisão, com o trade-off inteiro, é escrita no `_idea.md` e num ADR. A discordância fica registrada, não evapora.
+
+### 2. Requisitos: do `_idea.md` ao PRD
+
+```sh
+/cy-create-prd jogo-da-velha
+```
+
+A skill lê o `_idea.md` como contexto e faz mais algumas perguntas, todas focadas no *quê* e no *porquê*, nunca no *como* (o protocolo dela proíbe falar de React, estado ou testes nessa fase). As perguntas são do tipo "o leitor pode desfazer uma jogada, ou ela é final?" e "o que conta como sucesso aqui?". No fim ela apresenta de 2 a 3 abordagens de produto com trade-offs (só o tabuleiro, tabuleiro + histórico de partidas, ou tabuleiro + níveis de dificuldade) e registra a escolhida, só o tabuleiro, num ADR. O `_prd.md` que sai é focado em negócio:
+
+```text
+## Goals
+- G1 — Dois jogadores alternam X e O clicando nas casas.
+- G2 — O jogo detecta vitória (8 linhas) e empate (tabuleiro cheio).
+- G3 — Um botão reinicia a partida a qualquer momento.
+
+## Non-goals
+- Oponente por IA (V2)
+- Partidas online (fora de escopo)
+- Placar persistente entre partidas
+```
+
+Goals falsificáveis. Cada um dá pra conferir contra a tela depois. Isso vale dez instruções de "deixa bom" pra um modelo.
+
+### 3. Tech spec e tasks
+
+O `/cy-create-techspec` traduz o PRD pro *como*, e é aqui que as perguntas viram técnicas: o estado é `Array(9)` de `'X' | 'O' | null`, o jogador atual é derivado da contagem de jogadas, e o vencedor sai de uma função pura sobre as 8 linhas vencedoras (3 linhas, 3 colunas, 2 diagonais). Componentes: `Board`, `Square`, `Status`. É também aqui que cai a pergunta de integração específica deste blog: como o MDX é compilado pra HTML estático, um componente dentro do `.mdx` viraria markup morto e sem interatividade. A decisão (que vira um ADR) é montar o componente na rota, anexado ao fim do post. É o tabuleiro que você joga logo abaixo.
+
+O `/cy-create-tasks` quebra isso em arquivos de task implementáveis sozinhos:
+
+```text
+_tasks.md
+  task_01 — rota /jogo-da-velha + componente Board vazio
+  task_02 — estado com useReducer (board, jogada)
+  task_03 — clique na casa + alternância de turno
+  task_04 — função pura calculateWinner + detecção de empate
+  task_05 — Status (vez de quem / vencedor) + botão reset
+  task_06 — testes com Vitest
+```
+
+Seis tasks pequenas. Você enxerga o formato do trabalho inteiro antes de uma linha ser escrita.
+
+### 4. Execução em daemon
+
+Aqui está a parte que mais me convenceu do Compozy. A execução não roda no seu chat: ela roda num **daemon**.
+
+Daemon é um processo que fica rodando em segundo plano, desacoplado do seu terminal. Sobe uma vez, se mantém de pé sozinho e atende trabalho sob demanda, mesmo depois que você fecha a janela. É o mesmo modelo do `dockerd` ou de um Postgres rodando local: você não "abre" o banco toda vez, ele já está lá. O Compozy mantém um desses com escopo no seu home (`~/.compozy/`), um por máquina, e é ele que segura o estado entre as tasks.
+
+```sh
+compozy tasks run jogo-da-velha --ide claude
+```
+
+Esse comando sobe o daemon (se ainda não estiver de pé) e entrega as tasks, uma de cada vez, pro agente configurado. O daemon é dono do estado do run: ele sequencia as tasks na ordem, mantém a memória por task como contexto, grava snapshots e expõe um stream do progresso. Com `auto_commit` ligado no `config.toml`, cada task vira seu próprio commit.
+
+Como vive fora da sessão, você não fica refém do terminal. Dá pra soltar e voltar depois:
+
+```sh
+compozy tasks run jogo-da-velha --ide claude --detach   # roda em background
+compozy runs attach <run-id>                            # reata e assiste
+compozy runs watch                                      # lista o que está rolando
+```
+
+O stream fica mais ou menos assim:
+
+```text
+[jogo-da-velha] task_01  scaffold rota + Board ......... done (commit a1b2c3d)
+[jogo-da-velha] task_02  useReducer ................... done (commit e4f5a6b)
+[jogo-da-velha] task_03  turno ........................ done (commit 7c8d9e0)
+[jogo-da-velha] task_04  calculateWinner + empate ..... done (commit 1f2a3b4)
+[jogo-da-velha] task_05  status + reset ............... done (commit 5c6d7e8)
+[jogo-da-velha] task_06  testes ....................... done (commit 9a0b1c2)
+```
+
+Seis commits, um por task, cada um rastreável. Se a task_04 tivesse quebrado, o daemon pararia ali, com o estado preservado, e eu retomaria do ponto certo em vez de recomeçar do zero.
+
+### 5. Review e os fixes
+
+Código que um agente escreveu ainda passa por review. O `/cy-review-round` faz um passe crítico e joga os problemas como arquivos numerados em `reviews-001/`:
+
+```text
+reviews-001/
+  issue_001.md  (major) calculateWinner não cobre a anti-diagonal [2,4,6]
+  issue_002.md  (major) empate é checado antes da vitória: última jogada
+                vencedora num tabuleiro cheio reporta "empate"
+  issue_003.md  (minor) os botões Square não têm aria-label
+```
+
+O `issue_001` é o bug clássico do jogo da velha. A lista de linhas vencedoras saiu faltando uma diagonal:
+
+```tsx
+// errado — só uma diagonal
+const LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8], // linhas
+  [0, 3, 6], [1, 4, 7], [2, 5, 8], // colunas
+  [0, 4, 8],                       // diagonal principal (faltou [2,4,6])
+];
+```
+
+Mando o Compozy corrigir. Esse passo também roda no daemon, igual à execução das tasks:
+
+```sh
+compozy reviews fix jogo-da-velha
+```
+
+O daemon despacha os issues pro agente em lotes (dá pra ajustar com `--concurrent` e `--batch-size`), e cada um é triado, corrigido e verificado. O `issue_001` vira a linha que faltava; o `issue_002` vira uma troca de ordem (checar vitória primeiro, empate só se não houve vencedor); o `issue_003` ganha um `aria-label` por casa:
+
+```tsx
+// certo
+const LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6],            // as duas diagonais
+];
+
+function status(board: Board) {
+  const winner = calculateWinner(board); // vitória primeiro
+  if (winner) return `Vencedor: ${winner}`;
+  if (board.every(Boolean)) return "Empate"; // empate só depois
+  return `Vez de: ${currentPlayer(board)}`;
+}
+```
+
+Cada round vira uma rodada: quando o review volta vazio, a branch está pronta pro merge. No blog, é aí que os guardrails do repo assumem (branches tipadas, commits convencionais, `make test && make lint && make check` no CI, e o deploy automático no merge), mas isso é assunto de outro post.
+
+## E este blog?
+
+Nada disso é hipotético. Este blog foi construído assim do início ao fim, com SDD e o Compozy: a escolha do stack (TanStack Start, Drizzle, Better Auth), onde hospedar, o pipeline de CI/CD que builda e faz deploy na VPS, e cada feature de bastidor. As decisões grandes ganharam um `_idea.md`, um `_prd.md`, ADRs, tasks e rounds de review antes de virar código. O jogo da velha é só um exemplo pequeno o bastante pra caber num post; a mecânica é a mesma pras decisões grandes.
+
+## O modelo mental
+
+A versão de uma linha: **pare de pedir código, comece a rodar um workflow que produz specs e depois cobra o agente em cima delas.**
+
+Um agente de IA é rápido, incansável e não tem memória nenhuma de por que fez qualquer coisa. O SDD compensa exatamente isso: o council estressa a ideia antes de ela virar plano, o PRD fixa o *quê* num documento que você confere, o daemon executa o plano fora da sua sessão e em commits rastreáveis, e o round de review caça o que escapou. O Compozy costura essas quatro coisas num CLI só. O jogo da velha levou uma tarde, mas saiu com o raciocínio em disco, e é isso que ainda vai estar lá no dia trinta.
+
+E pra não ficar só na conversa: o tabuleiro logo abaixo é esse componente rodando ao vivo. O mesmo `calculateWinner` com as duas diagonais, a vitória checada antes do empate. Joga aí.
+
+<Embed name="tic-tac-toe" />

@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
-import { readdir, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { _clearFontCacheForTesting, loadFonts } from "#/lib/og/fonts";
 import { generateOgImage } from "#/lib/og/generate";
 import { CardTemplate } from "#/lib/og/template";
@@ -23,25 +24,27 @@ function parsePngDimensions(buf: Buffer): { width: number; height: number } {
 
 const TEST_LOCALE = "en" as const;
 const TEST_SLUG_PREFIX = "test-og-generate-";
-const TEST_OUTPUT_DIR = join(process.cwd(), "public", "og", TEST_LOCALE);
+// OG output is redirected to a throwaway dir (OG_OUTPUT_DIR) so these real
+// satori → resvg renders never write into the committed public/og tree.
+let ogTmpRoot: string;
+let TEST_OUTPUT_DIR: string;
+let prevOgDir: string | undefined;
 
 // ---------------------------------------------------------------------------
-// Cleanup
+// Setup / Cleanup
 // ---------------------------------------------------------------------------
+
+beforeAll(async () => {
+	ogTmpRoot = await mkdtemp(join(tmpdir(), "og-generate-"));
+	prevOgDir = process.env.OG_OUTPUT_DIR;
+	process.env.OG_OUTPUT_DIR = ogTmpRoot;
+	TEST_OUTPUT_DIR = join(ogTmpRoot, TEST_LOCALE);
+});
 
 afterAll(async () => {
-	try {
-		if (existsSync(TEST_OUTPUT_DIR)) {
-			const files = await readdir(TEST_OUTPUT_DIR);
-			await Promise.all(
-				files
-					.filter((f) => f.startsWith(TEST_SLUG_PREFIX))
-					.map((f) => rm(join(TEST_OUTPUT_DIR, f), { force: true })),
-			);
-		}
-	} catch {
-		// Best-effort; leave test artefacts rather than obscuring a real error
-	}
+	if (prevOgDir === undefined) delete process.env.OG_OUTPUT_DIR;
+	else process.env.OG_OUTPUT_DIR = prevOgDir;
+	await rm(ogTmpRoot, { recursive: true, force: true });
 });
 
 // ---------------------------------------------------------------------------
@@ -181,6 +184,35 @@ describe("CardTemplate", () => {
 		expect(html).toContain("Antonio Fulgencio Blog");
 	});
 
+	it("shows the antoniofulg.tech domain in the footer (not the old .dev)", () => {
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "T",
+				tokenLines: null,
+				codeBg: "#24292e",
+				codeFg: "#e1e4e8",
+			}),
+		);
+		expect(html).toContain("antoniofulg.tech");
+		expect(html).not.toContain("antoniofulg.dev");
+	});
+
+	it("renders the round profile avatar when a data URI is provided", () => {
+		const dataUri = "data:image/jpeg;base64,QUJD";
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "T",
+				tokenLines: null,
+				codeBg: "#24292e",
+				codeFg: "#e1e4e8",
+				avatarDataUri: dataUri,
+			}),
+		);
+		expect(html).toContain(dataUri);
+		// Round: a 44px box with a 22px border-radius.
+		expect(html).toMatch(/border-radius:\s*22px/);
+	});
+
 	it("passes token lines prop correctly", () => {
 		const tokenLines = [[{ content: "hello", color: "#fff" }]];
 		const element = React.createElement(CardTemplate, {
@@ -194,6 +226,180 @@ describe("CardTemplate", () => {
 			element.props.tokenLines as { content: string; color: string }[][]
 		)[0]?.[0];
 		expect(firstToken?.content).toBe("hello");
+	});
+});
+
+// ---------------------------------------------------------------------------
+// Unit tests: CardTemplate panel sizing (ADR-005)
+// ---------------------------------------------------------------------------
+
+type TreeNode = {
+	type: unknown;
+	props: { style?: Record<string, unknown>; children?: unknown };
+};
+
+function isTreeNode(value: unknown): value is TreeNode {
+	return typeof value === "object" && value !== null && "props" in value;
+}
+
+/** Walk a rendered React element tree into a flat list of nodes. */
+function flattenTree(node: unknown, acc: TreeNode[] = []): TreeNode[] {
+	if (Array.isArray(node)) {
+		for (const child of node) flattenTree(child, acc);
+		return acc;
+	}
+	if (isTreeNode(node)) {
+		acc.push(node);
+		flattenTree(node.props.children, acc);
+	}
+	return acc;
+}
+
+function styleOf(node: TreeNode | undefined): Record<string, unknown> {
+	return node?.props.style ?? {};
+}
+
+/** The code panel is the only node carrying a maxHeight style. */
+function findPanel(nodes: TreeNode[]): TreeNode | undefined {
+	return nodes.find((n) => styleOf(n).maxHeight !== undefined);
+}
+
+/** The spacer is the only node with flexGrow: 1. */
+function findSpacer(nodes: TreeNode[]): TreeNode | undefined {
+	return nodes.find((n) => styleOf(n).flexGrow === 1);
+}
+
+function findFade(nodes: TreeNode[]): TreeNode | undefined {
+	return nodes.find((n) => {
+		const bg = styleOf(n).backgroundImage;
+		return typeof bg === "string" && bg.includes("linear-gradient");
+	});
+}
+
+const BASE_COLORS = { codeBg: "#24292e", codeFg: "#e1e4e8" } as const;
+// CODE_PANEL_MAX_HEIGHT = VISIBLE_LINE_CAP(10) * LINE_HEIGHT(28) + PANEL_PADDING_Y(20) * 2
+const EXPECTED_MAX_HEIGHT = 10 * 28 + 20 * 2;
+
+describe("CardTemplate panel sizing", () => {
+	it("compact path: a 1-line snippet sizes to content (flexGrow: 0) with a spacer and no fade", () => {
+		const nodes = flattenTree(
+			CardTemplate({
+				title: "Short snippet",
+				tokenLines: [[{ content: "const x = 1;", color: "#79b8ff" }]],
+				...BASE_COLORS,
+			}),
+		);
+
+		const panel = findPanel(nodes);
+		expect(panel).toBeDefined();
+		const panelStyle = styleOf(panel);
+		expect(panelStyle.flexGrow).toBe(0);
+		expect(panelStyle.flexShrink).toBe(1);
+		expect(panelStyle.minHeight).toBe(0);
+		expect(panelStyle.overflow).toBe("hidden");
+
+		expect(findSpacer(nodes)).toBeDefined();
+		// No fade over fully-visible short code
+		expect(findFade(nodes)).toBeUndefined();
+	});
+
+	it("long-code path: a truncated block applies the maxHeight cap and renders the fade", () => {
+		const many = Array.from({ length: 20 }, (_, i) => [
+			{ content: `line ${i}`, color: "#e1e4e8" },
+		]);
+		// Empty line exercises the EMPTY_SPAN_STYLE branch
+		many[5] = [];
+
+		const nodes = flattenTree(
+			CardTemplate({
+				title: "Long code",
+				tokenLines: many,
+				didTruncate: true,
+				...BASE_COLORS,
+			}),
+		);
+
+		const panel = findPanel(nodes);
+		expect(panel).toBeDefined();
+		const maxHeight = styleOf(panel).maxHeight;
+		expect(typeof maxHeight).toBe("number");
+		expect(maxHeight).toBe(EXPECTED_MAX_HEIGHT);
+		// Cap is below the natural height of 20 rows, so the panel genuinely clips
+		expect(maxHeight as number).toBeLessThan(20 * 28);
+
+		// The fade is driven by the real truncation signal, not the line count.
+		expect(findFade(nodes)).toBeDefined();
+		expect(findSpacer(nodes)).toBeDefined();
+	});
+
+	it("complete-10-line path: an un-truncated 10-line block renders with no fade (off-by-one fix)", () => {
+		// truncateCode returns didTruncate: false for an exactly-10-line block, so
+		// nothing was cut — the card must NOT clip the 10th line under a fade.
+		const tenLines = Array.from({ length: 10 }, (_, i) => [
+			{ content: `line ${i}`, color: "#e1e4e8" },
+		]);
+
+		const nodes = flattenTree(
+			CardTemplate({
+				title: "Exactly ten lines",
+				tokenLines: tenLines,
+				didTruncate: false,
+				...BASE_COLORS,
+			}),
+		);
+
+		const panel = findPanel(nodes);
+		expect(panel).toBeDefined();
+		// The cap accommodates all 10 rows (10 * LINE_HEIGHT + padding), so nothing clips.
+		expect(styleOf(panel).maxHeight).toBe(EXPECTED_MAX_HEIGHT);
+		expect(10 * 28 + 20 * 2).toBeLessThanOrEqual(EXPECTED_MAX_HEIGHT);
+		// No fade over a fully-visible, complete block.
+		expect(findFade(nodes)).toBeUndefined();
+	});
+
+	it("long-title path: keeps the title node whole (flexShrink: 0, full text)", () => {
+		const longTitle =
+			"A deliberately long multi line title that wraps across the card top";
+		const nodes = flattenTree(
+			CardTemplate({
+				title: longTitle,
+				tokenLines: [[{ content: "x", color: "#fff" }]],
+				...BASE_COLORS,
+			}),
+		);
+
+		const titleNode = nodes.find((n) => styleOf(n).fontSize === 56);
+		expect(titleNode).toBeDefined();
+		expect(styleOf(titleNode).flexShrink).toBe(0);
+		expect(titleNode?.props.children).toBe(longTitle);
+	});
+
+	it("no-code path: tokenLines === null renders the spacer + footer and no panel", () => {
+		const nodes = flattenTree(
+			CardTemplate({ title: "No code", tokenLines: null, ...BASE_COLORS }),
+		);
+
+		expect(findPanel(nodes)).toBeUndefined();
+		expect(findFade(nodes)).toBeUndefined();
+		expect(findSpacer(nodes)).toBeDefined();
+
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "No code",
+				tokenLines: null,
+				...BASE_COLORS,
+			}),
+		);
+		expect(html).toContain("Antonio Fulgencio Blog");
+	});
+
+	it("empty-array path: tokenLines === [] renders the spacer and no panel", () => {
+		const nodes = flattenTree(
+			CardTemplate({ title: "Empty", tokenLines: [], ...BASE_COLORS }),
+		);
+
+		expect(findPanel(nodes)).toBeUndefined();
+		expect(findSpacer(nodes)).toBeDefined();
 	});
 });
 
@@ -222,13 +428,7 @@ describe("generateOgImage - integration", () => {
 
 			expect(result).toBe(`/og/${TEST_LOCALE}/${slug}.png`);
 
-			const filePath = join(
-				process.cwd(),
-				"public",
-				"og",
-				TEST_LOCALE,
-				`${slug}.png`,
-			);
+			const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 			expect(existsSync(filePath)).toBe(true);
 
 			const buffer = readFileSync(filePath);
@@ -256,13 +456,7 @@ describe("generateOgImage - integration", () => {
 
 			expect(result).toBe(`/og/${TEST_LOCALE}/${slug}.png`);
 
-			const filePath = join(
-				process.cwd(),
-				"public",
-				"og",
-				TEST_LOCALE,
-				`${slug}.png`,
-			);
+			const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 			expect(existsSync(filePath)).toBe(true);
 
 			const buffer = readFileSync(filePath);
@@ -292,13 +486,7 @@ describe("generateOgImage - integration", () => {
 			expect(result).not.toBeNull();
 
 			if (result) {
-				const filePath = join(
-					process.cwd(),
-					"public",
-					"og",
-					TEST_LOCALE,
-					`${slug}.png`,
-				);
+				const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 				const buffer = readFileSync(filePath);
 				const { width, height } = parsePngDimensions(buffer);
 				expect(width).toBe(1200);
@@ -364,13 +552,7 @@ describe("generateOgImage - integration", () => {
 
 			expect(result).toBe(`/og/${TEST_LOCALE}/${slug}.png`);
 
-			const filePath = join(
-				process.cwd(),
-				"public",
-				"og",
-				TEST_LOCALE,
-				`${slug}.png`,
-			);
+			const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 			const buffer = readFileSync(filePath);
 			const { width, height } = parsePngDimensions(buffer);
 			expect(width).toBe(1200);

@@ -1,10 +1,12 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useEffect, useMemo } from "react";
+import { createClientOnlyFn } from "@tanstack/react-start";
+import { useEffect, useMemo, useRef } from "react";
 import { PostFooter } from "#/components/ui/post-footer";
 import { PostHeader } from "#/components/ui/post-header";
 import { PostShare } from "#/components/ui/post-share";
 import { StaticPageProfile } from "#/components/ui/static-page-profile";
 import { TranslationNotice } from "#/components/ui/translation-notice";
+import { strings } from "#/lib/i18n/strings";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
 import { readingTimeMinutes } from "#/lib/reading-time";
 import {
@@ -13,6 +15,26 @@ import {
 	type PageLoaderResult,
 	type PostLoaderResult,
 } from "./$slug.server";
+
+// `post-enhancements.client` pulls react-dom/client `createRoot`, so it matches
+// the import-protection plugin's `**/*.client.*` deny pattern — a static OR
+// dynamic import from this server-reachable route file fails the SSR build.
+// Wrapping the dynamic import in `createClientOnlyFn` (same pattern as the
+// `import("#/lib/auth.client")` in login.tsx) strips the client body from the
+// server bundle, so the marker never enters the server graph. This loads ONLY
+// the initializer reference — execution is deferred to the effect so the
+// `cancelled` flag can gate the call itself (not just teardown), preventing a
+// mount against a container that navigation already replaced. On the server the
+// build transform replaces the call with one that throws
+// (`createClientOnlyFn() functions can only be called on the client!`), but
+// that branch is unreachable: the only caller is a `useEffect`, which never
+// runs during SSR.
+const loadPostEnhancements = createClientOnlyFn(async () => {
+	const { initPostEnhancements } = await import(
+		"#/lib/mdx/post-enhancements.client"
+	);
+	return initPostEnhancements;
+});
 
 export const Route = createFileRoute("/{-$locale}/$slug")({
 	loader: async ({ params }) => {
@@ -170,7 +192,7 @@ export function LocalePostDetail() {
 	return <PostView data={loaderData} />;
 }
 
-function PostView({ data }: { data: PostLoaderResult }) {
+export function PostView({ data }: { data: PostLoaderResult }) {
 	const {
 		post,
 		html,
@@ -179,6 +201,47 @@ function PostView({ data }: { data: PostLoaderResult }) {
 		availableLang,
 		alternateLang,
 	} = data;
+
+	// Container holding the static MDX HTML. After it mounts, the client
+	// initializer wires the copy buttons and createRoot-mounts the embed islands
+	// over this subtree (ADR-003 / ADR-004); cleanup runs on post change / unmount.
+	const bodyRef = useRef<HTMLDivElement>(null);
+
+	// The enhancement UI (copy labels + embed locale) MUST match the language the
+	// body was actually SSR-rendered in, which is `post.lang` — not `requestedLang`.
+	// For untranslated fallback posts (notTranslated, requestedLang !== post.lang)
+	// the server renders in the fallback language, so initializing the client with
+	// `requestedLang` would re-label the copy buttons and re-mount the embed in the
+	// requested locale on hydration, flipping the enhancement UI out of sync with
+	// the English body (issue_001 r5). Keying off `post.lang` keeps SSR and hydrated
+	// output aligned for both exact-match and fallback posts.
+	const contentLang = post.lang as Locale;
+
+	useEffect(() => {
+		const root = bodyRef.current;
+		if (!root || !html) return;
+		// `html` is 1:1 with post identity and also changes on locale switch, so it
+		// keys the effect: navigating to another post re-injects the body and re-wires.
+		const { copy, copied } = strings[contentLang].codeCopy;
+		// The initializer is loaded through a client-only dynamic import (see
+		// `loadPostEnhancements`), so it resolves on a microtask. The `cancelled`
+		// flag gates the initializer CALL — not just teardown — so a fast
+		// post→post / locale switch that runs cleanup before the chunk resolves
+		// never mounts embeds over the already-replaced container (issue_001 r2).
+		let cleanup: (() => void) | undefined;
+		let cancelled = false;
+		void loadPostEnhancements().then((init) => {
+			if (cancelled || !init) return;
+			cleanup = init(root, {
+				locale: contentLang,
+				copyLabels: { copy, copied },
+			});
+		});
+		return () => {
+			cancelled = true;
+			cleanup?.();
+		};
+	}, [html, contentLang]);
 
 	useEffect(() => {
 		// Session guard prevents repeated increments on refresh or dev reload.
@@ -255,6 +318,11 @@ function PostView({ data }: { data: PostLoaderResult }) {
 					/>
 
 					<div
+						// Key by `html` so navigation mounts a fresh node and unmounts the
+						// previous post's subtree, instead of swapping innerHTML in place —
+						// keeps each post's embed roots isolated (ADR-004, issue_001 r2).
+						key={html}
+						ref={bodyRef}
 						className="animate-fade-up prose prose-lg prose-neutral max-w-none dark:prose-invert prose-headings:font-heading prose-headings:font-bold prose-headings:tracking-tight prose-h2:mt-12 prose-h2:text-2xl prose-h2:text-foreground prose-h3:mt-10 prose-h3:text-xl prose-h3:text-foreground prose-p:text-foreground-secondary prose-p:leading-relaxed prose-a:text-accent prose-a:underline-offset-4 hover:prose-a:text-accent-hover focus-visible:prose-a:outline-none focus-visible:prose-a:ring-2 focus-visible:prose-a:ring-accent focus-visible:prose-a:ring-offset-4 focus-visible:prose-a:ring-offset-background prose-strong:text-foreground prose-code:rounded prose-code:bg-code-bg prose-code:px-1.5 prose-code:py-0.5 prose-code:font-code prose-code:text-foreground-code prose-code:before:content-none prose-code:after:content-none prose-pre:bg-code-bg prose-pre:text-foreground-code prose-li:text-foreground-secondary prose-li:leading-relaxed prose-blockquote:border-border prose-blockquote:text-foreground-secondary prose-hr:border-border"
 						style={{ animationDelay: "300ms" }}
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
@@ -280,23 +348,54 @@ function PostView({ data }: { data: PostLoaderResult }) {
 }
 
 function StaticPageView({ data }: { data: PageLoaderResult }) {
+	const { entry, requestedLang, html } = data;
+
+	// Static pages render the same MDX (copy buttons via the Shiki transformer,
+	// `<Embed>` placeholders) as posts, so they need the same client wiring; the
+	// page branch previously skipped it, leaving page embeds/copy buttons inert.
+	// Mirror PostView: run the initializer over the page subtree after it mounts.
+	const bodyRef = useRef<HTMLElement>(null);
+
+	useEffect(() => {
+		const root = bodyRef.current;
+		if (!root || !html) return;
+		const { copy, copied } = strings[requestedLang].codeCopy;
+		let cleanup: (() => void) | undefined;
+		let cancelled = false;
+		void loadPostEnhancements().then((init) => {
+			if (cancelled || !init) return;
+			cleanup = init(root, {
+				locale: requestedLang,
+				copyLabels: { copy, copied },
+			});
+		});
+		return () => {
+			cancelled = true;
+			cleanup?.();
+		};
+	}, [html, requestedLang]);
+
 	return (
 		<div className="px-5 py-16 lg:px-20 lg:py-24">
 			<article
+				ref={bodyRef}
 				className="mx-auto max-w-3xl"
-				lang={toBcp47(data.requestedLang)}
+				lang={toBcp47(requestedLang)}
 				aria-labelledby="page-title"
 			>
 				<StaticPageProfile
-					frontmatter={data.entry.frontmatter}
-					locale={data.requestedLang}
-					html={data.html}
+					// Key by `html` so navigating between pages mounts a fresh subtree
+					// and unmounts the previous page's embed roots (ADR-004).
+					key={html}
+					frontmatter={entry.frontmatter}
+					locale={requestedLang}
+					html={html}
 				/>
 
 				<PostFooter
 					publishedAt={null}
-					postLang={data.requestedLang}
-					requestedLang={data.requestedLang}
+					postLang={requestedLang}
+					requestedLang={requestedLang}
 				/>
 			</article>
 		</div>

@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
 import React from "react";
@@ -10,6 +10,20 @@ import { loadFonts } from "./fonts";
 import type { CardTemplateProps, TokenLine } from "./template";
 import { CardTemplate } from "./template";
 import { truncateCode } from "./truncate";
+
+/**
+ * Filesystem root for generated OG card PNGs. Defaults to `<cwd>/public/og`
+ * (the committed-card location prod serves statically).
+ *
+ * Overridable via the `OG_OUTPUT_DIR` env var so integration tests that run the
+ * real `syncAll` against the shared dev DB can redirect every OG write and
+ * unlink (in-process AND in spawned `bun run scripts/sync.ts` subprocesses) to a
+ * throwaway temp dir — otherwise `syncAll`'s full-table cleanup unlinks every
+ * committed card under `public/og`. Prod leaves it unset → no behavior change.
+ */
+export function ogOutputDir(): string {
+	return process.env.OG_OUTPUT_DIR ?? join(process.cwd(), "public", "og");
+}
 
 export type OgGenerateInput = {
 	locale: Locale;
@@ -57,6 +71,27 @@ const DEFAULT_BG = "#24292e";
 const DEFAULT_FG = "#e1e4e8";
 
 // ---------------------------------------------------------------------------
+// Profile avatar → base64 data URI, read once and cached. Same source + framing
+// as the /about profile photo (public/about/profile.jpeg, rendered rounded-full /
+// object-cover / centered). Rendered round, bottom-left in the card footer.
+// Best-effort: "" if missing so the footer falls back to the Terminal mark and
+// generation never fails on it.
+// ---------------------------------------------------------------------------
+
+let _avatarPromise: Promise<string> | null = null;
+
+function loadAvatarDataUri(): Promise<string> {
+	if (!_avatarPromise) {
+		_avatarPromise = readFile(
+			join(process.cwd(), "public", "about", "profile.jpeg"),
+		)
+			.then((buf) => `data:image/jpeg;base64,${buf.toString("base64")}`)
+			.catch(() => "");
+	}
+	return _avatarPromise;
+}
+
+// ---------------------------------------------------------------------------
 // generateOgImage
 // ---------------------------------------------------------------------------
 
@@ -74,16 +109,20 @@ export async function generateOgImage(
 
 	try {
 		const fonts = loadFonts();
+		const avatarDataUri = await loadAvatarDataUri();
 
 		let tokenLines: TokenLine[] | null = null;
 		let codeBg = DEFAULT_BG;
 		let codeFg = DEFAULT_FG;
+		let didTruncate = false;
 
 		if (firstCodeBlock !== null) {
-			// truncateCode still caps the block to 10 lines / 600 chars; the
-			// template clips any remaining overflow visually and always renders
-			// the bottom fade, so the boolean truncation flag is no longer needed.
-			const { lines } = truncateCode(firstCodeBlock.code);
+			// truncateCode caps the block to 10 lines / 600 chars and reports whether
+			// it actually cut anything; the template uses `didTruncate` to drive the
+			// "more code below" fade (ADR-005), so a complete block renders clean.
+			const truncated = truncateCode(firstCodeBlock.code);
+			const { lines } = truncated;
+			didTruncate = truncated.didTruncate;
 
 			const highlighter = await getHighlighter();
 			let result: {
@@ -122,7 +161,9 @@ export async function generateOgImage(
 			tokenLines,
 			codeBg,
 			codeFg,
+			didTruncate,
 			siteUrl: process.env.SITE_URL ?? "",
+			avatarDataUri,
 		};
 
 		// Render JSX → SVG via satori
@@ -138,8 +179,8 @@ export async function generateOgImage(
 		const rendered = resvg.render();
 		const png = rendered.asPng();
 
-		// Write to public/og/{locale}/{slug}.png (mkdir -p first)
-		const dir = join(process.cwd(), "public", "og", locale);
+		// Write to {ogOutputDir}/{locale}/{slug}.png (mkdir -p first)
+		const dir = join(ogOutputDir(), locale);
 		await mkdir(dir, { recursive: true });
 
 		const filePath = join(dir, `${slug}.png`);

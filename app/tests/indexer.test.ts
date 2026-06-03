@@ -57,6 +57,9 @@ vi.mock("node:fs/promises", async (importOriginal) => {
 // This also keeps existing unit tests fast (no real satori render).
 vi.mock("#/lib/og/generate", () => ({
 	generateOgImage: vi.fn().mockResolvedValue(null),
+	// indexer.ts also imports ogOutputDir; preserve the real default
+	// (<cwd>/public/og) so the OG-cleanup path assertions below still match.
+	ogOutputDir: () => `${process.cwd()}/public/og`,
 }));
 
 // Mock code-block walker — returns null by default.
