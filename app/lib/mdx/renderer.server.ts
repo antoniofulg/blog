@@ -1,10 +1,21 @@
 import { compile, run } from "@mdx-js/mdx";
 import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
-import type { ComponentType } from "react";
+import type { MDXContent } from "mdx/types";
 import * as runtime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
 import { createHighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import { copyButtonTransformer } from "#/lib/mdx/copy-button.transformer";
+
+/**
+ * Shiki transformers applied to every fenced block (ADR-003). The copy-button
+ * transformer stashes raw source on each `<pre>` and injects the copy button;
+ * the localized label + click handler are wired client-side (task_04). Created
+ * once at module load — the transformer is stateless config (its `pre` hook
+ * reads per-block `this.source`), so a single instance is reused across renders.
+ * Exported so a unit test can assert it is registered in the shiki pipeline.
+ */
+export const shikiTransformers = [copyButtonTransformer()];
 
 let highlighterPromise: ReturnType<typeof createHighlighterCore> | null = null;
 
@@ -45,7 +56,7 @@ function getHighlighter() {
  * See `loadStaticPage` and `getPostBySlugWithLangFn` for the two call sites
  * that perform the strip.
  */
-export async function renderMdx(body: string): Promise<ComponentType> {
+export async function renderMdx(body: string): Promise<MDXContent> {
 	const highlighter = await getHighlighter();
 	const compiled = await compile(body, {
 		outputFormat: "function-body",
@@ -54,6 +65,7 @@ export async function renderMdx(body: string): Promise<ComponentType> {
 			() =>
 				rehypeShikiFromHighlighter(highlighter, {
 					themes: { light: "github-light", dark: "github-dark" },
+					transformers: shikiTransformers,
 				}),
 		],
 	});
@@ -61,5 +73,5 @@ export async function renderMdx(body: string): Promise<ComponentType> {
 		...runtime,
 		baseUrl: import.meta.url,
 	});
-	return Content as ComponentType;
+	return Content as MDXContent;
 }

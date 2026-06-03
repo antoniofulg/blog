@@ -47,6 +47,7 @@ export async function getPostBySlugWithLangFn(
 		{ default: matter },
 		{ resolveOgImagePath },
 		{ getSiteOrigin },
+		{ Embed },
 	] = await Promise.all([
 		import("node:fs/promises"),
 		import("drizzle-orm"),
@@ -57,6 +58,7 @@ export async function getPostBySlugWithLangFn(
 		import("gray-matter"),
 		import("#/lib/og/resolve.server"),
 		import("#/lib/site-origin"),
+		import("#/lib/mdx/embeds"),
 	]);
 	const [exactPost] = await db
 		.select()
@@ -89,7 +91,9 @@ export async function getPostBySlugWithLangFn(
 			// pass body (e.g. loadStaticPage).
 			const { content: body, data: frontmatterData } = matter(source);
 			const Content = await renderFn(body);
-			const html = renderToStaticMarkup(createElement(Content, {}));
+			const html = renderToStaticMarkup(
+				createElement(Content, { components: { Embed } }),
+			);
 
 			const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
 			const [altPost] = await db
@@ -134,7 +138,9 @@ export async function getPostBySlugWithLangFn(
 		if (source !== null) {
 			const { content: body, data: frontmatterData } = matter(source);
 			const Content = await renderFn(body);
-			const html = renderToStaticMarkup(createElement(Content, {}));
+			const html = renderToStaticMarkup(
+				createElement(Content, { components: { Embed } }),
+			);
 
 			const fallbackLang = fallbackPost.lang as Locale;
 			const ogImagePath = resolveOgImagePath({
