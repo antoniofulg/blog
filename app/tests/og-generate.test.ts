@@ -181,6 +181,35 @@ describe("CardTemplate", () => {
 		expect(html).toContain("Antonio Fulgencio Blog");
 	});
 
+	it("shows the antoniofulg.tech domain in the footer (not the old .dev)", () => {
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "T",
+				tokenLines: null,
+				codeBg: "#24292e",
+				codeFg: "#e1e4e8",
+			}),
+		);
+		expect(html).toContain("antoniofulg.tech");
+		expect(html).not.toContain("antoniofulg.dev");
+	});
+
+	it("renders the round profile avatar when a data URI is provided", () => {
+		const dataUri = "data:image/jpeg;base64,QUJD";
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "T",
+				tokenLines: null,
+				codeBg: "#24292e",
+				codeFg: "#e1e4e8",
+				avatarDataUri: dataUri,
+			}),
+		);
+		expect(html).toContain(dataUri);
+		// Round: a 44px box with a 22px border-radius.
+		expect(html).toMatch(/border-radius:\s*22px/);
+	});
+
 	it("passes token lines prop correctly", () => {
 		const tokenLines = [[{ content: "hello", color: "#fff" }]];
 		const element = React.createElement(CardTemplate, {

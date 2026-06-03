@@ -1,4 +1,4 @@
-import { mkdir, writeFile } from "node:fs/promises";
+import { mkdir, readFile, writeFile } from "node:fs/promises";
 import { join } from "node:path";
 import { Resvg } from "@resvg/resvg-js";
 import React from "react";
@@ -57,6 +57,23 @@ const DEFAULT_BG = "#24292e";
 const DEFAULT_FG = "#e1e4e8";
 
 // ---------------------------------------------------------------------------
+// Profile avatar (public/og-image.jpg) → base64 data URI, read once and cached.
+// Rendered round, bottom-left in the card footer. Best-effort: "" if missing so
+// the footer falls back to the Terminal mark and generation never fails on it.
+// ---------------------------------------------------------------------------
+
+let _avatarPromise: Promise<string> | null = null;
+
+function loadAvatarDataUri(): Promise<string> {
+	if (!_avatarPromise) {
+		_avatarPromise = readFile(join(process.cwd(), "public", "og-image.jpg"))
+			.then((buf) => `data:image/jpeg;base64,${buf.toString("base64")}`)
+			.catch(() => "");
+	}
+	return _avatarPromise;
+}
+
+// ---------------------------------------------------------------------------
 // generateOgImage
 // ---------------------------------------------------------------------------
 
@@ -74,6 +91,7 @@ export async function generateOgImage(
 
 	try {
 		const fonts = loadFonts();
+		const avatarDataUri = await loadAvatarDataUri();
 
 		let tokenLines: TokenLine[] | null = null;
 		let codeBg = DEFAULT_BG;
@@ -127,6 +145,7 @@ export async function generateOgImage(
 			codeFg,
 			didTruncate,
 			siteUrl: process.env.SITE_URL ?? "",
+			avatarDataUri,
 		};
 
 		// Render JSX → SVG via satori

@@ -20,8 +20,10 @@ export type CardTemplateProps = {
 	 * fading genuinely truncated blocks (ADR-005). Defaults to false.
 	 */
 	didTruncate?: boolean;
-	/** Site URL shown in footer (e.g. "https://antoniofulg.dev") */
+	/** Site URL shown in footer (e.g. "https://antoniofulg.tech") */
 	siteUrl?: string;
+	/** Round profile photo as a base64 data URI, shown bottom-left in the footer. */
+	avatarDataUri?: string;
 };
 
 const CARD_BG = "#0d1117";
@@ -78,10 +80,11 @@ export function CardTemplate({
 	codeFg,
 	didTruncate = false,
 	siteUrl,
+	avatarDataUri,
 }: CardTemplateProps) {
 	const displayUrl = siteUrl
 		? siteUrl.replace(/^https?:\/\//, "")
-		: "antoniofulg.dev";
+		: "antoniofulg.tech";
 
 	return (
 		<div
@@ -195,29 +198,45 @@ export function CardTemplate({
 					marginTop: 28,
 				}}
 			>
-				{/* Terminal icon (lucide-style inline SVG) */}
-				<svg
-					width="24"
-					height="24"
-					viewBox="0 0 24 24"
-					fill="none"
-					stroke={ACCENT_COLOR}
-					strokeWidth="2"
-					strokeLinecap="round"
-					strokeLinejoin="round"
-					aria-label="Terminal"
-					role="img"
-				>
-					<title>Terminal</title>
-					<polyline points="4 17 10 11 4 5" />
-					<line x1="12" y1="17" x2="20" y2="17" />
-				</svg>
+				{/* Round profile photo, bottom-left. Falls back to the Terminal mark
+				    when no avatar data URI is supplied (best-effort load). */}
+				{avatarDataUri ? (
+					<img
+						src={avatarDataUri}
+						width={44}
+						height={44}
+						alt=""
+						style={{
+							width: 44,
+							height: 44,
+							borderRadius: 22,
+							objectFit: "cover",
+						}}
+					/>
+				) : (
+					<svg
+						width="24"
+						height="24"
+						viewBox="0 0 24 24"
+						fill="none"
+						stroke={ACCENT_COLOR}
+						strokeWidth="2"
+						strokeLinecap="round"
+						strokeLinejoin="round"
+						aria-label="Terminal"
+						role="img"
+					>
+						<title>Terminal</title>
+						<polyline points="4 17 10 11 4 5" />
+						<line x1="12" y1="17" x2="20" y2="17" />
+					</svg>
+				)}
 
 				<span
 					style={{
 						fontSize: 20,
 						color: TITLE_COLOR,
-						marginLeft: 10,
+						marginLeft: 12,
 						fontWeight: 600,
 					}}
 				>
