@@ -61,8 +61,9 @@ const TTT_HEADING_PTBR = "Experimente: jogo da velha";
 // Static HTML carrying both enhancement markers, mirroring renderMdx output: a
 // fenced block (raw-source <pre> + copy button) and an embed placeholder.
 const HTML_WITH_FEATURES =
-	`<pre ${RAW_SOURCE_ATTR}="const a = 1;"><code>const a = 1;</code>` +
-	`<button type="button" class="${COPY_BUTTON_CLASS}"></button></pre>` +
+	`<div class="code-block-wrapper relative group">` +
+	`<button type="button" class="${COPY_BUTTON_CLASS}"></button>` +
+	`<pre ${RAW_SOURCE_ATTR}="const a = 1;"><code>const a = 1;</code></pre></div>` +
 	`<div data-embed="tic-tac-toe" data-props="{}">` +
 	`<span class="embed-fallback">Interactive demo — requires JavaScript.</span></div>`;
 
@@ -70,8 +71,9 @@ const HTML_WITH_FEATURES =
 // `html` key — exercises the post→post in-place body-swap path, not a same-html
 // re-render.
 const HTML_WITH_FEATURES_B =
-	`<pre ${RAW_SOURCE_ATTR}="const b = 2;"><code>const b = 2;</code>` +
-	`<button type="button" class="${COPY_BUTTON_CLASS}"></button></pre>` +
+	`<div class="code-block-wrapper relative group">` +
+	`<button type="button" class="${COPY_BUTTON_CLASS}"></button>` +
+	`<pre ${RAW_SOURCE_ATTR}="const b = 2;"><code>const b = 2;</code></pre></div>` +
 	`<div data-embed="tic-tac-toe" data-props="{}">` +
 	`<span class="embed-fallback">Interactive demo — requires JavaScript.</span></div>`;
 

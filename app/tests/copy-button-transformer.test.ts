@@ -1,7 +1,9 @@
 /**
  * Tests for app/lib/mdx/copy-button.transformer.ts — the custom thin Shiki
- * transformer (ADR-003) that stashes raw source on each `<pre>` and injects a
- * hidden-by-default copy button into every fenced code block.
+ * transformer (ADR-003) that stashes raw source on each `<pre>`, wraps the
+ * `<pre>` in a non-scrolling positioning context, and injects a
+ * hidden-by-default copy button as a sibling of the `<pre>` (so the button stays
+ * pinned top-right while the `<pre>` scrolls horizontally).
  *
  * The transformer is exercised through a real Shiki highlighter (same engine /
  * themes / lang wiring as renderer.server.ts) so `this.source`, `this.pre`, and
@@ -15,6 +17,7 @@ import { beforeAll, describe, expect, it } from "vitest";
 
 import {
 	CHECK_ICON_CLASS,
+	CODE_BLOCK_WRAPPER_CLASS,
 	COPY_BUTTON_CLASS,
 	COPY_ICON_CLASS,
 	copyButtonTransformer,
@@ -34,17 +37,26 @@ beforeAll(async () => {
 	});
 });
 
-/** Highlight `code` with the copy-button transformer wired in, return the <pre>. */
-function highlightToPre(code: string): Element {
+/** Highlight `code` with the transformer wired in; return the wrapping <div>. */
+function highlightToBlock(code: string): Element {
 	const root = highlighter.codeToHast(code, {
 		lang: "typescript",
 		themes: { light: "github-light", dark: "github-dark" },
 		transformers: [copyButtonTransformer()],
 	}) as Root;
-	const pre = root.children.find(
+	const block = root.children.find(
+		(n): n is Element => n.type === "element" && n.tagName === "div",
+	);
+	if (!block) throw new Error("no wrapper <div> in highlighted output");
+	return block;
+}
+
+/** The <pre> nested inside the wrapper. */
+function preIn(block: Element): Element {
+	const pre = block.children.find(
 		(n): n is Element => n.type === "element" && n.tagName === "pre",
 	);
-	if (!pre) throw new Error("no <pre> in highlighted output");
+	if (!pre) throw new Error("no <pre> inside the wrapper");
 	return pre;
 }
 
@@ -64,16 +76,17 @@ function collectByTag(node: Root | RootContent, tag: string): Element[] {
 }
 
 function classList(el: Element): string[] {
-	// Shiki stores classes under the `class` property (array, normalized by
-	// addClassToHast); the injected button mirrors that convention.
 	const cls = el.properties?.class;
+	// Shiki sets the <pre> class as a space-separated string; the transformer sets
+	// the button/wrapper classes as an array. Normalize both.
+	if (typeof cls === "string") return cls.split(/\s+/).filter(Boolean);
 	return Array.isArray(cls) ? cls.map(String) : [];
 }
 
 describe("copyButtonTransformer", () => {
 	it("stashes the exact raw source on <pre> (3-line TS block, no token markup)", () => {
 		const source = "const a = 1\nconst b = 2\nconst c = 3";
-		const pre = highlightToPre(source);
+		const pre = preIn(highlightToBlock(source));
 		const raw = pre.properties?.[RAW_SOURCE_ATTR];
 		expect(raw).toBe(source);
 		// The stashed value is plain text — never the highlighted <span> markup.
@@ -81,43 +94,46 @@ describe("copyButtonTransformer", () => {
 		expect(String(raw)).not.toContain("shiki");
 	});
 
+	it("wraps the <pre> in a non-scrolling positioning context", () => {
+		const block = highlightToBlock("const x = 1");
+		expect(block.tagName).toBe("div");
+		expect(classList(block)).toEqual(
+			expect.arrayContaining([CODE_BLOCK_WRAPPER_CLASS, "relative", "group"]),
+		);
+		// The button must NOT live inside the <pre>: the <pre> is the horizontal
+		// scroll container, so a button inside it would travel with the scroll.
+		expect(collectByTag(preIn(block), "button")).toHaveLength(0);
+	});
+
 	it("injects exactly one copy button per fenced block", () => {
-		const pre = highlightToPre("const x: number = 1");
-		const buttons = collectByTag(pre, "button");
+		const block = highlightToBlock("const x: number = 1");
+		const buttons = collectByTag(block, "button");
 		expect(buttons).toHaveLength(1);
 		expect(buttons[0].properties?.type).toBe("button");
 	});
 
 	it("ships a static aria-label so the button is named pre-JS (WCAG 4.1.2)", () => {
-		const pre = highlightToPre("const x = 1");
-		const [button] = collectByTag(pre, "button");
+		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		// The control is focusable and in the a11y tree at compile time; without a
 		// static name it has an empty accessible name until `wireCopyButtons` runs.
 		expect(button.properties?.["aria-label"]).toBe("Copy code");
 	});
 
 	it("button carries the stable client-hook class", () => {
-		const pre = highlightToPre("const x = 1");
-		const [button] = collectByTag(pre, "button");
+		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		expect(classList(button)).toContain(COPY_BUTTON_CLASS);
 	});
 
 	it("button is hidden by default and revealed on hover/focus via classes (AC-3)", () => {
-		const pre = highlightToPre("const x = 1");
-		const [button] = collectByTag(pre, "button");
+		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		const classes = classList(button);
 		expect(classes).toContain("opacity-0");
 		expect(classes).toContain("group-hover:opacity-100");
 		expect(classes).toContain("focus-visible:opacity-100");
-		// The <pre> must be the hover/positioning context for the reveal to work.
-		expect(classList(pre)).toEqual(
-			expect.arrayContaining(["relative", "group"]),
-		);
 	});
 
 	it("button carries design-token utility classes", () => {
-		const pre = highlightToPre("const x = 1");
-		const [button] = collectByTag(pre, "button");
+		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		const classes = classList(button);
 		expect(classes).toEqual(
 			expect.arrayContaining([
@@ -130,8 +146,7 @@ describe("copyButtonTransformer", () => {
 	});
 
 	it("embeds both copy and check glyphs so the CSS state swap has icons (G1)", () => {
-		const pre = highlightToPre("const x = 1");
-		const [button] = collectByTag(pre, "button");
+		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		const svgs = collectByTag(button, "svg");
 		// Two glyphs ship in the markup: the copy icon (default) and the check icon
 		// (revealed by the [data-copied] CSS rule). Without these the button is a
@@ -146,7 +161,7 @@ describe("copyButtonTransformer", () => {
 	});
 
 	it("leaves highlighted token spans intact (does not corrupt highlighting)", () => {
-		const pre = highlightToPre("const value: string = 'hi'");
+		const pre = preIn(highlightToBlock("const value: string = 'hi'"));
 		const spans = collectByTag(pre, "span");
 		// Shiki emits one span per token; the transformer must not strip them.
 		expect(spans.length).toBeGreaterThan(0);
@@ -160,11 +175,12 @@ describe("copyButtonTransformer", () => {
 		expect(classList(pre)).toContain("shiki");
 	});
 
-	it("preserves the existing <pre> children (button is added, not replaced)", () => {
-		const pre = highlightToPre("const x = 1");
-		const codeEls = collectByTag(pre, "code");
-		expect(codeEls).toHaveLength(1);
-		// Button is prepended; the <code> block remains.
-		expect(pre.children.length).toBeGreaterThanOrEqual(2);
+	it("wraps the <pre> and keeps its <code> (button added as sibling)", () => {
+		const block = highlightToBlock("const x = 1");
+		const pre = preIn(block);
+		expect(collectByTag(pre, "code")).toHaveLength(1);
+		// The wrapper holds exactly the button plus the <pre>.
+		expect(block.children).toHaveLength(2);
+		expect(collectByTag(block, "button")).toHaveLength(1);
 	});
 });

@@ -29,13 +29,19 @@ function clipboardMock(impl: () => Promise<void>) {
 }
 
 function makeCodeBlock(root: HTMLElement, raw: string): HTMLButtonElement {
+	// Mirror the transformer's output: a non-scrolling wrapper holding the button
+	// as a SIBLING of the <pre> (the <pre> is the horizontal-scroll container, so
+	// the button must live outside it). The client reads the raw source from the
+	// sibling <pre> via the shared wrapper parent.
+	const wrapper = document.createElement("div");
 	const pre = document.createElement("pre");
 	pre.setAttribute(RAW_SOURCE_ATTR, raw);
 	const button = document.createElement("button");
 	button.type = "button";
 	button.className = COPY_BUTTON_CLASS;
-	pre.appendChild(button);
-	root.appendChild(pre);
+	wrapper.appendChild(button);
+	wrapper.appendChild(pre);
+	root.appendChild(wrapper);
 	return button;
 }
 

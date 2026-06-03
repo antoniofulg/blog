@@ -44,7 +44,7 @@ const COPIED_ATTR = "data-copied";
  * Wire every copy button rendered by `copyButtonTransformer` inside `root`.
  *
  * For each `button.code-copy-button`: sets the localized `aria-label`, and on
- * click copies the RAW source stashed on the enclosing `<pre>` (never the
+ * click copies the RAW source stashed on the sibling `<pre>` (never the
  * highlighted token markup) via the Clipboard API, swaps to a "Copied!" state,
  * and reverts after ~2s. A single polite live region appended to `root`
  * announces the confirmation to screen-reader users (ADR-003).
@@ -75,7 +75,10 @@ export function wireCopyButtons(
 		let timer: ReturnType<typeof setTimeout> | undefined;
 
 		const onClick = () => {
-			const pre = button.closest("pre");
+			// The button is a sibling of the <pre> inside the code-block wrapper (the
+			// <pre> is the horizontal-scroll container, so the button cannot live
+			// inside it). Reach the <pre> through the shared wrapper parent.
+			const pre = button.parentElement?.querySelector("pre");
 			const raw = pre?.getAttribute(RAW_SOURCE_ATTR) ?? "";
 			void navigator.clipboard
 				.writeText(raw)

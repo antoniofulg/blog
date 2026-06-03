@@ -8,6 +8,13 @@ import type { Element } from "hast";
 export const COPY_BUTTON_CLASS = "code-copy-button";
 
 /**
+ * Class on the non-scrolling wrapper the transformer puts around each `<pre>`.
+ * It is the `relative` / `group` positioning context for the copy button, so the
+ * button stays pinned top-right while the `<pre>` scrolls horizontally.
+ */
+export const CODE_BLOCK_WRAPPER_CLASS = "code-block-wrapper";
+
+/**
  * Data attribute set on each `<pre>` holding the block's RAW source string, so
  * the client copies plain text — never the highlighted `<span>` token markup.
  * The client reads it via `pre.getAttribute(RAW_SOURCE_ATTR)`.
@@ -19,7 +26,7 @@ export const RAW_SOURCE_ATTR = "data-raw-source";
  * accent focus ring) so it reads as a first-class affordance over the code slab.
  *
  * `opacity-0` hides it by default; `group-hover:opacity-100` reveals it when the
- * surrounding `<pre>` (tagged `group`) is hovered, and `focus-visible:opacity-100`
+ * surrounding wrapper (tagged `group`) is hovered, and `focus-visible:opacity-100`
  * reveals it for keyboard users (AC-3). Visibility is fully class-driven.
  */
 const BUTTON_CLASSES = [
@@ -120,9 +127,6 @@ export function copyButtonTransformer(): ShikiTransformer {
 		pre(hast) {
 			hast.properties = hast.properties ?? {};
 			hast.properties[RAW_SOURCE_ATTR] = this.source;
-			// `relative` anchors the absolutely-positioned button; `group` enables
-			// the group-hover reveal from the surrounding <pre>.
-			this.addClassToHast(hast, ["relative", "group"]);
 			const button: Element = {
 				type: "element",
 				tagName: "button",
@@ -138,7 +142,17 @@ export function copyButtonTransformer(): ShikiTransformer {
 				// visible (copy → check) so sighted users get visible feedback (G1).
 				children: [copyIcon(), checkIcon()],
 			};
-			hast.children.unshift(button);
+			// Wrap the <pre> in a non-scrolling positioning context. The <pre> keeps
+			// its own `overflow-x: auto`; the button lives on the wrapper (a sibling
+			// of the <pre>), so `absolute right-3 top-3` pins it to the block's
+			// top-right and it does NOT travel with the <pre>'s horizontal scroll.
+			// `relative` anchors the button; `group` drives the hover/focus reveal.
+			return {
+				type: "element",
+				tagName: "div",
+				properties: { class: [CODE_BLOCK_WRAPPER_CLASS, "relative", "group"] },
+				children: [button, hast],
+			};
 		},
 	};
 }
