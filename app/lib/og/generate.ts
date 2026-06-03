@@ -57,16 +57,20 @@ const DEFAULT_BG = "#24292e";
 const DEFAULT_FG = "#e1e4e8";
 
 // ---------------------------------------------------------------------------
-// Profile avatar (public/og-image.jpg) → base64 data URI, read once and cached.
-// Rendered round, bottom-left in the card footer. Best-effort: "" if missing so
-// the footer falls back to the Terminal mark and generation never fails on it.
+// Profile avatar → base64 data URI, read once and cached. Same source + framing
+// as the /about profile photo (public/about/profile.jpeg, rendered rounded-full /
+// object-cover / centered). Rendered round, bottom-left in the card footer.
+// Best-effort: "" if missing so the footer falls back to the Terminal mark and
+// generation never fails on it.
 // ---------------------------------------------------------------------------
 
 let _avatarPromise: Promise<string> | null = null;
 
 function loadAvatarDataUri(): Promise<string> {
 	if (!_avatarPromise) {
-		_avatarPromise = readFile(join(process.cwd(), "public", "og-image.jpg"))
+		_avatarPromise = readFile(
+			join(process.cwd(), "public", "about", "profile.jpeg"),
+		)
 			.then((buf) => `data:image/jpeg;base64,${buf.toString("base64")}`)
 			.catch(() => "");
 	}
