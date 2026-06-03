@@ -144,6 +144,24 @@ describe("wireCopyButtons", () => {
 		expect(writeText).toHaveBeenCalledWith("");
 	});
 
+	it("does not throw and shows no copied state when clipboard is unavailable", async () => {
+		// Non-secure origin / restrictive permission policy: navigator.clipboard is
+		// undefined. Accessing .writeText would throw synchronously before the
+		// .catch chain; the early guard must make the click a silent no-op.
+		Object.defineProperty(navigator, "clipboard", {
+			value: undefined,
+			configurable: true,
+			writable: true,
+		});
+		const button = makeCodeBlock(root, "data");
+		wireCopyButtons(root, COPY_LABELS);
+		await act(async () => {
+			expect(() => button.click()).not.toThrow();
+		});
+		expect(button.hasAttribute("data-copied")).toBe(false);
+		expect(button.getAttribute("aria-label")).toBe(COPY_LABELS.copy);
+	});
+
 	it("re-clicking restarts the revert timer and cleanup clears a pending timer", async () => {
 		vi.useFakeTimers();
 		clipboardMock(() => Promise.resolve());

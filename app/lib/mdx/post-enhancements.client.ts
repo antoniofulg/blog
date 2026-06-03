@@ -80,6 +80,11 @@ export function wireCopyButtons(
 			// inside it). Reach the <pre> through the shared wrapper parent.
 			const pre = button.parentElement?.querySelector("pre");
 			const raw = pre?.getAttribute(RAW_SOURCE_ATTR) ?? "";
+			// `navigator.clipboard` is undefined on non-secure origins / under a
+			// restrictive permission policy; reading `.writeText` then throws
+			// synchronously, before the `.catch` chain exists, surfacing an uncaught
+			// click error. Guard the access and fail silently.
+			if (!navigator.clipboard?.writeText) return;
 			void navigator.clipboard
 				.writeText(raw)
 				.then(() => {
@@ -94,7 +99,7 @@ export function wireCopyButtons(
 					}, COPIED_REVERT_MS);
 				})
 				.catch(() => {
-					// Clipboard API unavailable (non-secure context) — fail silently.
+					// Clipboard write was rejected (e.g. permission denied): fail silently.
 				});
 		};
 
