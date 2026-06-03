@@ -55,10 +55,10 @@ const COPY = {
 	en: {
 		heading: "Try it: tic-tac-toe",
 		caption:
-			"The exact logic from this post — both diagonals, the win checked before the draw.",
+			"The exact logic from this post: both diagonals, the win checked before the draw.",
 		turn: (p: string) => `Turn: ${p}`,
 		winner: (p: string) => `Winner: ${p}`,
-		draw: "Draw — nobody wins",
+		draw: "Draw, nobody wins",
 		reset: "Restart",
 		empty: (n: number) => `Square ${n}, empty`,
 		filled: (n: number, mark: string) => `Square ${n}, ${mark}`,
@@ -66,10 +66,10 @@ const COPY = {
 	"pt-br": {
 		heading: "Experimente: jogo da velha",
 		caption:
-			"A lógica exata deste post — as duas diagonais, a vitória checada antes do empate.",
+			"A lógica exata deste post: as duas diagonais, a vitória checada antes do empate.",
 		turn: (p: string) => `Vez de: ${p}`,
 		winner: (p: string) => `Vencedor: ${p}`,
-		draw: "Empate — ninguém vence",
+		draw: "Empate, ninguém vence",
 		reset: "Reiniciar",
 		empty: (n: number) => `Casa ${n}, vazia`,
 		filled: (n: number, mark: string) => `Casa ${n}, ${mark}`,
@@ -120,9 +120,13 @@ export function TicTacToe({ locale }: Props) {
 							key={SQUARE_KEYS[i]}
 							type="button"
 							aria-label={label}
-							disabled={cell !== null || gameOver}
+							// aria-disabled (not `disabled`) keeps played/over cells in the tab
+							// order so keyboard focus is not lost when a cell becomes inert on
+							// play; the reducer already no-ops clicks on filled squares / after
+							// the game ends.
+							aria-disabled={cell !== null || gameOver}
 							onClick={() => dispatch({ type: "play", index: i })}
-							className="flex aspect-square items-center justify-center rounded-md border border-border bg-background font-heading text-2xl font-bold text-foreground transition-colors hover:enabled:border-accent disabled:cursor-not-allowed focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+							className="flex aspect-square items-center justify-center rounded-md border border-border bg-background font-heading text-2xl font-bold text-foreground transition-colors hover:border-accent aria-disabled:cursor-not-allowed aria-disabled:hover:border-border focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 						>
 							<span aria-hidden="true">{cell}</span>
 						</button>
@@ -133,7 +137,7 @@ export function TicTacToe({ locale }: Props) {
 			<button
 				type="button"
 				onClick={() => dispatch({ type: "reset" })}
-				className="mt-5 inline-flex items-center rounded-md bg-accent px-4 py-2 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
+				className="mt-5 inline-flex h-11 items-center rounded-md bg-accent px-4 text-sm font-semibold text-foreground-inverse transition-colors hover:bg-accent-hover focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-accent focus-visible:ring-offset-2 focus-visible:ring-offset-background"
 			>
 				{c.reset}
 			</button>

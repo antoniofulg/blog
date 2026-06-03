@@ -75,7 +75,7 @@ describe("TicTacToe", () => {
 		for (const i of [0, 1, 2, 4, 3, 5, 7, 6, 8]) {
 			fireEvent.click(s[i]);
 		}
-		expect(statusText()).toBe("Draw — nobody wins");
+		expect(statusText()).toBe("Draw, nobody wins");
 	});
 
 	it("reset clears the board back to X's turn", () => {
