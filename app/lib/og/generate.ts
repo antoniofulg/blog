@@ -78,12 +78,15 @@ export async function generateOgImage(
 		let tokenLines: TokenLine[] | null = null;
 		let codeBg = DEFAULT_BG;
 		let codeFg = DEFAULT_FG;
+		let didTruncate = false;
 
 		if (firstCodeBlock !== null) {
-			// truncateCode still caps the block to 10 lines / 600 chars; the
-			// template clips any remaining overflow visually and always renders
-			// the bottom fade, so the boolean truncation flag is no longer needed.
-			const { lines } = truncateCode(firstCodeBlock.code);
+			// truncateCode caps the block to 10 lines / 600 chars and reports whether
+			// it actually cut anything; the template uses `didTruncate` to drive the
+			// "more code below" fade (ADR-005), so a complete block renders clean.
+			const truncated = truncateCode(firstCodeBlock.code);
+			const { lines } = truncated;
+			didTruncate = truncated.didTruncate;
 
 			const highlighter = await getHighlighter();
 			let result: {
@@ -122,6 +125,7 @@ export async function generateOgImage(
 			tokenLines,
 			codeBg,
 			codeFg,
+			didTruncate,
 			siteUrl: process.env.SITE_URL ?? "",
 		};
 

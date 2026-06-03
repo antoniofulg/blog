@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { createClientOnlyFn } from "@tanstack/react-start";
 import { useEffect, useMemo, useRef } from "react";
 import { PostFooter } from "#/components/ui/post-footer";
 import { PostHeader } from "#/components/ui/post-header";
@@ -7,7 +8,6 @@ import { StaticPageProfile } from "#/components/ui/static-page-profile";
 import { TranslationNotice } from "#/components/ui/translation-notice";
 import { strings } from "#/lib/i18n/strings";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
-import { initPostEnhancements } from "#/lib/mdx/post-enhancements.client";
 import { readingTimeMinutes } from "#/lib/reading-time";
 import {
 	getPostBySlugWithLang,
@@ -15,6 +15,26 @@ import {
 	type PageLoaderResult,
 	type PostLoaderResult,
 } from "./$slug.server";
+
+// `post-enhancements.client` pulls react-dom/client `createRoot`, so it matches
+// the import-protection plugin's `**/*.client.*` deny pattern — a static OR
+// dynamic import from this server-reachable route file fails the SSR build.
+// Wrapping the dynamic import in `createClientOnlyFn` (same pattern as the
+// `import("#/lib/auth.client")` in login.tsx) strips the client body from the
+// server bundle, so the marker never enters the server graph. Returns the
+// initializer's cleanup; resolves to undefined on the server (the effect that
+// calls it only runs client-side).
+const runPostEnhancements = createClientOnlyFn(
+	async (
+		root: HTMLElement,
+		options: { locale: Locale; copyLabels: { copy: string; copied: string } },
+	) => {
+		const { initPostEnhancements } = await import(
+			"#/lib/mdx/post-enhancements.client"
+		);
+		return initPostEnhancements(root, options);
+	},
+);
 
 export const Route = createFileRoute("/{-$locale}/$slug")({
 	loader: async ({ params }) => {
@@ -193,10 +213,25 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 		// `html` is 1:1 with post identity and also changes on locale switch, so it
 		// keys the effect: navigating to another post re-injects the body and re-wires.
 		const { copy, copied } = strings[requestedLang].codeCopy;
-		return initPostEnhancements(root, {
+		// The initializer is loaded through a client-only dynamic import (see
+		// `runPostEnhancements`), so it resolves on a microtask. The `cancelled`
+		// flag tears down cleanly if the post unmounts before the chunk resolves.
+		let cleanup: (() => void) | undefined;
+		let cancelled = false;
+		void runPostEnhancements(root, {
 			locale: requestedLang,
 			copyLabels: { copy, copied },
+		})?.then((teardown) => {
+			if (cancelled) {
+				teardown?.();
+				return;
+			}
+			cleanup = teardown;
 		});
+		return () => {
+			cancelled = true;
+			cleanup?.();
+		};
 	}, [html, requestedLang]);
 
 	useEffect(() => {

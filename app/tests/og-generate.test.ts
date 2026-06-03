@@ -198,6 +198,180 @@ describe("CardTemplate", () => {
 });
 
 // ---------------------------------------------------------------------------
+// Unit tests: CardTemplate panel sizing (ADR-005)
+// ---------------------------------------------------------------------------
+
+type TreeNode = {
+	type: unknown;
+	props: { style?: Record<string, unknown>; children?: unknown };
+};
+
+function isTreeNode(value: unknown): value is TreeNode {
+	return typeof value === "object" && value !== null && "props" in value;
+}
+
+/** Walk a rendered React element tree into a flat list of nodes. */
+function flattenTree(node: unknown, acc: TreeNode[] = []): TreeNode[] {
+	if (Array.isArray(node)) {
+		for (const child of node) flattenTree(child, acc);
+		return acc;
+	}
+	if (isTreeNode(node)) {
+		acc.push(node);
+		flattenTree(node.props.children, acc);
+	}
+	return acc;
+}
+
+function styleOf(node: TreeNode | undefined): Record<string, unknown> {
+	return node?.props.style ?? {};
+}
+
+/** The code panel is the only node carrying a maxHeight style. */
+function findPanel(nodes: TreeNode[]): TreeNode | undefined {
+	return nodes.find((n) => styleOf(n).maxHeight !== undefined);
+}
+
+/** The spacer is the only node with flexGrow: 1. */
+function findSpacer(nodes: TreeNode[]): TreeNode | undefined {
+	return nodes.find((n) => styleOf(n).flexGrow === 1);
+}
+
+function findFade(nodes: TreeNode[]): TreeNode | undefined {
+	return nodes.find((n) => {
+		const bg = styleOf(n).backgroundImage;
+		return typeof bg === "string" && bg.includes("linear-gradient");
+	});
+}
+
+const BASE_COLORS = { codeBg: "#24292e", codeFg: "#e1e4e8" } as const;
+// CODE_PANEL_MAX_HEIGHT = VISIBLE_LINE_CAP(10) * LINE_HEIGHT(28) + PANEL_PADDING_Y(20) * 2
+const EXPECTED_MAX_HEIGHT = 10 * 28 + 20 * 2;
+
+describe("CardTemplate panel sizing", () => {
+	it("compact path: a 1-line snippet sizes to content (flexGrow: 0) with a spacer and no fade", () => {
+		const nodes = flattenTree(
+			CardTemplate({
+				title: "Short snippet",
+				tokenLines: [[{ content: "const x = 1;", color: "#79b8ff" }]],
+				...BASE_COLORS,
+			}),
+		);
+
+		const panel = findPanel(nodes);
+		expect(panel).toBeDefined();
+		const panelStyle = styleOf(panel);
+		expect(panelStyle.flexGrow).toBe(0);
+		expect(panelStyle.flexShrink).toBe(1);
+		expect(panelStyle.minHeight).toBe(0);
+		expect(panelStyle.overflow).toBe("hidden");
+
+		expect(findSpacer(nodes)).toBeDefined();
+		// No fade over fully-visible short code
+		expect(findFade(nodes)).toBeUndefined();
+	});
+
+	it("long-code path: a truncated block applies the maxHeight cap and renders the fade", () => {
+		const many = Array.from({ length: 20 }, (_, i) => [
+			{ content: `line ${i}`, color: "#e1e4e8" },
+		]);
+		// Empty line exercises the EMPTY_SPAN_STYLE branch
+		many[5] = [];
+
+		const nodes = flattenTree(
+			CardTemplate({
+				title: "Long code",
+				tokenLines: many,
+				didTruncate: true,
+				...BASE_COLORS,
+			}),
+		);
+
+		const panel = findPanel(nodes);
+		expect(panel).toBeDefined();
+		const maxHeight = styleOf(panel).maxHeight;
+		expect(typeof maxHeight).toBe("number");
+		expect(maxHeight).toBe(EXPECTED_MAX_HEIGHT);
+		// Cap is below the natural height of 20 rows, so the panel genuinely clips
+		expect(maxHeight as number).toBeLessThan(20 * 28);
+
+		// The fade is driven by the real truncation signal, not the line count.
+		expect(findFade(nodes)).toBeDefined();
+		expect(findSpacer(nodes)).toBeDefined();
+	});
+
+	it("complete-10-line path: an un-truncated 10-line block renders with no fade (off-by-one fix)", () => {
+		// truncateCode returns didTruncate: false for an exactly-10-line block, so
+		// nothing was cut — the card must NOT clip the 10th line under a fade.
+		const tenLines = Array.from({ length: 10 }, (_, i) => [
+			{ content: `line ${i}`, color: "#e1e4e8" },
+		]);
+
+		const nodes = flattenTree(
+			CardTemplate({
+				title: "Exactly ten lines",
+				tokenLines: tenLines,
+				didTruncate: false,
+				...BASE_COLORS,
+			}),
+		);
+
+		const panel = findPanel(nodes);
+		expect(panel).toBeDefined();
+		// The cap accommodates all 10 rows (10 * LINE_HEIGHT + padding), so nothing clips.
+		expect(styleOf(panel).maxHeight).toBe(EXPECTED_MAX_HEIGHT);
+		expect(10 * 28 + 20 * 2).toBeLessThanOrEqual(EXPECTED_MAX_HEIGHT);
+		// No fade over a fully-visible, complete block.
+		expect(findFade(nodes)).toBeUndefined();
+	});
+
+	it("long-title path: keeps the title node whole (flexShrink: 0, full text)", () => {
+		const longTitle =
+			"A deliberately long multi line title that wraps across the card top";
+		const nodes = flattenTree(
+			CardTemplate({
+				title: longTitle,
+				tokenLines: [[{ content: "x", color: "#fff" }]],
+				...BASE_COLORS,
+			}),
+		);
+
+		const titleNode = nodes.find((n) => styleOf(n).fontSize === 56);
+		expect(titleNode).toBeDefined();
+		expect(styleOf(titleNode).flexShrink).toBe(0);
+		expect(titleNode?.props.children).toBe(longTitle);
+	});
+
+	it("no-code path: tokenLines === null renders the spacer + footer and no panel", () => {
+		const nodes = flattenTree(
+			CardTemplate({ title: "No code", tokenLines: null, ...BASE_COLORS }),
+		);
+
+		expect(findPanel(nodes)).toBeUndefined();
+		expect(findFade(nodes)).toBeUndefined();
+		expect(findSpacer(nodes)).toBeDefined();
+
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "No code",
+				tokenLines: null,
+				...BASE_COLORS,
+			}),
+		);
+		expect(html).toContain("Antonio Fulgencio Blog");
+	});
+
+	it("empty-array path: tokenLines === [] renders the spacer and no panel", () => {
+		const nodes = flattenTree(
+			CardTemplate({ title: "Empty", tokenLines: [], ...BASE_COLORS }),
+		);
+
+		expect(findPanel(nodes)).toBeUndefined();
+		expect(findSpacer(nodes)).toBeDefined();
+	});
+});
+
+// ---------------------------------------------------------------------------
 // Integration tests: generateOgImage
 // ---------------------------------------------------------------------------
 

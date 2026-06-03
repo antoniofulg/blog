@@ -15,9 +15,8 @@ export const COPY_BUTTON_CLASS = "code-copy-button";
 export const RAW_SOURCE_ATTR = "data-raw-source";
 
 /**
- * Token-styled Tailwind utility classes for the injected button. Mirrors the
- * hand-rolled `CodeBlock` affordance (muted slab, accent focus ring) so the MDX
- * copy button reads identically to the component-rendered one.
+ * Token-styled Tailwind utility classes for the injected button (muted slab,
+ * accent focus ring) so it reads as a first-class affordance over the code slab.
  *
  * `opacity-0` hides it by default; `group-hover:opacity-100` reveals it when the
  * surrounding `<pre>` (tagged `group`) is hovered, and `focus-visible:opacity-100`
@@ -48,6 +47,58 @@ const BUTTON_CLASSES = [
 ];
 
 /**
+ * Stable classes the stylesheet hooks to swap the glyph: the copy icon shows by
+ * default, and the check icon shows once the client sets `data-copied="true"` on
+ * the button (see `.code-copy-button` rules in `global.css`). Both icons ship in
+ * the compile-time markup so the swap is pure CSS — no client DOM construction.
+ */
+export const COPY_ICON_CLASS = "code-copy-icon";
+export const CHECK_ICON_CLASS = "code-copy-check";
+
+/** Build a 16px lucide-style inline SVG carrying `className` + the given paths. */
+function iconSvg(className: string, paths: Element[]): Element {
+	return {
+		type: "element",
+		tagName: "svg",
+		properties: {
+			class: [className],
+			width: 16,
+			height: 16,
+			viewBox: "0 0 24 24",
+			fill: "none",
+			stroke: "currentColor",
+			strokeWidth: 2,
+			strokeLinecap: "round",
+			strokeLinejoin: "round",
+			"aria-hidden": "true",
+		},
+		children: paths,
+	};
+}
+
+function svgPath(d: string): Element {
+	return { type: "element", tagName: "path", properties: { d }, children: [] };
+}
+
+/** Two overlapping rounded rectangles — the standard "copy" glyph. */
+function copyIcon(): Element {
+	return iconSvg(COPY_ICON_CLASS, [
+		{
+			type: "element",
+			tagName: "rect",
+			properties: { width: 14, height: 14, x: 8, y: 8, rx: 2, ry: 2 },
+			children: [],
+		},
+		svgPath("M4 16c-1.1 0-2-.9-2-2V4c0-1.1.9-2 2-2h10c1.1 0 2 .9 2 2"),
+	]);
+}
+
+/** A checkmark — the post-copy confirmation glyph, hidden until `data-copied`. */
+function checkIcon(): Element {
+	return iconSvg(CHECK_ICON_CLASS, [svgPath("M20 6 9 17l-5-5")]);
+}
+
+/**
  * Custom thin Shiki transformer (ADR-003) that turns every fenced code block
  * into a copyable surface at compile time:
  *
@@ -74,7 +125,9 @@ export function copyButtonTransformer(): ShikiTransformer {
 				type: "element",
 				tagName: "button",
 				properties: { type: "button", class: [...BUTTON_CLASSES] },
-				children: [],
+				// Both glyphs ship in the markup; `[data-copied]` CSS toggles which is
+				// visible (copy → check) so sighted users get visible feedback (G1).
+				children: [copyIcon(), checkIcon()],
 			};
 			hast.children.unshift(button);
 		},

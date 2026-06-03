@@ -14,7 +14,9 @@ import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
 import { beforeAll, describe, expect, it } from "vitest";
 
 import {
+	CHECK_ICON_CLASS,
 	COPY_BUTTON_CLASS,
+	COPY_ICON_CLASS,
 	copyButtonTransformer,
 	RAW_SOURCE_ATTR,
 } from "#/lib/mdx/copy-button.transformer";
@@ -117,6 +119,22 @@ describe("copyButtonTransformer", () => {
 				"focus-visible:ring-accent",
 			]),
 		);
+	});
+
+	it("embeds both copy and check glyphs so the CSS state swap has icons (G1)", () => {
+		const pre = highlightToPre("const x = 1");
+		const [button] = collectByTag(pre, "button");
+		const svgs = collectByTag(button, "svg");
+		// Two glyphs ship in the markup: the copy icon (default) and the check icon
+		// (revealed by the [data-copied] CSS rule). Without these the button is a
+		// blank box with no visible feedback on copy.
+		expect(svgs).toHaveLength(2);
+		const svgClasses = svgs.flatMap(classList);
+		expect(svgClasses).toContain(COPY_ICON_CLASS);
+		expect(svgClasses).toContain(CHECK_ICON_CLASS);
+		// The glyphs are drawn from <path> children — proves real icon geometry, not
+		// empty <svg> shells.
+		expect(collectByTag(button, "path").length).toBeGreaterThan(0);
 	});
 
 	it("leaves highlighted token spans intact (does not corrupt highlighting)", () => {

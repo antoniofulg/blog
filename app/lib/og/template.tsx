@@ -13,6 +13,13 @@ export type CardTemplateProps = {
 	codeBg: string;
 	/** Foreground/default text color from Shiki theme */
 	codeFg: string;
+	/**
+	 * True when `truncateCode` actually cut the source (line or char cap). Drives
+	 * the bottom "more code below" fade. Gating on this real signal — not the line
+	 * count — keeps a complete 10-line block (nothing cut) clean, while still
+	 * fading genuinely truncated blocks (ADR-005). Defaults to false.
+	 */
+	didTruncate?: boolean;
 	/** Site URL shown in footer (e.g. "https://antoniofulg.dev") */
 	siteUrl?: string;
 };
@@ -32,11 +39,24 @@ const ACCENT_COLOR = "#7ee787";
  * - No @keyframes
  * - All dimensions in px or unitless numbers
  */
+// Code-panel sizing (ADR-005). The panel sizes to its content (flexGrow: 0) and
+// caps at CODE_PANEL_MAX_HEIGHT. VISIBLE_LINE_CAP matches the truncateCode 10-line
+// limit, so a complete (un-truncated) block up to 10 lines renders in full with no
+// clip; the fade is driven by the real `didTruncate` signal, not the line count, so
+// an exact-10-line block is never clipped under a misleading fade. Each row is
+// exactly LINE_HEIGHT tall (whiteSpace: "pre", no wrapping), so line count maps
+// directly to height.
+const LINE_HEIGHT = 28;
+const PANEL_PADDING_Y = 20;
+const VISIBLE_LINE_CAP = 10;
+const CODE_PANEL_MAX_HEIGHT =
+	VISIBLE_LINE_CAP * LINE_HEIGHT + PANEL_PADDING_Y * 2;
+
 // Pre-defined style constants to keep JSX elements on single lines (biome-ignore works per-line)
 const LINE_ROW_STYLE = {
 	display: "flex",
 	flexDirection: "row" as const,
-	minHeight: 28,
+	minHeight: LINE_HEIGHT,
 };
 
 const EMPTY_SPAN_STYLE = {
@@ -56,6 +76,7 @@ export function CardTemplate({
 	tokenLines,
 	codeBg,
 	codeFg,
+	didTruncate = false,
 	siteUrl,
 }: CardTemplateProps) {
 	const displayUrl = siteUrl
@@ -77,9 +98,10 @@ export function CardTemplate({
 			{/* Title — pinned with flexShrink: 0 so the full title always renders
 			    at its natural height. Without this, a long (multi-line) title's
 			    flex box is shrunk by the engine and its text overflows downward
-			    into the code block below. The code block (flexGrow: 1, minHeight:
-			    0, overflow: hidden) absorbs the squeeze and clips its bottom
-			    lines instead — title takes priority over code. */}
+			    into the code block below. When a tall title claims the space, the
+			    spacer below the code panel collapses first, then the panel
+			    (flexShrink: 1, minHeight: 0, overflow: hidden) shrinks and clips
+			    its bottom lines — title takes priority over code. */}
 			<div
 				style={{
 					display: "flex",
@@ -95,23 +117,25 @@ export function CardTemplate({
 				{title}
 			</div>
 
-			{/* Code block */}
+			{/* Code panel — sizes to its content (flexGrow: 0) and caps at
+			    CODE_PANEL_MAX_HEIGHT (ADR-005). flexShrink: 1 + minHeight: 0 still
+			    let the panel shrink BELOW its intrinsic content height when a tall
+			    title claims the space, so overflow: hidden clips the bottom code
+			    lines (the title stays whole). The bottom fade is rendered only when
+			    truncateCode actually cut the source (`didTruncate`) — complete
+			    snippets stay clean with no fade over their code. */}
 			{tokenLines !== null && tokenLines.length > 0 ? (
 				<div
 					style={{
 						display: "flex",
 						flexDirection: "column",
-						flexGrow: 1,
-						// flexShrink + minHeight: 0 let this block shrink BELOW its
-						// intrinsic content height when a tall title claims the space,
-						// so overflow: hidden clips the bottom code lines (the title
-						// stays whole). Without minHeight: 0 a flex column refuses to
-						// shrink past its content and the title would be pushed off-card.
+						flexGrow: 0,
 						flexShrink: 1,
 						minHeight: 0,
+						maxHeight: CODE_PANEL_MAX_HEIGHT,
 						backgroundColor: codeBg,
 						borderRadius: 8,
-						padding: "20px 24px",
+						padding: `${PANEL_PADDING_Y}px 24px`,
 						overflow: "hidden",
 						position: "relative",
 					}}
@@ -136,26 +160,31 @@ export function CardTemplate({
 						</div>
 					))}
 
-					{/* Bottom fade — always rendered. It signals "more code below"
-					    whether the code was cut by truncateCode OR clipped because a
-					    long title shrank the block. On short, fully-visible code the
-					    fade blends transparent→codeBg over empty background and is
-					    effectively invisible, so it is safe to render unconditionally. */}
-					<div
-						style={{
-							position: "absolute",
-							bottom: 0,
-							left: 0,
-							right: 0,
-							height: 80,
-							backgroundImage: `linear-gradient(to bottom, transparent, ${codeBg})`,
-						}}
-					/>
+					{/* Bottom fade — rendered only when truncateCode actually cut the
+					    source (`didTruncate`), signaling "more code below". Gating on the
+					    real truncation signal (not the line count) keeps a complete
+					    10-line block — nothing cut — clean, instead of fading its last
+					    line under a misleading gradient (ADR-005). */}
+					{didTruncate ? (
+						<div
+							style={{
+								position: "absolute",
+								bottom: 0,
+								left: 0,
+								right: 0,
+								height: 80,
+								backgroundImage: `linear-gradient(to bottom, transparent, ${codeBg})`,
+							}}
+						/>
+					) : null}
 				</div>
-			) : (
-				/* No code block — empty flex spacer so footer stays at bottom */
-				<div style={{ display: "flex", flexGrow: 1 }} />
-			)}
+			) : null}
+
+			{/* Spacer — always rendered between the code panel and the footer.
+			    flexGrow: 1 fills the gap below a short (or absent) panel so the
+			    footer stays bottom-pinned; it collapses first when a tall title
+			    squeezes the layout. */}
+			<div style={{ display: "flex", flexGrow: 1 }} />
 
 			{/* Footer */}
 			<div

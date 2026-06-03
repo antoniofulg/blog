@@ -1,5 +1,5 @@
 // @vitest-environment jsdom
-import { act, cleanup, render } from "@testing-library/react";
+import { act, cleanup, render, waitFor } from "@testing-library/react";
 import { createElement } from "react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Post } from "#/db/schema";
@@ -120,7 +120,7 @@ afterEach(() => {
 // ─── AC-1: no slug-gated TicTacToe branch ─────────────────────────────────────
 
 describe("PostView: slug hardcode removal (AC-1)", () => {
-	it("renders the body container without a slug-gated TicTacToe branch", () => {
+	it("renders the body container without a slug-gated TicTacToe branch", async () => {
 		// The formerly-hardcoded slug — proves the conditional mount is gone: the
 		// TicTacToe heading must NOT appear for a plain body lacking an embed.
 		render(
@@ -133,6 +133,9 @@ describe("PostView: slug hardcode removal (AC-1)", () => {
 		);
 
 		expect(document.body.textContent).not.toContain(TTT_HEADING_EN);
+		// The initializer is dynamically imported inside the effect, so it resolves
+		// on a microtask after render — wait for the call before asserting on it.
+		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
 		// The static MDX HTML is injected into the container handed to the initializer.
 		const container = initSpy.mock.calls[0]?.[0];
 		expect(container).toBeInstanceOf(HTMLElement);
@@ -143,10 +146,10 @@ describe("PostView: slug hardcode removal (AC-1)", () => {
 // ─── AC-2: initializer invoked with container + requested locale ──────────────
 
 describe("PostView: initializer wiring (AC-2)", () => {
-	it("invokes initPostEnhancements once with the body container and en labels", () => {
+	it("invokes initPostEnhancements once with the body container and en labels", async () => {
 		render(createElement(PostView, { data: makeData() }));
 
-		expect(initSpy).toHaveBeenCalledTimes(1);
+		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
 		const [root, opts] = initSpy.mock.calls[0] ?? [];
 		expect(root).toBeInstanceOf(HTMLElement);
 		expect(opts).toEqual({
@@ -158,7 +161,7 @@ describe("PostView: initializer wiring (AC-2)", () => {
 		});
 	});
 
-	it("forwards the pt-br requested locale and localized copy labels", () => {
+	it("forwards the pt-br requested locale and localized copy labels", async () => {
 		render(
 			createElement(PostView, {
 				data: makeData({
@@ -168,6 +171,7 @@ describe("PostView: initializer wiring (AC-2)", () => {
 			}),
 		);
 
+		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
 		const [, opts] = initSpy.mock.calls[0] ?? [];
 		expect(opts).toEqual({
 			locale: "pt-br",
@@ -182,9 +186,12 @@ describe("PostView: initializer wiring (AC-2)", () => {
 // ─── AC-3: cleanup on unmount ─────────────────────────────────────────────────
 
 describe("PostView: initializer cleanup (AC-3)", () => {
-	it("runs the initializer's cleanup when the post unmounts", () => {
+	it("runs the initializer's cleanup when the post unmounts", async () => {
 		const { unmount } = render(createElement(PostView, { data: makeData() }));
 
+		// The initializer resolves on a microtask (dynamic import) — wait for it
+		// before capturing the cleanup it returned.
+		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
 		// The spy wraps the real cleanup returned by initPostEnhancements.
 		const cleanupFn = initSpy.mock.results[0]?.value as ReturnType<
 			typeof vi.fn
@@ -208,9 +215,14 @@ describe("PostView: enhancements work end-to-end (integration)", () => {
 			}),
 		);
 
-		// The embed placeholder is replaced by the mounted TicTacToe island.
+		// The initializer is dynamically imported, so the embed island mounts on a
+		// microtask after render — wait for the placeholder to be replaced by the
+		// mounted TicTacToe island.
+		await waitFor(() => {
+			const node = document.querySelector<HTMLElement>("[data-embed]");
+			expect(node?.textContent).toContain(TTT_HEADING_EN);
+		});
 		const embed = document.querySelector<HTMLElement>("[data-embed]");
-		expect(embed?.textContent).toContain(TTT_HEADING_EN);
 		expect(embed?.querySelector(".embed-fallback")).toBeNull();
 
 		// The copy button copies the stashed raw source via the Clipboard API.

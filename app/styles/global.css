@@ -666,11 +666,11 @@ html.cs16 .rounded {
 }
 
 /*
-  MDX prose code blocks: apply rounded corners and border to match the
-  hand-rolled CodeBlock component in code-block.tsx. Shiki renders raw <pre>
-  with inline background styles; Tailwind Typography doesn't add shape or border.
-  Only the light-theme <pre> needs a border for contrast (dark theme has enough
-  contrast from the dark slab against the dark page).
+  MDX prose code blocks: apply rounded corners and a border so the Shiki slab
+  reads as a contained surface. Shiki renders raw <pre> with inline background
+  styles; Tailwind Typography doesn't add shape or border. Only the light-theme
+  <pre> needs a border for contrast (dark theme has enough contrast from the dark
+  slab against the dark page).
 */
 .prose pre {
   border-radius: 12px; /* rounded-lg */
@@ -690,6 +690,32 @@ html.cs16 .rounded {
   padding: 0;
   border-radius: 0;
   font-size: inherit;
+}
+
+/*
+  Copy button injected by copyButtonTransformer (ADR-003). The Tailwind utility
+  classes on the button own layout, the hover/focus reveal, and the focus ring;
+  these rules own only what utilities can't express: the icon glyph swap and the
+  "copied" confirmation color. The client (post-enhancements.client.ts) sets
+  data-copied="true" for ~2s after a successful copy, which flips copy → check
+  and tints the button with the accent color — the visible counterpart to the
+  aria-live announcement (PRD G1).
+*/
+.code-copy-button .code-copy-check {
+  display: none;
+}
+
+.code-copy-button[data-copied="true"] {
+  color: var(--accent);
+  border-color: var(--accent);
+}
+
+.code-copy-button[data-copied="true"] .code-copy-icon {
+  display: none;
+}
+
+.code-copy-button[data-copied="true"] .code-copy-check {
+  display: block;
 }
 
 * {
