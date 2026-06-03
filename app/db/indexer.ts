@@ -13,7 +13,7 @@ import { eq, or } from "drizzle-orm";
 import matter from "gray-matter";
 import { LOCALES, type Locale } from "#/lib/locale";
 import { findFirstCodeBlock } from "#/lib/mdx/code-blocks.server";
-import { generateOgImage } from "#/lib/og/generate";
+import { generateOgImage, ogOutputDir } from "#/lib/og/generate";
 import { db } from "./client";
 import { posts } from "./schema";
 
@@ -135,13 +135,7 @@ export async function upsertPost(filePath: string): Promise<void> {
 			}
 		} else {
 			// Post no longer has a code block — delete stale OG PNG if present.
-			const ogPath = join(
-				process.cwd(),
-				"public",
-				"og",
-				lang as string,
-				`${slug}.png`,
-			);
+			const ogPath = join(ogOutputDir(), lang as string, `${slug}.png`);
 			await unlink(ogPath).catch(() => {
 				/* not present — no-op */
 			});
@@ -231,7 +225,7 @@ export async function removePost(filePath: string): Promise<void> {
 			// Prefer DB-stored slug (frontmatter-aware); fall back to filename slug
 			// only when the row was already absent (never indexed or already deleted).
 			const slug = row?.slug ?? deriveSlug(normalized);
-			const ogPath = join(process.cwd(), "public", "og", locale, `${slug}.png`);
+			const ogPath = join(ogOutputDir(), locale, `${slug}.png`);
 			await unlink(ogPath).catch(() => {
 				/* not present — no-op */
 			});

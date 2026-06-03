@@ -1,9 +1,10 @@
 import { existsSync, readFileSync } from "node:fs";
-import { readdir, rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { _clearFontCacheForTesting, loadFonts } from "#/lib/og/fonts";
 import { generateOgImage } from "#/lib/og/generate";
 import { CardTemplate } from "#/lib/og/template";
@@ -23,25 +24,27 @@ function parsePngDimensions(buf: Buffer): { width: number; height: number } {
 
 const TEST_LOCALE = "en" as const;
 const TEST_SLUG_PREFIX = "test-og-generate-";
-const TEST_OUTPUT_DIR = join(process.cwd(), "public", "og", TEST_LOCALE);
+// OG output is redirected to a throwaway dir (OG_OUTPUT_DIR) so these real
+// satori → resvg renders never write into the committed public/og tree.
+let ogTmpRoot: string;
+let TEST_OUTPUT_DIR: string;
+let prevOgDir: string | undefined;
 
 // ---------------------------------------------------------------------------
-// Cleanup
+// Setup / Cleanup
 // ---------------------------------------------------------------------------
+
+beforeAll(async () => {
+	ogTmpRoot = await mkdtemp(join(tmpdir(), "og-generate-"));
+	prevOgDir = process.env.OG_OUTPUT_DIR;
+	process.env.OG_OUTPUT_DIR = ogTmpRoot;
+	TEST_OUTPUT_DIR = join(ogTmpRoot, TEST_LOCALE);
+});
 
 afterAll(async () => {
-	try {
-		if (existsSync(TEST_OUTPUT_DIR)) {
-			const files = await readdir(TEST_OUTPUT_DIR);
-			await Promise.all(
-				files
-					.filter((f) => f.startsWith(TEST_SLUG_PREFIX))
-					.map((f) => rm(join(TEST_OUTPUT_DIR, f), { force: true })),
-			);
-		}
-	} catch {
-		// Best-effort; leave test artefacts rather than obscuring a real error
-	}
+	if (prevOgDir === undefined) delete process.env.OG_OUTPUT_DIR;
+	else process.env.OG_OUTPUT_DIR = prevOgDir;
+	await rm(ogTmpRoot, { recursive: true, force: true });
 });
 
 // ---------------------------------------------------------------------------
@@ -425,13 +428,7 @@ describe("generateOgImage - integration", () => {
 
 			expect(result).toBe(`/og/${TEST_LOCALE}/${slug}.png`);
 
-			const filePath = join(
-				process.cwd(),
-				"public",
-				"og",
-				TEST_LOCALE,
-				`${slug}.png`,
-			);
+			const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 			expect(existsSync(filePath)).toBe(true);
 
 			const buffer = readFileSync(filePath);
@@ -459,13 +456,7 @@ describe("generateOgImage - integration", () => {
 
 			expect(result).toBe(`/og/${TEST_LOCALE}/${slug}.png`);
 
-			const filePath = join(
-				process.cwd(),
-				"public",
-				"og",
-				TEST_LOCALE,
-				`${slug}.png`,
-			);
+			const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 			expect(existsSync(filePath)).toBe(true);
 
 			const buffer = readFileSync(filePath);
@@ -495,13 +486,7 @@ describe("generateOgImage - integration", () => {
 			expect(result).not.toBeNull();
 
 			if (result) {
-				const filePath = join(
-					process.cwd(),
-					"public",
-					"og",
-					TEST_LOCALE,
-					`${slug}.png`,
-				);
+				const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 				const buffer = readFileSync(filePath);
 				const { width, height } = parsePngDimensions(buffer);
 				expect(width).toBe(1200);
@@ -567,13 +552,7 @@ describe("generateOgImage - integration", () => {
 
 			expect(result).toBe(`/og/${TEST_LOCALE}/${slug}.png`);
 
-			const filePath = join(
-				process.cwd(),
-				"public",
-				"og",
-				TEST_LOCALE,
-				`${slug}.png`,
-			);
+			const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
 			const buffer = readFileSync(filePath);
 			const { width, height } = parsePngDimensions(buffer);
 			expect(width).toBe(1200);

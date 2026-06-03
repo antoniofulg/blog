@@ -23,17 +23,27 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 	// definite assignment assertion — assigned in beforeAll
 	let sql!: import("postgres").Sql;
 	let tmpDir!: string;
+	let prevOgDir: string | undefined;
 
 	beforeAll(async () => {
 		const pg = await import("postgres");
 		sql = pg.default(DB_URL);
 		tmpDir = await mkdtemp(join(tmpdir(), "indexer-integ-"));
+		// Redirect every OG write/unlink to a throwaway dir for the duration of
+		// this suite. syncAll runs a full-table cleanup that calls removePost for
+		// every real post row in the shared dev DB; removePost unlinks the OG card
+		// for each, which — without this redirect — wipes the committed
+		// public/og/*.png cards from the working tree on every `make test`.
+		prevOgDir = process.env.OG_OUTPUT_DIR;
+		process.env.OG_OUTPUT_DIR = join(tmpDir, "og-out");
 		// Remove orphaned rows from previous runs (different tmpDirs) to prevent
 		// slug-lang unique constraint violations across runs.
 		await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpdir()}/%`}`;
 	});
 
 	afterAll(async () => {
+		if (prevOgDir === undefined) delete process.env.OG_OUTPUT_DIR;
+		else process.env.OG_OUTPUT_DIR = prevOgDir;
 		if (tmpDir) {
 			await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpDir}/%`}`;
 			await sql.end();

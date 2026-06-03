@@ -11,6 +11,20 @@ import type { CardTemplateProps, TokenLine } from "./template";
 import { CardTemplate } from "./template";
 import { truncateCode } from "./truncate";
 
+/**
+ * Filesystem root for generated OG card PNGs. Defaults to `<cwd>/public/og`
+ * (the committed-card location prod serves statically).
+ *
+ * Overridable via the `OG_OUTPUT_DIR` env var so integration tests that run the
+ * real `syncAll` against the shared dev DB can redirect every OG write and
+ * unlink (in-process AND in spawned `bun run scripts/sync.ts` subprocesses) to a
+ * throwaway temp dir — otherwise `syncAll`'s full-table cleanup unlinks every
+ * committed card under `public/og`. Prod leaves it unset → no behavior change.
+ */
+export function ogOutputDir(): string {
+	return process.env.OG_OUTPUT_DIR ?? join(process.cwd(), "public", "og");
+}
+
 export type OgGenerateInput = {
 	locale: Locale;
 	slug: string;
@@ -165,8 +179,8 @@ export async function generateOgImage(
 		const rendered = resvg.render();
 		const png = rendered.asPng();
 
-		// Write to public/og/{locale}/{slug}.png (mkdir -p first)
-		const dir = join(process.cwd(), "public", "og", locale);
+		// Write to {ogOutputDir}/{locale}/{slug}.png (mkdir -p first)
+		const dir = join(ogOutputDir(), locale);
 		await mkdir(dir, { recursive: true });
 
 		const filePath = join(dir, `${slug}.png`);

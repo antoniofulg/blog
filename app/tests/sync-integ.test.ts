@@ -25,15 +25,25 @@ const port5432Free = await isPortFree(5432);
 describe.skipIf(port5432Free)("integration: sync script", () => {
 	let sql!: import("postgres").Sql;
 	let tmpDir!: string;
+	let prevOgDir: string | undefined;
 
 	beforeAll(async () => {
 		const pg = await import("postgres");
 		sql = pg.default(DB_URL);
 		tmpDir = await mkdtemp(join(tmpdir(), "sync-integ-"));
+		// Redirect OG writes/unlinks to a throwaway dir. runSync invokes the real
+		// syncAll, whose full-table cleanup unlinks the OG card of every real post
+		// row in the shared dev DB — wiping the committed public/og/*.png cards
+		// otherwise. Set on process.env so the spawned `bun run scripts/sync.ts`
+		// subprocesses below inherit it via their `{ ...process.env }` env.
+		prevOgDir = process.env.OG_OUTPUT_DIR;
+		process.env.OG_OUTPUT_DIR = join(tmpDir, "og-out");
 		await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpdir()}/%`}`;
 	});
 
 	afterAll(async () => {
+		if (prevOgDir === undefined) delete process.env.OG_OUTPUT_DIR;
+		else process.env.OG_OUTPUT_DIR = prevOgDir;
 		if (sql && tmpDir) {
 			await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpDir}/%`}`;
 			await sql.end();

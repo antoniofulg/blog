@@ -10,9 +10,18 @@
  */
 
 import { existsSync } from "node:fs";
-import { rm } from "node:fs/promises";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterAll,
+	beforeAll,
+	beforeEach,
+	describe,
+	expect,
+	it,
+	vi,
+} from "vitest";
 
 // ─── Hoisted mocks for DB only (OG generator NOT mocked) ────────────────────
 
@@ -44,18 +53,25 @@ const TIMEOUT = 30_000;
 
 const TEST_SLUG = "with-code";
 const TEST_LOCALE = "en";
-const OUTPUT_PNG = join(
-	process.cwd(),
-	"public",
-	"og",
-	TEST_LOCALE,
-	`${TEST_SLUG}.png`,
-);
+
+// Redirect OG output to a throwaway dir (OG_OUTPUT_DIR) so this real satori →
+// resvg render never writes into the committed public/og tree — and a future
+// post slugged `with-code` can never collide with this test's cleanup.
+let ogTmpDir: string;
+let outputPng: string;
+let prevOgDir: string | undefined;
+
+beforeAll(async () => {
+	ogTmpDir = await mkdtemp(join(tmpdir(), "indexer-og-integ-"));
+	prevOgDir = process.env.OG_OUTPUT_DIR;
+	process.env.OG_OUTPUT_DIR = ogTmpDir;
+	outputPng = join(ogTmpDir, TEST_LOCALE, `${TEST_SLUG}.png`);
+});
 
 afterAll(async () => {
-	if (existsSync(OUTPUT_PNG)) {
-		await rm(OUTPUT_PNG, { force: true });
-	}
+	if (prevOgDir === undefined) delete process.env.OG_OUTPUT_DIR;
+	else process.env.OG_OUTPUT_DIR = prevOgDir;
+	await rm(ogTmpDir, { recursive: true, force: true });
 });
 
 function resetMocks() {
@@ -87,8 +103,8 @@ describe("integration: upsertPost OG generation", () => {
 			expect(valuesArg.slug).toBe(TEST_SLUG);
 			expect(valuesArg.lang).toBe(TEST_LOCALE);
 
-			// PNG must exist at the expected public path
-			expect(existsSync(OUTPUT_PNG)).toBe(true);
+			// PNG must exist at the expected (redirected) output path
+			expect(existsSync(outputPng)).toBe(true);
 		},
 		TIMEOUT,
 	);
