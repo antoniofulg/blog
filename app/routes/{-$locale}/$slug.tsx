@@ -24,8 +24,11 @@ import {
 // server bundle, so the marker never enters the server graph. This loads ONLY
 // the initializer reference — execution is deferred to the effect so the
 // `cancelled` flag can gate the call itself (not just teardown), preventing a
-// mount against a container that navigation already replaced. Resolves to
-// undefined on the server (the effect that calls it only runs client-side).
+// mount against a container that navigation already replaced. On the server the
+// build transform replaces the call with one that throws
+// (`createClientOnlyFn() functions can only be called on the client!`), but
+// that branch is unreachable: the only caller is a `useEffect`, which never
+// runs during SSR.
 const loadPostEnhancements = createClientOnlyFn(async () => {
 	const { initPostEnhancements } = await import(
 		"#/lib/mdx/post-enhancements.client"
@@ -217,7 +220,7 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 		// never mounts embeds over the already-replaced container (issue_001 r2).
 		let cleanup: (() => void) | undefined;
 		let cancelled = false;
-		void loadPostEnhancements()?.then((init) => {
+		void loadPostEnhancements().then((init) => {
 			if (cancelled || !init) return;
 			cleanup = init(root, {
 				locale: requestedLang,
