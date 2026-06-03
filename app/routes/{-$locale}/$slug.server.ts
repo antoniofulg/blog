@@ -35,7 +35,8 @@ export async function getPostBySlugWithLangFn(
 	slug: string,
 	requestedLang: Locale,
 	// biome-ignore lint/suspicious/noExplicitAny: renderMdx injected by handler (server) or mock (tests)
-	renderFn: (body: string) => Promise<any> = async () => () => null,
+	renderFn: (body: string, lang: Locale) => Promise<any> = async () => () =>
+		null,
 ): Promise<SlugLoaderResult> {
 	const [
 		{ readFile },
@@ -47,7 +48,7 @@ export async function getPostBySlugWithLangFn(
 		{ default: matter },
 		{ resolveOgImagePath },
 		{ getSiteOrigin },
-		{ Embed },
+		{ mdxEmbedComponents },
 	] = await Promise.all([
 		import("node:fs/promises"),
 		import("drizzle-orm"),
@@ -90,9 +91,13 @@ export async function getPostBySlugWithLangFn(
 			// renderer stays pure and doesn't double-parse callers that already
 			// pass body (e.g. loadStaticPage).
 			const { content: body, data: frontmatterData } = matter(source);
-			const Content = await renderFn(body);
+			// requestedLang is the exact-match content locale, so the SSR enhancement
+			// markup (copy aria-label + embed fallback) is bilingual (issue 002).
+			const Content = await renderFn(body, requestedLang);
 			const html = renderToStaticMarkup(
-				createElement(Content, { components: { Embed } }),
+				createElement(Content, {
+					components: mdxEmbedComponents(requestedLang),
+				}),
 			);
 
 			const otherLang: Locale = requestedLang === "en" ? "pt-br" : "en";
@@ -137,12 +142,17 @@ export async function getPostBySlugWithLangFn(
 		const source = await safeReadMdx(fallbackPost.filePath);
 		if (source !== null) {
 			const { content: body, data: frontmatterData } = matter(source);
-			const Content = await renderFn(body);
+			// The served post is in its own language (the requested translation is
+			// missing), so localize the enhancement markup to fallbackLang — the
+			// language the reader actually sees — not requestedLang (issue 002).
+			const fallbackLang = fallbackPost.lang as Locale;
+			const Content = await renderFn(body, fallbackLang);
 			const html = renderToStaticMarkup(
-				createElement(Content, { components: { Embed } }),
+				createElement(Content, {
+					components: mdxEmbedComponents(fallbackLang),
+				}),
 			);
 
-			const fallbackLang = fallbackPost.lang as Locale;
 			const ogImagePath = resolveOgImagePath({
 				coverImage: normalizeCoverImage(frontmatterData.coverImage),
 				locale: fallbackLang,

@@ -10,6 +10,8 @@
  * token highlighting are populated by Shiki exactly as in production — not mocked.
  */
 
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
 import type { Element, Root, RootContent } from "hast";
 import { createHighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
@@ -37,12 +39,13 @@ beforeAll(async () => {
 	});
 });
 
-/** Highlight `code` with the transformer wired in; return the wrapping <div>. */
-function highlightToBlock(code: string): Element {
+/** Highlight `code` with the transformer wired in; return the wrapping <div>.
+ *  `copyLabel` is the localized static aria-label baked into the SSR button. */
+function highlightToBlock(code: string, copyLabel = "Copy code"): Element {
 	const root = highlighter.codeToHast(code, {
 		lang: "typescript",
 		themes: { light: "github-light", dark: "github-dark" },
-		transformers: [copyButtonTransformer()],
+		transformers: [copyButtonTransformer(copyLabel)],
 	}) as Root;
 	const block = root.children.find(
 		(n): n is Element => n.type === "element" && n.tagName === "div",
@@ -119,6 +122,16 @@ describe("copyButtonTransformer", () => {
 		expect(button.properties?.["aria-label"]).toBe("Copy code");
 	});
 
+	it("bakes the supplied localized aria-label into SSR markup (issue 002)", () => {
+		// pt-br renders must ship "Copiar código" before any client JS runs, so the
+		// no-JS / pre-hydration button is named in the reader's language.
+		const [button] = collectByTag(
+			highlightToBlock("const x = 1", "Copiar código"),
+			"button",
+		);
+		expect(button.properties?.["aria-label"]).toBe("Copiar código");
+	});
+
 	it("button carries the stable client-hook class", () => {
 		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		expect(classList(button)).toContain(COPY_BUTTON_CLASS);
@@ -182,5 +195,26 @@ describe("copyButtonTransformer", () => {
 		// The wrapper holds exactly the button plus the <pre>.
 		expect(block.children).toHaveLength(2);
 		expect(collectByTag(block, "button")).toHaveLength(1);
+	});
+});
+
+// ─── Touch-device visibility (issue 001) ──────────────────────────────────────
+
+describe("copy button touch-device visibility (issue 001)", () => {
+	it("global.css pins .code-copy-button visible on no-hover pointers", () => {
+		// The utility reveal (opacity-0 → group-hover:opacity-100) can never fire on
+		// coarse/no-hover pointers, so a @media (hover: none) rule must keep the
+		// button visible (opacity:1) or the copy affordance is undiscoverable on
+		// touch devices. This guards the CSS source so the mobile path can't silently
+		// regress in a Node/no-browser environment.
+		const css = readFileSync(
+			join(import.meta.dirname, "..", "styles", "global.css"),
+			"utf-8",
+		);
+		const idx = css.search(/@media\s*\(\s*hover:\s*none\s*\)/);
+		expect(idx).toBeGreaterThanOrEqual(0);
+		const block = css.slice(idx, idx + 300);
+		expect(block).toContain(".code-copy-button");
+		expect(block).toMatch(/opacity:\s*1/);
 	});
 });

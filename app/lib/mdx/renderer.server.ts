@@ -5,17 +5,30 @@ import * as runtime from "react/jsx-runtime";
 import remarkGfm from "remark-gfm";
 import { createHighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
+import { strings } from "#/lib/i18n/strings";
+import type { Locale } from "#/lib/locale";
 import { copyButtonTransformer } from "#/lib/mdx/copy-button.transformer";
 
 /**
- * Shiki transformers applied to every fenced block (ADR-003). The copy-button
- * transformer stashes raw source on each `<pre>` and injects the copy button;
- * the localized label + click handler are wired client-side (task_04). Created
- * once at module load — the transformer is stateless config (its `pre` hook
- * reads per-block `this.source`), so a single instance is reused across renders.
- * Exported so a unit test can assert it is registered in the shiki pipeline.
+ * Build the shiki transformer pipeline for one render (ADR-003). The copy-button
+ * transformer stashes raw source on each `<pre>`, injects the copy button, and
+ * bakes the localized static `aria-label` into the SSR markup so the pre-JS /
+ * no-JS button is named in the reader's language (issue 002); the click handler is
+ * wired client-side (task_04). Built per render because the static label is
+ * locale-specific — the transformer is otherwise stateless config (its `pre` hook
+ * reads per-block `this.source`).
  */
-export const shikiTransformers = [copyButtonTransformer()];
+export function buildShikiTransformers(copyLabel: string) {
+	return [copyButtonTransformer(copyLabel)];
+}
+
+/**
+ * Default (English) pipeline. Exported so a unit test can assert the copy-button
+ * transformer is registered; `renderMdx` builds a locale-specific pipeline per call.
+ */
+export const shikiTransformers = buildShikiTransformers(
+	strings.en.codeCopy.copy,
+);
 
 let highlighterPromise: ReturnType<typeof createHighlighterCore> | null = null;
 
@@ -55,9 +68,17 @@ function getHighlighter() {
  *
  * See `loadStaticPage` and `getPostBySlugWithLangFn` for the two call sites
  * that perform the strip.
+ *
+ * `lang` localizes the compile-time enhancement markup (the copy button's static
+ * `aria-label`) so the SSR HTML is bilingual before client JS runs (issue 002).
+ * The caller passes the language of the body being rendered; defaults to `en`.
  */
-export async function renderMdx(body: string): Promise<MDXContent> {
+export async function renderMdx(
+	body: string,
+	lang: Locale = "en",
+): Promise<MDXContent> {
 	const highlighter = await getHighlighter();
+	const transformers = buildShikiTransformers(strings[lang].codeCopy.copy);
 	const compiled = await compile(body, {
 		outputFormat: "function-body",
 		remarkPlugins: [remarkGfm],
@@ -65,7 +86,7 @@ export async function renderMdx(body: string): Promise<MDXContent> {
 			() =>
 				rehypeShikiFromHighlighter(highlighter, {
 					themes: { light: "github-light", dark: "github-dark" },
-					transformers: shikiTransformers,
+					transformers,
 				}),
 		],
 	});

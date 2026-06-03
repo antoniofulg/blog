@@ -39,6 +39,10 @@ export const uiStringsSchema = z.object({
 		copy: z.string(),
 		copied: z.string(),
 	}),
+	embed: z.object({
+		// No-JS / pre-hydration fallback text shown inside an `<Embed>` placeholder.
+		fallback: z.string(),
+	}),
 	admin: z.object({
 		sidebar: z.object({
 			posts: z.string(),
@@ -175,6 +179,9 @@ export const strings: Record<Locale, UIStrings> = {
 			copy: "Copy code",
 			copied: "Copied!",
 		},
+		embed: {
+			fallback: "Interactive demo — requires JavaScript.",
+		},
 		notFound: {
 			title: "Page not found",
 			body: "Nothing here. Check the URL or head back to the posts.",
@@ -306,6 +313,9 @@ export const strings: Record<Locale, UIStrings> = {
 		codeCopy: {
 			copy: "Copiar código",
 			copied: "Copiado!",
+		},
+		embed: {
+			fallback: "Demonstração interativa — requer JavaScript.",
 		},
 		notFound: {
 			title: "Página não encontrada",

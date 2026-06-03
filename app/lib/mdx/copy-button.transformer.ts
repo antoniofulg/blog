@@ -27,7 +27,10 @@ export const RAW_SOURCE_ATTR = "data-raw-source";
  *
  * `opacity-0` hides it by default; `group-hover:opacity-100` reveals it when the
  * surrounding wrapper (tagged `group`) is hovered, and `focus-visible:opacity-100`
- * reveals it for keyboard users (AC-3). Visibility is fully class-driven.
+ * reveals it for keyboard users (AC-3). Visibility is class-driven on hover-capable
+ * pointers; coarse/no-hover pointers (touch) can never fire `:hover`, so the
+ * `@media (hover: none)` rule on `.code-copy-button` in `global.css` pins the button
+ * visible there (issue 001) — keep the two in sync.
  */
 const BUTTON_CLASSES = [
 	COPY_BUTTON_CLASS,
@@ -114,14 +117,14 @@ function checkIcon(): Element {
  * 2. Injects one `<button class="code-copy-button">` carrying design-token
  *    classes, hidden by default and revealed on `:hover` / `:focus-visible`.
  *
- * The button ships a generic static `aria-label` ("Copy code") so it has an
- * accessible name before client JS runs (WCAG 4.1.2) and for no-JS readers; the
- * post initializer (task_04) overwrites it with the localized label and wires the
- * click handler and "Copied!" feedback. This transformer owns only the
- * compile-time markup. Inline `code` spans never reach the `pre` hook (Shiki runs
- * on fenced blocks only), so they get no button.
+ * The button ships a localized static `aria-label` (`copyLabel`, e.g. "Copy code" /
+ * "Copiar código") so it has an accessible name in the reader's language before
+ * client JS runs (WCAG 4.1.2) and for no-JS readers; the post initializer (task_04)
+ * re-applies the localized label and wires the click handler and "Copied!" feedback.
+ * This transformer owns only the compile-time markup. Inline `code` spans never
+ * reach the `pre` hook (Shiki runs on fenced blocks only), so they get no button.
  */
-export function copyButtonTransformer(): ShikiTransformer {
+export function copyButtonTransformer(copyLabel: string): ShikiTransformer {
 	return {
 		name: "copy-button",
 		pre(hast) {
@@ -132,10 +135,10 @@ export function copyButtonTransformer(): ShikiTransformer {
 				tagName: "button",
 				properties: {
 					type: "button",
-					// Generic static accessible name so the focusable control is named
-					// before client JS runs (WCAG 4.1.2) and for no-JS readers;
-					// `wireCopyButtons` overwrites it with the localized label once wired.
-					"aria-label": "Copy code",
+					// Localized static accessible name so the focusable control is named
+					// in the reader's language before client JS runs (WCAG 4.1.2) and for
+					// no-JS readers; `wireCopyButtons` re-applies the label once wired.
+					"aria-label": copyLabel,
 					class: [...BUTTON_CLASSES],
 				},
 				// Both glyphs ship in the markup; `[data-copied]` CSS toggles which is

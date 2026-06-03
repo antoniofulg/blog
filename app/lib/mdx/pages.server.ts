@@ -6,7 +6,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { z } from "zod";
 import type { Locale } from "#/lib/locale";
-import { Embed } from "#/lib/mdx/embeds";
+import { mdxEmbedComponents } from "#/lib/mdx/embeds";
 import { renderMdx } from "#/lib/mdx/renderer.server";
 import { SOCIAL_KINDS } from "#/lib/social";
 
@@ -101,9 +101,9 @@ export async function loadStaticPage(
 	// existing route-level error boundary.
 	const frontmatter = pageFrontmatterSchema.parse(data);
 
-	const Content = await renderMdx(body);
+	const Content = await renderMdx(body, locale);
 	const html = renderToStaticMarkup(
-		createElement(Content, { components: { Embed } }),
+		createElement(Content, { components: mdxEmbedComponents(locale) }),
 	);
 
 	return {

@@ -5,6 +5,7 @@ import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
 import { describe, expect, it } from "vitest";
 
+import { strings } from "#/lib/i18n/strings";
 import {
 	COPY_BUTTON_CLASS,
 	RAW_SOURCE_ATTR,
@@ -35,6 +36,19 @@ describe("integration: renderMdx copy button", () => {
 		// the plain-text source off the <pre> via the raw-source attribute.
 		expect(html).toContain(COPY_BUTTON_CLASS);
 		expect(html).toContain(RAW_SOURCE_ATTR);
+	});
+
+	it("bakes the localized static aria-label per locale before client JS (issue 002)", async () => {
+		const en = renderToStaticMarkup(
+			createElement(await renderMdx(TS_BLOCK, "en"), {}),
+		);
+		const ptBr = renderToStaticMarkup(
+			createElement(await renderMdx(TS_BLOCK, "pt-br"), {}),
+		);
+		expect(en).toContain(`aria-label="${strings.en.codeCopy.copy}"`);
+		expect(ptBr).toContain(`aria-label="${strings["pt-br"].codeCopy.copy}"`);
+		// pt-br SSR must not leak the English label.
+		expect(ptBr).not.toContain(`aria-label="${strings.en.codeCopy.copy}"`);
 	});
 });
 
