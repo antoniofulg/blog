@@ -10,3 +10,5 @@
 | 2026-05-22 | manual           | 0       | 0     | 0     | no findings                                  |
 | 2026-05-26 | manual           | 0       | 0     | 0     | no findings                                  |
 | 2026-05-26 | manual           | 0       | 0     | 0     | no findings                                  |
+| 2026-06-03 | manual           | 0       | 0     | 0     | no findings                                  |
+| 2026-06-03 | app     | manual           | 0       | 0     | 0     | no findings                                  |
