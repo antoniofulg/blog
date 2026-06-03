@@ -4,6 +4,7 @@ import { PostFooter } from "#/components/ui/post-footer";
 import { PostHeader } from "#/components/ui/post-header";
 import { PostShare } from "#/components/ui/post-share";
 import { StaticPageProfile } from "#/components/ui/static-page-profile";
+import { TicTacToe } from "#/components/ui/tic-tac-toe";
 import { TranslationNotice } from "#/components/ui/translation-notice";
 import { DEFAULT_LOCALE, type Locale, localeHref, toBcp47 } from "#/lib/locale";
 import { readingTimeMinutes } from "#/lib/reading-time";
@@ -260,6 +261,10 @@ function PostView({ data }: { data: PostLoaderResult }) {
 						// biome-ignore lint/security/noDangerouslySetInnerHtml: Server-rendered MDX HTML
 						dangerouslySetInnerHTML={{ __html: html }}
 					/>
+
+					{post.slug === "spec-driven-development-with-compozy" && (
+						<TicTacToe locale={requestedLang} />
+					)}
 
 					<PostShare
 						postUrl={localeHref(post.lang as Locale, post.slug)}

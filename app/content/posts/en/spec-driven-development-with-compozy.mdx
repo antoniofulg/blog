@@ -1,0 +1,264 @@
+---
+title: "Compozy: The Orchestrator That Turns Spec-Driven Development Into Real Code"
+slug: spec-driven-development-with-compozy
+description: "What Spec-Driven Development is and how Compozy makes it practical: an idea council, a PRD, task execution in a daemon, and review rounds. All in one real example, building a tic-tac-toe game in React, from the first prompt to the fixes."
+publishedAt: 2026-06-02
+category: tooling
+---
+
+The fast way to build a feature with an AI agent is to open a chat, describe what you want, and let it write code until the thing roughly works. It feels productive. It is, for about a day. Then you come back later, can't remember why the agent made half its decisions, find no record of them, and discover the "done" feature quietly broke a rule nobody ever wrote down.
+
+There's a name for the opposite path: **Spec-Driven Development** (SDD). And there's a tool that makes that path practical without turning it into bureaucracy: [Compozy](https://github.com/compozy/compozy). I found Compozy through the *IA para Devs* course by Pedro Nauck and Rodrigo Branas, two people well worth following. This entire blog came out of that flow, but instead of showing you the blog, I'll build something from scratch in front of you: a tic-tac-toe game in React, from the first prompt to the review fixes.
+
+## What Spec-Driven Development Is
+
+The core idea is a single one: the **spec is the source of truth**, not the code. You decide the *what* and the *why* before the *how*, write it down in a durable document, and only then let the agent implement against an approved spec. The code becomes the output of the process, not the process itself.
+
+In practice that turns into a short pipeline, where each phase produces an artifact the next one consumes:
+
+```text
+idea -> PRD -> tech spec -> tasks -> execution -> review
+```
+
+The difference from prompt-and-pray isn't in the first hour, when both spit out similar code. It's two weeks later, when you need to remember why something was done a certain way. Under SDD the answer is in a file next to the code. Under the other, it's in a chat window you already closed.
+
+Compozy is a Go CLI that orchestrates this whole pipeline and drives whatever coding agent you use (Claude, Codex, Copilot, Cursor, Gemini) through a common runtime. The planning artifacts live as markdown under `.compozy/tasks/<slug>/`, on disk next to the code and outside any chat transcript. Committing those files is optional: version them in git for the paper trail, or gitignore them and rely on the catalog the daemon keeps in `global.db`. (On this blog they're gitignored: what drives the build is the specs, not the fact that they sit in the repo.)
+
+## Installing Compozy
+
+Pick one of the methods. Homebrew is the most direct:
+
+```sh
+brew install compozy/compozy/compozy
+```
+
+```sh
+npm install -g @compozy/cli      # via npm
+```
+
+```sh
+go install github.com/compozy/compozy/cmd/compozy@latest   # via Go
+```
+
+Check the version (it'll matter in a moment):
+
+```sh
+compozy version
+# compozy version 0.2.7 (commit=7363565 date=2026-05-27T...)
+```
+
+Then run setup once. It installs Compozy's core skills into your agent:
+
+```sh
+compozy setup
+```
+
+Compozy doesn't run the model itself. It drives an ACP runtime you install separately (the Claude Agent, for example). That runtime is what writes the code; Compozy decides *what* to send and *when*.
+
+## The cy-idea-factory Extension (and That `<tag>`)
+
+The ideation phase, with its council of advisors, ships as an optional extension: `cy-idea-factory`. Three commands to install it:
+
+```sh
+compozy ext install --yes compozy/compozy --remote github --ref v0.2.7 --subdir extensions/cy-idea-factory
+compozy ext enable cy-idea-factory
+compozy setup
+```
+
+Look at `--ref v0.2.7`. That's exactly the spot that tripped me up the first time, so it's worth stopping here.
+
+The docs' `<tag>` is **not** any old version string: it's a real git tag on the `compozy/compozy` repository, and release tags are prefixed with `v`. The trap is obvious once you see it: I ran `--ref 0.2.7` and the install failed, because the tag on GitHub is `v0.2.7`, with the `v`. The bare number doesn't exist as a ref.
+
+The rule of thumb: grab your version with `compozy version`, prefix it with `v`, and use that for `--ref`. If you're on Compozy 0.2.7, the tag is `v0.2.7`. Matching the extension tag to your CLI version also keeps you from installing an extension built for a different release.
+
+Confirm it's active:
+
+```sh
+compozy ext list
+# cy-idea-factory  enabled
+```
+
+## Hands On: A Tic-Tac-Toe Game
+
+From here on it's the full SDD flow. The scope I'll follow is the MVP: two players on the same device, win and draw detection, and a reset button. No AI, no online play, no scoreboard. (Spoiler: the council will try to push online play on me, and I'll turn it down.)
+
+### 1. Ideation: The Council Steps In
+
+I start with the raw idea:
+
+```sh
+/cy-idea-factory a tic-tac-toe game in React for the blog
+```
+
+The skill doesn't start writing. First it asks 3 to 6 questions, one per message, to refine scope and intent. Mine came out roughly like this:
+
+```text
+Q1 — What's the ideal V1 size?
+  A) MVP — just 2 players on the same device
+  B) Complete — with an AI to play against
+  C) Platform — online matches, rooms, ranking
+> A
+
+Q2 — How ambitious should this be?
+  A) Quick win — small effort, validate in an afternoon
+  B) Strategic bet — bigger effort, opens the door to more
+  C) Compounding — gets more valuable over time
+> A
+
+Q3 — Where does it run?
+> On a blog route, /tic-tac-toe
+```
+
+With the scope refined, it runs research in parallel (codebase + web) and then convenes the **council**: a group of advisors, each a subagent with its own perspective. The roster comes from `compozy setup`, and the skill selects 3 to 5 depending on how thorny the dilemma is. For tic-tac-toe, three were enough:
+
+```text
+Council (3 advisors): pragmatic-engineer, architect-advisor, devils-advocate
+
+devils-advocate — "Tic-tac-toe with no opponent gets old in two minutes.
+  If the goal is for someone to actually *play*, online or an AI isn't a V2,
+  it's the product."
+
+pragmatic-engineer — "The local MVP validates the board, the turn, and win
+  detection in one afternoon. Online drags WebSockets, rooms, and server
+  state into a tutorial example. Out of scope."
+
+architect-advisor — "If there's a real chance this becomes an AI later, model
+  the state now as a pure function (board, move) -> board. The AI just reads
+  that state. Don't couple the game logic to the component."
+```
+
+The tension is real and the council doesn't sweep it under the rug: it becomes an explicit V1 exclusion and a V2 opportunity. I keep the local MVP (that was the goal: practice SDD on a small example), but I take the architect's advice on board: the game logic will be a pure function, easy to plug into an AI later. That decision, with the whole trade-off, is written into `_idea.md` and an ADR. The disagreement gets recorded; it doesn't evaporate.
+
+### 2. Requirements: From `_idea.md` to PRD
+
+```sh
+/cy-create-prd tic-tac-toe
+```
+
+The skill reads `_idea.md` as context and asks a few more questions, all focused on the *what* and the *why*, never the *how* (its protocol forbids talking about React, state, or tests in this phase). The questions are things like "can a player undo a move, or is it final?" and "what counts as success here?". It then presents 2 to 3 product approaches with trade-offs (just the board, the board plus match history, or the board plus difficulty levels) and records the chosen one, just the board, in an ADR. The `_prd.md` that comes out is business-focused:
+
+```text
+## Goals
+- G1 — Two players alternate X and O by clicking the squares.
+- G2 — The game detects a win (8 lines) and a draw (full board).
+- G3 — A button restarts the match at any time.
+
+## Non-goals
+- AI opponent (V2)
+- Online matches (out of scope)
+- Scoreboard persisted across matches
+```
+
+Falsifiable goals. Each one you can check against the screen later. That's worth ten "make it good" instructions to a model.
+
+### 3. Tech Spec and Tasks
+
+`/cy-create-techspec` translates the PRD into the *how*, and this is where the questions turn technical: the state is an `Array(9)` of `'X' | 'O' | null`, the current player is derived from the move count, and the winner comes from a pure function over the 8 winning lines (3 rows, 3 columns, 2 diagonals). Components: `Board`, `Square`, `Status`. This is also where a blog-specific integration question lands: because the MDX is compiled to static HTML, a component inside the `.mdx` would be dead, non-interactive markup. The decision (which becomes an ADR) is to mount the component in the route, appended to the end of the post. That's the board you can play just below.
+
+`/cy-create-tasks` breaks that into independently implementable task files:
+
+```text
+_tasks.md
+  task_01 — /tic-tac-toe route + empty Board component
+  task_02 — state with useReducer (board, move)
+  task_03 — square click + turn alternation
+  task_04 — pure calculateWinner + draw detection
+  task_05 — Status (whose turn / winner) + reset button
+  task_06 — tests with Vitest
+```
+
+Six small tasks. You see the shape of the whole job before a line is written.
+
+### 4. Execution in a Daemon
+
+Here's the part that sold me on Compozy. Execution doesn't run in your chat: it runs in a **daemon**.
+
+A daemon is a process that keeps running in the background, detached from your terminal. It starts once, stays up on its own, and serves work on demand even after you close the window. Same model as `dockerd` or a local Postgres: you don't "open" the database every time, it's already there. Compozy keeps one of these scoped to your home directory (`~/.compozy/`), one per machine, and it's what holds the state between tasks.
+
+```sh
+compozy tasks run tic-tac-toe --ide claude
+```
+
+That command starts the daemon (if it isn't up yet) and hands it the tasks, one at a time, for the configured agent. The daemon owns the run state: it sequences the tasks in order, keeps the per-task memory as context, writes snapshots, and exposes a stream of the progress. With `auto_commit` enabled in `config.toml`, each task becomes its own commit.
+
+Because it lives outside the session, you're not chained to the terminal. You can detach and come back later:
+
+```sh
+compozy tasks run tic-tac-toe --ide claude --detach   # run in the background
+compozy runs attach <run-id>                          # reattach and watch
+compozy runs watch                                    # list what's running
+```
+
+The stream looks roughly like this:
+
+```text
+[tic-tac-toe] task_01  scaffold route + Board ......... done (commit a1b2c3d)
+[tic-tac-toe] task_02  useReducer .................... done (commit e4f5a6b)
+[tic-tac-toe] task_03  turn .......................... done (commit 7c8d9e0)
+[tic-tac-toe] task_04  calculateWinner + draw ........ done (commit 1f2a3b4)
+[tic-tac-toe] task_05  status + reset ................ done (commit 5c6d7e8)
+[tic-tac-toe] task_06  tests ......................... done (commit 9a0b1c2)
+```
+
+Six commits, one per task, each traceable. If task_04 had broken, the daemon would stop there, with the state preserved, and I'd resume from the right point instead of starting over.
+
+### 5. Review and the Fixes
+
+Code an agent wrote still goes through review. `/cy-review-round` does a critical pass and drops the problems as numbered files in `reviews-001/`:
+
+```text
+reviews-001/
+  issue_001.md  (major) calculateWinner misses the anti-diagonal [2,4,6]
+  issue_002.md  (major) draw is checked before the win: a winning final
+                move on a full board reports "draw"
+  issue_003.md  (minor) the Square buttons have no aria-label
+```
+
+`issue_001` is the classic tic-tac-toe bug. The list of winning lines shipped one diagonal short:
+
+```tsx
+// wrong — only one diagonal
+const LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8], // rows
+  [0, 3, 6], [1, 4, 7], [2, 5, 8], // columns
+  [0, 4, 8],                       // main diagonal (missing [2,4,6])
+];
+```
+
+I send Compozy to fix them. This step runs in the daemon too, just like task execution:
+
+```sh
+compozy reviews fix tic-tac-toe
+```
+
+The daemon dispatches the issues to the agent in batches (tunable with `--concurrent` and `--batch-size`), and each one is triaged, fixed, and verified. `issue_001` becomes the missing line; `issue_002` becomes a reorder (check the win first, draw only if there was no winner); `issue_003` gets an `aria-label` per square:
+
+```tsx
+// right
+const LINES = [
+  [0, 1, 2], [3, 4, 5], [6, 7, 8],
+  [0, 3, 6], [1, 4, 7], [2, 5, 8],
+  [0, 4, 8], [2, 4, 6],            // both diagonals
+];
+
+function status(board: Board) {
+  const winner = calculateWinner(board); // win first
+  if (winner) return `Winner: ${winner}`;
+  if (board.every(Boolean)) return "Draw"; // draw only after
+  return `Turn: ${currentPlayer(board)}`;
+}
+```
+
+Each round is a loop: when the review comes back empty, the branch is ready to merge. On the blog, that's where the repo's guardrails take over (typed branches, conventional commits, `make test && make lint && make check` in CI, and the auto-deploy on merge), but that's a subject for another post.
+
+## What About This Blog?
+
+None of this is hypothetical. This blog's features (the visitor-analytics dashboard, the share-and-branding toolkit) came out of this same flow. Each one has its `_idea.md`, `_prd.md`, ADRs, task files, and review rounds under `.compozy/tasks/`, gitignored here, but they're what drove the build. Tic-tac-toe is just a small enough example to fit in a post; the mechanics are identical for the big stuff.
+
+## The Mental Model
+
+The one-line version: **stop asking for code, start running a workflow that produces specs and then holds the agent to them.**
+
+An AI agent is fast, tireless, and has no memory of why it did anything. SDD makes up for exactly that: the council stress-tests the idea before it becomes a plan, the PRD pins the *what* in a document you can check, the daemon executes the plan outside your session and in traceable commits, and the review round hunts down what slipped through. Compozy stitches those four things into a single CLI. Tic-tac-toe took an afternoon, but it came out with the reasoning on disk, and that's what's still there on day thirty.
+
+And so it isn't all talk: the board just below is that component running live. The same `calculateWinner` with both diagonals, the win checked before the draw. Go ahead and play.
