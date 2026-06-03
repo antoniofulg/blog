@@ -35,6 +35,10 @@ export const uiStringsSchema = z.object({
 		copied: z.string(),
 		ariaShareOn: z.string(),
 	}),
+	codeCopy: z.object({
+		copy: z.string(),
+		copied: z.string(),
+	}),
 	admin: z.object({
 		sidebar: z.object({
 			posts: z.string(),
@@ -167,6 +171,10 @@ export const strings: Record<Locale, UIStrings> = {
 			copied: "Copied!",
 			ariaShareOn: "Share on {platform}",
 		},
+		codeCopy: {
+			copy: "Copy code",
+			copied: "Copied!",
+		},
 		notFound: {
 			title: "Page not found",
 			body: "Nothing here. Check the URL or head back to the posts.",
@@ -294,6 +302,10 @@ export const strings: Record<Locale, UIStrings> = {
 			},
 			copied: "Copiado!",
 			ariaShareOn: "Compartilhar no {platform}",
+		},
+		codeCopy: {
+			copy: "Copiar código",
+			copied: "Copiado!",
 		},
 		notFound: {
 			title: "Página não encontrada",
