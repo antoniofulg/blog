@@ -338,23 +338,54 @@ export function PostView({ data }: { data: PostLoaderResult }) {
 }
 
 function StaticPageView({ data }: { data: PageLoaderResult }) {
+	const { entry, requestedLang, html } = data;
+
+	// Static pages render the same MDX (copy buttons via the Shiki transformer,
+	// `<Embed>` placeholders) as posts, so they need the same client wiring; the
+	// page branch previously skipped it, leaving page embeds/copy buttons inert.
+	// Mirror PostView: run the initializer over the page subtree after it mounts.
+	const bodyRef = useRef<HTMLElement>(null);
+
+	useEffect(() => {
+		const root = bodyRef.current;
+		if (!root || !html) return;
+		const { copy, copied } = strings[requestedLang].codeCopy;
+		let cleanup: (() => void) | undefined;
+		let cancelled = false;
+		void loadPostEnhancements().then((init) => {
+			if (cancelled || !init) return;
+			cleanup = init(root, {
+				locale: requestedLang,
+				copyLabels: { copy, copied },
+			});
+		});
+		return () => {
+			cancelled = true;
+			cleanup?.();
+		};
+	}, [html, requestedLang]);
+
 	return (
 		<div className="px-5 py-16 lg:px-20 lg:py-24">
 			<article
+				ref={bodyRef}
 				className="mx-auto max-w-3xl"
-				lang={toBcp47(data.requestedLang)}
+				lang={toBcp47(requestedLang)}
 				aria-labelledby="page-title"
 			>
 				<StaticPageProfile
-					frontmatter={data.entry.frontmatter}
-					locale={data.requestedLang}
-					html={data.html}
+					// Key by `html` so navigating between pages mounts a fresh subtree
+					// and unmounts the previous page's embed roots (ADR-004).
+					key={html}
+					frontmatter={entry.frontmatter}
+					locale={requestedLang}
+					html={html}
 				/>
 
 				<PostFooter
 					publishedAt={null}
-					postLang={data.requestedLang}
-					requestedLang={data.requestedLang}
+					postLang={requestedLang}
+					requestedLang={requestedLang}
 				/>
 			</article>
 		</div>
