@@ -1,0 +1,474 @@
+---
+title: "Finally Understand How LangChain Works"
+slug: langchain-intent-router
+description: A raw LLM is brilliant and chaotic at the same time. LangChain is the missing structure around it — and you can understand the whole tool by building a barbershop that books and cancels haircuts through plain conversation.
+publishedAt: 2026-06-11
+category: backend
+---
+
+You wired an LLM into your app. Sent a prompt, got back text, ran `JSON.parse`, and it worked. In the demo.
+
+Then it hit production. The model, being brilliant, decided to be brilliant on its own terms: it returned the JSON wrapped in a markdown fence, with a "Sure! Here you go:" in front. You wrote a regex to strip the fence. The next week it returned an extra field. You added a `try/catch`. Then you needed _two_ steps — understand the request, then act on it — and the `if/else` turned into a house of cards nobody dares touch.
+
+That house of cards is exactly the problem LangChain exists to solve.
+
+## What LangChain is (and what it isn't)
+
+First, what it's **not**: LangChain isn't the brain. The brain is the model — Claude, GPT, the Llama running in your Ollama. LangChain is everything _around_ the brain that lets you put that brain inside real software without praying.
+
+Three analogies clear up 90% of the confusion:
+
+**1. It's a universal travel adapter.** You travel to another country and the outlet is shaped differently — but the adapter lets you plug the same laptop into any wall. LangChain does that for models: you swap OpenAI for Anthropic for a local model by changing one config line, not rewriting the app. The rest of your code never notices.
+
+**2. It's a standardized order ticket.** A good waiter doesn't come back from the kitchen with a poem about your order. They write it on a ticket: table, dish, how you want the steak. LangChain lets you force the model to fill in a ticket — a `schema` with fixed fields — instead of returning loose prose. This has a name: **structured output**. It's the difference between "I think they said they want to cancel" and `{ "intent": "cancel" }`.
+
+**3. For multi-step flows, it's a subway map.** When the work has stages and forks — understand, decide, act, reply — you don't want a pile of `if`s. You want a map with stations and transfers. That part of the family is called **LangGraph**: a state graph where each station (`node`) does one thing and the arrows (`edges`) decide where to go next.
+
+> LangChain and LangGraph are the same household. LangChain gives you the pieces (models, prompts, structured output, messages); LangGraph orchestrates those pieces when the flow has multiple stateful steps. This post's project uses both — which is why you can understand the whole tool in one go.
+
+The best way to see all of this together isn't in theory. It's by building something.
+
+## The project: a barbershop that understands texts
+
+Picture a barbershop's WhatsApp. The client doesn't fill out a form — they fire off a crooked message, the way people actually talk:
+
+> "can I book a fade with Rodrigo tomorrow at 3pm? this is John"
+
+> "cancel my slot with Rodrigo tomorrow"
+
+The system has to do four things, in order, every time:
+
+1. **Understand** what the person wants (book? cancel? neither?).
+2. **Transform** that message into clean data — a JSON with barber, day, time, name.
+3. **Call the service** that actually touches the calendar (book or cancel).
+4. **Reply like a human**, with the result, in the same vibe as whoever texted.
+
+Notice this is literally a good receptionist's job. They listen to you, translate your message into a note, walk it to the right desk, and come back telling you what happened in plain language. LangGraph is the floor plan of that reception. Drawn out, it looks like this:
+
+```text
+START
+  │
+  ▼
+identifyIntent
+  │
+  ├── schedule ──▶ schedule ─┐
+  │                          │
+  ├── cancel ────▶ cancel ───┤
+  │                          ▼
+  └── unknown/error ─────▶ message ──▶ END
+```
+
+Four stations. One fork in the middle. Let's build it station by station.
+
+## Step 0: the state — the receptionist's clipboard
+
+Before the stations, a question: what travels between them? In LangGraph, it's the **state** — a typed clipboard passed from hand to hand. Each `node` reads the clipboard and returns only the fields it changed; LangGraph merges them back.
+
+You define the clipboard's shape with a Zod `schema`:
+
+```ts
+import { MessagesZodMeta } from "@langchain/langgraph"
+import { registry } from "@langchain/langgraph/zod"
+import type { BaseMessage } from "@langchain/core/messages"
+import { z } from "zod"
+
+const BarbershopState = z.object({
+  // the conversation channel: a message array with a registered reducer (appends, never overwrites)
+  messages: z
+    .array(z.custom<BaseMessage>())
+    .default([])
+    .register(registry, MessagesZodMeta),
+
+  clientName: z.string().optional(),
+
+  // filled in by the intent step
+  intent: z.enum(["schedule", "cancel", "unknown"]).optional(),
+  barberId: z.number().optional(),
+  barberName: z.string().optional(),
+  datetime: z.string().optional(),
+  service: z.string().optional(),
+
+  // filled in by the action step
+  actionSuccess: z.boolean().optional(),
+  actionError: z.string().optional(),
+
+  error: z.string().optional(),
+})
+
+export type GraphState = z.infer<typeof BarbershopState>
+```
+
+Almost everything is `optional()` on purpose: at the start of the conversation the clipboard is nearly empty, and each station fills in its part. The `messages` field is the only special one — `.register(registry, MessagesZodMeta)` tells the graph "this is the message channel: **append**, don't overwrite". It's the thread that stitches the four steps together.
+
+> If you open the [original repository](https://github.com/antoniofulg/applied-ia-module_02/tree/main/03-medical-appointment-template), you'll see this same `state` written with `withLangGraph(...)` and `import { z } from "zod/v3"` — the older form, from when LangGraph still depended on Zod v3. The examples here use the current API (Zod v4 + `registry`); the concept is identical, only the shell changed.
+
+## Step 1: understand the text and turn it into JSON
+
+This is the station where the "crooked text → clean data" magic happens. And the secret is to not rely on the model's goodwill: you hand it a ticket — the `IntentSchema` — and require it to fill it in.
+
+```ts
+import { z } from "zod"
+
+export const IntentSchema = z.object({
+  intent: z
+    .enum(["schedule", "cancel", "unknown"])
+    .describe("What the client wants"),
+  barberId: z.number().optional().describe("Barber ID"),
+  barberName: z.string().optional().describe("Barber name mentioned"),
+  datetime: z.string().optional().describe("Date and time in ISO"),
+  clientName: z.string().optional().describe("Client name"),
+  service: z.string().optional().describe("Service: haircut, beard, fade..."),
+})
+```
+
+The `.describe()` calls aren't decoration — they go to the model and tell it what each field means. The intent `node` grabs the last thing the client said and asks the LLM to fill in the ticket:
+
+```ts
+export function createIdentifyIntentNode(llm: OpenRouterService) {
+  return async (state: GraphState): Promise<Partial<GraphState>> => {
+    const input = state.messages.at(-1)!.text // the client's latest message
+
+    const systemPrompt = getSystemPrompt(barbers) // barbers + rules + examples
+    const userPrompt = getUserPromptTemplate(input)
+
+    const result = await llm.generateStructured(
+      systemPrompt,
+      userPrompt,
+      IntentSchema,
+    )
+
+    if (!result.success) {
+      return { intent: "unknown", error: result.error }
+    }
+
+    return result.data // { intent, barberId, datetime, clientName, ... }
+  }
+}
+```
+
+And where does the requirement live? Inside `generateStructured`. This is where LangChain turns "loose prose" into "validated data" — I dropped the error handling to leave the skeleton exposed:
+
+```ts
+async generateStructured<T>(system: string, user: string, schema: z.ZodSchema<T>) {
+  const response = await this.client.chat.send({
+    models: this.config.models, // e.g. "anthropic/claude-..." — swap here, only here
+    messages: [
+      { role: "system", content: `${system}\n\nReply with valid JSON only.` },
+      { role: "user", content: user },
+    ],
+    responseFormat: { type: "json_object" }, // ask the provider for JSON directly
+  })
+
+  const content = response.choices.at(0)?.message.content
+  const data = schema.parse(parseJsonContent(content)) // Zod validates — or throws
+
+  return { success: true as const, data }
+}
+```
+
+Three things are worth highlighting, because they're LangChain's three promises in five lines:
+
+- **`models`** is a config string. It's the travel adapter: switching models is switching this value.
+- **`responseFormat: { type: "json_object" }`** asks the provider to hand back JSON directly, no markdown fence.
+- **`schema.parse(...)`** is the leash. Send the wrong type or omit a required field and Zod throws right there — you find out immediately, not three screens later with a mysterious `undefined`. Any extra key the model tacks on gets stripped (a `z.object` drops whatever isn't in the schema), so what flows downstream always matches the shape you declared.
+
+Sending `"can I book a fade with Rodrigo tomorrow at 3pm? this is John"`, the station returns:
+
+```json
+{
+  "intent": "schedule",
+  "barberId": 1,
+  "barberName": "Rodrigo Alves",
+  "datetime": "2026-06-12T18:00:00.000Z",
+  "clientName": "John",
+  "service": "fade"
+}
+```
+
+Crooked text in. Clean data out. This is the part that, by hand, would become a regex nightmare.
+
+## Step 2: route — the receptionist points you to the right desk
+
+The clipboard now has `intent`. Time for the fork. In LangGraph that's a **conditional edge**: a function that looks at the state and returns the name of the next station.
+
+```ts
+import { StateGraph, START, END } from "@langchain/langgraph"
+
+const workflow = new StateGraph(BarbershopState)
+  .addNode("identifyIntent", createIdentifyIntentNode(llm))
+  .addNode("schedule", createSchedulerNode(barbershop))
+  .addNode("cancel", createCancellerNode(barbershop))
+  .addNode("message", createMessageGeneratorNode(llm))
+
+  .addEdge(START, "identifyIntent")
+
+  .addConditionalEdges(
+    "identifyIntent",
+    (state: GraphState): string => {
+      // didn't understand, or errored? skip the action and go straight to the reply
+      if (state.error || !state.intent || state.intent === "unknown") {
+        return "message"
+      }
+      return state.intent // "schedule" or "cancel"
+    },
+    { schedule: "schedule", cancel: "cancel", message: "message" },
+  )
+
+  .addEdge("schedule", "message")
+  .addEdge("cancel", "message")
+  .addEdge("message", END)
+
+export const graph = workflow.compile()
+```
+
+It's the receptionist reading the ticket and pointing: "bookings are the desk on the right, cancellations on the left — and if I didn't get your message, I'll just reply without sending you to any desk". The flow became a drawing, not a tangle of `if`s. Six months from now you'll glance at the graph and understand the whole system.
+
+## Step 3: call the service — where the LLM takes its hands off
+
+This station does the real work. And there's an architecture lesson hidden in it.
+
+```ts
+const RequiredFields = z.object({
+  barberId: z.number({ error: "Which barber? That's missing" }),
+  datetime: z.string({ error: "The date and time are missing" }),
+  clientName: z.string({ error: "Your name is missing" }),
+})
+
+export function createSchedulerNode(barbershop: BarbershopService) {
+  return async (state: GraphState): Promise<Partial<GraphState>> => {
+    // the model may have dropped a field — we check before acting
+    const check = RequiredFields.safeParse(state)
+    if (!check.success) {
+      return {
+        actionSuccess: false,
+        actionError: check.error.issues.map((e) => e.message).join(", "),
+      }
+    }
+
+    try {
+      const appointment = barbershop.bookAppointment(
+        check.data.barberId,
+        new Date(check.data.datetime),
+        check.data.clientName,
+        state.service ?? "haircut",
+      )
+      return { actionSuccess: true, appointmentData: appointment }
+    } catch (error) {
+      return {
+        actionSuccess: false,
+        actionError: error instanceof Error ? error.message : "Booking failed",
+      }
+    }
+  }
+}
+```
+
+And the service itself — `BarbershopService` — is plain, dumb, deterministic code. No LLM anywhere:
+
+```ts
+export const barbers = [
+  { id: 1, name: "Rodrigo Alves", specialty: "Fade haircut" },
+  { id: 2, name: "Bruno Martins", specialty: "Beard & straight razor" },
+  { id: 3, name: "Diego Souza", specialty: "Classic scissor cut" },
+]
+
+export class BarbershopService {
+  bookAppointment(barberId: number, date: Date, clientName: string, service: string) {
+    if (!this.checkAvailability(barberId, date)) {
+      throw new Error("That slot is unavailable for this barber")
+    }
+    const appointment = { barberId, date: date.toISOString(), clientName, service }
+    appointments.push(appointment)
+    return appointment
+  }
+
+  cancelAppointment(barberId: number, clientName: string, date: Date) {
+    const booked = this.findAppointment(barberId, date, clientName)
+    if (!booked) throw new Error("No matching appointment found")
+    appointments.splice(appointments.indexOf(booked), 1)
+  }
+}
+```
+
+Here's the lesson: **the LLM never touches the calendar.** It understands the message and decides _what_ to do. What actually _does_ it is normal, testable code that checks availability and throws a real error when the slot is taken. The receptionist understands your request warmly, but the calendar is a physical ledger only staff write in, with rules and a pen. That wall — model on one side, action on the other — is what separates an app you trust in production from a chatbot that happily accepts "book 200 cuts for the same slot".
+
+## Step 4: reply like a human
+
+Last station. The clipboard now has the action's result (`actionSuccess`, `actionError`). What's missing is the way back: turning that into a human sentence. It's the opposite of step 1 — instead of prose → JSON, now it's state → prose.
+
+```ts
+import { AIMessage } from "@langchain/core/messages"
+
+export function createMessageGeneratorNode(llm: OpenRouterService) {
+  return async (state: GraphState): Promise<Partial<GraphState>> => {
+    const hasSucceeded = state.actionSuccess ? "success" : "error"
+    // unknown has no success/error — it maps straight to the "unknown" scenario
+    const scenario =
+      !state.intent || state.intent === "unknown"
+        ? "unknown"
+        : `${state.intent}_${hasSucceeded}` // e.g. "schedule_success"
+
+    const details = {
+      barberName: state.barberName,
+      datetime: state.datetime,
+      clientName: state.clientName,
+      // action failed? the reason is in actionError; intent failed? in error
+      error: state.actionError ?? state.error,
+    }
+
+    const result = await llm.generateStructured(
+      getSystemPrompt(),
+      getUserPromptTemplate({ scenario, details }),
+      MessageSchema,
+    )
+
+    const text = result.success ? result.data.message : "Sorry, something broke on my end!"
+    return { messages: [new AIMessage(text)] }
+  }
+}
+```
+
+The trick is `scenario`: the station combines the intent with the result — `schedule_success`, `cancel_error`, `unknown` — and the `systemPrompt` teaches the tone for each case:
+
+```ts
+export const getSystemPrompt = () =>
+  JSON.stringify({
+    role: "Friendly barbershop receptionist",
+    tone: "Warm and clear, no stiff formality",
+    scenarios: {
+      schedule_success: "Confirm the slot with all the details",
+      schedule_error: "Apologize and explain why it didn't work",
+      cancel_success: "Confirm the cancellation",
+      cancel_error: "Apologize and say what was missing to find the slot",
+      unknown: "Gently explain you only handle booking and cancelling",
+    },
+  })
+```
+
+Notice the reply is also `structured output` — a `MessageSchema` with a `message` field. Even to return a single sentence, you go through the ticket. And the result becomes an `AIMessage`, which lands in the clipboard's `messages` channel — closing the conversation thread that started in step 1.
+
+## Putting it together
+
+The graph is already compiled back in step 2. Plugging it into a server is almost disappointingly short:
+
+```ts
+import { HumanMessage } from "@langchain/core/messages"
+
+app.post("/chat", async (request) => {
+  const { question } = request.body as { question: string }
+
+  const response = await graph.invoke({
+    messages: [new HumanMessage(question)],
+  })
+
+  return response
+})
+```
+
+One `graph.invoke` with the client's message. LangGraph handles the rest: runs `identifyIntent`, follows the right arrow, runs the action, generates the reply. In practice:
+
+```text
+POST /chat
+{ "question": "can I book a fade with Rodrigo tomorrow at 3pm? this is John" }
+```
+
+> You're all set, John! Your fade with Rodrigo is booked for tomorrow at 3pm. See you in the chair. ✂️
+
+And when the slot is already taken? **No new station needed.** It's the same graph — only the data flowing through it changes. Picture Pete trying the exact slot John just grabbed:
+
+```text
+POST /chat
+{ "question": "can you squeeze in a cut with Rodrigo tomorrow at 3pm? it's Pete" }
+```
+
+> Hey Pete! That 3pm slot with Rodrigo tomorrow is already taken. Want me to check another time or another barber for you? ✂️
+
+Under the hood, nothing new happened in the graph: `bookAppointment` throws the `"That slot is unavailable..."` exception, the scheduler's `try/catch` turns it into `actionSuccess: false` with an `actionError`, and the generator picks the `schedule_error` scenario instead of `schedule_success`. Not one extra edge — the error path is just another data path through the same four stations. That's why `checkAvailability` and the `throw` were already there in `BarbershopService` from the start: unavailability is a business rule of the service, not a branch of the flow.
+
+Crooked text in one end. A human sentence out the other. In between, four stations with a single responsibility each — and errors ride the same rails as successes.
+
+## What about conversation memory?
+
+Back to Pete's reply: "Want me to check another time?". If he fires back with just **"4pm works then"**, does the system get it?
+
+The way we built it so far, **no.** Each `POST /chat` is independent: the server creates a fresh message array on every request, and `identifyIntent` reads only the last one. The message "4pm works then" arrives with no barber, no day, no name — and becomes `intent: "unknown"`.
+
+The most common LangGraph misconception is thinking that, because it's "the same chat", the graph remembers on its own. The graph's memory **isn't automatic**. You turn it on with two pieces.
+
+**1. A `checkpointer` on `compile`.** It saves the `state` at every step, filed under a `thread_id`:
+
+```ts
+import { MemorySaver } from "@langchain/langgraph"
+
+const checkpointer = new MemorySaver() // in production: PostgresSaver, RedisSaver...
+export const graph = workflow.compile({ checkpointer })
+```
+
+**2. A `thread_id` on `invoke`.** It's that conversation's file — same `thread_id`, same conversation:
+
+```ts
+app.post("/chat", async (request) => {
+  const { question, threadId } = request.body as {
+    question: string
+    threadId: string
+  }
+
+  const response = await graph.invoke(
+    { messages: [new HumanMessage(question)] },
+    { configurable: { thread_id: threadId } }, // loads this thread's saved state
+  )
+
+  return response
+})
+```
+
+Now, on Pete's second message with the same `threadId`, LangGraph restores the saved `state` and the `messages` channel reducer **appends** the new line to the history — instead of starting from scratch.
+
+One more piece is missing, and this one's in _our_ code, not LangGraph: `identifyIntent` needs to look at the whole conversation, not just the last message.
+
+```ts
+export function createIdentifyIntentNode(llm: OpenRouterService) {
+  return async (state: GraphState): Promise<Partial<GraphState>> => {
+    // before: state.messages.at(-1)!.text — only the latest message
+    // now: the whole conversation, so the LLM ties "4pm" to Rodrigo tomorrow
+    const history = state.messages.map((m) => m.text).join("\n")
+
+    const result = await llm.generateStructured(
+      getSystemPrompt(barbers),
+      getUserPromptTemplate(history),
+      IntentSchema,
+    )
+
+    if (!result.success) return { intent: "unknown", error: result.error }
+    return result.data // full intent, already resolved with the prior context
+  }
+}
+```
+
+With the history in the prompt, the LLM has everything it needs to resolve the reference: it reads "Rodrigo, tomorrow, 3pm" from the first line and "4pm works then" from the second, and returns the full intent with the corrected time. Then the dialogue finally flows:
+
+```text
+Pete: can you squeeze in a cut with Rodrigo tomorrow at 3pm?
+  → That 3pm slot with Rodrigo tomorrow is taken. Want me to check another?
+Pete: 4pm works then
+  → Done, Pete! Booked your cut with Rodrigo tomorrow at 4pm. 💈
+```
+
+The "4pm works then" only makes sense because `barberId` and the day stayed saved in the thread's `state`. **Memory, in LangGraph, is an architecture decision — `checkpointer` + `thread_id` — not a magical side effect of "being in the same chat".**
+
+## Why this is LangChain, not just "calling the API"
+
+Go back to the analogies from the start and look at what each one became in code:
+
+- **The standardized order ticket** became `schema.parse()` — and killed all the regex and `try/catch` for extracting JSON by hand.
+- **The subway map** became the `StateGraph` — the fork turned into a legible drawing, with each `node` logging its step, instead of a nested `if/else`.
+- **The travel adapter** became one string in `models` — switching models never touches the rest of the app.
+- And the **wall between the model and the action** fell out naturally: the LLM fills tickets, the services execute.
+
+Without LangChain you can do all of this by hand. But you'd _rewrite_ each of those four things, in every project, and they'd rot one by one the first time the model decided to get creative.
+
+---
+
+LangChain doesn't make the model smarter. It makes the model **trustworthy enough to put in production**: it gives it a leash (the `schema`), a map (the graph), and a wall between the chatty part and the part that touches your data.
+
+The barbershop is a toy. The pattern — intent → JSON → action → human reply — is exactly how real assistants are built. Swap the barbers for doctors, couriers, or support tickets, and the graph is the same. This was what sat under the "magic" the whole time.
