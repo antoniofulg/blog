@@ -170,7 +170,7 @@ Três coisas valem o destaque, porque são as três promessas do LangChain em ci
 
 - **`models`** é uma string de config. É o adaptador de tomada: trocar de modelo é trocar esse valor.
 - **`responseFormat: { type: "json_object" }`** pede pro provedor já entregar JSON, sem cerca de markdown.
-- **`schema.parse(...)`** é a coleira. Se o modelo inventar um campo, esquecer outro ou mandar um tipo errado, o Zod estoura ali — você descobre na hora, não três telas depois com um `undefined` misterioso.
+- **`schema.parse(...)`** é a coleira. Se o modelo mandar um tipo errado ou esquecer um campo obrigatório, o Zod estoura ali — você descobre na hora, não três telas depois com um `undefined` misterioso. E campo a mais que ele inventa é descartado (um `z.object` faz _strip_ do que não está no schema), então o que segue adiante sempre bate com o formato que você declarou.
 
 Mandando `"quero marcar um degradê com o Rodrigo amanhã às 15h, é o João"`, a estação devolve:
 
@@ -241,7 +241,7 @@ export function createSchedulerNode(barbershop: BarbershopService) {
     if (!check.success) {
       return {
         actionSuccess: false,
-        actionError: check.error.errors.map((e) => e.message).join(", "),
+        actionError: check.error.issues.map((e) => e.message).join(", "),
       }
     }
 
@@ -302,13 +302,18 @@ import { AIMessage } from "@langchain/core/messages"
 export function createMessageGeneratorNode(llm: OpenRouterService) {
   return async (state: GraphState): Promise<Partial<GraphState>> => {
     const hasSucceeded = state.actionSuccess ? "success" : "error"
-    const scenario = `${state.intent ?? "unknown"}_${hasSucceeded}` // ex.: "schedule_success"
+    // unknown não tem sucesso/erro — vai direto pro cenário "unknown"
+    const scenario =
+      !state.intent || state.intent === "unknown"
+        ? "unknown"
+        : `${state.intent}_${hasSucceeded}` // ex.: "schedule_success"
 
     const details = {
       barberName: state.barberName,
       datetime: state.datetime,
       clientName: state.clientName,
-      error: state.error,
+      // ação falhou? a razão está em actionError; intent falhou? em error
+      error: state.actionError ?? state.error,
     }
 
     const result = await llm.generateStructured(

@@ -170,7 +170,7 @@ Three things are worth highlighting, because they're LangChain's three promises 
 
 - **`models`** is a config string. It's the travel adapter: switching models is switching this value.
 - **`responseFormat: { type: "json_object" }`** asks the provider to hand back JSON directly, no markdown fence.
-- **`schema.parse(...)`** is the leash. If the model invents a field, forgets another, or sends the wrong type, Zod throws right there — you find out immediately, not three screens later with a mysterious `undefined`.
+- **`schema.parse(...)`** is the leash. Send the wrong type or omit a required field and Zod throws right there — you find out immediately, not three screens later with a mysterious `undefined`. Any extra key the model tacks on gets stripped (a `z.object` drops whatever isn't in the schema), so what flows downstream always matches the shape you declared.
 
 Sending `"can I book a fade with Rodrigo tomorrow at 3pm? this is John"`, the station returns:
 
@@ -241,7 +241,7 @@ export function createSchedulerNode(barbershop: BarbershopService) {
     if (!check.success) {
       return {
         actionSuccess: false,
-        actionError: check.error.errors.map((e) => e.message).join(", "),
+        actionError: check.error.issues.map((e) => e.message).join(", "),
       }
     }
 
@@ -302,13 +302,18 @@ import { AIMessage } from "@langchain/core/messages"
 export function createMessageGeneratorNode(llm: OpenRouterService) {
   return async (state: GraphState): Promise<Partial<GraphState>> => {
     const hasSucceeded = state.actionSuccess ? "success" : "error"
-    const scenario = `${state.intent ?? "unknown"}_${hasSucceeded}` // e.g. "schedule_success"
+    // unknown has no success/error — it maps straight to the "unknown" scenario
+    const scenario =
+      !state.intent || state.intent === "unknown"
+        ? "unknown"
+        : `${state.intent}_${hasSucceeded}` // e.g. "schedule_success"
 
     const details = {
       barberName: state.barberName,
       datetime: state.datetime,
       clientName: state.clientName,
-      error: state.error,
+      // action failed? the reason is in actionError; intent failed? in error
+      error: state.actionError ?? state.error,
     }
 
     const result = await llm.generateStructured(
