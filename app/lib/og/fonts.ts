@@ -1,5 +1,6 @@
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
+import { fileURLToPath } from "node:url";
 
 export type FontEntry = {
 	name: string;
@@ -20,11 +21,21 @@ export function _clearFontCacheForTesting(): void {
 	_fontsCache = null;
 }
 
+// Full JetBrains Mono TTF (OFL), committed under ./assets. Unlike the
+// @fontsource latin-subset WOFF, this covers box-drawing (U+2500–257F) and the
+// geometric-shape triangles (U+25B6 ▶, U+25BC ▼) used in ASCII flow diagrams —
+// the latin subset has none of those, so satori dropped them to tofu on cards
+// whose first code block is a diagram (e.g. the LangChain post's LangGraph map).
+// Resolved relative to this module (not cwd) so it survives any working dir.
+const JBMONO_TTF_PATH = fileURLToPath(
+	new URL("./assets/JetBrainsMono-Regular.ttf", import.meta.url),
+);
+
 /**
- * Load Inter (regular + bold) and JetBrains Mono (regular) from @fontsource/* paths.
- * Returns a satori-compatible font array.
+ * Load Inter (regular + bold) from @fontsource and the full JetBrains Mono TTF
+ * (committed under ./assets). Returns a satori-compatible font array.
  *
- * Reads WOFF files synchronously on first call; subsequent calls return the cached result.
+ * Reads font files synchronously on first call; subsequent calls return the cached result.
  */
 export function loadFonts(): FontEntry[] {
 	if (_fontsCache !== null) return _fontsCache;
@@ -37,12 +48,7 @@ export function loadFonts(): FontEntry[] {
 	const interBold = readFileSync(
 		join(base, "@fontsource/inter/files/inter-latin-700-normal.woff"),
 	);
-	const jbMono = readFileSync(
-		join(
-			base,
-			"@fontsource/jetbrains-mono/files/jetbrains-mono-latin-400-normal.woff",
-		),
-	);
+	const jbMono = readFileSync(JBMONO_TTF_PATH);
 
 	_fontsCache = [
 		{ name: "Inter", data: interRegular, weight: 400, style: "normal" },
