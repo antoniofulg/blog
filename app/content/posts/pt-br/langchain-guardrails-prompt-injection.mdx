@@ -355,21 +355,29 @@ Mesmo comportamento do grafo inteiro do passo 1 ao 4, num middleware de quinze l
 E como middleware é uma lista, defense-in-depth vira literalmente um array. O LangChain v1 já traz vários porteiros prontos:
 
 ```ts
-import {
-  createAgent,
-  piiRedactionMiddleware,
-  humanInTheLoopMiddleware,
-} from "langchain"
+import { createAgent, piiMiddleware, humanInTheLoopMiddleware } from "langchain"
+import { MemorySaver, Command } from "@langchain/langgraph"
+import { HumanMessage } from "@langchain/core/messages"
+
+// HITL precisa de persistência: o checkpointer salva o interrupt pra retomar depois
+const checkpointer = new MemorySaver() // em produção: PostgresSaver, RedisSaver...
 
 const agent = createAgent({
   model: chatModel,
   tools: [bookTool, cancelTool, cancelAllTool],
+  checkpointer, // sem isto o cancel_all estoura em vez de pausar
   middleware: [
     // 1. porteiro: detecta injection no recado cru, antes do modelo
     injectionGuard(safeguard),
 
-    // 2. não vaza telefone/e-mail de cliente na resposta
-    piiRedactionMiddleware({ patterns: ["email", "phone"] }),
+    // 2. raspa PII DA SAÍDA — applyToOutput vem desligado por padrão;
+    //    e telefone NÃO é tipo embutido, então passa um detector próprio
+    piiMiddleware("email", { strategy: "redact", applyToOutput: true }),
+    piiMiddleware("phone_number", {
+      detector: /\+?\d{1,3}[\s.-]?\d{3,4}[\s.-]?\d{4}/,
+      strategy: "redact",
+      applyToOutput: true,
+    }),
 
     // 3. ação destrutiva ("cancela TODOS") pede confirmação humana
     humanInTheLoopMiddleware({
@@ -381,11 +389,31 @@ const agent = createAgent({
 })
 ```
 
-Três defesas independentes, executadas na ordem da lista:
+E ligar o HITL de verdade exige mais um passo, que a persistência torna obrigatório — rodar com um `thread_id` estável e retomar depois da aprovação humana:
+
+```ts
+// thread_id estável: o interrupt fica salvo nesse thread e é retomado nele
+const config = { configurable: { thread_id: "kevin-sessao-1" } }
+
+// roda até parar no interrupt do cancel_all
+const result = await agent.invoke(
+  { messages: [new HumanMessage("cancela todos os horários de amanhã")] },
+  config,
+)
+console.log(result.__interrupt__) // o pedido pendente, esperando aprovação
+
+// depois que um humano aprovou, retoma no MESMO thread_id
+await agent.invoke(
+  new Command({ resume: { decisions: [{ type: "approve" }] } }),
+  config,
+)
+```
+
+Três defesas independentes, executadas na ordem da lista — e cada uma tem uma pegadinha de configuração que é fácil errar:
 
 - **`injectionGuard`** barra o recado malicioso na entrada (o nosso porteiro).
-- **`piiRedactionMiddleware`** raspa dado pessoal _da saída_ — mesmo que algo escape, telefone de cliente não sai escrito na resposta.
-- **`humanInTheLoopMiddleware`** põe um humano no meio antes de uma ação irreversível. "Cancela todos os horários de amanhã" não executa sozinho — para e pede um `approve`. É o equivalente a exigir duas chaves pra abrir o cofre.
+- **`piiMiddleware`** raspa dado pessoal _da saída_ — e aqui moram dois detalhes que, se você ignorar, deixam vazar justo o que achou que tinha protegido. Primeiro: `applyToOutput` vem **desligado** por padrão; sem ele a redação só olha a entrada, e o telefone sai inteiro na resposta. Segundo: **telefone não é um tipo embutido** (os prontos são `email`, `credit_card`, `ip`, `mac_address`, `url`), então você passa um `detector` regex próprio. É por isso que são duas linhas de `piiMiddleware`, não um `patterns: ["phone"]` mágico.
+- **`humanInTheLoopMiddleware`** põe um humano no meio antes de uma ação irreversível — mas só funciona com **persistência**: o agente precisa de um `checkpointer` (que salva o interrupt) e cada `invoke` precisa de um `thread_id` estável (que diz qual conversa retomar). Sem os dois, o `cancel_all` estoura na hora em vez de pausar e esperar o `approve`. É o equivalente a exigir duas chaves pra abrir o cofre — num cofre que lembra que você já girou a primeira.
 
 Cada camada tampa um buraco diferente. Injection que fura o porteiro pode esbarrar no PII redaction; ação destrutiva que passa por tudo ainda trava no humano. Nenhuma sozinha é perfeita — juntas, o ataque precisa furar todas, na mesma tentativa.
 

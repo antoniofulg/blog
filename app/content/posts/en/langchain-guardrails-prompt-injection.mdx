@@ -355,21 +355,29 @@ Same behavior as the whole graph from steps 1 through 4, in a fifteen-line middl
 And since middleware is a list, defense-in-depth becomes literally an array. LangChain v1 ships several bouncers ready to go:
 
 ```ts
-import {
-  createAgent,
-  piiRedactionMiddleware,
-  humanInTheLoopMiddleware,
-} from "langchain"
+import { createAgent, piiMiddleware, humanInTheLoopMiddleware } from "langchain"
+import { MemorySaver, Command } from "@langchain/langgraph"
+import { HumanMessage } from "@langchain/core/messages"
+
+// HITL needs persistence: the checkpointer saves the interrupt so it can resume later
+const checkpointer = new MemorySaver() // in production: PostgresSaver, RedisSaver...
 
 const agent = createAgent({
   model: chatModel,
   tools: [bookTool, cancelTool, cancelAllTool],
+  checkpointer, // without this, cancel_all throws instead of pausing
   middleware: [
     // 1. bouncer: detect injection in the raw message, before the model
     injectionGuard(safeguard),
 
-    // 2. don't leak a client's phone/email in the reply
-    piiRedactionMiddleware({ patterns: ["email", "phone"] }),
+    // 2. scrub PII FROM THE OUTPUT — applyToOutput is off by default;
+    //    and phone isn't a built-in type, so we pass our own detector
+    piiMiddleware("email", { strategy: "redact", applyToOutput: true }),
+    piiMiddleware("phone_number", {
+      detector: /\+?\d{1,3}[\s.-]?\d{3,4}[\s.-]?\d{4}/,
+      strategy: "redact",
+      applyToOutput: true,
+    }),
 
     // 3. a destructive action ("cancel ALL") asks for human confirmation
     humanInTheLoopMiddleware({
@@ -381,11 +389,31 @@ const agent = createAgent({
 })
 ```
 
-Three independent defenses, executed in list order:
+And actually wiring up HITL takes one more step that persistence makes mandatory — invoke with a stable `thread_id`, then resume after the human approves:
+
+```ts
+// stable thread_id: the interrupt is saved under this thread and resumed from it
+const config = { configurable: { thread_id: "kevin-session-1" } }
+
+// run until it stops at the cancel_all interrupt
+const result = await agent.invoke(
+  { messages: [new HumanMessage("cancel all of tomorrow's slots")] },
+  config,
+)
+console.log(result.__interrupt__) // the pending request, waiting for approval
+
+// after a human approves, resume on the SAME thread_id
+await agent.invoke(
+  new Command({ resume: { decisions: [{ type: "approve" }] } }),
+  config,
+)
+```
+
+Three independent defenses, executed in list order — and each has a configuration gotcha that's easy to get wrong:
 
 - **`injectionGuard`** blocks the malicious message at the entrance (our bouncer).
-- **`piiRedactionMiddleware`** scrubs personal data _from the output_ — even if something escapes, a client's phone number doesn't come out written in the reply.
-- **`humanInTheLoopMiddleware`** puts a human in the loop before an irreversible action. "Cancel all of tomorrow's slots" doesn't run on its own — it pauses and asks for an `approve`. It's the equivalent of requiring two keys to open the vault.
+- **`piiMiddleware`** scrubs personal data _from the output_ — and two details live here that, if you skip them, leak exactly what you thought you'd covered. First: `applyToOutput` is **off** by default; without it the redaction only looks at the input, and the phone number comes out whole in the reply. Second: **phone isn't a built-in type** (the ready-made ones are `email`, `credit_card`, `ip`, `mac_address`, `url`), so you pass your own `detector` regex. That's why it's two `piiMiddleware` lines, not a magic `patterns: ["phone"]`.
+- **`humanInTheLoopMiddleware`** puts a human in the loop before an irreversible action — but it only works with **persistence**: the agent needs a `checkpointer` (which saves the interrupt) and every `invoke` needs a stable `thread_id` (which tells it which conversation to resume). Without both, `cancel_all` throws on the spot instead of pausing for the `approve`. It's the equivalent of requiring two keys to open the vault — in a vault that remembers you already turned the first.
 
 Each layer plugs a different hole. Injection that slips past the bouncer may hit the PII redaction; a destructive action that gets through everything still stalls at the human. None is perfect alone — together, the attack has to punch through all of them, in the same attempt.
 
