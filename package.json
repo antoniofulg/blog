@@ -19,6 +19,7 @@
     "db:migrate": "bun run scripts/migrate.ts",
     "db:seed": "bun run scripts/seed.ts",
     "sync": "bun run scripts/sync.ts",
+    "sync:og": "SITE_URL=https://antoniofulg.tech bun run scripts/sync.ts",
     "lint:tests": "bun run scripts/lint-test-annotations.ts",
     "test:e2e": "playwright test",
     "audit:content": "bun run scripts/audit-content.ts",
