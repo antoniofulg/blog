@@ -227,6 +227,50 @@ describe("CardTemplate", () => {
 		)[0]?.[0];
 		expect(firstToken?.content).toBe("hello");
 	});
+
+	it("renders each listItem when listItems is provided (ADR-007 list card)", () => {
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "Tools",
+				tokenLines: null,
+				codeBg: "#24292e",
+				codeFg: "#e1e4e8",
+				listItems: ["cmux", "starship", "mise"],
+			}),
+		);
+		expect(html).toContain("cmux");
+		expect(html).toContain("starship");
+		expect(html).toContain("mise");
+		expect(html).toContain("data-og-list");
+	});
+
+	it("list card takes precedence over tokenLines (code is not rendered)", () => {
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "Tools",
+				tokenLines: [[{ content: "const secret = 1;", color: "#fff" }]],
+				codeBg: "#24292e",
+				codeFg: "#e1e4e8",
+				listItems: ["cmux", "mise"],
+			}),
+		);
+		expect(html).toContain("cmux");
+		expect(html).not.toContain("const secret = 1;");
+	});
+
+	it("empty listItems falls through to the code panel (no list card)", () => {
+		const html = renderToStaticMarkup(
+			React.createElement(CardTemplate, {
+				title: "Tools",
+				tokenLines: [[{ content: "const x = 1;", color: "#fff" }]],
+				codeBg: "#24292e",
+				codeFg: "#e1e4e8",
+				listItems: [],
+			}),
+		);
+		expect(html).not.toContain("data-og-list");
+		expect(html).toContain("const x = 1;");
+	});
 });
 
 // ---------------------------------------------------------------------------
@@ -437,6 +481,34 @@ describe("generateOgImage - integration", () => {
 			expect(height).toBe(630);
 
 			// AC-5 / size sanity: < 300 KB
+			expect(buffer.length).toBeLessThan(300 * 1024);
+		},
+		TIMEOUT,
+	);
+
+	it(
+		"AC-7: writes a 1200×630 list card when listItems is provided (ADR-007)",
+		async () => {
+			const slug = `${TEST_SLUG_PREFIX}list-card`;
+
+			const result = await generateOgImage({
+				locale: TEST_LOCALE,
+				slug,
+				title: "Tools I'm testing",
+				// firstCodeBlock present but ignored — listItems takes precedence.
+				firstCodeBlock: { lang: "bash", code: "curl https://example.com | sh" },
+				listItems: ["cmux", "oh-my-zsh", "starship", "rtk", "mise"],
+			});
+
+			expect(result).toBe(`/og/${TEST_LOCALE}/${slug}.png`);
+
+			const filePath = join(TEST_OUTPUT_DIR, `${slug}.png`);
+			expect(existsSync(filePath)).toBe(true);
+
+			const buffer = readFileSync(filePath);
+			const { width, height } = parsePngDimensions(buffer);
+			expect(width).toBe(1200);
+			expect(height).toBe(630);
 			expect(buffer.length).toBeLessThan(300 * 1024);
 		},
 		TIMEOUT,

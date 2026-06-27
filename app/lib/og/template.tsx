@@ -24,6 +24,12 @@ export type CardTemplateProps = {
 	siteUrl?: string;
 	/** Round profile photo as a base64 data URI, shown bottom-left in the footer. */
 	avatarDataUri?: string;
+	/**
+	 * Opt-in bulleted list (e.g. a tools index) rendered INSTEAD of the code
+	 * panel. When present and non-empty it takes precedence over `tokenLines`.
+	 * Absent on every existing post, so their cards are unaffected (ADR-007).
+	 */
+	listItems?: string[];
 };
 
 const CARD_BG = "#0d1117";
@@ -81,10 +87,14 @@ export function CardTemplate({
 	didTruncate = false,
 	siteUrl,
 	avatarDataUri,
+	listItems,
 }: CardTemplateProps) {
 	const displayUrl = siteUrl
 		? siteUrl.replace(/^https?:\/\//, "")
 		: "antoniofulg.tech";
+
+	// Opt-in list card takes precedence over the code panel (ADR-007).
+	const hasList = Array.isArray(listItems) && listItems.length > 0;
 
 	return (
 		<div
@@ -127,7 +137,44 @@ export function CardTemplate({
 			    lines (the title stays whole). The bottom fade is rendered only when
 			    truncateCode actually cut the source (`didTruncate`) — complete
 			    snippets stay clean with no fade over their code. */}
-			{tokenLines !== null && tokenLines.length > 0 ? (
+			{hasList ? (
+				// List card (ADR-007): a bulleted index (e.g. the tools covered)
+				// rendered in place of the code panel. No maxHeight cap or fade —
+				// the author controls the item count.
+				<div data-og-list style={{ display: "flex", flexDirection: "column" }}>
+					{(listItems as string[]).map((item) => (
+						<div
+							key={`og-li-${item}`}
+							style={{
+								display: "flex",
+								flexDirection: "row",
+								alignItems: "center",
+								marginBottom: 18,
+							}}
+						>
+							<div
+								style={{
+									display: "flex",
+									width: 14,
+									height: 14,
+									borderRadius: 4,
+									backgroundColor: ACCENT_COLOR,
+									marginRight: 22,
+								}}
+							/>
+							<span
+								style={{
+									fontFamily: "JetBrains Mono",
+									fontSize: 34,
+									color: TITLE_COLOR,
+								}}
+							>
+								{item}
+							</span>
+						</div>
+					))}
+				</div>
+			) : tokenLines !== null && tokenLines.length > 0 ? (
 				<div
 					style={{
 						display: "flex",

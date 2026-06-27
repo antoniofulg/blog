@@ -51,8 +51,18 @@ No admin toggle, no flag flip, no post-merge step. Write → commit → push →
 | `seriesPart` | integer | 1-based position within the series. Required when `series` is set. |
 | `cover` | string | Relative path under `public/` (e.g. `images/react-suspense/cover.jpg`). |
 | `coverImage` | string | Public path to a custom OG social preview image (e.g. `/og/custom-cover.png`). Overrides the auto-generated code card. See [Cover image (OG preview)](#cover-image-og-preview). |
+| `ogList` | string[] | Opt-in: renders the OG card as a bulleted list (e.g. a tools index) instead of the first code block. When present, it takes precedence over the code card; absent posts are unaffected. See [Auto-generated cards](#auto-generated-cards-and-publicog). |
 
 `series` and `seriesPart` are interdependent — both must be set together or both omitted. CI blocks a post that sets one without the other.
+
+`ogList` example:
+
+```yaml
+ogList:
+  - cmux
+  - oh-my-zsh
+  - starship
+```
 
 ### Example Frontmatter
 
