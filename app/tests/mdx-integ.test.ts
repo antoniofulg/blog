@@ -15,7 +15,9 @@ describe("integration: renderMdx", () => {
 	it("rendering fixture to string produces <h1> matching the first heading", async () => {
 		const Component = await renderMdx(SAMPLE_SOURCE);
 		const html = renderToStaticMarkup(createElement(Component, {}));
-		expect(html).toContain("<h1>Sample Post</h1>");
+		// rehype-slug adds a github-slugger id to every heading (enables in-page
+		// anchor links / TOCs); "Sample Post" → id="sample-post".
+		expect(html).toContain('<h1 id="sample-post">Sample Post</h1>');
 	});
 
 	it("renders **bold** as <strong> (remark-gfm active)", async () => {

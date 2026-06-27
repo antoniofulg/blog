@@ -1,0 +1,161 @@
+---
+title: "Resetei o notebook e estas são as ferramentas novas que estou testando"
+slug: dev-setup-after-laptop-reset
+description: "Um hard reset no notebook foi a desculpa pra parar de instalar no automático e testar ferramentas novas — algumas substituindo o que eu usava há anos. Estas são as ferramentas que estão fazendo parte do meu setup: cmux, oh-my-zsh, starship, rtk e mise."
+publishedAt: 2026-06-27
+category: tooling
+---
+
+A desculpa, dessa vez, foi medo. A enxurrada de ataques de supply chain que pipocou no ecossistema nos últimos tempos — pacotes baixadíssimos comprometidos, com direito a susto envolvendo gente do tamanho do axios — me deixou com aquela pulga atrás da orelha de não saber mais o que tinha passado pela minha máquina. Num impulso, meio por acaso, resolvi zerar tudo e começar do limpo.
+
+E toda vez que dou um hard reset no notebook eu trato como faxina, não como perda. A tela limpa é a chance de não reinstalar por inércia aquilo que eu carregava só porque "já estava lá" — e de testar coisa nova no lugar do que eu repetia há anos. Desta vez peguei mais pesado nessa segunda parte: algumas ferramentas que sempre instalei ganharam um substituto que eu vinha namorando de longe.
+
+Estas são as cinco que instalei ainda na primeira hora, antes de qualquer projeto — duas delas estreando no lugar do que eu usava antes (o cmux substituindo o Warp, o Starship substituindo o Powerlevel10k). São elas que, junto com o zsh que já vinha de fábrica, montam o terminal onde passo o dia. Vou na ordem em que instalei.
+
+## Índice
+
+- [cmux](#cmux--o-terminal-pensado-pra-agentes-de-ia)
+- [oh-my-zsh](#oh-my-zsh--a-moldura-em-volta-do-zsh)
+- [starship](#starship--o-prompt)
+- [rtk](#rtk--o-cara-que-vai-reduzir-seus-boletos-de-ia)
+- [mise](#mise--o-gerenciador-de-versões)
+
+## cmux — o terminal pensado pra agentes de IA
+
+O [cmux](https://cmux.com/) ([repo](https://github.com/manaflow-ai/cmux)) é um terminal nativo de macOS, construído em cima do motor de renderização do Ghostty, com uma ideia central: o terminal devia saber que você está rodando agentes de IA e te ajudar a tocar vários ao mesmo tempo.
+
+Na prática isso vira abas verticais na lateral, cada uma mostrando branch do git, status do PR, diretório e portas abertas, mais uma notificação quando o agente termina ou trava esperando input. Tem browser embutido pra referência e uma API por socket pra automatizar. O problema que resolve é o do `tmux` improvisado: parei de perder de vista qual agente está rodando o quê em qual janela. Roda Claude Code, Codex, Gemini, Cursor CLI e companhia.
+
+Estou testando ele no lugar do [Warp](https://www.warp.dev/), que era meu terminal até agora. O Warp é excelente e foi o que me acostumou a um terminal mais "produto" do que emulador, mas a aposta do cmux em ser nativo, aberto e construído em volta de rodar vários agentes em paralelo bateu mais com o jeito que eu trabalho hoje. O empurrão final foi o controle remoto: dá pra acompanhar e dirigir os agentes de fora da máquina, então se eu deixo algo longo rodando e saio do computador, continuo vendo o progresso e respondendo quando um deles trava pedindo input — sem precisar estar na frente do notebook. Isso é uma mão na roda pra orquestração de agentes em loop com o [Compozy](/pt-br/spec-driven-development-with-compozy): como a execução das tasks roda num daemon, fora da sessão, controlar tudo de longe casa exatamente com esse fluxo. Ainda é teste, não migrei de vez, mas a primeira semana convenceu.
+
+> Por enquanto é só macOS. Em outro sistema, um `tmux` ou `zellij` cobre a parte de multiplexar, mas não o miolo de notificação por agente.
+
+## oh-my-zsh — a moldura em volta do zsh
+
+Antes de falar do oh-my-zsh, uma palavra sobre o [zsh](https://www.zsh.org/): é o shell em si, a camada que interpreta tudo que eu digito, e no macOS ele já é o padrão desde o Catalina — então não tem o que instalar, só confirmar que é ele rodando com `echo $SHELL`. Escolho ele em vez do bash pelos detalhes do dia a dia (autocompletar melhor, globbing mais esperto, correção de digitação), mas sozinho ele é cru de propósito. Quem dá personalidade é o oh-my-zsh, que se apoia exatamente nesse zsh que já estava aqui.
+
+O [oh-my-zsh](https://ohmyz.sh/) é um framework de configuração pro zsh. Ele resolve o problema de começar do zero: em vez de eu colar centenas de linhas no `.zshrc`, ele entrega plugins, aliases e gerência de tudo isso num lugar só.
+
+```sh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+
+Dois dos plugins que uso não vêm embutidos, então clono eles antes na pasta de plugins customizados:
+
+```sh
+git clone https://github.com/zsh-users/zsh-autosuggestions \
+  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+git clone https://github.com/zsh-users/zsh-syntax-highlighting \
+  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```
+
+Aí ligo a lista no `~/.zshrc`:
+
+```sh
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+```
+
+O `git` já vem com o oh-my-zsh e entrega uma pilha de atalhos (`gst`, `gco`, `gp`). O `zsh-autosuggestions` e o `zsh-syntax-highlighting` são os dois que clonei acima.
+
+A ordem aqui não é decorativa: o `zsh-syntax-highlighting` precisa ser o **último** da lista. Ele se enrosca no editor de linha do zsh pra recolorir o que você digita a cada tecla, e qualquer plugin carregado depois dele pode re-amarrar esses mesmos atalhos e quebrar o realce em silêncio. Por isso ele sempre fecha o array. Deixo o tema do oh-my-zsh de lado porque o prompt é trabalho da próxima ferramenta.
+
+## starship — o prompt
+
+O [starship](https://starship.rs/) é o prompt: aquela linha à esquerda do cursor. É escrito em Rust, é rápido e funciona em qualquer shell, então leva junto se um dia eu sair do zsh. O que ele resolve é contexto sem eu pedir: mostra a branch do git e se tem mudança não commitada, a versão da linguagem do projeto atual (Node, Rust, Python) e o tempo que o último comando levou quando passa de um limite.
+
+Aqui também é troca: estou testando ele no lugar do [Powerlevel10k](https://github.com/romkatv/powerlevel10k), que eu usava antes. O p10k é rápido como poucos e tem aquele assistente de configuração ótimo, mas é amarrado ao zsh. O Starship me dá o mesmo prompt com contexto em qualquer shell e numa config única em TOML, e essa portabilidade foi o que me fez querer experimentar.
+
+Instalação e fio que liga ao zsh:
+
+```sh
+curl -sS https://starship.rs/install.sh | sh
+```
+
+```sh
+# no fim do ~/.zshrc
+eval "$(starship init zsh)"
+```
+
+A configuração mora num `~/.config/starship.toml`, então o visual do prompt fica versionável junto com o resto dos dotfiles. Uso o preset de ícones Nerd Font, e dentro deste próprio projeto o prompt fica assim:
+
+```text
+blog on  main [!?] via  v1.3.14
+❯
+```
+
+Lendo da esquerda pra direita: `blog` é a pasta atual (em ciano), ` main` é a branch do git, `[!?]` é o estado do repositório (`!` = arquivos modificados, `?` = arquivos não rastreados), e ` v1.3.14` é o runtime que o Starship detectou no projeto — aqui o Bun, porque tem um `bun.lock` na raiz. O `❯` na linha de baixo é onde eu digito; ele fica verde quando o último comando deu certo e vermelho quando falhou. Os dois ícones miúdos antes da branch e da versão são glyphs de Nerd Font; sem uma fonte dessas instalada eles viram quadradinhos, mas o resto da informação continua legível.
+
+## rtk — o cara que vai reduzir seus boletos de IA
+
+Se tem uma ferramenta dessa lista que paga a própria conta, é o [rtk](https://github.com/rtk-ai/rtk) (Rust Token Killer). É um proxy de CLI que filtra e comprime a saída dos comandos antes de ela chegar no contexto de um agente de IA — e isso, na prática, é dinheiro de volta. Cada token que o agente lê é um token que você paga, e a maior parte do que um comando cospe é puro lixo pro raciocínio dele.
+
+O problema é concreto e diário: rodar `git status`, um `npm install` ou a suíte de testes despeja parágrafos de ruído, progresso e boilerplate que incham a janela de contexto à toa. O rtk corta de **60% a 90% dos tokens** nos comandos de dev mais comuns, com mais de 100 comandos suportados e overhead abaixo de 10ms. Numa rotina de agente, que martela esses comandos o dia inteiro, essa diferença não é detalhe: é a fatura no fim do mês.
+
+### Como funciona
+
+A ideia é simples: o rtk se mete no meio do caminho como um proxy transparente entre o agente e o comando de verdade. Em vez de a saída crua voltar inteira pro modelo, ela passa pelo rtk, que filtra e devolve só o que importa:
+
+```text
+Sem rtk:                                    Com rtk:
+
+  Claude  --git status-->  shell  -->  git    Claude  --git status-->  RTK  -->  git
+    ^                                   |        ^                      |          |
+    |        ~2.000 tokens (cru)        |        |   ~200 tokens        | filtra   |
+    +-----------------------------------+        +------- (filtrado) ---+----------+
+```
+
+Por baixo, ele aplica quatro estratégias de compressão, em sequência, conforme o tipo do comando:
+
+1. **Filtragem inteligente** — corta o supérfluo: comentários, espaços em branco e boilerplate.
+2. **Agrupamento** — junta itens parecidos (arquivos por diretório, erros por tipo).
+3. **Truncamento** — mantém o contexto relevante e descarta a repetição.
+4. **Deduplicação** — colapsa linhas de log repetidas e conta quantas vezes apareceram.
+
+E tem uma rede de segurança importante: quando um comando falha, o rtk guarda a saída completa, sem filtro, num arquivo (um esquema de "tee"). Assim o agente consegue ler o erro inteiro pra diagnosticar sem precisar rodar o comando de novo.
+
+```sh
+brew install rtk
+```
+
+```sh
+rtk init -g   # instala o hook que reescreve os comandos
+```
+
+Depois do `init`, a melhor parte é que ele some: reescreve as chamadas de forma transparente (`git status` vira `rtk git status` por baixo dos panos), sem você mudar nada no seu fluxo. E o melhor de tudo — dá pra ver o tamanho da economia em números reais com `rtk gain`, que mostra quantos tokens você deixou de queimar. Por andar de mãos dadas com o cmux e os agentes, foi natural ele vir logo na sequência. Hoje é o que mais segura meu boleto de IA no lugar.
+
+> **rtk vs. caveman.** Vale conhecer o [caveman](https://github.com/juliusbrussee/caveman), que ataca o mesmo problema por outro ângulo. O rtk corta os tokens de **entrada**: a saída dos comandos antes de ela chegar no modelo. O caveman é uma skill que corta os tokens de **saída**: instrui o próprio agente a responder em estilo telegráfico, fragmentos sem enrolação (eles citam ~65% de redução na geração). Ou seja, não competem — um enxuga o que entra, o outro enxuga o que sai. Dá pra rodar os dois juntos e somar a economia das duas pontas.
+
+## mise — o gerenciador de versões
+
+O [mise](https://mise.jdx.dev/getting-started.html) (lê-se "meez") é o gerenciador de versões de runtime e ferramentas. Ele resolve a salada de ter `nvm` pra Node, `pyenv` pra Python, `rbenv` pra Ruby, cada um com o seu jeito e a sua lentidão no shell. O mise unifica isso num binário só, em Rust, e ainda lê os arquivos `.tool-versions` do asdf, então projetos antigos pegam de graça.
+
+```sh
+curl https://mise.run | sh
+```
+
+```sh
+# no fim do ~/.zshrc, depois do starship
+eval "$(mise activate zsh)"
+```
+
+O fluxo do dia a dia é declarar a versão e deixar o mise trocar sozinho quando eu entro na pasta:
+
+```sh
+mise use node@26      # fixa Node 26
+mise use bun@latest   # e o Bun na última versão
+```
+
+Os meus padrões globais ficam no `~/.config/mise/config.toml`, que é o que carrego em toda máquina nova:
+
+```toml
+[tools]
+node = "26"
+bun = "latest"
+```
+
+Rodar `mise use` dentro de um projeto gera um `mise.toml` local que sobrepõe o global ali. Quem clonar roda `mise install` e cai exatamente nas mesmas versões — fim do "na minha máquina funciona" por causa de runtime trocado.
+
+## O setup em uma linha
+
+Nenhuma é indispensável isolada — dá pra programar num bash pelado. Mas juntas elas tiram da minha frente um monte de atrito pequeno que, somado, é o que mais cansa num dia de trabalho. Da próxima vez que você der um hard reset na máquina, faça o mesmo exercício: só reinstale o que você consegue justificar em uma frase. A lista que sobra diz muito sobre como você realmente trabalha.

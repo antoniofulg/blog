@@ -2,6 +2,7 @@ import { compile, run } from "@mdx-js/mdx";
 import rehypeShikiFromHighlighter from "@shikijs/rehype/core";
 import type { MDXContent } from "mdx/types";
 import * as runtime from "react/jsx-runtime";
+import rehypeSlug from "rehype-slug";
 import remarkGfm from "remark-gfm";
 import { createHighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
@@ -83,6 +84,7 @@ export async function renderMdx(
 		outputFormat: "function-body",
 		remarkPlugins: [remarkGfm],
 		rehypePlugins: [
+			rehypeSlug,
 			() =>
 				rehypeShikiFromHighlighter(highlighter, {
 					themes: { light: "github-light", dark: "github-dark" },

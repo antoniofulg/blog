@@ -1,0 +1,161 @@
+---
+title: "I wiped my laptop and these are the new tools I'm trying out"
+slug: dev-setup-after-laptop-reset
+description: "A hard reset was my excuse to stop installing on autopilot and try new tools — some replacing what I'd used for years. These are the tools that are now part of my setup: cmux, oh-my-zsh, starship, rtk and mise."
+publishedAt: 2026-06-27
+category: tooling
+---
+
+The excuse, this time, was fear. The flood of supply chain attacks that hit the ecosystem lately — heavily-downloaded packages getting compromised, with a scare touching names as big as axios — left me with that nagging feeling of no longer knowing what had passed through my machine. On a whim, half by accident, I decided to wipe everything and start clean.
+
+And every time I do a hard reset on the laptop I treat it as a spring cleaning, not a loss. A blank screen is the chance to not reinstall, out of inertia, the stuff I was carrying around just because "it was already there" — and to try something new in place of what I'd been repeating for years. This time I leaned hard into that second part: a few tools I'd always installed got a replacement I'd been eyeing from afar.
+
+These are the five I installed in the first hour, before any project — two of them debuting in place of what I used before (cmux replacing Warp, Starship replacing Powerlevel10k). Together with the zsh that already ships on the machine, they're what builds the terminal where I spend my day. I'll go in the order I installed them.
+
+## Index
+
+- [cmux](#cmux--the-terminal-built-for-ai-agents)
+- [oh-my-zsh](#oh-my-zsh--the-frame-around-zsh)
+- [starship](#starship--the-prompt)
+- [rtk](#rtk--the-tool-that-shrinks-your-ai-bills)
+- [mise](#mise--the-version-manager)
+
+## cmux — the terminal built for AI agents
+
+[cmux](https://cmux.com/) ([repo](https://github.com/manaflow-ai/cmux)) is a native macOS terminal, built on top of Ghostty's rendering engine, with one core idea: the terminal should know you're running AI agents and help you juggle several at once.
+
+In practice that becomes vertical tabs in the sidebar, each showing the git branch, PR status, directory and open ports, plus a notification when an agent finishes or stalls waiting for input. It has a built-in browser for reference and a socket API for automation. The problem it solves is the improvised-`tmux` one: I stopped losing track of which agent is running what in which window. It runs Claude Code, Codex, Gemini, Cursor CLI and the rest.
+
+I'm testing it in place of [Warp](https://www.warp.dev/), which was my terminal until now. Warp is excellent and it's what got me used to a terminal that's more "product" than emulator, but cmux's bet on being native, open and built around running many agents in parallel fit better with the way I work today. The final push was remote control: you can follow and drive the agents from off the machine, so if I leave something long running and step away from the computer, I keep seeing the progress and answering when one of them stalls asking for input — without having to be in front of the laptop. That's a big help for orchestrating agents in a loop with [Compozy](/en/spec-driven-development-with-compozy): since task execution runs in a daemon, outside the session, controlling everything remotely fits that flow exactly. It's still a trial, I haven't fully migrated, but the first week sold me.
+
+> For now it's macOS only. On another system, a `tmux` or `zellij` covers the multiplexing part, but not the per-agent notification core.
+
+## oh-my-zsh — the frame around zsh
+
+Before talking about oh-my-zsh, a word on [zsh](https://www.zsh.org/): it's the shell itself, the layer that interprets everything I type, and on macOS it's been the default since Catalina — so there's nothing to install, just confirm it's the one running with `echo $SHELL`. I pick it over bash for the day-to-day details (better autocomplete, smarter globbing, typo correction), but on its own it's bare on purpose. What gives it personality is oh-my-zsh, which leans on exactly that zsh that was already here.
+
+[oh-my-zsh](https://ohmyz.sh/) is a configuration framework for zsh. It solves the start-from-scratch problem: instead of pasting hundreds of lines into `.zshrc`, it hands you plugins, aliases and the management of all of that in one place.
+
+```sh
+sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)"
+```
+
+Two of the plugins I use don't come bundled, so I clone them first into the custom plugins folder:
+
+```sh
+git clone https://github.com/zsh-users/zsh-autosuggestions \
+  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-autosuggestions
+
+git clone https://github.com/zsh-users/zsh-syntax-highlighting \
+  ${ZSH_CUSTOM:-~/.oh-my-zsh/custom}/plugins/zsh-syntax-highlighting
+```
+
+Then I wire the list into `~/.zshrc`:
+
+```sh
+plugins=(git zsh-autosuggestions zsh-syntax-highlighting)
+```
+
+`git` ships with oh-my-zsh and gives you a pile of shortcuts (`gst`, `gco`, `gp`). `zsh-autosuggestions` and `zsh-syntax-highlighting` are the two I cloned above.
+
+The order here isn't decorative: `zsh-syntax-highlighting` has to be **last** in the list. It hooks into the zsh line editor to recolor what you type on every keystroke, and any plugin loaded after it can rebind those same widgets and break the highlighting silently. That's why it always closes the array. I leave oh-my-zsh's theme aside because the prompt is the next tool's job.
+
+## starship — the prompt
+
+[starship](https://starship.rs/) is the prompt: that line to the left of the cursor. It's written in Rust, it's fast, and it works in any shell, so it comes along if I ever leave zsh. What it solves is context without me asking: it shows the git branch and whether there are uncommitted changes, the language version of the current project (Node, Rust, Python), and how long the last command took when it crosses a threshold.
+
+This one's a swap too: I'm testing it in place of [Powerlevel10k](https://github.com/romkatv/powerlevel10k), which I used before. p10k is about as fast as they come and has that great configuration wizard, but it's tied to zsh. Starship gives me the same context-rich prompt in any shell and from a single TOML config, and that portability is what made me want to try it.
+
+Install and the line that wires it to zsh:
+
+```sh
+curl -sS https://starship.rs/install.sh | sh
+```
+
+```sh
+# at the end of ~/.zshrc
+eval "$(starship init zsh)"
+```
+
+The config lives in `~/.config/starship.toml`, so the prompt's look is versionable alongside the rest of the dotfiles. I use the Nerd Font symbols preset, and inside this very project the prompt looks like this:
+
+```text
+blog on  main [!?] via  v1.3.14
+❯
+```
+
+Reading left to right: `blog` is the current folder (in cyan), ` main` is the git branch, `[!?]` is the repo state (`!` = modified files, `?` = untracked files), and ` v1.3.14` is the runtime Starship detected in the project — here Bun, because there's a `bun.lock` at the root. The `❯` on the next line is where I type; it turns green when the last command succeeded and red when it failed. The two tiny icons before the branch and the version are Nerd Font glyphs; without one of those fonts installed they show up as little boxes, but the rest of the information stays readable.
+
+## rtk — the tool that shrinks your AI bills
+
+If there's one tool on this list that pays for itself, it's [rtk](https://github.com/rtk-ai/rtk) (Rust Token Killer). It's a CLI proxy that filters and compresses command output before it reaches an AI agent's context — and in practice, that's money back. Every token the agent reads is a token you pay for, and most of what a command spits out is pure noise for its reasoning.
+
+The problem is concrete and daily: running `git status`, an `npm install` or the test suite dumps paragraphs of noise, progress and boilerplate that bloat the context window for nothing. rtk cuts **60% to 90% of the tokens** on the most common dev commands, with 100+ supported commands and under-10ms overhead. In an agent loop, hammering those commands all day long, that difference isn't a detail: it's the bill at the end of the month.
+
+### How it works
+
+The idea is simple: rtk inserts itself in the middle as a transparent proxy between the agent and the real command. Instead of the raw output going all the way back to the model, it passes through rtk, which filters it and returns only what matters:
+
+```text
+Without rtk:                                With rtk:
+
+  Claude  --git status-->  shell  -->  git    Claude  --git status-->  RTK  -->  git
+    ^                                   |        ^                      |          |
+    |        ~2,000 tokens (raw)        |        |   ~200 tokens        | filter   |
+    +-----------------------------------+        +------- (filtered) ---+----------+
+```
+
+Under the hood it applies four compression strategies, in sequence, depending on the command type:
+
+1. **Smart filtering** — strips the superfluous: comments, whitespace and boilerplate.
+2. **Grouping** — bundles similar items (files by directory, errors by type).
+3. **Truncation** — keeps the relevant context and drops the repetition.
+4. **Deduplication** — collapses repeated log lines and counts how many times they appeared.
+
+And there's an important safety net: when a command fails, rtk saves the full, unfiltered output to a file (a "tee" scheme). That way the agent can read the whole error to diagnose it without having to run the command again.
+
+```sh
+brew install rtk
+```
+
+```sh
+rtk init -g   # installs the hook that rewrites commands
+```
+
+After `init`, the best part is that it disappears: it rewrites the calls transparently (`git status` becomes `rtk git status` behind the scenes), without you changing anything in your flow. And best of all — you can see the size of the savings in real numbers with `rtk gain`, which shows how many tokens you didn't burn. Since it goes hand in hand with cmux and the agents, it was natural for it to come right after. Today it's what keeps my AI bill in check the most.
+
+> **rtk vs. caveman.** It's worth knowing [caveman](https://github.com/juliusbrussee/caveman), which attacks the same problem from another angle. rtk cuts the **input** tokens: command output before it reaches the model. caveman is a skill that cuts the **output** tokens: it instructs the agent itself to answer in a terse, telegraphic style, fragments with no filler (they cite ~65% reduction in generation). So they don't compete — one trims what goes in, the other trims what comes out. You can run both together and stack the savings from both ends.
+
+## mise — the version manager
+
+[mise](https://mise.jdx.dev/getting-started.html) (pronounced "meez") is the runtime and tool version manager. It solves the mess of having `nvm` for Node, `pyenv` for Python, `rbenv` for Ruby, each with its own way of doing things and its own shell slowdown. mise unifies that into a single binary, written in Rust, and it even reads asdf's `.tool-versions` files, so old projects get picked up for free.
+
+```sh
+curl https://mise.run | sh
+```
+
+```sh
+# at the end of ~/.zshrc, after starship
+eval "$(mise activate zsh)"
+```
+
+The day-to-day flow is to declare the version and let mise switch on its own when I enter the folder:
+
+```sh
+mise use node@26      # pins Node 26
+mise use bun@latest   # and Bun on the latest version
+```
+
+My global defaults live in `~/.config/mise/config.toml`, which is what I carry to every new machine:
+
+```toml
+[tools]
+node = "26"
+bun = "latest"
+```
+
+Running `mise use` inside a project generates a local `mise.toml` that overrides the global there. Whoever clones it runs `mise install` and lands on exactly the same versions — the end of "works on my machine" because of a swapped runtime.
+
+## The setup in one line
+
+None of them is indispensable on its own — you can program in a bare bash. But together they take a pile of small friction off my plate that, added up, is what wears me out most in a workday. Next time you do a hard reset on your machine, run the same exercise: only reinstall what you can justify in one sentence. The list that's left says a lot about how you actually work.

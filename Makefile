@@ -1,7 +1,7 @@
 .DEFAULT_GOAL := help
 .PHONY: help setup dev dev-docker build preview \
         test lint format check lint-tests test-e2e audit-content audit-fe app-audit audit audit-watch \
-        db-migrate db-generate db-seed db-sync db-reset \
+        db-migrate db-generate db-seed db-sync db-reset og \
         stop restart restart-all logs shell deploy
 
 IMAGE_NAME    ?= blog
@@ -148,6 +148,10 @@ db-seed: ## Seed the database with development data
 db-sync: ## Walk app/content/posts/**/*.mdx and upsert into posts table (idempotent)
 	bun run sync
 	@echo "Posts indexed. Next: make dev"
+
+og: ## Regenerate OG cards with the production domain in the footer (run before committing a post that has code blocks)
+	bun run sync:og
+	@echo "OG cards regenerated with production SITE_URL. Next: git add public/og && commit"
 
 db-reset: ## DESTRUCTIVE: drop schema, migrate, seed, and re-index posts (requires DB running via make dev or make dev-docker)
 	docker compose exec db psql -U blog -c \
