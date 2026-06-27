@@ -29,10 +29,19 @@ function parseFrontmatterBlock(
 	series?: string;
 	seriesPart?: number;
 	draft?: boolean;
+	ogList?: string[];
 } {
 	const { data } = matter(source);
 	if (!data.title)
 		throw new Error(`Missing required frontmatter 'title' in ${filePath}`);
+	// Opt-in OG list card (ADR-007): coerce to a clean string[] and drop empties.
+	const ogListRaw = data.ogList;
+	const ogList = Array.isArray(ogListRaw)
+		? ogListRaw
+				.filter((x): x is string | number => x != null)
+				.map((x) => String(x).trim())
+				.filter((x) => x.length > 0)
+		: undefined;
 	const publishedAtRaw = data.publishedAt;
 	const publishedAt: Date | undefined =
 		publishedAtRaw instanceof Date
@@ -52,6 +61,7 @@ function parseFrontmatterBlock(
 		series: data.series as string | undefined,
 		seriesPart: Number.isNaN(seriesPart) ? undefined : seriesPart,
 		draft: data.draft as boolean | undefined,
+		ogList: ogList && ogList.length > 0 ? ogList : undefined,
 	};
 }
 
@@ -115,18 +125,21 @@ export async function upsertPost(filePath: string): Promise<void> {
 		const slug = deriveSlug(filePath, fm.slug);
 		lang = deriveLang(filePath);
 
-		// Generate OG image only when the post has at least one fenced code block.
-		// Posts with no code block rely on the site-wide og-image.jpg fallback (ADR-002).
+		// Generate an OG card when the post declares an `ogList` (list card,
+		// ADR-007) OR has at least one fenced code block (code card, ADR-002).
+		// Posts with neither rely on the site-wide og-image.jpg fallback.
 		// generateOgImage already wraps its internals in try/catch and returns null;
 		// the outer try/catch here is a defensive belt-and-suspenders guard.
+		const ogList = fm.ogList ?? null;
 		const firstCodeBlock = findFirstCodeBlock(source);
-		if (firstCodeBlock !== null) {
+		if (ogList !== null || firstCodeBlock !== null) {
 			try {
 				await generateOgImage({
 					locale: lang as Locale,
 					slug,
 					title: fm.title,
 					firstCodeBlock,
+					listItems: ogList ?? undefined,
 				});
 			} catch (err) {
 				console.warn(
@@ -134,7 +147,7 @@ export async function upsertPost(filePath: string): Promise<void> {
 				);
 			}
 		} else {
-			// Post no longer has a code block — delete stale OG PNG if present.
+			// Post has neither an ogList nor a code block — delete stale OG PNG if present.
 			const ogPath = join(ogOutputDir(), lang as string, `${slug}.png`);
 			await unlink(ogPath).catch(() => {
 				/* not present — no-op */

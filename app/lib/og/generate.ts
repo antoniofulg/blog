@@ -31,6 +31,12 @@ export type OgGenerateInput = {
 	title: string;
 	/** First fenced code block extracted from the post. Null if the post has no code blocks. */
 	firstCodeBlock: { lang: string; code: string } | null;
+	/**
+	 * Opt-in bulleted list (frontmatter `ogList`). When present and non-empty the
+	 * card renders this list instead of the code block, and Shiki tokenisation is
+	 * skipped entirely. Absent on every existing post → unchanged cards (ADR-007).
+	 */
+	listItems?: string[];
 };
 
 // ---------------------------------------------------------------------------
@@ -105,7 +111,7 @@ function loadAvatarDataUri(): Promise<string> {
 export async function generateOgImage(
 	input: OgGenerateInput,
 ): Promise<string | null> {
-	const { locale, slug, title, firstCodeBlock } = input;
+	const { locale, slug, title, firstCodeBlock, listItems } = input;
 
 	try {
 		const fonts = loadFonts();
@@ -116,7 +122,11 @@ export async function generateOgImage(
 		let codeFg = DEFAULT_FG;
 		let didTruncate = false;
 
-		if (firstCodeBlock !== null) {
+		// A non-empty `listItems` renders a list card and takes precedence over the
+		// code block — skip Shiki tokenisation entirely (ADR-007).
+		const useList = Array.isArray(listItems) && listItems.length > 0;
+
+		if (!useList && firstCodeBlock !== null) {
 			// truncateCode caps the block to 10 lines / 600 chars and reports whether
 			// it actually cut anything; the template uses `didTruncate` to drive the
 			// "more code below" fade (ADR-005), so a complete block renders clean.
@@ -164,6 +174,7 @@ export async function generateOgImage(
 			didTruncate,
 			siteUrl: process.env.SITE_URL ?? "",
 			avatarDataUri,
+			listItems: useList ? listItems : undefined,
 		};
 
 		// Render JSX → SVG via satori
