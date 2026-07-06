@@ -91,8 +91,10 @@ That's why GraphQL, Elasticsearch-style search, geospatial polygon queries, and 
 |---|:---:|:---:|:---:|
 | Safe | ✅ | ❌ | ✅ |
 | Idempotent | ✅ | ❌ | ✅ |
-| Cacheable | ✅ | ❌ | ✅ |
+| Cacheable | ✅ | ⚠️ | ✅ |
 | Accepts a body | ❌ | ✅ | ✅ |
+
+> ⚠️ `POST` isn't flatly uncacheable: [RFC 9110 §9.3.3](https://www.rfc-editor.org/rfc/rfc9110#section-9.3.3) lets a `POST` response be cached when it carries explicit freshness information and a `Content-Location` equal to the request URI — but the cached copy is only reusable for a later `GET`/`HEAD`, and virtually no cache implements it. `QUERY` is cacheable as itself, keyed on the request body.
 
 Your query goes in the body, with whatever content type you want — JSON, whatever. No URL limit, no secrets in the logs, real structure. And at the same time, the request is still declared safe, idempotent, and cacheable. The intermediary knows it's a read, retrying is safe again, and the intent stops lying.
 

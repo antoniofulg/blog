@@ -91,8 +91,10 @@ O corpo resolve o tamanho e a estrutura. Mas você perde a semântica toda no ca
 |---|:---:|:---:|:---:|
 | Safe | ✅ | ❌ | ✅ |
 | Idempotente | ✅ | ❌ | ✅ |
-| Cacheável | ✅ | ❌ | ✅ |
+| Cacheável | ✅ | ⚠️ | ✅ |
 | Aceita corpo | ❌ | ✅ | ✅ |
+
+> ⚠️ `POST` não é totalmente incacheável: a [RFC 9110 §9.3.3](https://www.rfc-editor.org/rfc/rfc9110#section-9.3.3) permite cachear a resposta de um `POST` quando ela traz informação explícita de frescor (*freshness*) e um `Content-Location` igual à URI da requisição — mas a cópia em cache só pode ser reusada por um `GET`/`HEAD` posterior, e quase nenhum cache faz isso na prática. O `QUERY` é cacheável como ele mesmo, indexado pelo corpo da requisição.
 
 Sua consulta vai no body, com o content type que você quiser — JSON, o que for. Sem limite de URL, sem segredo no log, com estrutura de verdade. E, ao mesmo tempo, a requisição continua declarada como safe, idempotente e cacheável. O intermediário sabe que aquilo é leitura, o retry volta a ser seguro, e a intenção para de mentir.
 
