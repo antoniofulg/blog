@@ -1,0 +1,139 @@
+---
+title: "QUERY: O novo verbo HTTP"
+slug: http-query-method
+description: Eu sei — no fundo você também achou que ele sempre existiu e só não usava por não conhecer. Mas foi lançado tão recentemente que talvez ainda nem valha a pena usar.
+publishedAt: 2026-07-06
+category: backend
+---
+
+Ouvi falar do `QUERY` esses dias e fiquei o tempo todo pensando que nunca tinha usado esse verbo direito. Assumi que era mais um daqueles verbos HTTP que existem há séculos e que eu só tinha deixado passar — tipo `TRACE`, tipo `CONNECT`. Abri a documentação só pra confirmar a sintaxe e seguir a vida.
+
+Não era isso. `QUERY` não sempre existiu. Ele é novo de fábrica: saiu como [RFC 10008](https://www.rfc-editor.org/info/rfc10008/) em junho de 2026, poucas semanas atrás. RFC (de *Request for Comments*) é o nome dos documentos em que a IETF — o grupo que padroniza a internet — define como as coisas funcionam: HTTP, TCP, o formato de e-mail, tudo nasce de uma dessas. Ou seja, `QUERY` deixou de ser proposta e virou padrão oficial de HTTP faz poucas semanas.
+
+Deu aquela sensação estranha de estar velho e atrasado ao mesmo tempo — velho porque eu tinha certeza de que já existia, atrasado porque acabou de sair.
+
+O verbo é esse aqui:
+
+```http
+QUERY /produtos HTTP/1.1
+Host: api.loja.com
+Content-Type: application/json
+
+{
+  "categoria": "notebooks",
+  "preco": { "min": 2000, "max": 8000 },
+  "marcas": ["dell", "lenovo"],
+  "ordenar": "preco_asc",
+  "pagina": 3
+}
+```
+
+Um GET com corpo, basicamente. E aí veio a pergunta que me fez escrever esse post: por que a gente ganharia um verbo novo pra **buscar** dados em 2026, se a gente busca dados com `GET` desde os anos 90?
+
+## Antes de tudo: por que sempre foi GET
+
+`GET` é o verbo de leitura por um motivo. A especificação garante três coisas nele:
+
+- **Safe** — não tem efeito colateral. É leitura pura, o servidor não muda de estado.
+- **Idempotente** — repetir não muda nada. Deu timeout? Manda de novo, sem medo.
+- **Cacheável** — proxy, CDN e browser podem guardar a resposta.
+
+É exatamente o que você quer numa busca. O problema é onde a entrada do `GET` mora: **na URL**. Todo filtro, todo parâmetro, tem que caber no caminho e na query string. E `GET` não deveria ter corpo — a semântica de um body no `GET` é indefinida, e boa parte dos servidores e proxies simplesmente ignora ou rejeita.
+
+Enquanto a busca é `/produtos?categoria=notebooks`, ninguém sofre. A dor aparece quando a leitura precisa de uma entrada grande ou estruturada. E aí você cai numa escolha entre duas opções ruins.
+
+## Opção A: enfiar tudo na query string
+
+Você mantém o `GET` e serializa o filtro inteiro na URL:
+
+```http
+GET /produtos?categoria=notebooks&precoMin=2000&precoMax=8000&marca=dell&marca=lenovo&ordenar=preco_asc&pagina=3 HTTP/1.1
+Host: api.loja.com
+```
+
+Funciona, até não funcionar. Os problemas se acumulam rápido:
+
+- **Limite de tamanho da URL.** Dependendo do servidor, do proxy e do browser, você bate na parede entre ~2 KB e ~8 KB. Um filtro com uma lista de 500 IDs simplesmente estoura.
+- **Estrutura vira sopa.** Aquele `preco: { min, max }` aninhado não existe numa query string. Você acaba inventando convenção de encoding pra fingir que JSON cabe ali.
+- **Vazamento.** Tudo que está na URL aparece em log de acesso, no histórico do browser e no header `Referer`. Filtro com dado sensível vaza sem você perceber.
+
+## Opção B: trocar por POST
+
+A saída clássica é largar o `GET` e mandar um `POST`:
+
+```http
+POST /produtos/busca HTTP/1.1
+Host: api.loja.com
+Content-Type: application/json
+
+{
+  "categoria": "notebooks",
+  "preco": { "min": 2000, "max": 8000 },
+  "marcas": ["dell", "lenovo"],
+  "ordenar": "preco_asc",
+  "pagina": 3
+}
+```
+
+O corpo resolve o tamanho e a estrutura. Mas você perde a semântica toda no caminho:
+
+- `POST` não é safe nem idempotente. Cache e intermediários tratam a requisição como mudança de estado.
+- A lógica de retry passa a assumir que você está **escrevendo**. Reenviar depois de um timeout deixa de ser trivial.
+- E tem o incômodo semântico: você está lendo, mas dizendo pro mundo inteiro que está mutando algo.
+
+É por isso que GraphQL, busca estilo Elasticsearch, consulta geoespacial com polígono e lookup de lote de IDs quase sempre vão de `POST` hoje. Uma leitura vestida de escrita. Todo mundo aceitou porque não tinha alternativa.
+
+## Onde QUERY entra
+
+`QUERY` é o primeiro verbo que é as duas coisas ao mesmo tempo: as garantias do `GET` com o corpo do `POST`.
+
+| | GET | POST | **QUERY** |
+|---|:---:|:---:|:---:|
+| Safe | ✅ | ❌ | ✅ |
+| Idempotente | ✅ | ❌ | ✅ |
+| Cacheável | ✅ | ❌ | ✅ |
+| Aceita corpo | ❌ | ✅ | ✅ |
+
+Sua consulta vai no body, com o content type que você quiser — JSON, o que for. Sem limite de URL, sem segredo no log, com estrutura de verdade. E, ao mesmo tempo, a requisição continua declarada como safe, idempotente e cacheável. O intermediário sabe que aquilo é leitura, o retry volta a ser seguro, e a intenção para de mentir.
+
+## Os detalhes que mudam o jogo
+
+A parte genuinamente nova não é o corpo — é o cache. Um cache tradicional indexa por método + URI. Com `QUERY`, a **chave de cache precisa incluir o corpo da requisição**, porque é ali que a consulta vive. Duas requisições pra mesma URL com bodies diferentes são respostas diferentes. Essa é justamente a peça que a infraestrutura de cache existente ainda está aprendendo a fazer.
+
+Depois vem o **CORS**, e aqui vale abrir, porque é onde mais gente vai tropeçar. CORS é um mecanismo que só existe no browser — ele entra em cena quando o JavaScript de um origin chama outro origin. Server-to-server, `curl` e app mobile nativo nem passam por isso. A lógica do CORS é que o browser não confia cegamente numa chamada de um site pra outro. Pra requisições consideradas inofensivas — as "simples" — ele manda direto e só confere a permissão depois, olhando os cabeçalhos da resposta. Pro resto, ele inverte a ordem: pergunta **antes**. Esse "perguntar antes" é o **preflight** — uma requisição `OPTIONS` que o próprio browser dispara pro servidor, checando se a chamada de verdade é permitida:
+
+```http
+OPTIONS /produtos HTTP/1.1
+Host: api.loja.com
+Origin: https://app.loja.com
+Access-Control-Request-Method: QUERY
+```
+
+O cabeçalho `Access-Control-Request-Method: QUERY` é o browser avisando "pretendo mandar um `QUERY`, pode?". Só se o servidor responder que sim — devolvendo `Access-Control-Allow-Methods: QUERY` — é que o browser dispara o `QUERY` real. Se a resposta não liberar, a chamada de verdade nem chega a sair.
+
+E o que faz uma requisição ser "simples", e escapar desse preflight, é uma lista curta de condições. Uma delas é o método: só `GET`, `HEAD` e `POST` entram na lista dos "safelisted". `QUERY` não está nela e nunca vai estar — então todo `QUERY` cross-origin no browser passa por preflight, sempre.
+
+O custo não é bem o round trip extra (o browser cacheia o resultado do preflight por um tempo). É que **cada hop da cadeia** — CDN, reverse proxy, router do framework, middleware de CORS da aplicação — precisa saber responder esse `OPTIONS` pro método `QUERY`. Muito middleware trata `OPTIONS` automático só pros métodos que conhece. Basta um hop não listar `QUERY` e o browser bloqueia a chamada real: seu JS só vê um erro de CORS. (Detalhe honesto: um `POST` cross-origin com `Content-Type: application/json` já faz preflight hoje. A diferença é que o `QUERY` nunca escapa dele.)
+
+E o suporte, no geral, ainda é cru. O verbo tem semanas de vida — servidor, framework, proxy, CDN e cliente HTTP precisam adicionar suporte, e o cache-por-body está longe de ser universal. Não é coisa pra sair colocando em produção em todo lugar amanhã.
+
+## Os riscos de um verbo recém-nascido
+
+Os dois riscos que as pessoas já estão [levantando](https://hivesecurity.gitlab.io/blog/http-query-method-rfc-10008-attack-surface/) são, no fundo, a mesma classe de bug: duas máquinas na cadeia interpretam os mesmos bytes de formas diferentes. Um verbo novo, carregando corpo onde ninguém esperava corpo, é terreno fértil pra esse tipo de desencontro.
+
+O primeiro é **cache poisoning**. Lembra que a chave de cache precisa incluir o body? Agora imagina um CDN antigo, que ainda indexa só por método + URL e ignora o corpo:
+
+1. A usuária A manda `QUERY /produtos` com body `{ "categoria": "notebooks" }`. O cache guarda o resultado de notebooks sob a chave `QUERY /produtos`.
+2. O usuário B manda `QUERY /produtos` com body `{ "categoria": "geladeiras" }`. O cache vê a mesma chave e devolve a resposta de **notebooks**. B recebe o dado errado.
+
+Essa é a versão acidental. A versão ataque é alguém plantar de propósito uma resposta sob aquela chave compartilhada, pra ela ser servida pra todo mundo que vier depois. E ainda tem uma armadilha de segundo grau: caches que tentam ser espertos e normalizar o body antes de gerar a chave (reordenar as chaves do JSON, remover espaços) podem criar justamente o descasamento que queriam evitar.
+
+O segundo é **request smuggling**. Ele acontece quando um front-end (load balancer, CDN) e um back-end (origin) discordam sobre onde uma requisição termina e a próxima começa. O vetor clássico é um conflito entre os headers `Content-Length` e `Transfer-Encoding`: o front-end lê o stream de um jeito, o back-end de outro, e o atacante enfia uma segunda requisição escondida na brecha — que o back-end acaba grudando na requisição do próximo usuário. A ligação com `QUERY` é o mesmo desencontro de parser: um método que carrega body num momento em que cada intermediário lida com ele de um jeito — uns rejeitam, uns repassam intacto, uns tratam o corpo diferente de um `POST`. Ainda é especulativo, sem exploit conhecido, mas os pré-requisitos são exatamente os que já produziram smuggling antes.
+
+Nada disso é falha do `QUERY` em si. São riscos de transição — metade do ecossistema entende o verbo, a outra metade ainda não.
+
+## Então, uso ou não uso?
+
+Honestamente? Hoje, pra maioria dos casos, o `POST` continua sendo a escolha pragmática — a infra inteira já entende ele. `QUERY` é a resposta **semanticamente correta** pro problema, não ainda a mais conveniente. Essas duas coisas vão convergir conforme o suporte amadurece, e provavelmente mais rápido do que a gente imagina.
+
+O que ficou pra mim depois dessa pesquisa toda foi menos sobre a sintaxe e mais sobre a virada de chave. Eu tinha internalizado "leitura complexa = POST" como se fosse uma lei da física. Não é. Era só uma gambiarra coletiva que a gente aceitou por falta de opção. Agora existe um verbo com o nome certo pra coisa certa — e da próxima vez que eu mandar um `POST /busca`, vou saber exatamente qual dívida eu estou pagando.
