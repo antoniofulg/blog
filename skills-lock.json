@@ -318,6 +318,12 @@
       "skillPath": "skills/ui-ux-pro-max/SKILL.md",
       "computedHash": "ec90b96361a8c1c59ee642cde483398d07c1a884fcaa5850945181f8a08f9a26"
     },
+    "writing-tech-post": {
+      "source": "pedronauck/skills",
+      "sourceType": "github",
+      "skillPath": "skills/mine/writing-tech-post/SKILL.md",
+      "computedHash": "85eb0c44c33aa5bbaba632199df202aeec5705a3b2a0d0878582ceae1bcd539c"
+    },
     "zod": {
       "source": "pedronauck/skills",
       "sourceType": "github",
