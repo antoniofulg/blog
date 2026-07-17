@@ -50,6 +50,7 @@ docs/audits/          — committed audit history (SUMMARY.md)
 | Security | better-auth-security-best-practices, no-workarounds |
 | CI/CD | find-rules (see .agents/rules for cicd.md and git-workflow.md) |
 | E2E test write/run | e2e-coverage |
+| New content post | writing-tech-post, humanizer, content-audit, find-docs |
 | App content audit | content-audit (filesystem-only; no browser) |
 | App FE runtime audit | app-audit (fuzzer; browser sweep + a11y + Lighthouse) |
 
