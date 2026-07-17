@@ -2,6 +2,12 @@
 
 Authoritative reference for creating and maintaining blog posts and static pages. Read before creating a new post.
 
+## Skills
+
+Authoring workflow: `writing-tech-post` (draft en + pt-br) → `humanizer` (polish
+prose) → `content-audit` (validate frontmatter, en↔pt-br parity, links, and alt
+text before the PR). Use `find-docs` when citing a library or API.
+
 ## Folder Structure
 
 ```
