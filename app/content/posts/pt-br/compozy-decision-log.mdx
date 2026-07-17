@@ -1,0 +1,123 @@
+---
+title: "Adicionando memória às decisões no Compozy"
+slug: compozy-decision-log
+description: "O Compozy guarda todas as suas decisões em artefatos dentro do diretório da task, mas eles são verbosos demais pra virar contexto permanente do projeto. Só que um punhado dessas decisões devem ser levadas em consideração umas três ou quatro features depois. Foi para resolver esse problema que eu construí a cy-capture-decisions, minha primeira contribuição open source. Ela reconcilia um workflow finalizado contra o que de fato foi entregue e mantém só as decisões que devem ser lembradas."
+publishedAt: 2026-07-17
+category: tooling
+---
+
+Eu estava planejando uma feature nova do jeito que faço hoje, com o [Compozy](https://github.com/compozy/compozy) rodando o pipeline: uma ideia passando pelo `cy-idea-factory`, depois `cy-create-prd`, depois `cy-create-techspec`. Em algum ponto do tech spec o agente me fez uma pergunta de esclarecimento, e a opção pra qual ele estava pendendo contradizia silenciosamente uma decisão que eu tinha tomado três features atrás. Ele não sabia disso. Não tinha como saber. O raciocínio daquele ADR _(Architecture Decision Record)_ não havia sido persistido no repositório do projeto, e eu já estava com o contexto limpo em uma nova sessão do Claude Code ou Codex.
+
+Eu já [escrevi por aqui](/pt-br/spec-driven-development-with-compozy) sobre o Compozy, explicando como o workflow dele funciona ao construir uma feature inteira, do primeiro prompt até os fixes do review. Só que ali eu explicava o pipeline; não falava deste problema, porque era algo que eu ainda não tinha identificado. Ele mora um andar acima: não "por que essa task fez X", mas "por que a aplicação inteira funciona do jeito que funciona, e o que a gente já decidiu nunca mais fazer". Os artefatos de planejamento guardam essas respostas, mas presas ao workflow que as produziu: volumosas, específicas daquela feature, e nunca promovidas pra nada que o próximo plano leia.
+
+E isso pesa mais quando o trabalho não cabe num só lugar. Com vários projetos abertos ao mesmo tempo, ou várias worktrees do mesmo repositório, é fácil um detalhe passar batido no planejamento de uma task: uma decisão tomada semanas atrás, do outro lado, que ninguém lembra na hora. Por isso é até bom que a IA carregue esse contexto também. Quando ela conhece o que já foi decidido, para de assumir no escuro e passa a te fazer perguntas mais certeiras sobre as escolhas anteriores, em vez de silenciosamente contradizê-las.
+
+Eu bati nessa parede vezes o suficiente pra construir uma extensão do Compozy que resolve isso: a [`cy-capture-decisions`](https://github.com/compozy/compozy/tree/main/extensions/cy-capture-decisions). É a minha primeira contribuição open source, e ela não veio de um pedido de feature que eu li em algum lugar; veio de uma demanda que eu sentia toda vez que usava a ferramenta. O resto deste post é sobre essa demanda e como a extensão a responde: por que as decisões duráveis não sobem sozinhas, quais poucas precisam sobreviver, e como você mantém só essas sem enterrar o projeto em arquivos.
+
+## Por que as decisões ficam enterradas
+
+O Compozy roda desenvolvimento guiado por spec como um pipeline, onde cada fase escreve artefatos no disco em `.compozy/tasks/<slug>/`: ADRs aceitos, issues de review, arquivos de task. Esses artefatos ficam salvos, presos ao workflow que os gerou, e são verbosos demais pra virar contexto permanente do projeto.
+
+```text
+cy-idea-factory → cy-create-prd → cy-create-techspec → cy-create-tasks
+  → tasks run → cy-review-round → reviews fix → cy-final-verify
+  → [ artefatos ficam em .compozy/tasks/<slug>/: verbosos e presos ao workflow ]
+```
+
+Cada seta dessa cadeia produz decisões; o raciocínio delas continua no disco, mas o agente não lê esses arquivos sozinho quando vai planejar outra task. Eles não entram no contexto dele por padrão.
+
+E manter tudo isso como contexto permanente seria pior, não melhor. Se cada task, cada review e cada ADR de cada feature fosse promovido para um contexto compartilhado permanente, a memória que um agente carrega antes de planejar cresceria sem limite, e a maior parte desse crescimento é ruído local à feature: um nome de tabela, um default de paginação, uma variável que alguém renomeou. Guarde tudo e você só moveu o problema de contexto, não o resolveu. Então o Compozy deixa os artefatos escopados ao workflow deles e não promove nenhum pra contexto compartilhado por padrão.
+
+O custo cai sobre a pequena fração de decisões que *são* duráveis, as escolhas arquiteturais que uma futura sessão de planejamento realmente precisa, porque elas ficam enterradas junto com o ruído, nos mesmos arquivos volumosos que ninguém reabre. Não existe um meio-termo entre promover tudo e não promover nada. Essa lacuna é a razão inteira de a extensão existir.
+
+## O que de fato precisa sobreviver
+
+O núcleo da `cy-capture-decisions` não é armazenamento. É um filtro. Ela aplica um portão de três partes a cada ADR aceito e o promove só se ele passar nas três:
+
+> Promova um ADR só se ele for **cross-feature-durable AND non-obvious AND future-relevant** (durável entre features E não óbvio E relevante no futuro).
+
+Qualquer coisa que falhe numa das cláusulas continua local ao workflow e é esquecida como antes. E quando a decisão é incerta, a regra é deliberadamente assimétrica: não promova. Uma decisão que você pulou pode ser recapturada numa rodada posterior; uma decisão que você promoveu por engano é ruído permanente em todo plano que vier depois. O portão é calibrado para pecar pela falta.
+
+Na prática a maioria dos ADRs não passa, o que é justamente o ponto:
+
+```text
+Captured from feat-orders:
+  PROMOTED  AD-001  NEW  Event-sourcing for orders (proven; evidence: verify p99<200ms; diff abc123)
+  SKIPPED   adr-001      feature-local table naming (obvious from schema)
+  SKIPPED   adr-003      pagination default (not cross-feature-durable)
+```
+
+Dois de três ADRs são jogados no chão. O que sobrevive (escolher event-sourcing para orders) é exatamente o tipo de decisão que o planejamento da próxima feature precisa conhecer e que, de outra forma, seria re-litigado do zero.
+
+## Reconciliando o plano contra a realidade
+
+Um ADR aceito é um *plano*, e planos desviam durante a implementação. Então a extensão não confia no ADR sozinho. Ela roda como passo final, depois do `/cy-final-verify`, uma vez que o código já foi entregue e o review está limpo, justamente pra poder reconciliar a decisão que você planejou contra a decisão que de fato foi implementada.
+
+Ela ordena as entradas pelo quanto confia em cada uma:
+
+| Fonte | Papel | De onde lê |
+|---|---|---|
+| ADRs aceitos | Plano (candidatos) | `.compozy/tasks/<slug>/adrs/adr-*.md` |
+| Diff do código | Verdade de campo | `git diff main...HEAD` |
+| Issues de review | Verdade de campo | `.compozy/tasks/<slug>/reviews-NNN/issue_*.md` |
+| Status da task | Proxy do verify | tasks marcadas `completed` (só depois de um verify limpo) |
+| Memória do workflow | Pista, nunca prova | `.compozy/tasks/<slug>/memory/MEMORY.md` |
+
+Uma decisão ganha `status: proven` só quando evidência citada de diff, review ou verify realmente a sustenta. Sem essa citação ela é escrita como `status: candidate`, carregando o motivo de não ter sido provada, e quando o resultado entregue divergiu do plano o registro ganha um marcador `[DEVIATION]` com a evidência anexada. O ADR afirma; o diff decide.
+
+Ela também falha com segurança. Se o diff não puder ser escopado (HEAD destacado, um range base quebrado, histórico bagunçado), a extensão degrada em vez de chutar: reconcilia só a partir da memória e das issues de review e marca toda decisão afetada como `candidate`, anotada como não verificada contra o código. Você nunca recebe um registro `proven` que nada provou.
+
+## O log de decisões em dois níveis
+
+O que sobrevive ao portão vai parar num log de dois níveis na raiz do workspace, e a separação faz trabalho de verdade.
+
+`.compozy/DECISIONS.md` é um índice enxuto, uma linha por decisão ativa e provada, e é o arquivo que entra na memória do agente:
+
+```text
+AD-NNN | Title | status | [tag, tag] | one-line rationale | source_slug
+```
+
+```text
+AD-001 | Event-sourcing for orders | proven | [orders, async] | audit + replay | feat-orders
+```
+
+Manter esse índice pequeno é o que mantém a abordagem inteira honesta: é o antídoto para o problema de crescimento exponencial, não uma nova instância dele. Todo registro `candidate` e todo `superseded` fica de fora daqui de propósito. Eles ainda existem, mas só nos arquivos deles, nunca na contagem de linhas que o agente tem que ler.
+
+O detalhe vive um nível abaixo, em `.compozy/decisions/AD-NNN.md`: as seções originais do ADR (Context, Decision, Alternatives, Consequences), mais uma nova seção **Reconciliation** descrevendo o que a execução provou versus o que foi planejado. O id `AD-NNN` é atribuído a partir do maior sufixo existente mais um e nunca é reutilizado, mesmo em lacunas, então o número de um registro é um identificador permanente. Em rodadas posteriores a extensão deduplica por proveniência e depois por significado, e classifica cada decisão como NEW, UPDATE (emenda no lugar, sem número novo), SUPERSEDE (marca a antiga como superada, liga a nova) ou no-op quando nada mudou.
+
+## Colocando pra funcionar
+
+Adotar são três comandos pra instalar e habilitar, depois um comando por workflow:
+
+```bash
+compozy ext install --yes compozy/compozy --remote github --ref <tag> \
+  --subdir extensions/cy-capture-decisions
+compozy ext enable cy-capture-decisions
+compozy setup
+```
+
+Dois pedaços de fiação fazem o log carregar de verdade. Se `.compozy/**` está no gitignore, adicione as negações pra que o log siga junto com o repo:
+
+```gitignore
+!.compozy/DECISIONS.md
+!.compozy/decisions/
+!.compozy/decisions/**
+```
+
+Depois importe o índice na memória do seu projeto pra que todo agente o leia antes de planejar:
+
+```text
+@.compozy/DECISIONS.md
+```
+
+Daí é o passo final de uma rodada, apontado pro workflow que você acabou de terminar:
+
+```bash
+/cy-capture-decisions <slug>
+```
+
+## Por que isso muda o próximo plano
+
+Na próxima vez que o `cy-idea-factory` ou o `cy-create-prd` subir, o agente abre o `DECISIONS.md` primeiro e planeja a favor do que já está resolvido. É isso que os artefatos crus nunca deram a ele: o índice está ligado na memória, então as decisões duráveis são lidas automaticamente em vez de ficar paradas no disco sem ninguém abrir. A escolha de event-sourcing de três features atrás deixa de ser uma pergunta que ele refaz e vira contexto sobre o qual ele constrói. O log só cresce quando uma decisão passa por um portão propositalmente rígido, então ele fica curto o bastante pra ser lido em toda rodada e ao mesmo tempo carrega o punhado de escolhas que moldam como a aplicação evolui. É essa a troca inteira: não lembrar de tudo, lembrar dos poucos certos.
+
+Tem uma pequena simetria que eu não planejei. Entregar isso como minha primeira contribuição open source significou pegar a minha própria ideia de como deveria funcionar e reconciliá-la contra o review de um mantenedor sobre como de fato foi entregue. Que é, mais ou menos, exatamente o trabalho que a extensão faz com as decisões de um workflow. Está na versão `0.1.0`, começou como uma coceira em vez de uma spec, e se você roda o Compozy em mais do que uma ou duas features, ela está no [GitHub](https://github.com/compozy/compozy/tree/main/extensions/cy-capture-decisions): instale, aponte pro seu último workflow, e veja quais das suas decisões valiam a pena guardar.
