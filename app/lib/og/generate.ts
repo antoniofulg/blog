@@ -102,6 +102,34 @@ function loadAvatarDataUri(): Promise<string> {
 // ---------------------------------------------------------------------------
 
 /**
+ * True when SITE_URL points at a local dev host — any loopback or bind-all
+ * address, IPv4 or IPv6. The hostname is parsed via the URL API (not a plain
+ * substring match) so bracketed IPv6 forms like `http://[::1]:3000` are
+ * classified correctly; a scheme-less or unparseable value falls back to a
+ * conservative substring check. Such a value is dropped so the committed card
+ * footer falls back to the canonical public domain instead of leaking a dev host.
+ */
+function isLocalSiteUrl(rawSiteUrl: string): boolean {
+	if (!rawSiteUrl) return false;
+	let host = "";
+	try {
+		host = new URL(rawSiteUrl).hostname.toLowerCase().replace(/^\[|\]$/g, "");
+	} catch {
+		// Unparseable — handled by the substring fallback below.
+	}
+	if (host) {
+		return (
+			host === "localhost" ||
+			host === "::1" ||
+			host === "::" ||
+			host === "0.0.0.0" ||
+			host.startsWith("127.")
+		);
+	}
+	return /localhost|127\.0\.0\.1|0\.0\.0\.0|::1/i.test(rawSiteUrl);
+}
+
+/**
  * Renders a 1200 × 630 PNG to `public/og/{locale}/{slug}.png` and returns the
  * public path on success (e.g. `/og/en/my-slug.png`).
  *
@@ -167,13 +195,11 @@ export async function generateOgImage(
 
 		// Build CardTemplate props
 		// OG cards are committed and served in production, so the footer must
-		// never show a dev host. A localhost SITE_URL (from .env during a local
-		// `bun run sync`) is dropped here so the template falls back to the
-		// canonical public domain.
+		// never show a dev host. A loopback/bind-all SITE_URL (e.g. from .env
+		// during a local `bun run sync`) is dropped here so the template falls
+		// back to the canonical public domain.
 		const rawSiteUrl = process.env.SITE_URL ?? "";
-		const siteUrl = /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(rawSiteUrl)
-			? ""
-			: rawSiteUrl;
+		const siteUrl = isLocalSiteUrl(rawSiteUrl) ? "" : rawSiteUrl;
 
 		const templateProps: CardTemplateProps = {
 			title,
