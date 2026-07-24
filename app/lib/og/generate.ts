@@ -166,13 +166,22 @@ export async function generateOgImage(
 		}
 
 		// Build CardTemplate props
+		// OG cards are committed and served in production, so the footer must
+		// never show a dev host. A localhost SITE_URL (from .env during a local
+		// `bun run sync`) is dropped here so the template falls back to the
+		// canonical public domain.
+		const rawSiteUrl = process.env.SITE_URL ?? "";
+		const siteUrl = /localhost|127\.0\.0\.1|0\.0\.0\.0/i.test(rawSiteUrl)
+			? ""
+			: rawSiteUrl;
+
 		const templateProps: CardTemplateProps = {
 			title,
 			tokenLines,
 			codeBg,
 			codeFg,
 			didTruncate,
-			siteUrl: process.env.SITE_URL ?? "",
+			siteUrl,
 			avatarDataUri,
 			listItems: useList ? listItems : undefined,
 		};
