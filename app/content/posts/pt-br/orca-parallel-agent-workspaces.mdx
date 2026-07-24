@@ -9,6 +9,7 @@ ogList:
   - Múltiplos agentes lado a lado
   - Design Mode
   - Orca CLI
+  - Orca Mobile
 ---
 
 Faz umas semanas eu escrevi que estava testando o cmux no lugar do Warp em [Essas são as ferramentas que estou testando no meu setup](/pt-br/dev-setup-after-laptop-reset). Era uma aposta honesta: um terminal nativo, construído em volta de rodar agentes de IA em paralelo, batia com o jeito que eu tinha começado a trabalhar. Só que a aposta não vingou. Voltei pro Warp, e o motivo foi bobo e teimoso ao mesmo tempo: organização. O cmux me dava uma aba por agente, ótimo pra vigiar, mas eu sentia falta de como o Warp me deixava agrupar e reencontrar minhas sessões. Fui voltando sem drama, quase por conforto.
@@ -43,8 +44,6 @@ Pra um blog como este, feito em TanStack Start e Tailwind, esse laço fecha uma 
 
 ## Orca CLI: os agentes dirigem o Orca
 
-E vamos para a parte que me fez conferir algumas vezes se eu não estava em um trial em que meu cartão iria debitar alguns dólares após uma semana de uso hahaha (realmente é open-source e MIT 🙌).
-
 O Orca tem uma CLI, e ela não é só pra mim:
 
 ```sh
@@ -52,6 +51,14 @@ orca worktree create feat/nova-task
 ```
 
 Os próprios agentes dirigem o Orca (`orca worktree create`, `snapshot`, `click`, `fill`) via MCP e hooks. Ou seja, o agente que eu orquestro no Compozy pode abrir o próprio worktree, tirar um snapshot, clicar num elemento. A ferramenta que organiza os agentes é operável pelos agentes. Essa recursão é o tipo de coisa que parece exagero até você usar e perceber que era exatamente o que faltava.
+
+## Orca Mobile: o xeque-mate
+
+E vamos para a parte que me fez conferir algumas vezes se eu não estava em um trial em que meu cartão iria debitar alguns dólares após uma semana de uso hahaha.
+
+O xeque-mate foi o Orca Mobile. Desde o cmux, a peça que eu mais perseguia era acompanhar tudo isso longe da minha máquina. Eu tentava espiar o status de uma run pelo celular, ora pelo Codex, ora pelo próprio cmux, e sempre esbarrava em alguma limitação. Com o Orca Mobile eu mando comando do próprio celular, confiro o status de review e acompanho a run das tasks do Compozy enquanto ela acontece, sem precisar estar na frente da máquina. Dá para mandar um `cy-review-round` ou `compozy reviews fix` enquanto faz o cárdio na academia. 
+
+E o setup é ridículo de simples: baixa o app, faz o login, lê o QR Code, e pronto, o celular já está conversando com o Orca que roda na máquina. Quando eu deixo um loop de tasks rodando no daemon do Compozy e saio pra resolver outra coisa, continuo vendo o progresso e respondendo quando um agente trava pedindo input. Era esse pedaço que vinha faltando desde o cmux, e é ele que fecha a conta.
 
 ## O que me segurou
 

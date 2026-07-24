@@ -9,6 +9,7 @@ ogList:
   - Multiple agents side by side
   - Design Mode
   - Orca CLI
+  - Orca Mobile
 ---
 
 A few weeks ago I wrote that I was testing cmux instead of Warp in [These are the tools I'm testing in my setup](/dev-setup-after-laptop-reset). It was an honest bet: a native terminal, built around running AI agents in parallel, matched the way I'd started working. Except the bet didn't pan out. I went back to Warp, and the reason was silly and stubborn at the same time: organization. cmux gave me one tab per agent, great for keeping watch, but I missed how Warp let me group and find my sessions again. I drifted back without any drama, almost out of comfort.
@@ -43,8 +44,6 @@ For a blog like this one, built with TanStack Start and Tailwind, that loop clos
 
 ## Orca CLI: the agents drive Orca
 
-And now for the part that made me double-check a few times whether I was in some trial that would quietly charge my card a few bucks after a week of use haha (it really is open-source and MIT 🙌).
-
 Orca has a CLI, and it isn't only for me:
 
 ```sh
@@ -52,6 +51,14 @@ orca worktree create feat/new-task
 ```
 
 The agents themselves drive Orca (`orca worktree create`, `snapshot`, `click`, `fill`) through MCP and hooks. Which means the agent I orchestrate in Compozy can open its own worktree, take a snapshot, click an element. The tool that organizes the agents is operable by the agents. That recursion is the kind of thing that sounds like overkill until you use it and realize it was exactly what was missing.
+
+## Orca Mobile: the checkmate
+
+And now for the part that made me double-check a few times whether I was in some trial that would quietly charge my card a few bucks after a week of use haha.
+
+The real checkmate was Orca Mobile. Ever since cmux, the piece I chased hardest was following all of this away from my machine. I kept trying to peek at a run's status from my phone, sometimes through Codex, sometimes through cmux itself, and always ran into some limitation. With Orca Mobile I send commands from the phone, check review status, and follow the Compozy task runs as they happen, without being in front of the machine. I can fire off a `cy-review-round` or a `compozy reviews fix` while doing cardio at the gym.
+
+And the setup is almost absurdly simple: download the app, log in, scan the QR code, and that's it, the phone is already talking to the Orca running on the machine. When I leave a loop of tasks running in the Compozy daemon and step away to deal with something else, I keep seeing the progress and answering when an agent stalls waiting for input. That was the piece that had been missing since cmux, and it's the one that seals the deal.
 
 ## What made it stick
 
