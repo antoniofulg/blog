@@ -1,0 +1,60 @@
+---
+title: "I went back to Warp, then Orca showed up"
+slug: orca-parallel-agent-workspaces
+description: "I bet on cmux to replace Warp and then walked it back for the session organization. Then I found Orca, an ADE that treats running several AI agents in parallel, each in its own isolated worktree, as the default. It's what finally clicked with my Compozy orchestration flow."
+publishedAt: 2026-07-24
+category: tooling
+ogList:
+  - Parallel worktrees
+  - Multiple agents side by side
+  - Design Mode
+  - Orca CLI
+---
+
+A few weeks ago I wrote that I was testing cmux instead of Warp in [These are the tools I'm testing in my setup](/dev-setup-after-laptop-reset). It was an honest bet: a native terminal, built around running AI agents in parallel, matched the way I'd started working. Except the bet didn't pan out. I went back to Warp, and the reason was silly and stubborn at the same time: organization. cmux gave me one tab per agent, great for keeping watch, but I missed how Warp let me group and find my sessions again. I drifted back without any drama, almost out of comfort.
+
+Then, half by accident, I stumbled onto [Orca](https://www.onorca.dev/). And it was the first tool in a long time that made me stop in the middle of the day and think "this is it."
+
+## What an ADE is
+
+Orca doesn't call itself an IDE. It calls itself an **ADE**, an Agent Development Environment. The line on the landing page that got me was this one: *"IDEs were built for you. An ADE is built for you and your agents."* That's not empty marketing to me, because it describes exactly the hole I was falling into: my tools were all built for one human typing one command at a time, and my day had turned into several agents running at once.
+
+It's open source (MIT), runs on macOS, Windows, and Linux (which right away knocks out the macOS-only limitation that held cmux back), and it pulls into a single app the four things I used to keep scattered: worktrees, terminals, browser, and a CLI.
+
+And no, it isn't another Cursor competitor. Cursor, Claude Code, and Codex are where an agent edits and works; Orca is the layer around them, where I coordinate several of them at once. In practice it runs Cursor CLI inside itself, not in its place. They're different categories of tool.
+
+## Parallel worktrees
+
+This is the heart of it, and it's where the "organization" that pulled me back to Warp finally shows up done right. Each task runs in its own isolated git worktree: no `git stash`, no branch juggling, no agent stepping on the file another one is editing. You open a worktree per line of work and each one is its own little world.
+
+For anyone orchestrating with [Compozy](/spec-driven-development-with-compozy) this fits like a glove. Since task execution already runs in a daemon, outside the session, I can open several tasks at once, each in its own worktree, each with its own agent, and follow all of them in parallel without them tripping over each other. This was exactly what I'd been trying to rig by hand; Orca makes it the default behavior.
+
+## Multiple agents side by side
+
+On top of the worktrees comes the part cmux had promised and Orca actually delivered: running Claude Code, Codex, Gemini, Cursor CLI, and a whole pile more (there are 25+ preconfigured agents) side by side, each isolated in its own worktree. There's even an account switcher that shows Claude and Codex usage in real time, with the rate-limit resets, so I don't find out I've blown through my quota at the worst possible moment.
+
+What changed in practice wasn't running more agents; it was no longer losing track of which agent is doing what. Each one has its own corner, its own terminal, its own diff.
+
+## Design Mode
+
+This was the surprise I wasn't expecting. Each worktree can open a real embedded Chromium window: **Design Mode**. You click any element in the interface and Orca sends the HTML, the CSS, and a cropped screenshot of that element straight to the agent.
+
+For a blog like this one, built with TanStack Start and Tailwind, that loop closes an old pain: instead of me describing "that button is misaligned on mobile," I click the button and the agent already has the visual context and the markup. What I see broken becomes, in one click, what the agent fixes.
+
+## Orca CLI: the agents drive Orca
+
+And now for the part that made me double-check a few times whether I was in some trial that would quietly charge my card a few bucks after a week of use haha (it really is open-source and MIT 🙌).
+
+Orca has a CLI, and it isn't only for me:
+
+```sh
+orca worktree create feat/new-task
+```
+
+The agents themselves drive Orca (`orca worktree create`, `snapshot`, `click`, `fill`) through MCP and hooks. Which means the agent I orchestrate in Compozy can open its own worktree, take a snapshot, click an element. The tool that organizes the agents is operable by the agents. That recursion is the kind of thing that sounds like overkill until you use it and realize it was exactly what was missing.
+
+## What made it stick
+
+Warp brought me back for the organization of my sessions. Orca kept me around by organizing around something else: how I actually work today, which is with several agents at the same time. It's not that Warp or cmux were bad. They solve the terminal for one human, and that stopped being my problem.
+
+It's still a trial, I haven't fully moved over. But unlike cmux, here the first week didn't give me the slightest urge to go back. Next time you feel like you're rigging up `tmux` and `git stash` to hold three agents at once, take a look at an ADE. Maybe the problem isn't you getting more organized. Maybe it's that the tool was never built for the way you work now.
