@@ -70,3 +70,13 @@ docs/audits/          — committed audit history (SUMMARY.md)
 - Strategic (register, users, principles, anti-references): PRODUCT.md
 - Visual system (palette, typography, components): DESIGN.md (when present)
 - Loader: `node .agents/skills/impeccable/scripts/load-context.mjs`
+
+## Social Sharing
+- LinkedIn post request: whenever the user asks for a LinkedIn post to share a
+  blog post, append UTM tracking params to the post link so the traffic is
+  attributable in analytics:
+  `?utm_source=linkedin&utm_medium=social&utm_campaign=<post-slug>`
+  - `utm_campaign` is the post's English-canonical slug (same for both locales).
+  - Keep the locale prefix in the path (e.g. `/pt-br/<slug>`); only the query
+    string carries the UTM params.
+  - Example: `https://antoniofulg.tech/compozy-decision-log?utm_source=linkedin&utm_medium=social&utm_campaign=compozy-decision-log`
