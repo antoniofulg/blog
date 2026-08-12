@@ -4,6 +4,7 @@ import { describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "../..");
 const ciYml = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
+const cdYml = readFileSync(join(root, ".github/workflows/cd.yml"), "utf8");
 
 function parseMatrixChecks(yml: string): string[] {
 	const match = yml.match(/check:\s*\[([^\]]+)\]/);
@@ -66,5 +67,13 @@ describe("unit: .github/workflows/ci.yml", () => {
 	it("branch-check job still targets pull_request only", () => {
 		const branchCheckSection = ciYml.slice(ciYml.indexOf("branch-check:"));
 		expect(branchCheckSection).toContain("pull_request");
+	});
+});
+
+describe("unit: .github/workflows/cd.yml", () => {
+	it("publishes images without legacy SSH deployment", () => {
+		expect(cdYml).toContain("docker/build-push-action@v6");
+		expect(cdYml).not.toContain("VPS_SSH_KEY");
+		expect(cdYml).not.toMatch(/^ {2}deploy:/m);
 	});
 });

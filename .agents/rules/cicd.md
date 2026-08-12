@@ -2,11 +2,11 @@
 
 ## Overview
 
-Two GitHub Actions workflows handle all automation. No manual deploy steps exist for normal work.
+Two GitHub Actions workflows handle CI and image publication. Openship owns production deployment.
 
 ```
 ci.yml   — quality gate, triggers on every push and PR
-cd.yml   — deploy pipeline, triggers after ci.yml passes on main only
+cd.yml   — publishes the production image after ci.yml passes on main
 ```
 
 ## CI workflow (ci.yml)
@@ -41,16 +41,15 @@ The `e2e` matrix entry:
 - Runs `bunx playwright test` via `make test-e2e`.
 - Uploads `playwright-report/` and `test-results/` as a GHA artifact (7-day retention) regardless of pass/fail.
 
-## CD workflow (cd.yml)
+## Image publication workflow (cd.yml)
 
 Triggers: `workflow_run` on CI completion with `conclusion == 'success'` for pushes to `main` only. CD never fires if CI failed or was cancelled.
 
-Two jobs run in sequence (deploy needs build-push):
+One job runs:
 
-1. **build-push** — builds Docker image (`target: runner` from multi-stage Dockerfile), tags with `:latest` and `:<short-sha>`, pushes to GHCR
-2. **deploy** — `scp`s `docker-compose.prod.yml` → `$DEPLOY_PATH/docker-compose.yml` on the VPS, SSHes in, brings up `db` and waits healthy, runs `bun run db:migrate`, then `bun run sync`, then `docker compose up -d --no-deps app`. The compose file on the VPS is **CD-managed** — hand-edits get overwritten on the next deploy.
+1. **build-push** — builds Docker image (`target: runner` from multi-stage Dockerfile), tags with `:latest` and `:<short-sha>`, and pushes both tags to GHCR.
 
-Migration runs before container restart — this ordering is non-negotiable. If `make db-migrate` fails, the deploy aborts and the VPS keeps serving the previous container.
+The workflow has no VPS credentials and performs no SSH deployment. Production releases are selected and deployed through the self-hosted Openship control plane. Use the immutable `:<short-sha>` tag for deploys and rollback.
 
 ## Merge to main: what actually happens
 
@@ -60,8 +59,7 @@ PR merged → push to main
   → ci.yml passes
   → cd.yml fires (workflow_run gate)
       → build-push: image at ghcr.io/<owner>/blog:<sha> and :latest
-      → deploy: VPS pulls :latest, runs migrations, runs content sync, restarts app
-  → blog live at new version (~5 min total)
+  → deploy the immutable <sha> image through Openship
 ```
 
 ## GHCR image strategy
@@ -70,21 +68,13 @@ Images are tagged with two tags per build (ADR-003):
 - `:latest` — VPS always pulls this; points to most recent main build
 - `:<short-sha>` — immutable, traceable to exact commit; use for rollback
 
-Rollback without rebuild: `docker tag ghcr.io/<owner>/blog:<old-sha> ghcr.io/<owner>/blog:latest && docker push ghcr.io/<owner>/blog:latest` on the VPS.
+Rollback without rebuild: select the previous immutable image deployment in Openship and use snapshot rollback.
 
 GHCR package is set to **public** — VPS pulls without credentials. Production secrets (DATABASE_URL, etc.) are never in the image; they come from `.env` at runtime.
 
 ## GitHub Secrets required (one-time setup)
 
-### Deploy secrets
-
-| Secret | Value |
-|--------|-------|
-| `VPS_HOST` | VPS IP or hostname |
-| `VPS_USER` | Deploy user (must be in `docker` group) |
-| `VPS_SSH_KEY` | Ed25519 private key (full PEM including header/footer) |
-| `VPS_PORT` | SSH port (usually 22) |
-| `VPS_DEPLOY_PATH` | Absolute path to project on VPS (e.g. `/home/deploy/blog`) |
+The image publication workflow needs no VPS secrets. Remove legacy `VPS_*` deploy secrets after the Openship cutover.
 
 ### E2E secrets
 
@@ -95,9 +85,9 @@ GHCR package is set to **public** — VPS pulls without credentials. Production 
 
 **One-time setup**: Go to the GitHub repository → Settings → Secrets and variables → Actions → New repository secret. Add `E2E_ADMIN_EMAIL` and `E2E_ADMIN_PASSWORD` with the credentials of a seeded admin account. These values must match what is seeded in the test database via `global-setup.ts`. The secrets are read by the `e2e` matrix entry and passed to the test process via environment variables.
 
-## Manual deploy fallback
+## Legacy SSH rollback fallback
 
-If GitHub Actions is unavailable, deploy.sh accepts the same env vars:
+`scripts/deploy.sh` is retained only for emergency rollback to the old Compose stack. Stop the Openship app first so port 3000 is free, then opt in explicitly:
 
 ```sh
 export VPS_USER=deploy
@@ -106,6 +96,7 @@ export VPS_PORT=22
 export DEPLOY_PATH=/home/deploy/blog
 export GHCR_OWNER=<owner>
 export GHCR_REPO=blog
+export ALLOW_LEGACY_SSH_DEPLOY=1
 bash scripts/deploy.sh
 # or: make deploy
 ```
