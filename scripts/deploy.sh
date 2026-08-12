@@ -1,6 +1,8 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+: "${ALLOW_LEGACY_SSH_DEPLOY:?set ALLOW_LEGACY_SSH_DEPLOY=1 to run the legacy SSH deploy}"
+
 : "${VPS_USER:?VPS_USER env var required}"
 : "${VPS_HOST:?VPS_HOST env var required}"
 : "${DEPLOY_PATH:?DEPLOY_PATH env var required}"

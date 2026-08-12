@@ -31,6 +31,7 @@ const baseEnv: NodeJS.ProcessEnv = {
 };
 
 const requiredVars = {
+	ALLOW_LEGACY_SSH_DEPLOY: "1",
 	VPS_USER: "testuser",
 	VPS_HOST: "testhost",
 	DEPLOY_PATH: "/home/deploy/blog",
@@ -270,6 +271,16 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stderr).toContain("VPS_USER");
 	});
 
+	it("requires explicit opt-in before any legacy deploy", () => {
+		const { ALLOW_LEGACY_SSH_DEPLOY: _removed, ...withoutOptIn } = requiredVars;
+		const result = spawnSync("bash", [deployScript], {
+			env: { ...baseEnv, ...withoutOptIn },
+			encoding: "utf8",
+		});
+		expect(result.status).not.toBe(0);
+		expect(result.stderr).toContain("ALLOW_LEGACY_SSH_DEPLOY");
+	});
+
 	it("exits non-zero and references DEPLOY_PATH when unset", () => {
 		const { binDir } = makeWorkspace();
 		const { DEPLOY_PATH: _removed, ...withoutPath } = requiredVars;
@@ -348,6 +359,6 @@ describe("integration: make deploy", () => {
 			encoding: "utf8",
 		});
 		expect(result.status).not.toBe(0);
-		expect(result.stderr).toContain("required");
+		expect(result.stderr).toContain("ALLOW_LEGACY_SSH_DEPLOY");
 	});
 });
