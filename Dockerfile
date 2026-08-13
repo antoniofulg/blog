@@ -40,5 +40,5 @@ COPY --from=builder /app/public ./public
 
 EXPOSE 3000
 
-# Entry path verified against Nitro bun preset output on 2026-05-05
-CMD ["bun", ".output/server/index.mjs"]
+# Expose HTTP only after migration and content sync succeed.
+CMD ["sh", "-c", "bun run db:migrate && bun run sync && exec bun .output/server/index.mjs"]

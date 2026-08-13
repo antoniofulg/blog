@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 const root = join(import.meta.dirname, "../..");
 const ciYml = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
 const cdYml = readFileSync(join(root, ".github/workflows/cd.yml"), "utf8");
+const dockerfile = readFileSync(join(root, "Dockerfile"), "utf8");
 
 function parseMatrixChecks(yml: string): string[] {
 	const match = yml.match(/check:\s*\[([^\]]+)\]/);
@@ -75,5 +76,46 @@ describe("unit: .github/workflows/cd.yml", () => {
 		expect(cdYml).toContain("docker/build-push-action@v6");
 		expect(cdYml).not.toContain("VPS_SSH_KEY");
 		expect(cdYml).not.toMatch(/^ {2}deploy:/m);
+	});
+
+	it("publishes an immutable image tagged with the full triggering commit SHA", () => {
+		expect(cdYml).toContain(
+			`ghcr.io/\${{ github.repository }}:\${{ github.event.workflow_run.head_sha }}`,
+		);
+		expect(cdYml).not.toContain("sha_short");
+	});
+
+	it("builds the checked-out commit instead of the action Git context", () => {
+		expect(cdYml).toContain("context: .");
+		expect(cdYml).toContain("Verify checkout SHA");
+		expect(cdYml).toContain('git rev-parse HEAD)" = "$EXPECTED_SHA"');
+	});
+
+	it("cancels superseded production runs and skips stale commits", () => {
+		expect(cdYml).toContain(`group: \${{ github.workflow }}-production`);
+		expect(cdYml).toContain("cancel-in-progress: true");
+		expect(cdYml).toContain(`github.event.workflow_run.head_sha == github.sha`);
+	});
+
+	it("requests a Coolify deployment after the image is published", () => {
+		const publishIndex = cdYml.indexOf("docker/build-push-action@v6");
+		const deployIndex = cdYml.indexOf("Deploy with Coolify");
+
+		expect(deployIndex).toBeGreaterThan(publishIndex);
+		expect(cdYml).toContain("secrets.COOLIFY_WRITE_TOKEN");
+		expect(cdYml).toContain("--request PATCH");
+		expect(cdYml).toContain(
+			"https://antoniofulg.tech/_ops/coolify/blog/deploy",
+		);
+		expect(cdYml).toContain('"docker_registry_image_tag"');
+		expect(cdYml).toContain('"instant_deploy":true');
+	});
+});
+
+describe("unit: production Dockerfile", () => {
+	it("runs migrations and content sync before starting the server", () => {
+		expect(dockerfile).toContain(
+			'CMD ["sh", "-c", "bun run db:migrate && bun run sync && exec bun .output/server/index.mjs"]',
+		);
 	});
 });

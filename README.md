@@ -49,7 +49,7 @@ make help          # List all targets with descriptions
 |---------|-------------|
 | `make build` | Build production Docker image |
 | `make preview` | Run production image locally |
-| `make deploy` | Deploy to VPS (wire up `scripts/deploy.sh`) |
+| `make deploy` | Legacy SSH deploy fallback (explicit opt-in required) |
 
 ### Database
 
@@ -116,11 +116,13 @@ All five must pass before merge is allowed.
 
 CI re-runs on the merge commit → CD fires automatically:
 
-1. Builds production Docker image → pushes to GHCR (`:latest` + `:<sha>`)
-2. SSHes into VPS → runs migrations from new image → restarts app container
-3. Commits updated `CHANGELOG.md` back to main with `[skip ci]`
+1. Builds the production Docker image → pushes to GHCR (`:latest` + immutable full SHA)
+2. Calls the restricted Coolify endpoint → selects that SHA and queues deployment
+3. New container runs migrations and content sync → starts the server → passes health check
 
 VPS updated in ~5 minutes. No manual steps.
+
+Required repository secret: `COOLIFY_WRITE_TOKEN`, created in Coolify with only the `Write` permission.
 
 ### Emergency hotfix
 
@@ -136,6 +138,7 @@ git push origin hotfix/description
 ```sh
 export VPS_USER=deploy VPS_HOST=<ip> DEPLOY_PATH=/home/deploy/blog \
        GHCR_OWNER=<owner> GHCR_REPO=blog
+export ALLOW_LEGACY_SSH_DEPLOY=1
 bash scripts/deploy.sh   # or: make deploy
 ```
 

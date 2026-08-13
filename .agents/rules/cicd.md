@@ -2,11 +2,11 @@
 
 ## Overview
 
-Two GitHub Actions workflows handle CI and image publication. Openship owns production deployment.
+Two GitHub Actions workflows handle CI, image publication, and deployment through the self-hosted Coolify instance.
 
 ```
 ci.yml   — quality gate, triggers on every push and PR
-cd.yml   — publishes the production image after ci.yml passes on main
+cd.yml   — publishes and deploys the production image after ci.yml passes on main
 ```
 
 ## CI workflow (ci.yml)
@@ -41,15 +41,17 @@ The `e2e` matrix entry:
 - Runs `bunx playwright test` via `make test-e2e`.
 - Uploads `playwright-report/` and `test-results/` as a GHA artifact (7-day retention) regardless of pass/fail.
 
-## Image publication workflow (cd.yml)
+## Image publication and deployment workflow (cd.yml)
 
 Triggers: `workflow_run` on CI completion with `conclusion == 'success'` for pushes to `main` only. CD never fires if CI failed or was cancelled.
 
-One job runs:
+One job runs, under the `production` concurrency group. A newer run cancels an
+older one, and a run is skipped when its triggering commit is no longer the
+latest commit on `main`.
 
-1. **build-push** — builds Docker image (`target: runner` from multi-stage Dockerfile), tags with `:latest` and `:<short-sha>`, and pushes both tags to GHCR.
+1. **build-push** — checks out and verifies the triggering SHA, builds that local checkout (`context: .`, `target: runner`), tags it with `:latest` and the full commit SHA, pushes both tags to GHCR, then requests an instant deployment through the restricted Coolify API endpoint.
 
-The workflow has no VPS credentials and performs no SSH deployment. Production releases are selected and deployed through the self-hosted Openship control plane. Use the immutable `:<short-sha>` tag for deploys and rollback.
+The workflow has no VPS credentials and performs no SSH deployment. `COOLIFY_WRITE_TOKEN` is used only for the exact application update endpoint exposed by Caddy. The Docker runner executes migrations and content sync before starting the HTTP server, so a failed preparation never becomes healthy.
 
 ## Merge to main: what actually happens
 
@@ -59,22 +61,30 @@ PR merged → push to main
   → ci.yml passes
   → cd.yml fires (workflow_run gate)
       → build-push: image at ghcr.io/<owner>/blog:<sha> and :latest
-  → deploy the immutable <sha> image through Openship
+      → Coolify selects the immutable <sha> image and queues deployment
+      → new container migrates, syncs content, then starts the server
+  → Coolify health check promotes the new container
 ```
 
 ## GHCR image strategy
 
 Images are tagged with two tags per build (ADR-003):
-- `:latest` — VPS always pulls this; points to most recent main build
-- `:<short-sha>` — immutable, traceable to exact commit; use for rollback
+- `:latest` — convenience pointer to the most recent `main` build
+- `:<full-sha>` — immutable, traceable to the exact commit; used by Coolify and for rollback
 
-Rollback without rebuild: select the previous immutable image deployment in Openship and use snapshot rollback.
+Rollback without rebuild: set the application image tag to a previous full SHA in Coolify and deploy it.
 
-GHCR package is set to **public** — VPS pulls without credentials. Production secrets (DATABASE_URL, etc.) are never in the image; they come from `.env` at runtime.
+GHCR package is set to **public** — Coolify pulls without registry credentials. Production secrets (`DATABASE_URL`, etc.) are never in the image; they are runtime environment variables managed by Coolify.
 
 ## GitHub Secrets required (one-time setup)
 
-The image publication workflow needs no VPS secrets. Remove legacy `VPS_*` deploy secrets after the Openship cutover.
+### Deploy secret
+
+| Secret | Value |
+|--------|-------|
+| `COOLIFY_WRITE_TOKEN` | Coolify API token with only the `Write` permission |
+
+The workflow needs no VPS or SSH secrets. Remove legacy `VPS_*` deploy secrets after the Coolify cutover.
 
 ### E2E secrets
 
@@ -87,7 +97,7 @@ The image publication workflow needs no VPS secrets. Remove legacy `VPS_*` deplo
 
 ## Legacy SSH rollback fallback
 
-`scripts/deploy.sh` is retained only for emergency rollback to the old Compose stack. Stop the Openship app first so port 3000 is free, then opt in explicitly:
+`scripts/deploy.sh` is retained only for emergency rollback to the old Compose stack. Route Caddy back to the legacy app and opt in explicitly:
 
 ```sh
 export VPS_USER=deploy
