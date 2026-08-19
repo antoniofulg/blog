@@ -1,0 +1,280 @@
+---
+title: "I built an AI workflow that gives me a balance between delivery and reliability"
+slug: delivery-and-reliability-workflow
+description: "I extracted a reusable pack for shipping without lying about quality: vertical slices, a scoped gate, review caps, and a loop that can run from spec to merge without me in the chat."
+publishedAt: 2026-08-19
+category: tooling
+archetype: architecture-migration
+absorbedArchetype: ai-agent
+audience: peer-engineer-deep
+depthPlan: "R2 -> R3/R4 -> R2; spiral"
+---
+
+Before I get into it, I owe an apology for posting less often. Some of that was personal. The rest was a mix of excitement and caution: I went so deep into improving my agent workflow that I did not want to publish a conclusion before it survived real work.
+
+I could have written earlier about every new tool, every model mix, or every automation that looked good in week one. I waited. Some ideas got dropped along the way, others changed a lot, and this post is about one of them.
+
+For a while, my AI development workflow had an agent whose job was to watch other agents work. It tracked each worktree, waited for updates, checked for blockers, and handed out the next task. I even put a watchdog on it to keep that supervisor awake.
+
+On paper, it made sense. If I had several implementers in parallel, someone had to coordinate the team. In practice I created a manager that burned tokens asking whether everyone was done yet.
+
+The problem was not using multiple agents. They still delivered well when they got a defined task. The waste sat in the permanent layer between me and them: an expensive context, always on, used mostly to ferry status that could have been written in the repository.
+
+Today I talk directly to whoever is implementing, in isolated worktrees, and I leave the state of the work in durable artifacts. I extracted that loop into a stack-agnostic pack, because what I needed to carry between projects was not the product. It was the cap, the gate, and the place where the truth lives.
+
+The design problem that remained, after killing the supervisor, was another pair: shipping without a floor, or never finishing. A green suite with a paraphrased spec ships bugs. A review with no cap hits thirty rounds and calls that quality. The pack sits in the middle: a slice small enough to read, a cheap gate while you build, a test and security floor in the spec, and a human merge.
+
+Orchestration still exists. There is just no longer an agent being paid to carry it in memory.
+
+## The supervisor became part of the problem
+
+The central orchestrator did not come from a bad idea. Models had a harder time holding long tasks, and each new stage benefited from a clean context. Splitting planning, execution, review, and fixes into distinct sessions was a protection against drift.
+
+That is why I used Compozy to build deterministic loops. [I already walked through that pipeline in another post](/spec-driven-development-with-compozy), so I will not rebuild it here. One phase produced the spec, another the tech spec, another the tasks. Then came execution, review, fixes, and a final check. Each stage started with the artifact it needed, without inheriting the whole previous conversation, only the context it actually required.
+
+That workflow still has value when we are using weaker models. With stronger models and more efficient context compaction, we would mostly be burning tokens at startup rereading everything just to know what to do and how to do it.
+
+Something else that lost value for me was keeping another model on top of the pipeline only to watch transitions that were already recorded on disk.
+
+The cost showed up in three ways:
+
+- The supervisor reread status the implementers could already query.
+- Each check-in message carried part of the project context again.
+- Simple coordination turned into a conversation between agents before it turned into work.
+
+I was trying to reduce uncertainty with one more agent. I only moved where the uncertainty lived.
+
+## Orchestration left the chat and moved into the repository
+
+The important change was not swapping a tool. It was swapping who owns state.
+
+Before, the orchestrator had to remember who was doing what, which tasks were blocked, and which agent should go next. Now those answers have to exist outside any session. Work enters as vertical slices: one observable behaviour, the tests that prove it, one atomic commit.
+
+```text
+human picks the front and authorizes the merge
+        |
+        v
+slice (a set of tasks): implement → scoped gate → atomic commit
+        |
+        v
+Verifier ≤3  →  QA walk if there is a screen  →  deep-review ≤2
+        |
+        v
+last slice: QA session (no product code)
+        |
+        v
+full gate once → pull request
+```
+
+The human is still the scheduler, now in a narrower way: I pick the front, approve local work, and give an explicit go-ahead for push, merge, and deploy. An approved spec does not authorize the agent to publish.
+
+The implementer does not need the whole project history, because the task points at the spec, declares its dependencies, and carries a test contract with ids (`UT-001`, `IT-001`, `E2E-001`, `SEC-001`). A test that mirrors the implementation proves nothing; the case asserts the outcome the spec promised. "Implement the feature" is not a done criterion. A useful one talks about observable behaviour and evidence produced by a fresh command.
+
+That also changes what it means to follow a delivery. I do not need to ask the agent whether it finished. I can look at facts: the slice was committed, the gate for that tree passed, the Verifier compared the deliverable to the spec, and the review is pinned to a SHA.
+
+The result is coordination that is less automatic, and much cheaper to inspect. It also gave me time back for the part I still do not want to fully delegate: deciding how the interface should behave, and how it should feel.
+
+A filed issue that already went through review takes another path: `implement → scoped gate → one commit`. The ceremony already happened. Putting Verifier, QA, and deep-review back on it only moves the ritual to another date. Before taking the issue, the question is whether I would write it if the ticket did not exist. If not, I skip it, comment why, and do not dispatch. A defect nobody filed is a feature, at whatever depth auto-size asks for. A "one-line fix" that opens a schema or a design question stopped being an issue; I say so and take the feature path.
+
+The slice also does not become a PR per slice. It is still one pull request. What changes is how much each reading has to hold at once.
+
+## Good specs let the implementer work alone
+
+I tried different Spec-Driven Development approaches, among them [BMAD](https://github.com/bmad-code-org/bmad-method), [Superpowers](https://github.com/obra/superpowers), and [TLC Spec Driven](https://www.techleads.club/c/blog/tlc-spec-driven-v3-precisao-de-escopo-e-qualidade-com-simplicidade). I did not land on a universal winner. They solve different moments of the work.
+
+When I am starting a product, I still like a process that pressures the idea. BMAD brainstorming is excellent when the problem is unclear, when there are too many hypotheses, or when I am still trying to find out whether anything is worth building. Superpowers is also interesting when I want a strong discipline between design, plan, implementation, and review.
+
+When the product and the scope are already defined, TLC has given me the best balance. The flow is short: specify, design the solution, break it into tasks, execute. It auto-sizes: a one-line fix gets no spec; a multi-component feature gets the full pack. The model I extracted **increments** those four phases. It does not replace them.
+
+The advantage is not producing more documents. It is producing enough documents for another agent to enter later without reconstructing my intent from a chat. And, at the other extreme, stopping the habit of keeping spec, design, and tasks as permanent truth after the code exists. The inverted arrangement I had before gated drift on documents nobody read, and did not remember what the product promises today. Planning lives on the branch. What has to survive becomes code, an `AD-NNN` decision, a scenario in `docs/qa/`, or a product document. `docs/qa/` is what remembers the current promise; an old spec is not.
+
+A slice ready for implementation has to answer at least these questions:
+
+- Which observable behaviour changes?
+- What is out of this delivery?
+- Which decisions and tasks does it depend on?
+- Which files or resources can collide with other work?
+- Which test cases, with ids, prove it is done?
+
+Tests are never a separate task. Coverage without an invariant does not get in either: if there is nothing the case protects, the test is not written. A slice that is not observable or not complete is not a slice. E2E only enters when the slice opens a journey nothing else already walks; the second slice in the same journey proves itself at integration, not in the browser.
+
+When the feature touches runtime, a trust boundary, or data, the surfaces go into the spec at Specify and become `SEC-` cases in the contract. A control becomes a count, not a reminder. Security that only shows up in the final review is theatre.
+
+Small slices make review cheap and ramp-up expensive: each task is a fresh agent that rereads the spec. That is why workflow memory exists, in two files, in the feature directory: `MEMORY.md` for what another task needs not to rediscover, and `task_NN.md` for the operational notes of the current run. Both are read before the first edit. The repository wins over any memory that contradicts it.
+
+Documenting dependencies also does not create a scheduler by itself. TLC can say that task B depends on A; it does not stop two agents from picking B at the same time. That is why the workflow still needs a simple, auditable reservation for tasks, shared paths, ports, and other resources. Without that, dropping the supervisor only swaps token burn for a concurrency fight.
+
+The branch is state too, and a bad name hides what the user gets. The slug names the behaviour (`feat/account-onboarding`), not the implementation (`feat/add-users-table`) and not the checkout slot. Nobody works on `main`. A merged branch that stays looks like work in progress. Two checkouts of the same branch, or two checkouts sharing a runtime, are how a gate silently verifies the wrong tree.
+
+## A good harness pairs guides and sensors
+
+Dropping the central supervisor only worked because the implementer was not left alone with a prompt and a terminal. It still works inside a harness: the layer that assembles context, offers tools, applies permissions, records state, and decides which checks have to pass.
+
+To think about that harness, I started separating two things that look like documentation and do different jobs: **guides** and **sensors**.
+
+| Piece | Job | Examples |
+| --- | --- | --- |
+| Guides | Show the expected path before and during the work | Specs, test contract, `uiux.md`, rules loaded by condition, `AD-NNN` decisions |
+| Sensors | Make a deviation observable | Scoped gate, typecheck, lint, Verifier mutants, QA walk, deep-review, CI |
+
+The pack's guides are triggered, not dumped. An earlier arrangement loaded more than a thousand mandatory lines before any task. Today `AGENTS.md` dispatches: if the change touches a screen, read UI; if it touches a public surface, read DX; if you are about to commit, read evidence. Growing an instruction file with restated prose is a defect, because every turn pays for the whole file.
+
+A guide can say that shared types live in a specific module, that a server function validates the session at the top, or that a feature must not import another layer directly. It shrinks the agent's decision space before the code exists.
+
+Instruction is not a guarantee. The model can misread the rule, lose part of it when context is compacted, or take a shortcut that looks reasonable locally. That is where the sensor comes in: the typechecker finds the contract break, the Verifier injects a behavioural mutant and asks whether the test kills it, the QA walk observes the journey, and deep-review looks for what the deterministic checks could not express.
+
+The opposite fails too. Sensors without guides find symptoms after the agent already made expensive decisions. A test can prove the button works without noticing that the implementation duplicated a business rule, crossed an architectural boundary, or created a path that is hard to keep. The guide explains which shape the solution should preserve; the sensor checks whether the delivery stayed inside it.
+
+That pair is what reduces future technical debt. No harness can promise zero debt, but there is a large difference between leaving a divergence hidden and turning it into a visible failure before merge. When an important rule still depends on someone remembering it during review, the harness is missing a sensor. When a check fails and nobody understands which principle it protects, it is missing a guide.
+
+In the current flow, spec, test contract, and triggered guidelines are guides. Gate, Verifier, QA, and deep-review are sensors. Durable state ties them together: it records what should happen and the evidence of what actually happened, with the command that produced the number.
+
+## Deep review only works with a cap and one vocabulary
+
+After implementation, review is not one infinite reader. There are three questions, inside each slice, in this order:
+
+| Reader | The question only it answers | Cap |
+| --- | --- | --- |
+| Verifier | Do the tests actually prove the spec? | ≤3 fix rounds, then escalate to me |
+| QA walk | Does this behaviour work for a person? | Only this slice's scenarios, and only if there is a visible surface |
+| Deep-review | Is the code correct, safe, and maintainable? | ≤2 rounds, blocking findings only |
+| QA session | Does the finished feature feel right? | One session, on the last slice |
+
+The deep-review I run is [Pedro Nauck's skill](https://github.com/pedronauck/skills/tree/main/skills/mine/deep-review). It shards the diff into cohorts, fans out reviewers in parallel, and returns findings with a `SHIP`, `FIX_BEFORE_SHIP`, or `REWORK` verdict. The two-round cap, and the Blocker/Major cut, is the delivery policy I put around it.
+
+The QA rounds come from the same set. [`qa-report`](https://github.com/pedronauck/skills/tree/main/skills/mine/qa-report) plans the `docs/qa/` tree: scenarios, charters, journeys. [`qa-execution`](https://github.com/pedronauck/skills/tree/main/skills/mine/qa-execution) walks those journeys in persona, in the browser, with no developer shortcut. The walk on a visible slice and the session on the last slice are the rounds; the skills are the protocol.
+
+They do not send work back to each other. A deep-review finding does not restart the Verifier. The exception is narrow: if the fix changes user-visible behaviour, re-walk only the affected scenario rows. A documentation-only slice still gets a Verifier and a deep-review. `docs/` is full of Markdown that agents act on; no compiler catches a plan that says work has not started when it has already shipped.
+
+The Verifier is not the author. A model that implemented the change will defend it. It re-derives coverage from the spec and injects mutants. Enumerated cases in `tests.md` prove coverage exists; mutants prove it is real. A green gate is not a met requirement. Reviewers compare the deliverable to `spec.md`, `tests.md`, and, when they exist, `uiux.md` / `dx.md`, field by field. Paraphrase is not parity.
+
+I measured an uncapped loop reaching 30 rounds on one feature. The rule that caused it sounded responsible: fix every confirmed finding **and every nit** in the same iteration. Each nit changes the diff; the next round finds new nits. The loop is unbounded by construction.
+
+The taxonomy I use now is TLC's, so Verifier and deep-review speak the same language:
+
+| Severity | Action |
+| --- | --- |
+| Blocker | Fix now |
+| Major | Fix now |
+| Minor that blocks a journey | Fix now |
+| Minor that does not block, and every Cosmetic | File an issue and do not hold the PR |
+
+A filed issue is real backlog, with context and a closing criterion. "Fix it later" without that is just forgetting with more organization. And a round contains only findings that have not already been raised. Without that rule, the Verifier's cap of three does not converge: the same problem comes back in different wording.
+
+A new control for a failure nobody observed, and that the spec did not name, is Major: YAGNI. A killed-process shim, a test-of-the-test, an allowlist the spec did not ask for. The skill is `ponytail-review`; the rule is what makes YAGNI blocking.
+
+The review also has to be pinned to a commit. If the reviewer looked at SHA `abc123` and another agent changed the branch afterwards, the verdict does not magically follow the new version. The evidence was invalidated. A green verdict over a red gate is also void.
+
+On the Media Worker of one of my projects, a round found high findings and all of them were fixed in that run. That is different from the policy I adopted later, of letting Cosmetic and non-blocking Minor become issues. Mixing the two cases would make the story prettier, and less true.
+
+## Running the product gate on every slice became waste too
+
+The same problem showed up in tests. A small change could wait five to seven minutes for the full E2E suite. If the test failed, I fixed one line and paid the time of every flow again, including the ones with no known relation to the change.
+
+The temptation was to drop smoke tests from the iteration, or any test that "was not part of the feature". That would invert the problem. Smoke tests are the small set of critical journeys; they stay in the product gate. What I wanted to avoid was paying that gate ten times on a ten-task feature.
+
+The current loop works in two moments:
+
+```text
+closing a slice
+  -> scoped gate on what this diff touched
+  -> if the selector cannot scope it, escalate to the full gate
+
+closing the feature, before the PR
+  -> the product gate, once, on the tree that will ship
+```
+
+The honest claim for an intermediate task is: *implemented, affected lanes green, full gate deferred to feature close*. That is a complete, truthful claim, not a shortcut. Running every lane on every task, on a ten-task feature, buys nothing that running them once at the end does not. Never weaken, skip, or delete a test to make a gate pass.
+
+Empty or unknown selection also escalates. "No tests were selected" does not prove the change affects nothing; it can mean the selector failed silently. Schema, runtime orchestration, build tooling, and shared tokens also escalate, because the selector cannot hold them.
+
+Playwright has [change-based selection with `--only-changed`](https://playwright.dev/docs/test-cli), but that is a project detail, not the rule. The rule is: the consuming project names the scoped-gate command and the full-gate command. The pack does not ship a Makefile.
+
+There is also an optional cache, keyed on a tree fingerprint. A passing record whose tree is still this one is fresh evidence; a commit alone does not invalidate anything, an edit does. Scope still binds: a scoped record never supports "feature complete".
+
+`docs/qa/scenarios/` does not cut gate time. It decides which *visible promises* the diff invalidated, so the QA walk covers those and not all of them. It scopes manual verification, not the automated suite.
+
+## The Second Brain surfaces contradictions. It does not own state
+
+To keep each spec from being written as if the project had been born that morning, the pack carries a knowledge bundle in Open Knowledge Format. The wiki does not summarize `docs/`. It holds what no single source document can see: the graph between them, and the contradictions none of them resolve.
+
+That helps the agent ask better questions. When planning feature A, it can find an earlier decision, a domain term used in two ways, or a contract that might be affected.
+
+But the wiki does not own execution. When bundle and source disagree, the source wins and the concept is wrong. In-flight tasks, locks, commits, and validation results stay in their own artifacts. The bundle checker runs when someone writes to it, not as part of the product gate.
+
+There are two write paths, asymmetric on purpose. If a durable fact shows up in conversation that the documents do not know, the agent offers to record it and waits for a yes. Harvest after a closed feature is explicit, per feature, never automatic on every commit.
+
+I want to write about this part in more detail later, because it opened another problem: how to keep enough memory to avoid contradictory decisions without turning every old file into permanent context.
+
+## The interface freezes before internals
+
+Once requirements and specs are clear, a feature that changes a screen gets a `uiux.md` still in Design, before internal design: screens, routes, states (empty, loading, error, success), breakpoints, reused components, and copy. That file is the input a design agent executes. "All states" is not a list; an omitted state ships without existing.
+
+Seeing the proposal early has avoided a very specific class of rework: the agent delivering an interface that is technically correct, and far from the experience I had in mind. Internals designed first get redesigned when the screen moves. It is cheaper to argue about the flow while it is still a map than after components, tests, and styles are already in place.
+
+I also use the Ponytail skill at `full` intensity before specify, design, issue selection, any subagent prompt, and any code. It asks whether the work needs to exist, reaches for the standard library before a dependency, and prefers one line to fifty. Each acceptance criterion still has to survive "does this need to exist?". In UI, that includes asking whether the action can take fewer steps. Fewer clicks is not a law, though. Sometimes a confirmation step prevents an expensive mistake; sometimes splitting a screen reduces cognitive load. The goal is to remove ceremony without removing clarity.
+
+A mockup anticipates visual feedback. Behaviour still lives in the surface map; accessibility still needs verification; and the finished interface still has to be used in the browser. Confusing a mockup with evidence only brings a false sense of done earlier.
+
+The same idea one floor down applies to DX: routes, CLI verbs, and config keys written as if they were already shipped, with failures enumerated, before internals serve that contract.
+
+## With the work defined, I don't need the most expensive model at every step
+
+Better specs also changed how I pick models. The question stopped being "which model is best?" and became "where does this stage still contain ambiguity?".
+
+I tend to use a stronger model to open the task, read the contracts, challenge the plan, and decide how to break the work down. After that, a cheaper model can execute a well-bounded implementation. Review goes back to a strong model, and, when I want real independence, to another model family. A last pass can use a fast model with high reasoning to hunt specific inconsistencies.
+
+In one round, that can mean [GPT-5.6 Sol](https://developers.openai.com/api/docs/models) at the start, Luna on implementation, and an [Opus](https://www.anthropic.com/claude/opus) model on review. I do not treat that mix as a recipe. Names and prices change fast, and the cheaper model is only cheap when it does not have to redo an ambiguous task three times.
+
+The workflow pack itself is stack-agnostic and provider-agnostic. Tools like [Compozy](https://www.compozy.com/), [Orca](https://www.onorca.dev/), and [Maestri](https://www.themaestri.app/en) help in different parts of that composition. It would still be imprecise to say the three offer the same provider-neutral API. Compozy exposes a runtime and communication interfaces. Orca and Maestri mostly coordinate agents and CLIs. The visual result can look the same, different models collaborating, but the technical contract is not. [I have also written about how Orca organizes worktrees](/orca-parallel-agent-workspaces); here it is infrastructure, not the lead.
+
+Current flagship models also hold long tasks better than the ones that pushed me into a pipeline of disposable contexts. Today I can hand a sequence of work to a main agent and let it call specialized subagents without restarting the whole process at every phase.
+
+That did not make deterministic workflows useless. They are still better when I need to recover an interrupted run, reproduce steps, or prove exactly what happened. They just stopped being the automatic answer for every task.
+
+## What I would do differently
+
+I would have separated coordination from intelligence earlier.
+
+The central supervisor looked necessary because it concentrated decisions, status, and authority. Those three things did not need to live together. Decisions could live in the specs and in `AD-NNN`, status in the task artifacts, and merge authority could stay with me.
+
+I would have put a review cap in place before measuring 30 rounds. Nits in the same cycle look like care; in practice they are a generator of new diffs.
+
+I would also have defined the debt policy before I started filing issues, and two decision namespaces from the start. An architecture invariant is not a reversible feature call. A feature-local choice is not "the way the system is". Mixing the two is how a decision becomes dogma, or a dogma becomes a sprint preference.
+
+And I would have instrumented the old workflow before abandoning it. I know the supervisor burned too many tokens and the E2E suite delayed simple iterations, but I still do not have a clean comparison of cost per delivery item, time to merge, or rework rate. That is why this text describes an operational change that worked better for me, not a benchmark that proves universal superiority.
+
+## Where the loop is now
+
+In August 2026, the loop I am using, and that I extracted into the pack, is this:
+
+1. Specify, design, and break into tasks, or skip planning when auto-size says the change is obvious.
+2. Cut into vertical slices: one observable behaviour plus the tests that prove it.
+3. Implement the shortest path.
+4. Close the slice on the scoped gate and an atomic commit.
+5. Verifier for up to three rounds; QA walk if there is a screen; deep-review for up to two, Blocker and Major only (minors become issues).
+6. On the last slice, the QA session over the whole feature, with no product code.
+7. Full gate once, on the final tree.
+8. Pull request. On a run I am watching, the merge is mine.
+
+There are still rough edges. The human can become the new bottleneck. Badly documented reservations can allow duplicate work. The gate selector can go blind. A badly named branch, or two checkouts of the same tree, can make the gate authenticate the wrong work. The wiki can preserve a decision that should already have been superseded. An unattended mode can decide too much or stop too much. Removing the orchestrator did not remove the need for governance; it only made it more obvious where that governance has to live.
+
+## /autonomous: from spec to merge without me in the chat
+
+I wrote the [`autonomous`](https://github.com/antoniofulg/my-workflow/blob/main/.agents/skills/autonomous/SKILL.md) skill so the loop could run on its own. Not to have one more agent watching agents. So I would not sit in the chat granting permission at every phase, or answering choices the documents already hold.
+
+What makes the result favorable is the guides and the sensors. Spec, test contract, `uiux.md`, `SEC-` surfaces, Verifier, gate, deep-review, QA walk. Without that, autonomy only speeds up the mistake. With it, the agent applies a written rule instead of inventing one every turn.
+
+In practice I leave the feature context well defined: what the task will do, the design ready, the dependencies visible. Then I fire `/autonomous`. It classifies whether this is a feature or a batch of already-reviewed issues and walks Specify, Design, Tasks, and Execute through to merge. A phase boundary is not a checkpoint. It either reaches the end, or it stops for good.
+
+Decisions that are still open, and that evidence in the repository can settle, the model judges. It records what it chose, why, what it rejected, what it would cost to change now, and what it costs the user today. That goes into the feature's `decisions.md`; anything that has to outlive the feature becomes an `AD-NNN`. In the morning I read what was decided without me in the room and adjust what I do not want. A silent decision inside an implementation I only find months later.
+
+What would change the product, and the documents do not answer, is not invented. The run stops, writes the report, and merges nothing. Hitting the review cap with Blocker or Major still open also stops. A halt with a reason is a result. Pushing to have something merged by morning is not.
+
+Merge, in this mode, stops being a click from me on every PR. The skill merges when the full gate passes on the final tree, no blocking finding remains, `main` has not moved underneath, and every flagged scenario has been walked. `untested` holds the merge: it is a promise nobody checked, and a green gate does not catch that. Production deploy is still a different conversation.
+
+Without that documentation, `/autonomous` only burns tokens faster. With it, the supervisor I paid to watch other agents loses its job a second way: I do not have to live in the chat for the work to move.
+
+That was the change that freed the most of my time so far. Not because the agents started working without coordination, but because I stopped using another agent as a database, a queue, and a status board. What needs to steer delivery becomes a guide. What needs to flag a deviation becomes a sensor. What needs to survive goes into the repository, what needs judgment comes back to me, and what only needed to wait stopped spending tokens.
+
+The pack, stack-agnostic, is at [github.com/antoniofulg/my-workflow](https://github.com/antoniofulg/my-workflow). The tour in `docs/workflow/` explains why each stage exists. `AGENTS.md` is what agents run. `adopt.py` copies the loop and refuses to overwrite the product paragraph; the consuming project still owns the gate and the stack.
