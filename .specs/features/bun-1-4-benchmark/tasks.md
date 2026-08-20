@@ -503,7 +503,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T16: Write the operator run playbook
+### T16: Write the operator run playbook — ✅ Complete
 
 **What**: The document the user follows to execute the benchmark, including what to check before, during and after.
 **Where**: `docs/benchmarks/bun-1-4/README.md` (modify)
