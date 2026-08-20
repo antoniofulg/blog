@@ -180,7 +180,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T4: Implement benchmark statistics
+### T4: Implement benchmark statistics — ✅ Complete
 
 **What**: Implement the aggregation and delta classification that every published number depends on.
 **Where**: `app/lib/bench/stats.ts`
