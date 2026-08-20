@@ -100,6 +100,8 @@ export const SETTLE_MS = 3_000;
 export const COOLDOWN_MS = 10_000;
 
 const PORT_FREE_TIMEOUT_MS = 10_000;
+/** Grace between SIGTERM and SIGKILL when shutting the server down. */
+const SHUTDOWN_GRACE_MS = 5_000;
 
 export type RuntimeOpts = {
 	version: string;
@@ -171,6 +173,13 @@ export async function measureRuntime(
 		stdio: ["ignore", "ignore", "ignore"],
 	});
 	const pgid = child.pid ?? 0;
+	// Authoritative shutdown signal. Polling lsof is not: it cannot tell "no
+	// owner" from "could not ask", and treating the second as free let a
+	// previous version's server answer the next version's boot probe.
+	const exited = new Promise<void>((resolve) => {
+		child.on("close", () => resolve());
+		child.on("error", () => resolve());
+	});
 
 	try {
 		const bootMs = await waitForBoot(baseUrl);
@@ -222,6 +231,14 @@ export async function measureRuntime(
 		};
 	} finally {
 		killGroup(pgid, "SIGTERM");
+		const stopped = await Promise.race([
+			exited.then(() => true),
+			sleep(SHUTDOWN_GRACE_MS).then(() => false),
+		]);
+		if (!stopped) {
+			killGroup(pgid, "SIGKILL");
+			await exited;
+		}
 		await waitForPortFree(port);
 	}
 }

@@ -64,13 +64,22 @@ async function dbContainerRunning(): Promise<boolean> {
 	}
 }
 
+/**
+ * PID listening on `port`, or null when nothing is. `lsof -ti` exits 1 with no
+ * output when there is no match, which is the only failure that means "free" —
+ * any other error is reported as unknown rather than silently as free.
+ */
 export async function portOwner(port: number): Promise<number | null> {
 	try {
 		const { stdout } = await run("lsof", ["-ti", `tcp:${port}`]);
 		const pid = Number.parseInt(stdout.trim().split("\n")[0] ?? "", 10);
 		return Number.isFinite(pid) ? pid : null;
-	} catch {
-		return null;
+	} catch (error) {
+		const code = (error as { code?: number }).code;
+		if (code === 1) return null; // no listener — the normal empty result
+		throw new Error(
+			`could not determine whether port ${port} is free: ${error instanceof Error ? error.message : String(error)}`,
+		);
 	}
 }
 

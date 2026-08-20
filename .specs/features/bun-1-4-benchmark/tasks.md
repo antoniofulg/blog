@@ -94,6 +94,16 @@ Order: T17, T18
 T17 → T18
 ```
 
+### Phase 6: Validation fixes
+
+Raised by feature-level validation, not planned up front.
+
+Order: T19
+
+```
+T11 → T19
+```
+
 Phase 5 cannot start until a full two-version run has produced a committed result JSON. It is planned here so the traceability is complete, not because it is executable now.
 
 ---
@@ -587,6 +597,34 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
+### T19: Stop a stale server from answering the next boot probe — ✅ Complete
+
+**What**: Wait for the measured server process to actually exit before the next runtime measurement starts, and stop treating an unanswerable port query as proof the port is free.
+**Where**: `app/lib/bench/runtime.server.ts` (modify)
+**Depends on**: T11
+**Reuses**: the process-group kill from `runner.server.ts`
+**Requirement**: BENCH-11
+
+**Raised by**: feature-level validation. Two consecutive `measureRuntime` calls reported a boot-time gap of 178 ms where the stub's own delay was 800 ms, proving the second probe was answered by the first call's server. In a real run that means one version's runtime numbers could describe the other version's process.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] `measureRuntime` awaits the child's `close` event after `SIGTERM`, escalating to `SIGKILL` after a 5-second grace period
+- [ ] `portOwner` distinguishes `lsof` exit code 1 (no listener) from any other failure, and throws rather than reporting an unknown port as free
+- [ ] A test asserts the delayed boot's own elapsed time exceeds its configured delay, which can only fail if a stale server answered
+- [ ] Spawn-driven runtime tests carry explicit timeouts, since a boot-load-cooldown cycle exceeds vitest's 5-second default
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 7 tests pass in `bench-runtime.test.ts` (no silent deletions)
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `fix(bench): wait for the measured server to exit before the next run`
+
+---
+
 ## Phase Execution Map
 
 Phases run in sequence: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5.
@@ -598,6 +636,7 @@ Execution order inside each phase:
 - Phase 3: T10, T11
 - Phase 4: T12, T13, T14, T15, T16
 - Phase 5: T17, T18
+- Phase 6: T19
 
 Execution is strictly sequential — one task at a time, in order. The dependency edges are the ones drawn in the Execution Plan above.
 
@@ -625,6 +664,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T16: run playbook | 1 doc | ✅ Granular |
 | T17: version pins | config files + their assertions | ✅ Granular |
 | T18: the post | 1 post, 2 locales | ✅ Granular |
+| T19: stale-server fix | 1 file modified + its tests | ✅ Granular |
 
 ---
 
@@ -650,6 +690,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T16 | T13, T14, T15 | T13 → T16, T14 → T16, T15 → T16 | ✅ Match |
 | T17 | T16 | cross-phase only, no same-phase edge | ✅ Match |
 | T18 | T17 | T17 → T18 | ✅ Match |
+| T19 | T11 | cross-phase only, no same-phase edge | ✅ Match |
 
 No task depends on a later phase.
 
@@ -677,3 +718,4 @@ No task depends on a later phase.
 | T16 | docs | none | none | ✅ OK |
 | T17 | repo config | unit | unit | ✅ OK |
 | T18 | MDX content | none | none | ✅ OK |
+| T19 | server orchestration | integration | integration | ✅ OK |

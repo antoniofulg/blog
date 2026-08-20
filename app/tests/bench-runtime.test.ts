@@ -22,43 +22,52 @@ function opts(over: Record<string, unknown> = {}) {
 
 describe("bench runtime measurement", () => {
 	it("records boot time from spawn to the first successful response", async () => {
-		const result = await measureRuntime(
-			opts({ env: { ...process.env, STUB_BOOT_DELAY_MS: "600" } }),
+		// Relative rather than absolute: a slow machine shifts both boots
+		// equally, but a wrong implementation (a constant, or a clock started
+		// after the server was already up) cannot reproduce the gap.
+		const fast = await measureRuntime(
+			opts({ env: { ...process.env, STUB_BOOT_DELAY_MS: "0" } }),
 		);
-		expect(result.bootMs).toBeGreaterThan(500);
-		expect(result.bootMs).toBeLessThan(30_000);
-	});
+		const slow = await measureRuntime(
+			opts({ env: { ...process.env, STUB_BOOT_DELAY_MS: "800" } }),
+		);
+		expect(slow.bootMs - fast.bootMs).toBeGreaterThan(500);
+		// Lower bound on the delayed boot alone: machine load can only push it
+		// up, so this can fail for exactly one reason — the probe was answered
+		// by a server left over from the previous measurement.
+		expect(slow.bootMs).toBeGreaterThan(700);
+	}, 60_000);
 
 	it("records idle, peak and post-load resident memory", async () => {
 		const result = await measureRuntime(opts());
 		expect(result.idleRssBytes).toBeGreaterThan(0);
 		expect(result.peakRssBytes).toBeGreaterThanOrEqual(result.idleRssBytes);
 		expect(result.postLoadRssBytes).toBeGreaterThan(0);
-	});
+	}, 30_000);
 
 	it("shows a higher peak than idle when the load makes the server allocate", async () => {
 		const result = await measureRuntime(
 			opts({ routes: ["/heavy"], load: { concurrency: 2, durationMs: 700 } }),
 		);
 		expect(result.peakRssBytes).toBeGreaterThan(result.idleRssBytes);
-	});
+	}, 30_000);
 
 	it("reports the latency and request counts from the load phase", async () => {
 		const result = await measureRuntime(opts());
 		expect(result.totalRequests).toBeGreaterThan(0);
 		expect(result.latency.p95).toBeGreaterThanOrEqual(result.latency.p50);
 		expect(result.nonOk).toEqual([]);
-	});
+	}, 30_000);
 
 	it("tags the result with the version it measured", async () => {
 		const result = await measureRuntime(opts());
 		expect(result.version).toBe("1.4.0");
-	});
+	}, 30_000);
 
 	it("leaves no listener on the port once it returns", async () => {
 		await measureRuntime(opts());
 		expect(await portOwner(PORT)).toBeNull();
-	});
+	}, 30_000);
 
 	it("frees the port even when the server never boots", async () => {
 		await expect(
