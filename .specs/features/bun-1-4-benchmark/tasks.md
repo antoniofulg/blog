@@ -208,7 +208,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T5: Parse benchmark CLI flags
+### T5: Parse benchmark CLI flags — ✅ Complete
 
 **What**: Pure parser for `--only`, `--versions`, `--allow-noisy` and `--report-only`.
 **Where**: `app/lib/bench/cli.ts`
