@@ -20,7 +20,7 @@ vi.mock("@tanstack/react-start/server", () => ({
 	getRequest: vi.fn(() => new Request("http://localhost/")),
 }));
 
-import { auth } from "#/lib/auth";
+import { auth, resolveAuthBaseURL } from "#/lib/auth";
 import { Route } from "#/routes/api/auth/$";
 
 // ─── Unit: auth config ────────────────────────────────────────────────────────
@@ -41,6 +41,25 @@ describe("unit: auth config", () => {
 	it("plugins array is non-empty", () => {
 		const plugins = auth.options.plugins ?? [];
 		expect(plugins.length).toBeGreaterThan(0);
+	});
+
+	it("resolveAuthBaseURL prefers BETTER_AUTH_URL over SITE_URL", () => {
+		expect(
+			resolveAuthBaseURL({
+				BETTER_AUTH_URL: "https://auth.example",
+				SITE_URL: "https://site.example",
+			}),
+		).toBe("https://auth.example");
+	});
+
+	it("resolveAuthBaseURL falls back to SITE_URL and strips trailing slash", () => {
+		expect(resolveAuthBaseURL({ SITE_URL: "https://antoniofulg.tech/" })).toBe(
+			"https://antoniofulg.tech",
+		);
+	});
+
+	it("resolveAuthBaseURL is undefined when both auth and site URLs are missing", () => {
+		expect(resolveAuthBaseURL({})).toBeUndefined();
 	});
 });
 
