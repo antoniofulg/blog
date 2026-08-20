@@ -342,7 +342,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T10: Generate HTTP load and compute latency percentiles
+### T10: Generate HTTP load and compute latency percentiles — ✅ Complete
 
 **What**: Fixed-concurrency load generator, exported independently so it can be tested without booting Nitro.
 **Where**: `app/lib/bench/runtime.server.ts`
