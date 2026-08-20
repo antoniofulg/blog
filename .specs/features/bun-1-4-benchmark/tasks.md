@@ -124,7 +124,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T2: Resolve per-version Bun toolchains
+### T2: Resolve per-version Bun toolchains — ✅ Complete
 
 **What**: Declare the compared versions in one place and derive each version's install root, binary path, cache dir and spawn environment.
 **Where**: `app/lib/bench/versions.ts`
