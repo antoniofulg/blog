@@ -21,9 +21,12 @@ function isSafeRedirect(url: string | undefined): url is string {
 
 function friendlyError(message: string): string {
 	const msg = message.toLowerCase();
+	if (msg.includes("origin") || msg.includes("csrf")) {
+		return "Login failed. Try again.";
+	}
 	if (
-		msg.includes("invalid") ||
-		msg.includes("password") ||
+		msg.includes("invalid email or password") ||
+		msg.includes("invalid password") ||
 		msg.includes("credentials") ||
 		msg.includes("sign_in") ||
 		msg.includes("sign in") ||

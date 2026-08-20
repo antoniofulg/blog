@@ -31,6 +31,16 @@ Then visit `http://127.0.0.1:18000`.
 Runtime secrets belong in Coolify environment variables. Never add them to the
 Docker image, workflow, repository, or this document.
 
+Configure on **blog-app** (not `blog-db`):
+
+| Variable | Notes |
+|---|---|
+| `SITE_URL` | `https://antoniofulg.tech` — no trailing slash |
+| `BETTER_AUTH_URL` | Optional override for the public auth origin; defaults to `SITE_URL`. |
+| `BETTER_AUTH_SECRET` | Session signing key |
+| `DATABASE_URL` | App Postgres |
+| `ADMIN_EMAIL` / `ADMIN_PASSWORD` | Seed only; changing them does not update an existing user |
+
 ## Automatic deployment
 
 After a merge to `main`:
