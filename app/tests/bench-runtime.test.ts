@@ -69,6 +69,17 @@ describe("bench runtime measurement", () => {
 		expect(await portOwner(PORT)).toBeNull();
 	}, 30_000);
 
+	it("escalates to SIGKILL when the server ignores a polite shutdown", async () => {
+		// A server that swallows SIGTERM keeps listening unless the caller
+		// escalates. Asserting the port is free on return is the only check
+		// that fails deterministically when the wait-then-SIGKILL is removed;
+		// polling lsof alone passes by luck on an idle machine.
+		await measureRuntime(
+			opts({ env: { ...process.env, STUB_IGNORE_SIGTERM: "1" } }),
+		);
+		expect(await portOwner(PORT)).toBeNull();
+	}, 60_000);
+
 	it("frees the port even when the server never boots", async () => {
 		await expect(
 			measureRuntime(opts({ command: ["bash", "-c", "sleep 60"] })),

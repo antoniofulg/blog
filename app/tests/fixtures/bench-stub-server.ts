@@ -5,6 +5,13 @@ import { createServer } from "node:http";
 
 const port = Number(process.env.PORT ?? 0);
 const bootDelayMs = Number(process.env.STUB_BOOT_DELAY_MS ?? 0);
+
+// Lets a test stand in for a server that does not honour a polite shutdown.
+// Only SIGKILL can stop it, so a caller that merely sends SIGTERM and assumes
+// the port is free leaves this process listening.
+if (process.env.STUB_IGNORE_SIGTERM === "1") {
+	process.on("SIGTERM", () => {});
+}
 const held: Buffer[] = [];
 
 const server = createServer((req, res) => {

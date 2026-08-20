@@ -13,10 +13,10 @@
 ## Handoff
 
 - **Feature**: bun-1-4-benchmark (`.specs/features/bun-1-4-benchmark/`)
-- **Phase / Task**: Design complete, awaiting approval before Tasks
-- **Completed**: spec.md (validated clean), design.md
+- **Phase / Task**: Phases 1-4 and 6 complete (T1-T16, T19). Phase 5 (T17, T18) blocked on the operator's benchmark run.
+- **Completed**: T1-T16, T19 — each with its own atomic commit
 - **In-progress** (file:line): none
-- **Next step**: On design approval, write `tasks.md` and run `validate_tasks.py`.
-- **Blockers**: none
-- **Uncommitted files**: `.specs/STATE.md`, `.specs/features/bun-1-4-benchmark/spec.md`, `.specs/features/bun-1-4-benchmark/design.md`
-- **Branch**: fix/auth-origin-behind-proxy
+- **Next step**: The operator runs `make bench-setup && docker compose up db -d && make bench` on a quiet machine. When `docs/benchmarks/bun-1-4/<date>.json` exists and shows no unresolved compat finding under 1.4.0, unblock T17 (version pins) then T18 (the post).
+- **Blockers**: T17 and T18 need real measurements. The harness is built, tested and committed; the measurement run is deliberately deferred.
+- **Uncommitted files**: none
+- **Branch**: feat/bun-1-4-benchmark

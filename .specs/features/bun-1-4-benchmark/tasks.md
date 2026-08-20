@@ -98,10 +98,11 @@ T17 → T18
 
 Raised by feature-level validation, not planned up front.
 
-Order: T19
+Order: T19, T20
 
 ```
 T11 → T19
+T19 → T20
 ```
 
 Phase 5 cannot start until a full two-version run has produced a committed result JSON. It is planned here so the traceability is complete, not because it is executable now.
@@ -625,6 +626,33 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
+### T20: Make the stale-server guard deterministically testable — ✅ Complete
+
+**What**: Add a stub server that ignores `SIGTERM`, and a test that fails whenever the SIGKILL escalation is removed.
+**Where**: `app/tests/fixtures/bench-stub-server.ts` (modify)
+**Depends on**: T19
+**Reuses**: the existing stub fixture and `portOwner`
+**Requirement**: BENCH-11
+
+**Raised by**: the discrimination sensor. Removing T19's wait-then-SIGKILL left every test passing on an idle machine, because `lsof` polling happens to report the port free before the next boot. The guard was real but unprotected.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] The stub honours `STUB_IGNORE_SIGTERM=1` by installing a no-op `SIGTERM` handler
+- [ ] A test asserts the port has no owner after `measureRuntime` returns against that stub
+- [ ] Re-running the sensor mutation that removes the escalation now fails the suite
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 8 tests pass in `bench-runtime.test.ts` (no silent deletions)
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `test(bench): kill the stale-server mutant deterministically`
+
+---
+
 ## Phase Execution Map
 
 Phases run in sequence: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5.
@@ -636,7 +664,7 @@ Execution order inside each phase:
 - Phase 3: T10, T11
 - Phase 4: T12, T13, T14, T15, T16
 - Phase 5: T17, T18
-- Phase 6: T19
+- Phase 6: T19, T20
 
 Execution is strictly sequential — one task at a time, in order. The dependency edges are the ones drawn in the Execution Plan above.
 
@@ -665,6 +693,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T17: version pins | config files + their assertions | ✅ Granular |
 | T18: the post | 1 post, 2 locales | ✅ Granular |
 | T19: stale-server fix | 1 file modified + its tests | ✅ Granular |
+| T20: deterministic sensor kill | 1 fixture + 1 test | ✅ Granular |
 
 ---
 
@@ -691,6 +720,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T17 | T16 | cross-phase only, no same-phase edge | ✅ Match |
 | T18 | T17 | T17 → T18 | ✅ Match |
 | T19 | T11 | cross-phase only, no same-phase edge | ✅ Match |
+| T20 | T19 | T19 → T20 | ✅ Match |
 
 No task depends on a later phase.
 
@@ -719,3 +749,4 @@ No task depends on a later phase.
 | T17 | repo config | unit | unit | ✅ OK |
 | T18 | MDX content | none | none | ✅ OK |
 | T19 | server orchestration | integration | integration | ✅ OK |
+| T20 | server orchestration | integration | integration | ✅ OK |
