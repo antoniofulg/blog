@@ -32,6 +32,7 @@ function deps(over: Partial<PreflightDeps> = {}): PreflightDeps {
 		dbContainerRunning: async () => true,
 		portOwner: async () => null,
 		runtimeRoutes: async () => ["/", "/blog", "/post", "/pt-br/post"],
+		dbIdentity: async () => ({ kind: "ok" }) as const,
 		...over,
 	};
 }
@@ -121,22 +122,76 @@ describe("bench preflight", () => {
 		expect(reasonOf(noContainer)).not.toContain("Docker is not available");
 	});
 
-	it("aborts when the runtime port is bound, naming the port and the owner", async () => {
+	it("aborts when a pinned runtime port is bound, naming the port and the owner", async () => {
 		const result = await preflight(
-			opts({ includeRuntime: true }),
+			opts({ includeRuntime: true, runtimePort: RUNTIME_PORT }),
 			deps({ portOwner: async () => 4242 }),
 		);
 		expect(result.ok).toBe(false);
 		expect(reasonOf(result)).toContain(String(RUNTIME_PORT));
 		expect(reasonOf(result)).toContain("PID 4242");
+		expect(reasonOf(result)).toContain("--runtime-port");
+	});
+
+	it("does not check any port when the operator pinned none", async () => {
+		const result = await preflight(
+			opts({ includeRuntime: true }),
+			deps({ portOwner: async () => 4242 }),
+		);
+		expect(result).toEqual({ ok: true });
 	});
 
 	it("does not check the runtime port when the runtime workload is not selected", async () => {
 		const result = await preflight(
-			opts({ includeRuntime: false }),
+			opts({ includeRuntime: false, runtimePort: RUNTIME_PORT }),
 			deps({ portOwner: async () => 4242 }),
 		);
 		expect(result).toEqual({ ok: true });
+	});
+
+	it("aborts when DATABASE_URL cannot connect, pointing at the port mismatch", async () => {
+		const result = await preflight(
+			opts({ workloads: [DB_WORKLOAD] }),
+			deps({
+				dbIdentity: async () => ({
+					kind: "unreachable",
+					message: "password authentication failed",
+				}),
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(reasonOf(result)).toContain("password authentication failed");
+		expect(reasonOf(result)).toContain("POSTGRES_PORT");
+	});
+
+	it("aborts when DATABASE_URL reaches another project's database", async () => {
+		const result = await preflight(
+			opts({ workloads: [DB_WORKLOAD] }),
+			deps({
+				dbIdentity: async () => ({
+					kind: "wrong-database",
+					database: "antclips",
+				}),
+			}),
+		);
+		expect(result.ok).toBe(false);
+		expect(reasonOf(result)).toContain("antclips");
+		expect(reasonOf(result)).toContain("posts");
+	});
+
+	it("does not touch the database when no selected workload needs it", async () => {
+		let called = false;
+		const result = await preflight(
+			opts({ workloads: [PLAIN] }),
+			deps({
+				dbIdentity: async () => {
+					called = true;
+					return { kind: "ok" } as const;
+				},
+			}),
+		);
+		expect(result).toEqual({ ok: true });
+		expect(called).toBe(false);
 	});
 
 	it("aborts when no pt-br route resolves for the runtime workload", async () => {

@@ -68,6 +68,44 @@ docker compose up db -d    # sync, audit-fe and the runtime workload need it
 make bench                 # the full matrix
 ```
 
+### Port conflicts with other projects
+
+Both ports this stack needs can be moved, so a benchmark run does not require
+shutting down everything else on the machine.
+
+**Postgres.** `docker compose up db -d` fails when another project already
+publishes on 5432:
+
+```
+Bind for 127.0.0.1:5432 failed: port is already allocated
+```
+
+Set `POSTGRES_PORT` in `.env` to a free port and use the same port in
+`DATABASE_URL`. Both must agree; preflight aborts when they do not, and also
+when `DATABASE_URL` reaches a database that has no `posts` table — which is what
+happens when it lands on another project's Postgres.
+
+```sh
+# .env
+POSTGRES_PORT=5442
+DATABASE_URL=postgres://<user>:<password>@localhost:5442/<db>
+```
+
+That check exists for a specific reason: without it, a wrong connection string
+fails partway through the matrix, gets recorded as a `compat` finding, and a
+database misconfiguration ends up published as a Bun compatibility result.
+
+**The runtime server.** The harness binds a free ephemeral port for each boot,
+so it never collides with anything. Pin one with `--runtime-port=4200` if you
+want a predictable port; a pinned port that is already taken aborts preflight
+naming the owning PID.
+
+Note also that `app/tests/lang-slug-route.test.ts` and
+`app/tests/audit-content-cli.test.ts` gate on port 5432 being *occupied*
+(`describe.skipIf(port5432Free)`). With another project's Postgres on 5432 those
+suites will try to run against it. Moving the blog to its own port makes them
+skip instead, which is the safer outcome.
+
 Useful subsets while checking the harness itself:
 
 ```sh
@@ -110,7 +148,9 @@ workloads for a full session.
 | `1-minute load average is N, above the 2.0 limit` | Machine is busy | Wait, or pass `--allow-noisy` and treat the numbers as indicative only |
 | `Docker is not available` | Docker daemon not running | Start Docker Desktop |
 | `The \`db\` container is not running` | Compose service down | `docker compose up db -d` |
-| `Port 4174 is already bound by PID N` | Something owns the runtime port | `kill N`, or find it with `lsof -ti tcp:4174` |
+| `Port N is already bound by PID M` | A pinned runtime port is taken | Drop `--runtime-port` to let the harness pick a free one, or `kill M` |
+| `DATABASE_URL does not connect` | Port or credentials mismatch | Align `POSTGRES_PORT` in `.env` with the port in `DATABASE_URL` |
+| `DATABASE_URL reaches database "X", which has no posts table` | Another project's Postgres is on that port | Move the blog to its own `POSTGRES_PORT` |
 | `No published pt-br post with an English twin was found` | Content changed | Publish a pt-br twin, or drop `runtime` from `--only` |
 
 ### If the run is interrupted

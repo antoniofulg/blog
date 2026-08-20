@@ -3,6 +3,7 @@ import { execFile } from "node:child_process";
 import { access } from "node:fs/promises";
 import { loadavg } from "node:os";
 import { promisify } from "node:util";
+import postgres from "postgres";
 import { installCommand, toolchainFor } from "#/lib/bench/versions";
 import type { Workload } from "#/lib/bench/workloads";
 import { getPostInventory } from "#/lib/site-model.server";
@@ -12,14 +13,20 @@ const run = promisify(execFile);
 /** Above this one-minute load average the machine is too busy to measure. */
 export const LOAD_AVG_LIMIT = 2.0;
 
-/** Port the runtime workload boots the production bundle on. Deliberately not
- * 4173, which the e2e harness and the FE audit already use. */
+/** Default port the runtime workload boots the production bundle on when the
+ * operator does not pin one. Deliberately not 4173, which the e2e harness and
+ * the FE audit already use. */
 export const RUNTIME_PORT = 4174;
 
 /** Name of the Postgres service in docker-compose.yml. */
 export const DB_SERVICE = "db";
 
 export type PreflightResult = { ok: true } | { ok: false; reason: string };
+
+export type DbIdentity =
+	| { kind: "ok" }
+	| { kind: "unreachable"; message: string }
+	| { kind: "wrong-database"; database: string };
 
 export type PreflightDeps = {
 	bunVersion: (binary: string) => Promise<string | null>;
@@ -28,6 +35,7 @@ export type PreflightDeps = {
 	dbContainerRunning: () => Promise<boolean>;
 	portOwner: (port: number) => Promise<number | null>;
 	runtimeRoutes: () => Promise<string[]>;
+	dbIdentity: () => Promise<DbIdentity>;
 };
 
 async function readBunVersion(binary: string): Promise<string | null> {
@@ -103,6 +111,40 @@ export async function resolveRuntimeRoutes(): Promise<string[]> {
 	return routes;
 }
 
+/**
+ * Confirms DATABASE_URL reaches this blog's database rather than some other
+ * project's Postgres on the same port. Without it, a misconfigured connection
+ * fails partway through the matrix and gets recorded as a `compat` finding —
+ * a database problem misattributed to a Bun version, in a published post.
+ */
+export async function checkDbIdentity(): Promise<DbIdentity> {
+	const url = process.env.DATABASE_URL;
+	if (!url) {
+		return { kind: "unreachable", message: "DATABASE_URL is not set" };
+	}
+	const sql = postgres(url, {
+		max: 1,
+		connect_timeout: 5,
+		onnotice: () => {},
+	});
+	try {
+		const [row] = await sql<{ db: string; posts: string | null }[]>`
+			SELECT current_database() AS db, to_regclass('public.posts')::text AS posts
+		`;
+		if (row?.posts === null) {
+			return { kind: "wrong-database", database: row.db };
+		}
+		return { kind: "ok" };
+	} catch (error) {
+		return {
+			kind: "unreachable",
+			message: error instanceof Error ? error.message : String(error),
+		};
+	} finally {
+		await sql.end().catch(() => {});
+	}
+}
+
 export const defaultPreflightDeps: PreflightDeps = {
 	bunVersion: readBunVersion,
 	loadAvg1: () => loadavg()[0],
@@ -110,6 +152,7 @@ export const defaultPreflightDeps: PreflightDeps = {
 	dbContainerRunning,
 	portOwner,
 	runtimeRoutes: resolveRuntimeRoutes,
+	dbIdentity: checkDbIdentity,
 };
 
 export type PreflightOpts = {
@@ -118,6 +161,9 @@ export type PreflightOpts = {
 	allowNoisy: boolean;
 	includeRuntime: boolean;
 	cwd: string;
+	/** Runtime port the operator pinned, if any. Unpinned means the harness
+	 * picks a free port and no conflict is possible. */
+	runtimePort?: number;
 };
 
 /**
@@ -167,15 +213,32 @@ export async function preflight(
 				reason: `The \`${DB_SERVICE}\` container is not running, and a selected workload needs the database. Start it with \`docker compose up ${DB_SERVICE} -d\`.`,
 			};
 		}
+		const identity = await deps.dbIdentity();
+		if (identity.kind === "unreachable") {
+			return {
+				ok: false,
+				reason: `DATABASE_URL does not connect: ${identity.message}. Check that POSTGRES_PORT in .env matches the port in DATABASE_URL.`,
+			};
+		}
+		if (identity.kind === "wrong-database") {
+			return {
+				ok: false,
+				reason: `DATABASE_URL reaches database "${identity.database}", which has no \`posts\` table — that is not this blog's database. Another project's Postgres is probably on the same port; change POSTGRES_PORT in .env and mirror it in DATABASE_URL.`,
+			};
+		}
 	}
 
 	if (opts.includeRuntime) {
-		const owner = await deps.portOwner(RUNTIME_PORT);
-		if (owner !== null) {
-			return {
-				ok: false,
-				reason: `Port ${RUNTIME_PORT} is already bound by PID ${owner}. Free it before measuring, or the runtime numbers will describe someone else's server.`,
-			};
+		// Only a pinned port can conflict. Left unpinned, the harness binds a
+		// free ephemeral port at boot time, so there is nothing to check.
+		if (opts.runtimePort !== undefined) {
+			const owner = await deps.portOwner(opts.runtimePort);
+			if (owner !== null) {
+				return {
+					ok: false,
+					reason: `Port ${opts.runtimePort} is already bound by PID ${owner}. Free it, pick another with --runtime-port, or drop the flag and let the harness choose a free port.`,
+				};
+			}
 		}
 		const routes = await deps.runtimeRoutes();
 		if (!routes.some((r) => r.startsWith("/pt-br/"))) {
