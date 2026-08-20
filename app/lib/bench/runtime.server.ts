@@ -1,7 +1,8 @@
 import "@tanstack/react-start/server-only";
 import { spawn } from "node:child_process";
+import { createServer } from "node:http";
 import { performance } from "node:perf_hooks";
-import { portOwner, RUNTIME_PORT } from "#/lib/bench/preflight.server";
+import { portOwner } from "#/lib/bench/preflight.server";
 import {
 	groupRssBytes,
 	killGroup,
@@ -103,6 +104,20 @@ const PORT_FREE_TIMEOUT_MS = 10_000;
 /** Grace between SIGTERM and SIGKILL when shutting the server down. */
 const SHUTDOWN_GRACE_MS = 5_000;
 
+/**
+ * A port nothing currently owns, obtained by letting the OS pick one and
+ * releasing it. There is a race between release and boot, which is why
+ * measureRuntime still refuses to run against a port it does not own.
+ */
+export async function findFreePort(): Promise<number> {
+	const server = createServer();
+	await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve));
+	const address = server.address();
+	const port = typeof address === "object" && address ? address.port : 0;
+	await new Promise<void>((resolve) => server.close(() => resolve()));
+	return port;
+}
+
 export type RuntimeOpts = {
 	version: string;
 	routes: string[];
@@ -152,7 +167,7 @@ async function waitForPortFree(port: number): Promise<void> {
 export async function measureRuntime(
 	opts: RuntimeOpts,
 ): Promise<RuntimeResult> {
-	const port = opts.port ?? RUNTIME_PORT;
+	const port = opts.port ?? (await findFreePort());
 	const baseUrl = `http://127.0.0.1:${port}`;
 	const command = opts.command ?? [
 		toolchainFor(opts.version, opts.cwd).binary,

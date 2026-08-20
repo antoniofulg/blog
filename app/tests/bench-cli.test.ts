@@ -116,3 +116,17 @@ describe("bench entry point registration", () => {
 		expect(pkg.scripts.bench).toBe("bun run scripts/bench.ts");
 	});
 });
+
+describe("runtime port selection", () => {
+	it("leaves the runtime port unpinned by default", () => {
+		expect(parseBenchArgs([]).runtimePort).toBeUndefined();
+	});
+
+	it("pins the runtime port when the operator asks for one", () => {
+		expect(parseBenchArgs(["--runtime-port=4200"]).runtimePort).toBe(4200);
+	});
+
+	it("ignores a non-numeric runtime port rather than binding NaN", () => {
+		expect(parseBenchArgs(["--runtime-port=abc"]).runtimePort).toBeUndefined();
+	});
+});

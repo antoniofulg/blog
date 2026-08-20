@@ -2,7 +2,7 @@ import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { portOwner } from "#/lib/bench/preflight.server";
-import { measureRuntime } from "#/lib/bench/runtime.server";
+import { findFreePort, measureRuntime } from "#/lib/bench/runtime.server";
 
 const STUB = join(process.cwd(), "app/tests/fixtures/bench-stub-server.ts");
 const PORT = 4187;
@@ -112,4 +112,44 @@ describe("bench runtime measurement", () => {
 		).rejects.toThrow(/did not answer/);
 		expect(await portOwner(PORT)).toBeNull();
 	}, 45_000);
+});
+
+describe("free runtime port selection", () => {
+	it("avoids a port that is currently taken", async () => {
+		// Occupying a port and asserting the chooser skips it is what proves the
+		// port came from the OS. Asserting only "the result is free" passes for
+		// any hardcoded port that happens to be idle.
+		const squatter = spawn("bun", ["run", STUB], {
+			detached: true,
+			env: { ...process.env, PORT: String(PORT) },
+			stdio: "ignore",
+		});
+		try {
+			while ((await portOwner(PORT)) === null) {
+				await new Promise((r) => setTimeout(r, 50));
+			}
+			const port = await findFreePort();
+			expect(port).not.toBe(PORT);
+			expect(port).toBeGreaterThan(1024);
+			expect(await portOwner(port)).toBeNull();
+		} finally {
+			process.kill(-(squatter.pid ?? 0), "SIGKILL");
+			while ((await portOwner(PORT)) !== null) {
+				await new Promise((r) => setTimeout(r, 50));
+			}
+		}
+	}, 30_000);
+
+	it("boots on a self-chosen port when none is pinned", async () => {
+		const result = await measureRuntime({
+			version: "1.4.0",
+			routes: ["/"],
+			cwd: process.cwd(),
+			command: ["bun", "run", STUB],
+			load: { concurrency: 2, durationMs: 300 },
+			settleMs: 100,
+			cooldownMs: 100,
+		});
+		expect(result.totalRequests).toBeGreaterThan(0);
+	}, 30_000);
 });

@@ -59,6 +59,7 @@ const check = await preflight({
 	allowNoisy: args.allowNoisy,
 	includeRuntime,
 	cwd,
+	runtimePort: args.runtimePort,
 });
 if (!check.ok) {
 	process.stderr.write(`[bench] preflight failed:\n${check.reason}\n`);
@@ -124,7 +125,9 @@ try {
 				timeoutMs: WORKLOAD_TIMEOUT_MS,
 				cwd,
 			});
-			run.runtime.push(await measureRuntime({ version, routes, cwd }));
+			run.runtime.push(
+				await measureRuntime({ version, routes, cwd, port: args.runtimePort }),
+			);
 			await writeResult(run, resultPath);
 		}
 	}

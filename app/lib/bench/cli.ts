@@ -11,6 +11,8 @@ export type BenchArgs = {
 	allowNoisy: boolean;
 	/** Skip measuring and re-render the report from an existing result file. */
 	reportOnly?: string;
+	/** Pin the runtime port. Unset means the harness binds a free one. */
+	runtimePort?: number;
 };
 
 function listFlag(args: string[], name: string): string[] | undefined {
@@ -27,7 +29,12 @@ function listFlag(args: string[], name: string): string[] | undefined {
 
 export function parseBenchArgs(argv: string[]): BenchArgs {
 	const reportOnly = argv.find((a) => a.startsWith("--report-only="));
+	const runtimePort = argv.find((a) => a.startsWith("--runtime-port="));
+	const port = runtimePort
+		? Number.parseInt(runtimePort.slice("--runtime-port=".length), 10)
+		: Number.NaN;
 	return {
+		runtimePort: Number.isInteger(port) ? port : undefined,
 		only: listFlag(argv, "only"),
 		versions: listFlag(argv, "versions"),
 		allowNoisy: argv.includes("--allow-noisy"),
