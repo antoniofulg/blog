@@ -5,8 +5,18 @@ built, tested and committed. Two P2 stories — the version pins and the post �
 remain deliberately unstarted because both depend on measurements that have not
 been taken yet.
 
-**Diff range**: `bfcc088..HEAD` on `feat/bun-1-4-benchmark` (19 commits, T1–T16,
-T19–T20).
+**Diff range**: `bfcc088..HEAD` on `feat/bun-1-4-benchmark` (21 commits, T1–T16,
+T19–T21).
+
+**Full suite**: 2160 passed, 0 failed tests, 87 skipped across 124 files. Two
+files fail at the suite level (`pglite-extended-query`, `tz-migration-integ`)
+with `Hook timed out in 10000ms` inside `createTestDb()`. Both pass in
+isolation, both failed the same way on the pre-existing baseline before any code
+here was written, and neither is touched by this feature.
+
+**This report was revised.** Its first version credited the runtime-test
+failures to machine contention and filed that as an environmental note rather
+than a finding. That was wrong, and the correction is recorded as finding 4.
 
 **Independence note**: this validation was run as a standalone fresh-eyes pass
 rather than by a separate Verifier agent, because agent delegation is disabled
@@ -41,7 +51,8 @@ defer the measurement run because the machine hosts several active worktrees.
 followed by the tests that should catch it, each restored afterwards. The
 working tree was verified clean (`git status --porcelain` empty) after the run.
 
-**Result: 18/18 mutants killed.**
+**Result: 18/18 mutants killed**, plus the T21 guard verified by a nineteenth
+mutation run separately.
 
 The sensor itself had to be fixed twice before its result could be trusted:
 
@@ -99,19 +110,50 @@ A boot–settle–load–cooldown cycle exceeds five seconds. Explicit per-test
 timeouts (30 s, 60 s for the two-boot comparison, 45 s for the never-boots case)
 replaced the default. No assertion was weakened; only the time budget changed.
 
+### 4. The harness measured a server it did not start — fixed (T21)
+
+Six `bench-runtime` tests failed in the full suite while passing in isolation.
+The first version of this report attributed that to machine contention. The
+actual cause was concrete and worse.
+
+An orphaned stub server held port 4187 — left behind by the sensor run whose
+mutation removed the very SIGKILL escalation added in T19. `measureRuntime`
+booted, received an instant 200 from that stranger, and reported it as its own:
+`bootMs` came out 45 ms *lower* than a zero-delay boot, and `idleRssBytes` was 0
+because the sampled process group was not the server's.
+
+`portOwner` returning the squatter's PID is what made the diagnosis possible:
+
+```
+AssertionError: expected 58072 to be null
+```
+
+Consequence had it shipped: any listener on the runtime port — including the
+previous version's server, or an unrelated dev server — would have been measured
+and published as this repository's runtime numbers. Preflight checks the port
+once before the matrix; the matrix boots one server per version, so a single
+up-front check was never sufficient.
+
+Fix: `measureRuntime` calls `portOwner` immediately before spawning and throws
+naming the port and the PID. Verified by mutation — removing the guard fails
+`app/tests/bench-runtime.test.ts:83`.
+
+**Correction to the earlier reasoning:** contention was real and was happening
+at the same time, which is exactly why it was a convenient explanation. It was
+not the cause. Two separate observations had been merged into one story.
+
 ---
 
-## Environmental note, not a code finding
+## Environmental note, separate from the findings above
 
-The full suite was observed failing non-deterministically during this work — 5
-test files in one run, 3 in another, always the PGLite-backed ones
-(`drizzle-schema`, `pglite-extended-query`, `tz-migration-integ`,
-`e2e-harness`). Every one of them passed when run in isolation. The machine sat
-at a 1-minute load average of 28.01 at the time, with several worktrees active.
+The PGLite-backed test files fail non-deterministically on this machine under
+load, with `Hook timed out in 10000ms` inside `createTestDb()`. They failed the
+same way before any code here existed and they pass in isolation. The machine
+reached a 1-minute load average of 28.01 during this work.
 
-This is contention, not a regression introduced here, and it is exactly the
-condition the harness's `LOAD_AVG_LIMIT = 2.0` preflight gate exists to refuse.
-It is recorded in the run playbook as a warning to the operator.
+This is contention and it is not introduced here. It is also the condition the
+harness's `LOAD_AVG_LIMIT = 2.0` preflight gate exists to refuse, and it is
+recorded in the run playbook as a warning to the operator.
 
 ---
 
@@ -136,7 +178,8 @@ assertion. Selected evidence, one row per criterion group:
 | P1.3 AC2, AC5 — the three RSS phases | `app/tests/bench-runtime.test.ts:41`, `:48` | idle > 0; peak ≥ idle; peak > idle under allocating load |
 | P1.3 AC3, AC4 — load shape and percentiles | `app/tests/bench-load.test.ts:36`, `:47`, `:60` | all four routes hit; duration-bounded; p50 ≤ p95 ≤ p99 |
 | P1.3 AC6 — non-2xx recorded, not discarded | `app/tests/bench-load.test.ts:80`, `:94` | `/boom` recorded with status 500; failures counted inside the total |
-| P1.3 AC7 — port free before the next version | `app/tests/bench-runtime.test.ts:67`, `:72`, `:83` | `portOwner(PORT)` null after return, including against a SIGTERM-ignoring server and a never-booting one |
+| P1.3 AC7 — port free before the next version | `app/tests/bench-runtime.test.ts:67`, `:72` | `portOwner(PORT)` null after return, including against a SIGTERM-ignoring server |
+| P1.3 AC7 — refuse a port the harness does not own | `app/tests/bench-runtime.test.ts:83` | `rejects.toThrow(/already bound by PID/)` against a live squatter |
 | P2.1 AC1..AC4 — report rendering | `app/tests/bench-reporter.test.ts:56`, `:74`, `:97`, `:121`, `:139` | exact row string; `within noise`; `no comparison is available`; finding rows |
 | P3 AC1, AC2 — reproducibility | `app/tests/bench-versions.test.ts:14`, `app/tests/bench-cli.test.ts:86` | single declared version list; date-stamped, non-colliding result path |
 | Edge — prepare never reaches `~/.bun` | `app/tests/bench-matrix.test.ts:58`, `:71` | no prepare path contains the global bun dir; each resolves to a named repo or `.bench` path |
