@@ -36,3 +36,33 @@ export function parseBenchArgs(argv: string[]): BenchArgs {
 			: undefined,
 	};
 }
+
+/** Pseudo-workload id for the runtime measurement, which is not a spawned
+ * command and therefore not in the workload registry. */
+export const RUNTIME_ID = "runtime";
+
+/** Directory holding committed result files. Deliberately not docs/_reports/,
+ * which is gitignored — a published post must cite data a reader can open. */
+export const RESULTS_DIR = "docs/benchmarks/bun-1-4";
+
+/**
+ * Splits `--only` into spawned workload ids and the runtime flag. With no
+ * selection everything runs, including the runtime measurement.
+ */
+export function splitRuntimeSelection(only?: string[]): {
+	workloadIds?: string[];
+	includeRuntime: boolean;
+} {
+	if (!only) return { workloadIds: undefined, includeRuntime: true };
+	const workloadIds = only.filter((id) => id !== RUNTIME_ID);
+	return {
+		workloadIds: workloadIds.length > 0 ? workloadIds : [],
+		includeRuntime: only.includes(RUNTIME_ID),
+	};
+}
+
+/** Date-stamped result path, so a re-run on another day never overwrites an
+ * earlier run's data. */
+export function resultFilePath(isoDate: string, dir = RESULTS_DIR): string {
+	return `${dir}/${isoDate.slice(0, 10)}.json`;
+}

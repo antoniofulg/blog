@@ -423,7 +423,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T13: Wire the benchmark entry point
+### T13: Wire the benchmark entry point — ✅ Complete
 
 **What**: Thin CLI that parses args, preflights, runs the matrix, writes the date-stamped JSON and the report, and installs the restore handlers.
 **Where**: `scripts/bench.ts`

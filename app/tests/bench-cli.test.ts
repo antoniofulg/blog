@@ -1,5 +1,12 @@
+import { readFile } from "node:fs/promises";
+import { join } from "node:path";
 import { describe, expect, it } from "vitest";
-import { parseBenchArgs } from "#/lib/bench/cli";
+import {
+	parseBenchArgs,
+	RESULTS_DIR,
+	resultFilePath,
+	splitRuntimeSelection,
+} from "#/lib/bench/cli";
 
 describe("bench cli flags", () => {
 	it("defaults to the full matrix with no flags", () => {
@@ -44,5 +51,58 @@ describe("bench cli flags", () => {
 			parseBenchArgs(["--report-only=docs/benchmarks/bun-1-4/2026-08-20.json"])
 				.reportOnly,
 		).toBe("docs/benchmarks/bun-1-4/2026-08-20.json");
+	});
+});
+
+describe("bench selection and result paths", () => {
+	it("runs every workload and the runtime measurement when nothing is selected", () => {
+		expect(splitRuntimeSelection(undefined)).toEqual({
+			workloadIds: undefined,
+			includeRuntime: true,
+		});
+	});
+
+	it("separates the runtime pseudo-workload from the spawned workload ids", () => {
+		expect(splitRuntimeSelection(["lint", "runtime"])).toEqual({
+			workloadIds: ["lint"],
+			includeRuntime: true,
+		});
+	});
+
+	it("excludes the runtime measurement when it was not selected", () => {
+		expect(splitRuntimeSelection(["lint"])).toEqual({
+			workloadIds: ["lint"],
+			includeRuntime: false,
+		});
+	});
+
+	it("runs only the runtime measurement when it is the sole selection", () => {
+		expect(splitRuntimeSelection(["runtime"])).toEqual({
+			workloadIds: [],
+			includeRuntime: true,
+		});
+	});
+
+	it("date-stamps the result file so a later run never overwrites an earlier one", () => {
+		expect(resultFilePath("2026-08-20T12:00:00.000Z")).toBe(
+			"docs/benchmarks/bun-1-4/2026-08-20.json",
+		);
+		expect(resultFilePath("2026-09-01T00:00:00.000Z")).not.toBe(
+			resultFilePath("2026-08-20T12:00:00.000Z"),
+		);
+	});
+
+	it("commits results outside the gitignored docs/_reports directory", () => {
+		expect(RESULTS_DIR).toBe("docs/benchmarks/bun-1-4");
+		expect(RESULTS_DIR).not.toContain("_reports");
+	});
+});
+
+describe("bench entry point registration", () => {
+	it("registers `bun run bench` in package.json", async () => {
+		const pkg = JSON.parse(
+			await readFile(join(process.cwd(), "package.json"), "utf-8"),
+		) as { scripts: Record<string, string> };
+		expect(pkg.scripts.bench).toBe("bun run scripts/bench.ts");
 	});
 });
