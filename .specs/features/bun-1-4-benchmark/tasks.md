@@ -285,7 +285,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T8: Run the workload matrix
+### T8: Run the workload matrix — ✅ Complete
 
 **What**: Execute prepare steps, repetitions and version iteration, flush partial results, and restore `node_modules` on exit.
 **Where**: `app/lib/bench/runner.server.ts` (modify)

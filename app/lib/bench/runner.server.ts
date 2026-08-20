@@ -1,8 +1,18 @@
 import "@tanstack/react-start/server-only";
 import { execFile, spawn } from "node:child_process";
+import { rm } from "node:fs/promises";
+import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { promisify } from "node:util";
-import type { Sample } from "#/lib/bench/types";
+import { aggregate } from "#/lib/bench/stats";
+import type {
+	Finding,
+	RunResult,
+	Sample,
+	WorkloadResult,
+} from "#/lib/bench/types";
+import { envFor, toolchainFor } from "#/lib/bench/versions";
+import type { PrepareStep, Workload } from "#/lib/bench/workloads";
 
 const run = promisify(execFile);
 
@@ -118,4 +128,172 @@ export function killGroup(pgid: number, signal: NodeJS.Signals): void {
 	} catch {
 		// group already gone
 	}
+}
+
+/** Per-repetition ceiling. A workload past this is a finding, not a number. */
+export const WORKLOAD_TIMEOUT_MS = 15 * 60 * 1000;
+
+/**
+ * The single path a prepare step is allowed to delete. Keeping this a pure
+ * lookup is what makes "no prepare step can reach the global ~/.bun" a
+ * testable property rather than a code-review promise.
+ */
+export function resolvePreparePath(
+	step: PrepareStep,
+	version: string,
+	cwd: string,
+): string {
+	switch (step) {
+		case "rm-node-modules":
+			return join(cwd, "node_modules");
+		case "rm-install-cache":
+			return toolchainFor(version, cwd).cacheDir;
+		case "rm-output":
+			return join(cwd, ".output");
+		case "rm-vite-cache":
+			return join(cwd, "node_modules", ".vite");
+	}
+}
+
+export async function applyPrepare(
+	steps: PrepareStep[],
+	version: string,
+	cwd: string,
+): Promise<void> {
+	for (const step of steps) {
+		await rm(resolvePreparePath(step, version, cwd), {
+			recursive: true,
+			force: true,
+		});
+	}
+}
+
+export type RunDeps = {
+	spawn: (
+		argv: string[],
+		env: NodeJS.ProcessEnv,
+		opts: { timeoutMs: number; cwd?: string },
+	) => Promise<MeasuredRun>;
+	prepare: (
+		steps: PrepareStep[],
+		version: string,
+		cwd: string,
+	) => Promise<void>;
+};
+
+export const defaultRunDeps: RunDeps = {
+	spawn: spawnMeasured,
+	prepare: applyPrepare,
+};
+
+function findingFor(
+	workloadId: string,
+	version: string,
+	run: MeasuredRun,
+): Finding {
+	return {
+		kind: run.timedOut ? "timeout" : "compat",
+		version,
+		workloadId,
+		exitCode: run.timedOut ? null : run.exitCode,
+		stderrTail: run.stderrTail,
+	};
+}
+
+/**
+ * Runs one workload under one version: an optional preparatory build, one
+ * discarded warm-up, then the timed repetitions. The first failure ends this
+ * workload and becomes a finding; the caller moves on to the next workload.
+ */
+export async function runWorkload(
+	workload: Workload,
+	version: string,
+	cwd: string,
+	deps: RunDeps = defaultRunDeps,
+): Promise<{ result: WorkloadResult; findings: Finding[] }> {
+	const env = envFor(version, process.env, cwd);
+	const opts = { timeoutMs: WORKLOAD_TIMEOUT_MS, cwd };
+	const findings: Finding[] = [];
+	const samples: Sample[] = [];
+	let lastStdout = "";
+
+	if (workload.needsBundle) {
+		// Not sampled: the bundle must exist and must have been produced by the
+		// version under measurement, but building it is not this measurement.
+		await deps.spawn(["bun", "run", "build"], env, opts);
+	}
+
+	for (let i = 0; i <= workload.reps; i++) {
+		await deps.prepare(workload.prepare, version, cwd);
+		const run = await deps.spawn(workload.argv, env, opts);
+		if (run.timedOut || run.exitCode !== 0) {
+			findings.push(findingFor(workload.id, version, run));
+			break;
+		}
+		lastStdout = run.stdout;
+		if (i === 0) continue; // warm-up, deliberately discarded
+		samples.push({
+			ms: run.ms,
+			peakRssBytes: run.peakRssBytes,
+			exitCode: run.exitCode,
+		});
+	}
+
+	const result: WorkloadResult = {
+		id: workload.id,
+		version,
+		samples,
+		aggregate: aggregate(samples),
+	};
+	if (workload.parseExtra && samples.length > 0) {
+		result.extra = workload.parseExtra(lastStdout);
+	}
+	return { result, findings };
+}
+
+export type MatrixRun = Pick<RunResult, "workloads" | "findings">;
+
+/**
+ * Walks every version x workload pair, flushing to `sink` after each pair so
+ * an interrupted run still leaves usable data on disk.
+ */
+export async function runMatrix(
+	versions: string[],
+	workloads: Workload[],
+	cwd: string,
+	sink: (partial: MatrixRun) => Promise<void>,
+	deps: RunDeps = defaultRunDeps,
+): Promise<MatrixRun> {
+	const acc: MatrixRun = { workloads: [], findings: [] };
+	for (const version of versions) {
+		for (const workload of workloads) {
+			const { result, findings } = await runWorkload(
+				workload,
+				version,
+				cwd,
+				deps,
+			);
+			acc.workloads.push(result);
+			acc.findings.push(...findings);
+			await sink(acc);
+		}
+	}
+	return acc;
+}
+
+/**
+ * Puts node_modules back the way the developer had it. The benchmark installs
+ * dependencies with whichever version it is measuring, so this runs on every
+ * exit path, including SIGINT.
+ */
+export async function restoreNodeModules(
+	defaultBunBinary: string,
+	cwd: string,
+	deps: RunDeps = defaultRunDeps,
+): Promise<MeasuredRun> {
+	return deps.spawn(
+		[defaultBunBinary, "install", "--frozen-lockfile"],
+		process.env,
+		{ timeoutMs: WORKLOAD_TIMEOUT_MS, cwd },
+	);
 }
