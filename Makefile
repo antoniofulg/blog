@@ -2,6 +2,7 @@
 .PHONY: help setup dev dev-docker build preview \
         test lint format check lint-tests test-e2e audit-content audit-fe app-audit audit audit-watch \
         db-migrate db-generate db-seed db-sync db-reset og \
+        bench bench-setup \
         stop restart restart-all logs shell deploy
 
 IMAGE_NAME    ?= blog
@@ -130,6 +131,28 @@ app-audit: audit-fe ## Alias for audit-fe
 
 audit: audit-content audit-fe ## Run full audit suite (content + app) sequentially via Make targets
 	@echo "Full audit complete. Next: make lint | git commit"
+
+# -- Benchmarks ----------------------------------------------------------------
+
+# Bun versions compared by `make bench`. Must stay in sync with BENCH_VERSIONS
+# in app/lib/bench/versions.ts — a test asserts the two lists match.
+BENCH_VERSIONS ?= 1.3.14 1.4.0
+
+bench-setup: ## Install the pinned Bun toolchains into .bench/ (idempotent)
+	@for v in $(BENCH_VERSIONS); do \
+	  root="$(CURDIR)/.bench/bun-$$v"; \
+	  if [ -x "$$root/bin/bun" ] && [ "$$("$$root/bin/bun" --version 2>/dev/null)" = "$$v" ]; then \
+	    echo "[bench] bun $$v already installed at $$root"; \
+	  else \
+	    echo "[bench] installing bun $$v into $$root"; \
+	    curl -fsSL https://bun.com/install | BUN_INSTALL="$$root" bash -s "bun-v$$v"; \
+	  fi; \
+	done
+	@echo "Toolchains ready. Next: docker compose up db -d | make bench"
+
+bench: ## Run the Bun version benchmark matrix (requires: make bench-setup, quiet machine)
+	bun run bench
+	@echo "Benchmark complete. Next: read docs/benchmarks/bun-1-4/REPORT.md"
 
 # -- Database ------------------------------------------------------------------
 

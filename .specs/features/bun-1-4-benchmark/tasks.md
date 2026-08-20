@@ -450,7 +450,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T14: Add toolchain setup and ignore the workspace
+### T14: Add toolchain setup and ignore the workspace — ✅ Complete
 
 **What**: `make bench-setup` installs both pinned Bun versions into `.bench/`, and `.bench/` is ignored.
 **Where**: `Makefile`

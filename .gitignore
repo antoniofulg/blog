@@ -40,3 +40,7 @@ docs/_reports/app-audit-*.md
 
 # Local Claude Code preview launch config — user-specific
 .claude/launch.json
+
+# Per-version Bun toolchains and their install caches, created by
+# `make bench-setup`. Two full Bun installs — never committed.
+.bench/
