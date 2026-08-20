@@ -5,14 +5,14 @@ built, tested and committed. Two P2 stories — the version pins and the post �
 remain deliberately unstarted because both depend on measurements that have not
 been taken yet.
 
-**Diff range**: `bfcc088..HEAD` on `feat/bun-1-4-benchmark` (21 commits, T1–T16,
-T19–T21).
+**Diff range**: `bfcc088..HEAD` on `feat/bun-1-4-benchmark` (26 commits, T1–T16,
+T19–T25).
 
-**Full suite**: 2160 passed, 0 failed tests, 87 skipped across 124 files. Two
-files fail at the suite level (`pglite-extended-query`, `tz-migration-integ`)
-with `Hook timed out in 10000ms` inside `createTestDb()`. Both pass in
-isolation, both failed the same way on the pre-existing baseline before any code
-here was written, and neither is touched by this feature.
+**Full suite**: 121 files passed, 3 skipped, 2176 tests passed, 0 failed. The
+PGLite files that failed intermittently earlier in this work passed here too;
+their failures were `Hook timed out in 10000ms` inside `createTestDb()` under
+machine load, they pass in isolation, and they failed the same way on the
+baseline before any code here was written.
 
 **This report was revised.** Its first version credited the runtime-test
 failures to machine contention and filed that as an environmental note rather
@@ -51,8 +51,9 @@ defer the measurement run because the machine hosts several active worktrees.
 followed by the tests that should catch it, each restored afterwards. The
 working tree was verified clean (`git status --porcelain` empty) after the run.
 
-**Result: 18/18 mutants killed**, plus the T21 guard verified by a nineteenth
-mutation run separately.
+**Result: 18/18 mutants killed**, plus five later guards (T21, T23-T25) verified
+by separate mutation runs. Two of those five survived their first attempt and
+were killed only after the corresponding test was strengthened.
 
 The sensor itself had to be fixed twice before its result could be trusted:
 
@@ -141,6 +142,37 @@ naming the port and the PID. Verified by mutation — removing the guard fails
 **Correction to the earlier reasoning:** contention was real and was happening
 at the same time, which is exactly why it was a convenient explanation. It was
 not the cause. Two separate observations had been merged into one story.
+
+### 5. A same-day re-run destroyed the earlier run's data — fixed (T22)
+
+The operator asked whether repeated runs accumulate. They did not. `--only=lint`
+followed by `--only=check` on the same day left only the `check` result on disk.
+The original criterion said "not overwrite a file from a different date", which
+the implementation satisfied literally while still destroying same-day data. The
+criterion was corrected and result files are now timestamped to the second.
+
+### 6. Both required ports are now movable — added (T23, T24)
+
+`docker compose up db -d` failed on this machine because another project already
+published on 5432. The Postgres host port is now `${POSTGRES_PORT:-5432}`, and
+the runtime measurement binds a free ephemeral port per boot rather than a fixed
+4174, with `--runtime-port` to pin one.
+
+The first version of the free-port test asserted only that the chosen port was
+above 1024 and unoccupied — which a hardcoded idle port also satisfies, and a
+mutation returning a constant survived. The test now occupies a port and asserts
+the chooser avoids it, which kills that mutant in 149 ms. This is the second
+time in this feature that a test appeared to cover a behaviour and did not; both
+were caught by mutation rather than by review.
+
+### 7. A wrong DATABASE_URL would have been published as a Bun finding — added (T25)
+
+Making the Postgres port movable creates a way for `POSTGRES_PORT` and
+`DATABASE_URL` to disagree. Without a check, the mismatch surfaces partway
+through the matrix as a failing `sync` workload, which the harness records as a
+`compat` finding against a Bun version. Preflight now verifies the connection
+reaches a database containing a `posts` table, and names both variables in the
+abort message.
 
 ---
 

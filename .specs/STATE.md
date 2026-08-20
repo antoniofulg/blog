@@ -13,10 +13,10 @@
 ## Handoff
 
 - **Feature**: bun-1-4-benchmark (`.specs/features/bun-1-4-benchmark/`)
-- **Phase / Task**: Phases 1-4 and 6 complete (T1-T16, T19-T21). Phase 5 (T17, T18) blocked on the operator's benchmark run.
-- **Completed**: T1-T16, T19, T20, T21 — one atomic commit each; validation report written and then corrected
+- **Phase / Task**: Phases 1-4 and 6 complete (T1-T16, T19-T25). Phase 5 (T17, T18) blocked on the operator's benchmark run.
+- **Completed**: T1-T16, T19-T25 — one atomic commit each. Full suite green: 121 files, 2176 tests, 0 failures.
 - **In-progress** (file:line): none
-- **Next step**: Operator runs `docker compose up db -d && make bench` on a quiet machine. Toolchains are already installed in `.bench/`. When `docs/benchmarks/bun-1-4/<date>.json` exists with no unresolved compat finding under 1.4.0, unblock T17 (version pins), then T18 (the post).
+- **Next step**: Operator sets POSTGRES_PORT in `.env` to a free port (5432 is taken by another project on this machine), mirrors it in DATABASE_URL, then runs `docker compose up db -d && make bench` on a quiet machine. When a result JSON exists with no unresolved compat finding under 1.4.0, unblock T17 (version pins), then T18 (the post).
 - **Blockers**: T17 and T18 need real measurements, deferred by user decision.
 - **Uncommitted files**: none
-- **Branch**: feat/bun-1-4-benchmark (22 commits ahead of origin/main, not pushed)
+- **Branch**: feat/bun-1-4-benchmark (27 commits ahead of origin/main, not pushed)
