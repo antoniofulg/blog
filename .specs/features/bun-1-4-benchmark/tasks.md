@@ -98,13 +98,16 @@ T17 → T18
 
 Raised by feature-level validation, not planned up front.
 
-Order: T19, T20, T21, T22
+Order: T19, T20, T21, T22, T23, T24, T25
 
 ```
 T11 → T19
 T19 → T20
 T20 → T21
 T21 → T22
+T22 → T23
+T23 → T24
+T24 → T25
 ```
 
 Phase 5 cannot start until a full two-version run has produced a committed result JSON. It is planned here so the traceability is complete, not because it is executable now.
@@ -710,6 +713,90 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
+### T23: Make the Postgres host port movable — ✅ Complete
+
+**What**: Publish the database on an overridable host port so the stack coexists with another project's Postgres.
+**Where**: `docker-compose.yml` (modify)
+**Depends on**: T22
+**Reuses**: the existing `.env` / `env_file` convention
+**Requirement**: BENCH-06
+
+**Raised by**: the operator. `docker compose up db -d` failed with `Bind for 127.0.0.1:5432 failed: port is already allocated` — `antclips-w0-postgres-1` owns 5432 on this machine.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] The compose port mapping reads `"${POSTGRES_PORT:-5432}:5432"`, so an unset variable keeps today's behaviour
+- [ ] `.env.example` documents `POSTGRES_PORT` next to `DATABASE_URL` and states they must agree
+- [ ] A test asserts the compose file uses the variable and that the example's `DATABASE_URL` port matches its `POSTGRES_PORT`
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 7 tests pass in `bench-setup.test.ts` (no silent deletions)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `chore(bench): make the postgres host port movable`
+
+---
+
+### T24: Let the runtime measurement pick its own free port — ✅ Complete
+
+**What**: Bind a free ephemeral port per boot instead of a fixed 4174, with `--runtime-port` to pin one.
+**Where**: `app/lib/bench/runtime.server.ts` (modify)
+**Depends on**: T23
+**Reuses**: `portOwner`, the squatter guard from T21
+**Requirement**: BENCH-09, BENCH-11
+
+**Raised by**: the operator asking whether ports can move when other services are running. A fixed port makes a benchmark run hostage to whatever else is on the machine.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] `findFreePort` obtains a port by binding `:0` and releasing it
+- [ ] `measureRuntime` uses it whenever no port is pinned
+- [ ] `parseBenchArgs` accepts `--runtime-port=N` and ignores a non-numeric value rather than binding `NaN`
+- [ ] Preflight checks the port only when one was pinned, and its message names `--runtime-port`
+- [ ] A test occupies a port and asserts the chooser avoids it — asserting only that the result is free would pass for any idle hardcoded port
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 11 tests pass in `bench-runtime.test.ts` (no silent deletions)
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `feat(bench): let the runtime measurement pick a free port`
+
+---
+
+### T25: Verify DATABASE_URL reaches this blog's database — ✅ Complete
+
+**What**: Preflight confirms the connection string lands on the blog's database, not another project's Postgres on the same port.
+**Where**: `app/lib/bench/preflight.server.ts` (modify)
+**Depends on**: T24
+**Reuses**: the `postgres` client already in dependencies
+**Requirement**: BENCH-05
+
+**Raised by**: moving the Postgres port introduces a way for `POSTGRES_PORT` and `DATABASE_URL` to disagree. Without this check, a wrong connection string fails partway through the matrix, is recorded as a `compat` finding, and a database misconfiguration ends up published as a Bun compatibility result.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] `checkDbIdentity` returns `ok`, `unreachable` with the driver's message, or `wrong-database` with the database name
+- [ ] Identity is decided by `to_regclass('public.posts')`, so a reachable but unrelated database is rejected
+- [ ] The abort messages name `POSTGRES_PORT` and `DATABASE_URL` as the things to reconcile
+- [ ] The check runs only when a selected workload needs the database
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 17 tests pass in `bench-preflight.test.ts` (no silent deletions)
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `feat(bench): verify DATABASE_URL reaches this blog's database`
+
+---
+
 ## Phase Execution Map
 
 Phases run in sequence: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5.
@@ -721,7 +808,7 @@ Execution order inside each phase:
 - Phase 3: T10, T11
 - Phase 4: T12, T13, T14, T15, T16
 - Phase 5: T17, T18
-- Phase 6: T19, T20, T21, T22
+- Phase 6: T19, T20, T21, T22, T23, T24, T25
 
 Execution is strictly sequential — one task at a time, in order. The dependency edges are the ones drawn in the Execution Plan above.
 
@@ -753,6 +840,9 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T20: deterministic sensor kill | 1 fixture + 1 test | ✅ Granular |
 | T21: port-squatter guard | 1 file modified + its test | ✅ Granular |
 | T22: non-destructive result files | 1 function + its tests | ✅ Granular |
+| T23: movable postgres port | 1 compose file + 1 env template | ✅ Granular |
+| T24: free runtime port | 1 function + flag wiring | ✅ Granular |
+| T25: database identity check | 1 function + its tests | ✅ Granular |
 
 ---
 
@@ -782,6 +872,9 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T20 | T19 | T19 → T20 | ✅ Match |
 | T21 | T20 | T20 → T21 | ✅ Match |
 | T22 | T21 | T21 → T22 | ✅ Match |
+| T23 | T22 | T22 → T23 | ✅ Match |
+| T24 | T23 | T23 → T24 | ✅ Match |
+| T25 | T24 | T24 → T25 | ✅ Match |
 
 No task depends on a later phase.
 
@@ -813,3 +906,6 @@ No task depends on a later phase.
 | T20 | server orchestration | integration | integration | ✅ OK |
 | T21 | server orchestration | integration | integration | ✅ OK |
 | T22 | pure lib logic | unit | unit | ✅ OK |
+| T23 | repo config | unit | unit | ✅ OK |
+| T24 | server orchestration | integration | integration | ✅ OK |
+| T25 | server orchestration | integration | integration | ✅ OK |

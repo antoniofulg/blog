@@ -36,3 +36,18 @@ describe("bench workspace setup", () => {
 		expect(declared.trim().split(/\s+/)).toEqual([...BENCH_VERSIONS]);
 	});
 });
+
+describe("port conflicts with other projects", () => {
+	it("lets the Postgres host port be moved without editing the compose file", async () => {
+		const compose = await read("docker-compose.yml");
+		expect(compose).toContain('"${POSTGRES_PORT:-5432}:5432"');
+	});
+
+	it("documents the movable port alongside the connection string", async () => {
+		const example = await read(".env.example");
+		expect(example).toContain("POSTGRES_PORT=5432");
+		const dbUrl = example.match(/^DATABASE_URL=.*$/m)?.[0] ?? "";
+		const port = example.match(/^POSTGRES_PORT=(\d+)$/m)?.[1] ?? "";
+		expect(dbUrl).toContain(`:${port}/`);
+	});
+});
