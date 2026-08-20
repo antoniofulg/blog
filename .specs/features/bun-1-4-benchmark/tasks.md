@@ -396,7 +396,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T12: Render the comparison report
+### T12: Render the comparison report — ✅ Complete
 
 **What**: Turn a result JSON into `REPORT.md` with deltas, noise verdicts and a findings section.
 **Where**: `app/lib/bench/reporter.server.ts`
