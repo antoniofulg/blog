@@ -233,7 +233,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T6: Collect host provenance metadata
+### T6: Collect host provenance metadata — ✅ Complete
 
 **What**: Capture the machine facts that make a result file interpretable months later.
 **Where**: `app/lib/bench/host.server.ts`
