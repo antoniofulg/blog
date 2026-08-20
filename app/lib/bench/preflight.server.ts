@@ -64,7 +64,7 @@ async function dbContainerRunning(): Promise<boolean> {
 	}
 }
 
-async function portOwner(port: number): Promise<number | null> {
+export async function portOwner(port: number): Promise<number | null> {
 	try {
 		const { stdout } = await run("lsof", ["-ti", `tcp:${port}`]);
 		const pid = Number.parseInt(stdout.trim().split("\n")[0] ?? "", 10);

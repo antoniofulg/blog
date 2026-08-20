@@ -369,7 +369,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T11: Measure the production bundle at runtime
+### T11: Measure the production bundle at runtime — ✅ Complete
 
 **What**: Boot the Nitro bundle under a given Bun version and record boot time, the three RSS phases and latency.
 **Where**: `app/lib/bench/runtime.server.ts` (modify)

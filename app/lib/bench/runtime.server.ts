@@ -1,7 +1,19 @@
 import "@tanstack/react-start/server-only";
+import { spawn } from "node:child_process";
 import { performance } from "node:perf_hooks";
+import { portOwner, RUNTIME_PORT } from "#/lib/bench/preflight.server";
+import {
+	groupRssBytes,
+	killGroup,
+	RSS_SAMPLE_INTERVAL_MS,
+} from "#/lib/bench/runner.server";
 import { percentile } from "#/lib/bench/stats";
-import type { LoadResult, NonOkResponse } from "#/lib/bench/types";
+import type {
+	LoadResult,
+	NonOkResponse,
+	RuntimeResult,
+} from "#/lib/bench/types";
+import { toolchainFor } from "#/lib/bench/versions";
 
 /** Fixed load shape, identical for every version so the client never becomes
  * part of the comparison. */
@@ -77,4 +89,139 @@ export async function generateLoad(
 		totalRequests: durations.length,
 		nonOk: groupNonOk(failures),
 	};
+}
+
+/** How long to wait for the server to answer before giving up on the boot. */
+export const BOOT_TIMEOUT_MS = 30_000;
+const BOOT_POLL_INTERVAL_MS = 50;
+
+/** Settle window before idle RSS is read, and cooldown before post-load RSS. */
+export const SETTLE_MS = 3_000;
+export const COOLDOWN_MS = 10_000;
+
+const PORT_FREE_TIMEOUT_MS = 10_000;
+
+export type RuntimeOpts = {
+	version: string;
+	routes: string[];
+	cwd: string;
+	port?: number;
+	/** Overridable so tests can drive a stub server instead of the real bundle. */
+	command?: string[];
+	env?: NodeJS.ProcessEnv;
+	load?: LoadOpts;
+	settleMs?: number;
+	cooldownMs?: number;
+};
+
+const sleep = (ms: number) => new Promise((resolve) => setTimeout(resolve, ms));
+
+async function waitForBoot(baseUrl: string): Promise<number | null> {
+	const started = performance.now();
+	while (performance.now() - started < BOOT_TIMEOUT_MS) {
+		try {
+			const response = await fetch(baseUrl, { redirect: "manual" });
+			await response.arrayBuffer();
+			if (response.status < 400) return performance.now() - started;
+		} catch {
+			// not listening yet
+		}
+		await sleep(BOOT_POLL_INTERVAL_MS);
+	}
+	return null;
+}
+
+async function waitForPortFree(port: number): Promise<void> {
+	const started = performance.now();
+	while (performance.now() - started < PORT_FREE_TIMEOUT_MS) {
+		if ((await portOwner(port)) === null) return;
+		await sleep(BOOT_POLL_INTERVAL_MS);
+	}
+}
+
+/**
+ * Boots the production bundle under one Bun version and measures what a reader
+ * feels: how long it takes to answer, how much memory it holds at rest and
+ * under load, and how fast it responds while loaded.
+ *
+ * Every version gets the identical environment, load shape and database state,
+ * so the only variable is the runtime itself.
+ */
+export async function measureRuntime(
+	opts: RuntimeOpts,
+): Promise<RuntimeResult> {
+	const port = opts.port ?? RUNTIME_PORT;
+	const baseUrl = `http://127.0.0.1:${port}`;
+	const command = opts.command ?? [
+		toolchainFor(opts.version, opts.cwd).binary,
+		"run",
+		".output/server/index.mjs",
+	];
+	const env = {
+		...(opts.env ?? process.env),
+		PORT: String(port),
+		SITE_URL: baseUrl,
+		BETTER_AUTH_URL: baseUrl,
+	};
+
+	const child = spawn(command[0], command.slice(1), {
+		detached: true,
+		cwd: opts.cwd,
+		env,
+		stdio: ["ignore", "ignore", "ignore"],
+	});
+	const pgid = child.pid ?? 0;
+
+	try {
+		const bootMs = await waitForBoot(baseUrl);
+		if (bootMs === null) {
+			throw new Error(
+				`server under bun ${opts.version} did not answer on ${baseUrl} within ${BOOT_TIMEOUT_MS}ms`,
+			);
+		}
+
+		await sleep(opts.settleMs ?? SETTLE_MS);
+		const idleRssBytes = await groupRssBytes(pgid);
+
+		let peakRssBytes = idleRssBytes;
+		let sampling = false;
+		const sampler = setInterval(() => {
+			if (sampling) return;
+			sampling = true;
+			groupRssBytes(pgid)
+				.then((bytes) => {
+					if (bytes > peakRssBytes) peakRssBytes = bytes;
+				})
+				.finally(() => {
+					sampling = false;
+				});
+		}, RSS_SAMPLE_INTERVAL_MS);
+
+		const load = await generateLoad(
+			baseUrl,
+			opts.routes,
+			opts.load ?? {
+				concurrency: LOAD_CONCURRENCY,
+				durationMs: LOAD_DURATION_MS,
+			},
+		);
+		clearInterval(sampler);
+
+		await sleep(opts.cooldownMs ?? COOLDOWN_MS);
+		const postLoadRssBytes = await groupRssBytes(pgid);
+
+		return {
+			version: opts.version,
+			bootMs,
+			idleRssBytes,
+			peakRssBytes,
+			postLoadRssBytes,
+			latency: load.latency,
+			totalRequests: load.totalRequests,
+			nonOk: load.nonOk,
+		};
+	} finally {
+		killGroup(pgid, "SIGTERM");
+		await waitForPortFree(port);
+	}
 }
