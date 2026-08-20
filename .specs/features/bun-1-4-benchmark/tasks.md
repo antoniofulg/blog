@@ -477,7 +477,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T15: Resolve where Bun 1.4 keeps its install store
+### T15: Resolve where Bun 1.4 keeps its install store — ✅ Complete
 
 **What**: Determine empirically whether Bun 1.4's global virtual store lives under `BUN_INSTALL_CACHE_DIR`, and make `install-cold` honestly cold either way.
 **Where**: `app/lib/bench/workloads.ts` (modify)
