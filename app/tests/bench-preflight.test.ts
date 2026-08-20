@@ -1,7 +1,8 @@
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import {
-	LOAD_AVG_LIMIT,
+	LOAD_PER_CORE_LIMIT,
+	loadLimitFor,
 	type PreflightDeps,
 	type PreflightOpts,
 	preflight,
@@ -28,6 +29,7 @@ function deps(over: Partial<PreflightDeps> = {}): PreflightDeps {
 		bunVersion: async (binary) =>
 			binary.includes("bun-1.3.14") ? "1.3.14" : "1.4.0",
 		loadAvg1: () => 0.5,
+		cores: () => 8,
 		dockerAvailable: async () => true,
 		dbContainerRunning: async () => true,
 		portOwner: async () => null,
@@ -76,11 +78,44 @@ describe("bench preflight", () => {
 		expect(reasonOf(result)).toContain("reports 1.3.9, expected 1.3.14");
 	});
 
-	it("aborts above the load-average limit and names the observed value", async () => {
-		const result = await preflight(opts(), deps({ loadAvg1: () => 28.01 }));
+	it("aborts above the load limit, naming the load, the core count and the limit", async () => {
+		const result = await preflight(
+			opts(),
+			deps({ loadAvg1: () => 28.01, cores: () => 8 }),
+		);
 		expect(result.ok).toBe(false);
 		expect(reasonOf(result)).toContain("28.01");
+		expect(reasonOf(result)).toContain("8 cores");
+		expect(reasonOf(result)).toContain("2.00 limit");
 		expect(reasonOf(result)).toContain("--allow-noisy");
+	});
+
+	it("scales the limit with the core count instead of using a fixed number", async () => {
+		// 5.0 saturates 4 cores and barely touches 64. One absolute threshold
+		// cannot be right for both.
+		const small = await preflight(
+			opts(),
+			deps({ loadAvg1: () => 5, cores: () => 4 }),
+		);
+		const large = await preflight(
+			opts(),
+			deps({ loadAvg1: () => 5, cores: () => 64 }),
+		);
+		expect(small.ok).toBe(false);
+		expect(large).toEqual({ ok: true });
+	});
+
+	it("derives the limit as a fixed share of the cores", () => {
+		expect(loadLimitFor(11)).toBeCloseTo(LOAD_PER_CORE_LIMIT * 11);
+		expect(loadLimitFor(0)).toBeCloseTo(LOAD_PER_CORE_LIMIT);
+	});
+
+	it("warns that numbers taken under load land inside the noise band", async () => {
+		const result = await preflight(
+			opts(),
+			deps({ loadAvg1: () => 28.01, cores: () => 8 }),
+		);
+		expect(reasonOf(result)).toContain("noise band");
 	});
 
 	it("runs anyway above the limit when --allow-noisy was passed", async () => {
@@ -94,7 +129,7 @@ describe("bench preflight", () => {
 	it("treats a load average exactly at the limit as acceptable", async () => {
 		const result = await preflight(
 			opts(),
-			deps({ loadAvg1: () => LOAD_AVG_LIMIT }),
+			deps({ loadAvg1: () => loadLimitFor(8), cores: () => 8 }),
 		);
 		expect(result).toEqual({ ok: true });
 	});

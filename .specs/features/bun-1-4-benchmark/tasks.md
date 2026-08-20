@@ -98,7 +98,7 @@ T17 → T18
 
 Raised by feature-level validation, not planned up front.
 
-Order: T19, T20, T21, T22, T23, T24, T25
+Order: T19, T20, T21, T22, T23, T24, T25, T26
 
 ```
 T11 → T19
@@ -108,6 +108,7 @@ T21 → T22
 T22 → T23
 T23 → T24
 T24 → T25
+T25 → T26
 ```
 
 Phase 5 cannot start until a full two-version run has produced a committed result JSON. It is planned here so the traceability is complete, not because it is executable now.
@@ -797,6 +798,34 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
+### T26: Scale the load-average gate with the core count — ✅ Complete
+
+**What**: Express the contention limit per core instead of as one absolute number.
+**Where**: `app/lib/bench/preflight.server.ts` (modify)
+**Depends on**: T25
+**Reuses**: `node:os` `cpus()`
+**Requirement**: BENCH-05
+
+**Raised by**: the operator's first real run. Preflight refused at load 5.94 against a fixed limit of 2.0. On this 11-core machine that limit means 18% utilisation — stricter than any working machine will ever satisfy. The same 2.0 would be full saturation on a dual-core box and 3% of a 64-core one, so no single absolute number is defensible.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] `loadLimitFor(cores)` returns `LOAD_PER_CORE_LIMIT * cores`, with a floor of one core
+- [ ] The abort message names the observed load, the core count, the percentage busy and the derived limit
+- [ ] The message states that numbers taken under load will mostly land inside the noise band, so the operator knows what a forced run buys them
+- [ ] The same load passes on a large machine and fails on a small one
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 19 tests pass in `bench-preflight.test.ts` (no silent deletions)
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `fix(bench): scale the load gate with the core count`
+
+---
+
 ## Phase Execution Map
 
 Phases run in sequence: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5.
@@ -808,7 +837,7 @@ Execution order inside each phase:
 - Phase 3: T10, T11
 - Phase 4: T12, T13, T14, T15, T16
 - Phase 5: T17, T18
-- Phase 6: T19, T20, T21, T22, T23, T24, T25
+- Phase 6: T19, T20, T21, T22, T23, T24, T25, T26
 
 Execution is strictly sequential — one task at a time, in order. The dependency edges are the ones drawn in the Execution Plan above.
 
@@ -843,6 +872,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T23: movable postgres port | 1 compose file + 1 env template | ✅ Granular |
 | T24: free runtime port | 1 function + flag wiring | ✅ Granular |
 | T25: database identity check | 1 function + its tests | ✅ Granular |
+| T26: per-core load gate | 1 function + its tests | ✅ Granular |
 
 ---
 
@@ -875,6 +905,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T23 | T22 | T22 → T23 | ✅ Match |
 | T24 | T23 | T23 → T24 | ✅ Match |
 | T25 | T24 | T24 → T25 | ✅ Match |
+| T26 | T25 | T25 → T26 | ✅ Match |
 
 No task depends on a later phase.
 
@@ -909,3 +940,4 @@ No task depends on a later phase.
 | T23 | repo config | unit | unit | ✅ OK |
 | T24 | server orchestration | integration | integration | ✅ OK |
 | T25 | server orchestration | integration | integration | ✅ OK |
+| T26 | server orchestration | integration | integration | ✅ OK |

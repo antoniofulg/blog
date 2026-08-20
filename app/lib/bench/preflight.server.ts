@@ -1,7 +1,7 @@
 import "@tanstack/react-start/server-only";
 import { execFile } from "node:child_process";
 import { access } from "node:fs/promises";
-import { loadavg } from "node:os";
+import { cpus, loadavg } from "node:os";
 import { promisify } from "node:util";
 import postgres from "postgres";
 import { installCommand, toolchainFor } from "#/lib/bench/versions";
@@ -10,8 +10,20 @@ import { getPostInventory } from "#/lib/site-model.server";
 
 const run = promisify(execFile);
 
-/** Above this one-minute load average the machine is too busy to measure. */
-export const LOAD_AVG_LIMIT = 2.0;
+/**
+ * Maximum share of the machine's cores that may already be busy. Expressed per
+ * core because a raw load average means nothing without the core count: 2.0 is
+ * full saturation on a dual-core box and 3% of a 64-core one.
+ *
+ * 0.25 is a judgement call, not a measurement: below it a measured process can
+ * hold a core without timesharing. Override the whole check with --allow-noisy.
+ */
+export const LOAD_PER_CORE_LIMIT = 0.25;
+
+/** Absolute limit for this machine, given its core count. */
+export function loadLimitFor(cores: number): number {
+	return LOAD_PER_CORE_LIMIT * Math.max(cores, 1);
+}
 
 /** Default port the runtime workload boots the production bundle on when the
  * operator does not pin one. Deliberately not 4173, which the e2e harness and
@@ -31,6 +43,7 @@ export type DbIdentity =
 export type PreflightDeps = {
 	bunVersion: (binary: string) => Promise<string | null>;
 	loadAvg1: () => number;
+	cores: () => number;
 	dockerAvailable: () => Promise<boolean>;
 	dbContainerRunning: () => Promise<boolean>;
 	portOwner: (port: number) => Promise<number | null>;
@@ -148,6 +161,7 @@ export async function checkDbIdentity(): Promise<DbIdentity> {
 export const defaultPreflightDeps: PreflightDeps = {
 	bunVersion: readBunVersion,
 	loadAvg1: () => loadavg()[0],
+	cores: () => cpus().length,
 	dockerAvailable,
 	dbContainerRunning,
 	portOwner,
@@ -192,10 +206,13 @@ export async function preflight(
 	}
 
 	const load = deps.loadAvg1();
-	if (load > LOAD_AVG_LIMIT && !opts.allowNoisy) {
+	const cores = deps.cores();
+	const limit = loadLimitFor(cores);
+	if (load > limit && !opts.allowNoisy) {
+		const busy = ((load / cores) * 100).toFixed(0);
 		return {
 			ok: false,
-			reason: `1-minute load average is ${load.toFixed(2)}, above the ${LOAD_AVG_LIMIT.toFixed(1)} limit. Wait for a quiet machine, or pass --allow-noisy to measure anyway.`,
+			reason: `1-minute load average is ${load.toFixed(2)} on ${cores} cores — roughly ${busy}% of the machine is already busy, above the ${limit.toFixed(2)} limit (${LOAD_PER_CORE_LIMIT} per core). Close what you can and retry, or pass --allow-noisy. Numbers taken now will mostly land inside the noise band, so the report will read "within noise" for almost everything.`,
 		};
 	}
 

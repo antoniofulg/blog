@@ -52,9 +52,14 @@ layout is an implementation detail and upstream can move it.
 
 ### Before you start
 
-Run this on a quiet machine. The harness refuses to start above a 1-minute load
-average of 2.0 precisely because numbers taken under contention are not worth
-publishing. During development of this harness the machine sat at load 28 and
+Run this on a quiet machine. The harness refuses to start when the 1-minute load
+average exceeds 0.25 per core — about 2.75 on an 11-core machine — because
+numbers taken under contention are not worth publishing.
+
+Containers count. A stopped-looking Docker fleet still burns CPU: two idle
+Supabase stacks plus a few worker containers were enough to hold this machine
+around load 7. `docker compose stop` in the other projects is usually the
+single biggest win before a run. During development of this harness the machine sat at load 28 and
 the project's own PGLite test files failed non-deterministically; the same files
 passed when run in isolation. That is what contention does to a measurement.
 
@@ -145,7 +150,7 @@ workloads for a full session.
 | ------- | ----- | ------ |
 | `bun X is not installed at .bench/...` | Toolchain missing | Run the `curl` line the message prints, or `make bench-setup` |
 | `... reports X, expected Y` | Toolchain is the wrong version | Delete that `.bench/bun-*` directory and re-run `make bench-setup` |
-| `1-minute load average is N, above the 2.0 limit` | Machine is busy | Wait, or pass `--allow-noisy` and treat the numbers as indicative only |
+| `1-minute load average is N on C cores` | Machine is busy | Close what you can and retry, or pass `--allow-noisy` and treat the numbers as indicative only |
 | `Docker is not available` | Docker daemon not running | Start Docker Desktop |
 | `The \`db\` container is not running` | Compose service down | `docker compose up db -d` |
 | `Port N is already bound by PID M` | A pinned runtime port is taken | Drop `--runtime-port` to let the harness pick a free one, or `kill M` |
