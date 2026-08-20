@@ -174,7 +174,7 @@ The blog's toolchain and runtime are pinned to Bun 1.3.x in CI (`ci.yml` → 1.3
 **Acceptance Criteria**:
 
 1. The system SHALL read the compared versions from a single declared constant or config value so that adding a version does not require editing workload code.
-2. WHEN a new result JSON is written THEN the system SHALL name it with the ISO date and SHALL NOT overwrite an existing result file from a different date.
+2. WHEN a new result JSON is written THEN the system SHALL name it with an ISO timestamp and SHALL NOT overwrite any existing result file, including one written earlier the same day.
 
 ---
 

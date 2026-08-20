@@ -61,8 +61,16 @@ export function splitRuntimeSelection(only?: string[]): {
 	};
 }
 
-/** Date-stamped result path, so a re-run on another day never overwrites an
- * earlier run's data. */
-export function resultFilePath(isoDate: string, dir = RESULTS_DIR): string {
-	return `${dir}/${isoDate.slice(0, 10)}.json`;
+/**
+ * Timestamped result path. A run never overwrites another run's data, not even
+ * one started the same day: measurements taken minutes apart can sit under
+ * different machine conditions, and silently replacing the earlier file would
+ * destroy the only record of those conditions.
+ */
+export function resultFilePath(
+	isoTimestamp: string,
+	dir = RESULTS_DIR,
+): string {
+	const stamp = isoTimestamp.slice(0, 19).replace(/:/g, "-");
+	return `${dir}/${stamp}.json`;
 }

@@ -83,13 +83,23 @@ describe("bench selection and result paths", () => {
 		});
 	});
 
-	it("date-stamps the result file so a later run never overwrites an earlier one", () => {
+	it("timestamps the result file so a later run never overwrites an earlier one", () => {
 		expect(resultFilePath("2026-08-20T12:00:00.000Z")).toBe(
-			"docs/benchmarks/bun-1-4/2026-08-20.json",
+			"docs/benchmarks/bun-1-4/2026-08-20T12-00-00.json",
 		);
 		expect(resultFilePath("2026-09-01T00:00:00.000Z")).not.toBe(
 			resultFilePath("2026-08-20T12:00:00.000Z"),
 		);
+	});
+
+	it("keeps two runs on the same day in separate files", () => {
+		expect(resultFilePath("2026-08-20T22:15:48.216Z")).not.toBe(
+			resultFilePath("2026-08-20T22:41:03.900Z"),
+		);
+	});
+
+	it("produces a filename with no characters that need escaping on disk", () => {
+		expect(resultFilePath("2026-08-20T22:15:48.216Z")).not.toContain(":");
 	});
 
 	it("commits results outside the gitignored docs/_reports directory", () => {

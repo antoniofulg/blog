@@ -98,12 +98,13 @@ T17 → T18
 
 Raised by feature-level validation, not planned up front.
 
-Order: T19, T20, T21
+Order: T19, T20, T21, T22
 
 ```
 T11 → T19
 T19 → T20
 T20 → T21
+T21 → T22
 ```
 
 Phase 5 cannot start until a full two-version run has produced a committed result JSON. It is planned here so the traceability is complete, not because it is executable now.
@@ -681,6 +682,34 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
+### T22: Stop a same-day re-run from destroying the earlier run — ✅ Complete
+
+**What**: Name result files by ISO timestamp rather than by date, so no run overwrites another.
+**Where**: `app/lib/bench/cli.ts` (modify)
+**Depends on**: T21
+**Reuses**: nothing
+**Requirement**: BENCH-15
+
+**Raised by**: the operator asking whether repeated runs accumulate. They did not. A smoke run of `--only=lint` followed by `--only=check` on the same day left only the `check` result on disk; the `lint` numbers were gone. The original criterion said "not overwrite a file from a different date", which the implementation satisfied literally while still destroying same-day data.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] `resultFilePath` returns a second-resolution timestamp with `:` replaced, e.g. `2026-08-20T22-15-48.json`
+- [ ] Two runs started at different times on the same day resolve to different paths
+- [ ] The filename contains no character that needs escaping on disk
+- [ ] The spec criterion is corrected to say no result file is ever overwritten
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 16 tests pass in `bench-cli.test.ts` (no silent deletions)
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(bench): never overwrite an earlier benchmark result`
+
+---
+
 ## Phase Execution Map
 
 Phases run in sequence: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5.
@@ -692,7 +721,7 @@ Execution order inside each phase:
 - Phase 3: T10, T11
 - Phase 4: T12, T13, T14, T15, T16
 - Phase 5: T17, T18
-- Phase 6: T19, T20, T21
+- Phase 6: T19, T20, T21, T22
 
 Execution is strictly sequential — one task at a time, in order. The dependency edges are the ones drawn in the Execution Plan above.
 
@@ -723,6 +752,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T19: stale-server fix | 1 file modified + its tests | ✅ Granular |
 | T20: deterministic sensor kill | 1 fixture + 1 test | ✅ Granular |
 | T21: port-squatter guard | 1 file modified + its test | ✅ Granular |
+| T22: non-destructive result files | 1 function + its tests | ✅ Granular |
 
 ---
 
@@ -751,6 +781,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T19 | T11 | cross-phase only, no same-phase edge | ✅ Match |
 | T20 | T19 | T19 → T20 | ✅ Match |
 | T21 | T20 | T20 → T21 | ✅ Match |
+| T22 | T21 | T21 → T22 | ✅ Match |
 
 No task depends on a later phase.
 
@@ -781,3 +812,4 @@ No task depends on a later phase.
 | T19 | server orchestration | integration | integration | ✅ OK |
 | T20 | server orchestration | integration | integration | ✅ OK |
 | T21 | server orchestration | integration | integration | ✅ OK |
+| T22 | pure lib logic | unit | unit | ✅ OK |

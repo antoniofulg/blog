@@ -128,7 +128,7 @@ If a run is killed hard enough to skip the restore (`kill -9`), run
 
 | Artifact | Path | Committed |
 | -------- | ---- | --------- |
-| Raw results | `docs/benchmarks/bun-1-4/<ISO-date>.json` | yes |
+| Raw results | `docs/benchmarks/bun-1-4/<ISO-timestamp>.json` | yes |
 | Rendered comparison | `docs/benchmarks/bun-1-4/REPORT.md` | yes |
 
 Results are committed on purpose. The post cites these numbers, and a reader who
@@ -136,7 +136,22 @@ wants to check a claim must be able to open the source data. This is the
 opposite of `docs/_reports/`, which is gitignored because audit runs are
 transient and per-developer.
 
-A result file is named by date and never overwrites a run from another day.
+**Result files accumulate; the report does not.** Every run writes its own
+timestamped JSON and nothing is ever overwritten, so running subsets across
+several sessions leaves every measurement on disk. `REPORT.md`, on the other
+hand, is a rendered view of the run that just finished — a second run replaces
+it. To re-render an older run:
+
+```sh
+bun run bench --report-only=docs/benchmarks/bun-1-4/2026-08-20T22-15-48.json
+```
+
+The harness deliberately does not merge separate runs into one comparison table.
+Two runs minutes apart can sit under different load, thermal and power
+conditions, which is why each result file records its own `loadAvg1` and power
+source. A table combining them would read as one measurement while being
+several. For the numbers that go in the post, run the full matrix in one
+sitting.
 
 ### Limitations the post must repeat
 
