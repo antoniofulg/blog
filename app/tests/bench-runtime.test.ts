@@ -1,3 +1,4 @@
+import { spawn } from "node:child_process";
 import { join } from "node:path";
 import { describe, expect, it } from "vitest";
 import { portOwner } from "#/lib/bench/preflight.server";
@@ -79,6 +80,31 @@ describe("bench runtime measurement", () => {
 		);
 		expect(await portOwner(PORT)).toBeNull();
 	}, 60_000);
+
+	it("refuses to measure a server it did not start", async () => {
+		// A leftover listener answers the boot probe instantly and reports
+		// another process's memory. Failing loudly is the only safe outcome:
+		// the alternative is a plausible-looking number describing the wrong
+		// process.
+		const squatter = spawn("bun", ["run", STUB], {
+			detached: true,
+			env: { ...process.env, PORT: String(PORT) },
+			stdio: "ignore",
+		});
+		try {
+			while ((await portOwner(PORT)) === null) {
+				await new Promise((r) => setTimeout(r, 50));
+			}
+			await expect(measureRuntime(opts())).rejects.toThrow(
+				/already bound by PID/,
+			);
+		} finally {
+			process.kill(-(squatter.pid ?? 0), "SIGKILL");
+			while ((await portOwner(PORT)) !== null) {
+				await new Promise((r) => setTimeout(r, 50));
+			}
+		}
+	}, 30_000);
 
 	it("frees the port even when the server never boots", async () => {
 		await expect(

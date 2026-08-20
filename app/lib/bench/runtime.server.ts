@@ -166,6 +166,17 @@ export async function measureRuntime(
 		BETTER_AUTH_URL: baseUrl,
 	};
 
+	// Preflight checks this port once, before the matrix starts; the matrix
+	// then boots one server per version. Re-checking here is what stops a
+	// leftover listener — including a previous version's server — from
+	// answering the boot probe and being measured as if it were ours.
+	const squatter = await portOwner(port);
+	if (squatter !== null) {
+		throw new Error(
+			`port ${port} is already bound by PID ${squatter}; refusing to measure a server this harness did not start`,
+		);
+	}
+
 	const child = spawn(command[0], command.slice(1), {
 		detached: true,
 		cwd: opts.cwd,

@@ -98,11 +98,12 @@ T17 → T18
 
 Raised by feature-level validation, not planned up front.
 
-Order: T19, T20
+Order: T19, T20, T21
 
 ```
 T11 → T19
 T19 → T20
+T20 → T21
 ```
 
 Phase 5 cannot start until a full two-version run has produced a committed result JSON. It is planned here so the traceability is complete, not because it is executable now.
@@ -653,6 +654,33 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
+### T21: Refuse to measure a server the harness did not start — ✅ Complete
+
+**What**: Check the runtime port immediately before each boot, and fail loudly when something already owns it.
+**Where**: `app/lib/bench/runtime.server.ts` (modify)
+**Depends on**: T20
+**Reuses**: `portOwner` from `preflight.server.ts`
+**Requirement**: BENCH-09, BENCH-11
+
+**Raised by**: the full test suite. An orphaned stub server — left behind by the sensor run whose mutation removed the SIGKILL escalation — held port 4187. `measureRuntime` booted, got an instant 200 from that stranger, and reported `bootMs` of -45 ms relative to the other boot and `idleRssBytes` of 0. It measured a process it did not start and returned the numbers as its own. Preflight checks the port once before the matrix; the matrix boots one server per version, so the check has to repeat per invocation.
+
+**Tools**: MCP: NONE — Skill: NONE
+
+**Done when**:
+
+- [ ] `measureRuntime` throws before spawning when `portOwner` reports an owner, naming the port and the PID
+- [ ] A test starts a squatter on the port and asserts the rejection, then cleans it up
+- [ ] Removing the guard fails that test (verified by mutation)
+- [ ] Gate check passes: `bun run test`
+- [ ] Test count: 9 tests pass in `bench-runtime.test.ts` (no silent deletions)
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `fix(bench): refuse to measure a server the harness did not start`
+
+---
+
 ## Phase Execution Map
 
 Phases run in sequence: Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5.
@@ -664,7 +692,7 @@ Execution order inside each phase:
 - Phase 3: T10, T11
 - Phase 4: T12, T13, T14, T15, T16
 - Phase 5: T17, T18
-- Phase 6: T19, T20
+- Phase 6: T19, T20, T21
 
 Execution is strictly sequential — one task at a time, in order. The dependency edges are the ones drawn in the Execution Plan above.
 
@@ -694,6 +722,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T18: the post | 1 post, 2 locales | ✅ Granular |
 | T19: stale-server fix | 1 file modified + its tests | ✅ Granular |
 | T20: deterministic sensor kill | 1 fixture + 1 test | ✅ Granular |
+| T21: port-squatter guard | 1 file modified + its test | ✅ Granular |
 
 ---
 
@@ -721,6 +750,7 @@ Execution is strictly sequential — one task at a time, in order. The dependenc
 | T18 | T17 | T17 → T18 | ✅ Match |
 | T19 | T11 | cross-phase only, no same-phase edge | ✅ Match |
 | T20 | T19 | T19 → T20 | ✅ Match |
+| T21 | T20 | T20 → T21 | ✅ Match |
 
 No task depends on a later phase.
 
@@ -750,3 +780,4 @@ No task depends on a later phase.
 | T18 | MDX content | none | none | ✅ OK |
 | T19 | server orchestration | integration | integration | ✅ OK |
 | T20 | server orchestration | integration | integration | ✅ OK |
+| T21 | server orchestration | integration | integration | ✅ OK |
