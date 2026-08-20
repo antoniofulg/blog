@@ -100,7 +100,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ## Task Breakdown
 
-### T1: Define benchmark result types
+### T1: Define benchmark result types — ✅ Complete
 
 **What**: Declare every result shape the harness produces, exactly as specified in the design's Data Models section.
 **Where**: `app/lib/bench/types.ts`
