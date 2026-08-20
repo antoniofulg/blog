@@ -194,23 +194,23 @@ The blog's toolchain and runtime are pinned to Bun 1.3.x in CI (`ci.yml` → 1.3
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| BENCH-01 | P1: Version-matrix harness | Design | Pending |
-| BENCH-02 | P1: Version-matrix harness | Design | Pending |
-| BENCH-03 | P1: Version-matrix harness | Design | Pending |
-| BENCH-04 | P1: Version-matrix harness | Design | Pending |
-| BENCH-05 | P1: Version-matrix harness | Design | Pending |
-| BENCH-06 | P1: Toolchain workloads | Design | Pending |
-| BENCH-07 | P1: Toolchain workloads | Design | Pending |
-| BENCH-08 | P1: Toolchain workloads | Design | Pending |
-| BENCH-09 | P1: Runtime measurement | Design | Pending |
-| BENCH-10 | P1: Runtime measurement | Design | Pending |
-| BENCH-11 | P1: Runtime measurement | Design | Pending |
-| BENCH-12 | P2: Comparison report | Design | Pending |
-| BENCH-13 | P2: Migration to 1.4.0 | Design | Pending |
-| BENCH-14 | P2: Case study post | - | Pending |
-| BENCH-15 | P3: Re-run reproducibility | - | Pending |
+| BENCH-01 | P1: Version-matrix harness | Done   | Verified |
+| BENCH-02 | P1: Version-matrix harness | Done   | Verified |
+| BENCH-03 | P1: Version-matrix harness | Done   | Verified |
+| BENCH-04 | P1: Version-matrix harness | Done   | Verified |
+| BENCH-05 | P1: Version-matrix harness | Done   | Verified |
+| BENCH-06 | P1: Toolchain workloads | Done   | Verified |
+| BENCH-07 | P1: Toolchain workloads | Done   | Verified |
+| BENCH-08 | P1: Toolchain workloads | Done   | Verified |
+| BENCH-09 | P1: Runtime measurement | Done   | Verified |
+| BENCH-10 | P1: Runtime measurement | Done   | Verified |
+| BENCH-11 | P1: Runtime measurement | Done   | Verified |
+| BENCH-12 | P2: Comparison report | Done   | Verified |
+| BENCH-13 | P2: Migration to 1.4.0 | Blocked| Pending run |
+| BENCH-14 | P2: Case study post | Blocked| Pending run |
+| BENCH-15 | P3: Re-run reproducibility | Done   | Verified |
 
-**Coverage:** 15 total, 0 mapped to tasks, 15 unmapped ⚠️
+**Coverage:** 15 total, 15 mapped to tasks. 13 verified; BENCH-13 and BENCH-14 blocked on the operator's benchmark run.
 
 ---
 
