@@ -151,7 +151,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T3: Declare the workload registry
+### T3: Declare the workload registry — ✅ Complete
 
 **What**: Declare every measured workload as data — argv, repetitions, prepare steps, DB/bundle needs, total-exclusion flag, extra parser.
 **Where**: `app/lib/bench/workloads.ts`
