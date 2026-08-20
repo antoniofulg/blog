@@ -257,7 +257,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T7: Measure a spawned process tree
+### T7: Measure a spawned process tree — ✅ Complete
 
 **What**: Spawn one command in its own process group, measure wall time and peak RSS, enforce the timeout.
 **Where**: `app/lib/bench/runner.server.ts`
