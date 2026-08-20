@@ -314,7 +314,7 @@ Phase 5 cannot start until a full two-version run has produced a committed resul
 
 ---
 
-### T9: Preflight the run environment
+### T9: Preflight the run environment — ✅ Complete
 
 **What**: Refuse to start when the machine or environment would produce numbers not worth publishing.
 **Where**: `app/lib/bench/preflight.server.ts`
