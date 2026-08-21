@@ -47,17 +47,18 @@ function comparisonTable(
 		const a = aggregateFor(run, id, before);
 		const b = aggregateFor(run, id, after);
 		if (!a || !b) {
-			return `| \`${id}\` | ${a ? formatMs(a.medianMs) : "n/a"} | ${b ? formatMs(b.medianMs) : "n/a"} | n/a | no result | n/a | n/a | n/a |`;
+			return `| \`${id}\` | ${a ? formatMs(a.medianMs) : "n/a"} | ${b ? formatMs(b.medianMs) : "n/a"} | n/a | no result | n/a | n/a | n/a | n/a |`;
 		}
 		const delta = classifyDelta(a, b);
 		const pct = `${delta.deltaPct >= 0 ? "+" : ""}${delta.deltaPct.toFixed(1)}%`;
 		const verdict =
 			delta.verdict === "within-noise" ? "within noise" : delta.verdict;
-		return `| \`${id}\` | ${formatMs(a.medianMs)} | ${formatMs(b.medianMs)} | ${pct} | ${verdict} | ${formatBytes(a.medianPeakRssBytes)} | ${formatBytes(b.medianPeakRssBytes)} | ${rssDeltaPct(a, b)} |`;
+		const load = `${a.medianLoadAvg1.toFixed(1)} / ${b.medianLoadAvg1.toFixed(1)}`;
+		return `| \`${id}\` | ${formatMs(a.medianMs)} | ${formatMs(b.medianMs)} | ${pct} | ${verdict} | ${formatBytes(a.medianPeakRssBytes)} | ${formatBytes(b.medianPeakRssBytes)} | ${rssDeltaPct(a, b)} | ${load} |`;
 	});
 	return [
-		`| Workload | ${before} median | ${after} median | Time % | Verdict | ${before} peak RSS | ${after} peak RSS | RSS % |`,
-		"| -------- | -------------- | ------------- | ------ | ------- | ---------------- | --------------- | ----- |",
+		`| Workload | ${before} median | ${after} median | Time % | Verdict | ${before} peak RSS | ${after} peak RSS | RSS % | Load ${before} / ${after} |`,
+		"| -------- | -------------- | ------------- | ------ | ------- | ---------------- | --------------- | ----- | ---- |",
 		...rows,
 	].join("\n");
 }
@@ -99,7 +100,7 @@ export function renderReport(run: RunResult): string {
 		"",
 		`Run started ${run.host.startedAt} on ${run.host.host} (${run.host.cpuModel}, ${run.host.cores} cores, ${formatBytes(run.host.totalMemBytes)} RAM, power: ${run.host.powerSource}, 1-min load at start: ${run.host.loadAvg1.toFixed(2)}).`,
 		"",
-		"Medians over the timed repetitions, warm-up discarded. A delta smaller than the run's own min-to-max spread is reported as `within noise` and must not be quoted as an improvement. The noise band is computed from timings only, so the RSS columns carry no verdict: read a small memory delta as unresolved, not as change.",
+		"Medians over the timed repetitions, warm-up discarded. A delta smaller than the run's own min-to-max spread is reported as `within noise` and must not be quoted as an improvement. The noise band is computed from timings only, so the RSS columns carry no verdict: read a small memory delta as unresolved, not as change. The last column is the median 1-minute load average each side was measured under: when the two differ much, the row is comparing conditions as well as versions.",
 		"",
 		"## Workloads",
 		"",

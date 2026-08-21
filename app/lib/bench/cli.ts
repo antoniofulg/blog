@@ -7,8 +7,9 @@ export type BenchArgs = {
 	only?: string[];
 	/** Bun versions to run; undefined means every declared version. */
 	versions?: string[];
-	/** Run even when the machine is under load. */
-	allowNoisy: boolean;
+	/** Refuse to run on a busy machine. Off by default — a benchmark of a
+	 * developer machine is meant to be taken on one. */
+	strictLoad: boolean;
 	/** Skip measuring and re-render the report from an existing result file. */
 	reportOnly?: string;
 	/** Pin the runtime port. Unset means the harness binds a free one. */
@@ -37,7 +38,7 @@ export function parseBenchArgs(argv: string[]): BenchArgs {
 		runtimePort: Number.isInteger(port) ? port : undefined,
 		only: listFlag(argv, "only"),
 		versions: listFlag(argv, "versions"),
-		allowNoisy: argv.includes("--allow-noisy"),
+		strictLoad: argv.includes("--strict-load"),
 		reportOnly: reportOnly
 			? reportOnly.slice("--report-only=".length)
 			: undefined,

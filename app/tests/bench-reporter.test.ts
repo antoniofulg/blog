@@ -16,6 +16,8 @@ function agg(medianMs: number, minMs: number, maxMs: number): Aggregate {
 		maxMs,
 		medianPeakRssBytes: 100 * 1024 * 1024,
 		sampleCount: 5,
+		medianLoadAvg1: 1.2,
+		maxLoadAvg1: 1.8,
 	};
 }
 
@@ -56,7 +58,7 @@ describe("bench report rendering", () => {
 	it("emits one row per workload with both medians and the delta", () => {
 		const md = renderReport(run());
 		expect(md).toContain(
-			"| `lint` | 1.00 s | 500 ms | -50.0% | faster | 100.0 MB | 100.0 MB | +0.0% |",
+			"| `lint` | 1.00 s | 500 ms | -50.0% | faster | 100.0 MB | 100.0 MB | +0.0% | 1.2 / 1.2 |",
 		);
 	});
 
@@ -274,6 +276,28 @@ describe("bench report rendering", () => {
 			}),
 		);
 		expect(md).toContain("| `test-e2e` | 1.4.0 | compat | 1 | 1 of 6 |");
+	});
+
+	it("shows the load each side was measured under, so unequal rows are visible", () => {
+		const md = renderReport(
+			run({
+				workloads: [
+					{
+						id: "build",
+						version: "1.3.14",
+						samples: [],
+						aggregate: { ...agg(1000, 990, 1010), medianLoadAvg1: 14.2 },
+					},
+					{
+						id: "build",
+						version: "1.4.0",
+						samples: [],
+						aggregate: { ...agg(500, 495, 505), medianLoadAvg1: 2.1 },
+					},
+				],
+			}),
+		);
+		expect(md).toContain("14.2 / 2.1");
 	});
 
 	it("formats byte counts as megabytes", () => {

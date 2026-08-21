@@ -1,6 +1,7 @@
 import "@tanstack/react-start/server-only";
 import { execFile, spawn } from "node:child_process";
 import { rm } from "node:fs/promises";
+import { loadavg } from "node:os";
 import { join } from "node:path";
 import { performance } from "node:perf_hooks";
 import { promisify } from "node:util";
@@ -64,6 +65,7 @@ export async function spawnMeasured(
 	opts: { timeoutMs: number; cwd?: string },
 ): Promise<MeasuredRun> {
 	const started = performance.now();
+	const loadAvg1 = loadavg()[0];
 	const child = spawn(argv[0], argv.slice(1), {
 		detached: true,
 		env,
@@ -113,6 +115,7 @@ export async function spawnMeasured(
 		ms: performance.now() - started,
 		peakRssBytes,
 		exitCode,
+		loadAvg1,
 		stdout,
 		stderrTail: tailLines(stderr),
 		timedOut,
@@ -246,6 +249,7 @@ export async function runWorkload(
 			ms: run.ms,
 			peakRssBytes: run.peakRssBytes,
 			exitCode: run.exitCode,
+			loadAvg1: run.loadAvg1,
 		});
 	}
 

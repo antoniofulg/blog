@@ -7,6 +7,11 @@ export type Sample = {
 	ms: number;
 	peakRssBytes: number;
 	exitCode: number;
+	/** 1-minute load average observed when this repetition started. On a
+	 * developer machine the conditions move during a run, and a delta between
+	 * two versions is only readable next to the conditions each was measured
+	 * under. */
+	loadAvg1: number;
 };
 
 /** Summary of a workload's timed repetitions, warm-up already discarded. */
@@ -16,6 +21,9 @@ export type Aggregate = {
 	maxMs: number;
 	medianPeakRssBytes: number;
 	sampleCount: number;
+	/** Median and worst 1-minute load average across this workload's samples. */
+	medianLoadAvg1: number;
+	maxLoadAvg1: number;
 };
 
 /** Everything measured for one workload under one Bun version. */

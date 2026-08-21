@@ -12,6 +12,7 @@ function samples(times: number[], rss: number[] = []): Sample[] {
 		ms,
 		peakRssBytes: rss[i] ?? 0,
 		exitCode: 0,
+		loadAvg1: 1,
 	}));
 }
 
@@ -22,6 +23,8 @@ function agg(medianMs: number, minMs: number, maxMs: number): Aggregate {
 		maxMs,
 		medianPeakRssBytes: 0,
 		sampleCount: 5,
+		medianLoadAvg1: 1,
+		maxLoadAvg1: 1,
 	};
 }
 
@@ -45,6 +48,19 @@ describe("bench statistics", () => {
 	it("reports the median peak RSS independently of the timing order", () => {
 		const result = aggregate(samples([30, 10, 20], [300, 100, 200]));
 		expect(result?.medianPeakRssBytes).toBe(200);
+	});
+
+	it("summarises the load each repetition ran under", () => {
+		// Without this the report cannot show whether two versions were
+		// measured under comparable conditions, which is the whole substitute
+		// for refusing to run on a busy machine.
+		const result = aggregate([
+			{ ms: 10, peakRssBytes: 0, exitCode: 0, loadAvg1: 2 },
+			{ ms: 20, peakRssBytes: 0, exitCode: 0, loadAvg1: 14 },
+			{ ms: 30, peakRssBytes: 0, exitCode: 0, loadAvg1: 6 },
+		]);
+		expect(result?.medianLoadAvg1).toBe(6);
+		expect(result?.maxLoadAvg1).toBe(14);
 	});
 
 	it("computes p50, p95 and p99 by nearest rank on an odd-length set", () => {

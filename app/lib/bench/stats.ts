@@ -32,12 +32,15 @@ export function aggregate(samples: Sample[]): Aggregate | null {
 	if (samples.length === 0) return null;
 	const times = samples.map((s) => s.ms).sort((a, b) => a - b);
 	const rss = samples.map((s) => s.peakRssBytes).sort((a, b) => a - b);
+	const load = samples.map((s) => s.loadAvg1 ?? 0).sort((a, b) => a - b);
 	return {
 		medianMs: median(times),
 		minMs: times[0],
 		maxMs: times[times.length - 1],
 		medianPeakRssBytes: median(rss),
 		sampleCount: samples.length,
+		medianLoadAvg1: median(load),
+		maxLoadAvg1: load[load.length - 1],
 	};
 }
 

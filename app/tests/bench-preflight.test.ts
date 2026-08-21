@@ -43,7 +43,7 @@ function opts(over: Partial<PreflightOpts> = {}): PreflightOpts {
 	return {
 		versions: ["1.3.14", "1.4.0"],
 		workloads: [PLAIN],
-		allowNoisy: false,
+		strictLoad: false,
 		includeRuntime: false,
 		cwd: CWD,
 		...over,
@@ -56,7 +56,7 @@ function reasonOf(result: Awaited<ReturnType<typeof preflight>>): string {
 
 describe("bench preflight", () => {
 	it("passes on a quiet machine with both toolchains installed", async () => {
-		expect(await preflight(opts(), deps())).toEqual({ ok: true });
+		expect((await preflight(opts(), deps())).ok).toBe(true);
 	});
 
 	it("names the exact install command when a toolchain is missing", async () => {
@@ -78,31 +78,31 @@ describe("bench preflight", () => {
 		expect(reasonOf(result)).toContain("reports 1.3.9, expected 1.3.14");
 	});
 
-	it("aborts above the load limit, naming the load, the core count and the limit", async () => {
+	it("aborts above the load limit under --strict-load, naming load, cores and limit", async () => {
 		const result = await preflight(
-			opts(),
+			opts({ strictLoad: true }),
 			deps({ loadAvg1: () => 28.01, cores: () => 8 }),
 		);
 		expect(result.ok).toBe(false);
 		expect(reasonOf(result)).toContain("28.01");
 		expect(reasonOf(result)).toContain("8 cores");
-		expect(reasonOf(result)).toContain("2.00 limit");
-		expect(reasonOf(result)).toContain("--allow-noisy");
+		expect(reasonOf(result)).toContain("2.00 guideline");
+		expect(reasonOf(result)).toContain("noise band");
 	});
 
 	it("scales the limit with the core count instead of using a fixed number", async () => {
 		// 5.0 saturates 4 cores and barely touches 64. One absolute threshold
 		// cannot be right for both.
 		const small = await preflight(
-			opts(),
+			opts({ strictLoad: true }),
 			deps({ loadAvg1: () => 5, cores: () => 4 }),
 		);
 		const large = await preflight(
-			opts(),
+			opts({ strictLoad: true }),
 			deps({ loadAvg1: () => 5, cores: () => 64 }),
 		);
 		expect(small.ok).toBe(false);
-		expect(large).toEqual({ ok: true });
+		expect(large.ok).toBe(true);
 	});
 
 	it("derives the limit as a fixed share of the cores", () => {
@@ -110,20 +110,20 @@ describe("bench preflight", () => {
 		expect(loadLimitFor(0)).toBeCloseTo(LOAD_PER_CORE_LIMIT);
 	});
 
-	it("warns that numbers taken under load land inside the noise band", async () => {
+	it("warns instead of refusing when the machine is busy", async () => {
 		const result = await preflight(
 			opts(),
 			deps({ loadAvg1: () => 28.01, cores: () => 8 }),
 		);
-		expect(reasonOf(result)).toContain("noise band");
+		expect(result.ok).toBe(true);
+		const warnings = result.ok ? result.warnings : [];
+		expect(warnings.join(" ")).toContain("28.01");
+		expect(warnings.join(" ")).toContain("noise band");
 	});
 
-	it("runs anyway above the limit when --allow-noisy was passed", async () => {
-		const result = await preflight(
-			opts({ allowNoisy: true }),
-			deps({ loadAvg1: () => 28.01 }),
-		);
-		expect(result).toEqual({ ok: true });
+	it("says nothing about load when the machine is quiet", async () => {
+		const result = await preflight(opts(), deps({ loadAvg1: () => 0.5 }));
+		expect(result.ok && result.warnings).toEqual([]);
 	});
 
 	it("treats a load average exactly at the limit as acceptable", async () => {
@@ -131,7 +131,7 @@ describe("bench preflight", () => {
 			opts(),
 			deps({ loadAvg1: () => loadLimitFor(8), cores: () => 8 }),
 		);
-		expect(result).toEqual({ ok: true });
+		expect(result.ok).toBe(true);
 	});
 
 	it("does not require Docker when no selected workload needs the database", async () => {
@@ -139,7 +139,7 @@ describe("bench preflight", () => {
 			opts({ workloads: [PLAIN] }),
 			deps({ dockerAvailable: async () => false }),
 		);
-		expect(result).toEqual({ ok: true });
+		expect(result.ok).toBe(true);
 	});
 
 	it("distinguishes Docker being absent from the container being stopped", async () => {
@@ -173,7 +173,7 @@ describe("bench preflight", () => {
 			opts({ includeRuntime: true }),
 			deps({ portOwner: async () => 4242 }),
 		);
-		expect(result).toEqual({ ok: true });
+		expect(result.ok).toBe(true);
 	});
 
 	it("does not check the runtime port when the runtime workload is not selected", async () => {
@@ -181,7 +181,7 @@ describe("bench preflight", () => {
 			opts({ includeRuntime: false, runtimePort: RUNTIME_PORT }),
 			deps({ portOwner: async () => 4242 }),
 		);
-		expect(result).toEqual({ ok: true });
+		expect(result.ok).toBe(true);
 	});
 
 	it("aborts when DATABASE_URL cannot connect, pointing at the port mismatch", async () => {
@@ -225,7 +225,7 @@ describe("bench preflight", () => {
 				},
 			}),
 		);
-		expect(result).toEqual({ ok: true });
+		expect(result.ok).toBe(true);
 		expect(called).toBe(false);
 	});
 

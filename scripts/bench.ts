@@ -56,7 +56,7 @@ const workloads = workloadIds ? selectWorkloads(workloadIds) : selectWorkloads()
 const check = await preflight({
 	versions,
 	workloads,
-	allowNoisy: args.allowNoisy,
+	strictLoad: args.strictLoad,
 	includeRuntime,
 	cwd,
 	runtimePort: args.runtimePort,
@@ -65,6 +65,7 @@ if (!check.ok) {
 	process.stderr.write(`[bench] preflight failed:\n${check.reason}\n`);
 	process.exit(1);
 }
+for (const warning of check.warnings) log(`warning: ${warning}`);
 
 const host = await collectHostMeta();
 const resultPath = resultFilePath(host.startedAt);

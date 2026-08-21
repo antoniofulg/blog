@@ -18,14 +18,14 @@ describe("bench spawn measurement", () => {
 	});
 
 	it("reports higher peak RSS for a child that allocates than one that does not", async () => {
-		const idle = await spawnMeasured(["bash", "-c", "sleep 1"], ENV, {
-			timeoutMs: 20_000,
+		const idle = await spawnMeasured(["bash", "-c", "sleep 3.5"], ENV, {
+			timeoutMs: 30_000,
 		});
 		const heavy = await spawnMeasured(
 			[
 				"bash",
 				"-c",
-				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<1000){};console.log(b.length)'",
+				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)'",
 			],
 			ENV,
 			{ timeoutMs: 30_000 },
@@ -40,7 +40,7 @@ describe("bench spawn measurement", () => {
 			[
 				"bash",
 				"-c",
-				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<1000){};console.log(b.length)' | cat",
+				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)' | cat",
 			],
 			ENV,
 			{ timeoutMs: 30_000 },

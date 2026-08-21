@@ -33,7 +33,9 @@ export const RUNTIME_PORT = 4174;
 /** Name of the Postgres service in docker-compose.yml. */
 export const DB_SERVICE = "db";
 
-export type PreflightResult = { ok: true } | { ok: false; reason: string };
+export type PreflightResult =
+	| { ok: true; warnings: string[] }
+	| { ok: false; reason: string };
 
 export type DbIdentity =
 	| { kind: "ok" }
@@ -176,7 +178,9 @@ export const defaultPreflightDeps: PreflightDeps = {
 export type PreflightOpts = {
 	versions: string[];
 	workloads: Workload[];
-	allowNoisy: boolean;
+	/** Refuse to run on a busy machine instead of warning. Off by default:
+	 * measuring the machine you actually work on is the point. */
+	strictLoad?: boolean;
 	includeRuntime: boolean;
 	cwd: string;
 	/** Runtime port the operator pinned, if any. Unpinned means the harness
@@ -192,6 +196,7 @@ export async function preflight(
 	opts: PreflightOpts,
 	deps: PreflightDeps = defaultPreflightDeps,
 ): Promise<PreflightResult> {
+	const warnings: string[] = [];
 	for (const version of opts.versions) {
 		const { binary } = toolchainFor(version, opts.cwd);
 		const found = await deps.bunVersion(binary);
@@ -212,12 +217,15 @@ export async function preflight(
 	const load = deps.loadAvg1();
 	const cores = deps.cores();
 	const limit = loadLimitFor(cores);
-	if (load > limit && !opts.allowNoisy) {
+	if (load > limit) {
 		const busy = ((load / cores) * 100).toFixed(0);
-		return {
-			ok: false,
-			reason: `1-minute load average is ${load.toFixed(2)} on ${cores} cores — roughly ${busy}% of the machine is already busy, above the ${limit.toFixed(2)} limit (${LOAD_PER_CORE_LIMIT} per core). Close what you can and retry, or pass --allow-noisy. Numbers taken now will mostly land inside the noise band, so the report will read "within noise" for almost everything.`,
-		};
+		const message = `1-minute load average is ${load.toFixed(2)} on ${cores} cores — roughly ${busy}% of the machine is already busy, above the ${limit.toFixed(2)} guideline (${LOAD_PER_CORE_LIMIT} per core). Small deltas will land inside the noise band. Every sample records the load it ran under, so check those columns before quoting a number.`;
+		// A benchmark of a developer machine is supposed to be taken on a
+		// developer machine. Refusing to run made the tool unusable for its
+		// actual purpose; the load is reported per sample instead, so the
+		// reader can judge each row. Pass --strict-load to refuse instead.
+		if (opts.strictLoad) return { ok: false, reason: message };
+		warnings.push(message);
 	}
 
 	if (opts.workloads.some((w) => w.needsDb)) {
@@ -271,5 +279,5 @@ export async function preflight(
 		}
 	}
 
-	return { ok: true };
+	return { ok: true, warnings };
 }

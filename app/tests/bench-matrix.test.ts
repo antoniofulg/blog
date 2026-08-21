@@ -17,6 +17,7 @@ function measured(over: Partial<MeasuredRun> = {}): MeasuredRun {
 		ms: 100,
 		peakRssBytes: 1024,
 		exitCode: 0,
+		loadAvg1: 1,
 		stdout: "",
 		stderrTail: "",
 		timedOut: false,

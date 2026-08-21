@@ -14,7 +14,7 @@ describe("bench cli flags", () => {
 		expect(args.only).toBeUndefined();
 		expect(args.versions).toBeUndefined();
 		expect(args.reportOnly).toBeUndefined();
-		expect(args.allowNoisy).toBe(false);
+		expect(args.strictLoad).toBe(false);
 	});
 
 	it("splits a comma-separated workload list", () => {
@@ -42,8 +42,11 @@ describe("bench cli flags", () => {
 		expect(parseBenchArgs(["--only="]).only).toBeUndefined();
 	});
 
-	it("enables the noisy-machine escape hatch only when the flag is present", () => {
-		expect(parseBenchArgs(["--allow-noisy"]).allowNoisy).toBe(true);
+	it("runs on a busy machine unless the operator asks for the strict gate", () => {
+		// Default off: this measures the machine the developer actually works
+		// on, so a busy machine is the subject, not a disqualification.
+		expect(parseBenchArgs([]).strictLoad).toBe(false);
+		expect(parseBenchArgs(["--strict-load"]).strictLoad).toBe(true);
 	});
 
 	it("reads the report-only source path", () => {
