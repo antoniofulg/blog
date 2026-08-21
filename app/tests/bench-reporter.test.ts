@@ -56,7 +56,7 @@ describe("bench report rendering", () => {
 	it("emits one row per workload with both medians and the delta", () => {
 		const md = renderReport(run());
 		expect(md).toContain(
-			"| `lint` | 1.00 s | 500 ms | 500 ms | -50.0% | faster |",
+			"| `lint` | 1.00 s | 500 ms | -50.0% | faster | 100.0 MB | 100.0 MB | +0.0% |",
 		);
 	});
 
@@ -181,6 +181,40 @@ describe("bench report rendering", () => {
 		const path = await writeReport(run(), dir);
 		expect(path).toBe(join(dir, "REPORT.md"));
 		expect(await readFile(path, "utf-8")).toContain("# Bun 1.3.14 vs 1.4.0");
+	});
+
+	it("reports the peak RSS delta alongside the timing delta", () => {
+		const md = renderReport(
+			run({
+				workloads: [
+					{
+						id: "install-warm",
+						version: "1.3.14",
+						samples: [],
+						aggregate: {
+							...agg(2000, 1990, 2010),
+							medianPeakRssBytes: 158 * 1024 * 1024,
+						},
+					},
+					{
+						id: "install-warm",
+						version: "1.4.0",
+						samples: [],
+						aggregate: {
+							...agg(1280, 1270, 1290),
+							medianPeakRssBytes: 66 * 1024 * 1024,
+						},
+					},
+				],
+			}),
+		);
+		expect(md).toContain("158.0 MB");
+		expect(md).toContain("66.0 MB");
+		expect(md).toContain("-58.2%");
+	});
+
+	it("states that the noise verdict does not cover the memory columns", () => {
+		expect(renderReport(run())).toContain("RSS columns carry no verdict");
 	});
 
 	it("formats byte counts as megabytes", () => {

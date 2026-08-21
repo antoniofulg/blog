@@ -254,8 +254,32 @@ export async function runWorkload(
 export type MatrixRun = Pick<RunResult, "workloads" | "findings">;
 
 /**
+ * Installs dependencies with `version`, so a workload that consumes
+ * node_modules runs against a tree that version produced. Not measured.
+ */
+async function installDepsWith(
+	version: string,
+	cwd: string,
+	deps: RunDeps,
+): Promise<MeasuredRun> {
+	return deps.spawn(
+		["bun", "install", "--frozen-lockfile"],
+		envFor(version, process.env, cwd),
+		{ timeoutMs: WORKLOAD_TIMEOUT_MS, cwd },
+	);
+}
+
+/**
  * Walks every version x workload pair, flushing to `sink` after each pair so
  * an interrupted run still leaves usable data on disk.
+ *
+ * Workload-major and counterbalanced: each workload measures both versions
+ * back to back, and the version that goes first alternates between workloads.
+ * Running all of one version and then all of the other lets any drift in
+ * machine conditions over the run — a laptop still settling after boot, a
+ * background job starting — land entirely on one side of the comparison. The
+ * first run of this harness did exactly that, and produced a 3x throughput gap
+ * that was mostly the second version getting the calmer machine.
  */
 export async function runMatrix(
 	versions: string[],
@@ -265,8 +289,20 @@ export async function runMatrix(
 	deps: RunDeps = defaultRunDeps,
 ): Promise<MatrixRun> {
 	const acc: MatrixRun = { workloads: [], findings: [] };
-	for (const version of versions) {
-		for (const workload of workloads) {
+	let installedBy: string | null = null;
+	for (const [index, workload] of workloads.entries()) {
+		const order = index % 2 === 0 ? versions : [...versions].reverse();
+		for (const version of order) {
+			if (installedBy !== version) {
+				const install = await installDepsWith(version, cwd, deps);
+				installedBy = version;
+				// A failed dependency install would make every later workload
+				// fail for a reason that has nothing to do with the workload.
+				// Record it rather than letting it surface as mystery failures.
+				if (install.timedOut || install.exitCode !== 0) {
+					acc.findings.push(findingFor("install-deps", version, install));
+				}
+			}
 			const { result, findings } = await runWorkload(
 				workload,
 				version,

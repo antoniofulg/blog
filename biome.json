@@ -18,6 +18,7 @@
 			"!**/playwright-report",
 			"!**/coverage",
 			"!**/.worktrees",
+			"!**/.bench",
 			"!**/.claude/worktrees"
 		]
 	},

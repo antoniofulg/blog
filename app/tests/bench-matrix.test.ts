@@ -27,8 +27,11 @@ function measured(over: Partial<MeasuredRun> = {}): MeasuredRun {
 
 type Call = { argv: string[] };
 
+const isInstall = (argv: string[]) =>
+	argv[1] === "install" && argv[2] === "--frozen-lockfile";
+
 function stubDeps(
-	responses: (call: number) => MeasuredRun,
+	responses: (call: number, argv: string[]) => MeasuredRun,
 ): RunDeps & { calls: Call[]; prepared: PrepareStep[][] } {
 	const calls: Call[] = [];
 	const prepared: PrepareStep[][] = [];
@@ -37,7 +40,7 @@ function stubDeps(
 		prepared,
 		spawn: async (argv) => {
 			calls.push({ argv });
-			return responses(calls.length - 1);
+			return responses(calls.length - 1, argv);
 		},
 		prepare: async (steps) => {
 			prepared.push(steps);
@@ -162,12 +165,70 @@ describe("bench matrix", () => {
 			async () => {},
 			deps,
 		);
-		expect(acc.workloads.map((w) => `${w.version}/${w.id}`)).toEqual([
-			"1.3.14/lint",
+		expect(acc.workloads.map((w) => `${w.version}/${w.id}`).sort()).toEqual([
 			"1.3.14/check",
-			"1.4.0/lint",
+			"1.3.14/lint",
 			"1.4.0/check",
+			"1.4.0/lint",
 		]);
+	});
+
+	it("measures both versions of a workload back to back", async () => {
+		const deps = stubDeps(() => measured());
+		const acc = await runMatrix(
+			["1.3.14", "1.4.0"],
+			[LINT, { ...LINT, id: "check" }],
+			CWD,
+			async () => {},
+			deps,
+		);
+		// Both entries for a workload sit next to each other, so drift in
+		// machine conditions cannot land on one version and not the other.
+		expect(acc.workloads.map((w) => w.id)).toEqual([
+			"lint",
+			"lint",
+			"check",
+			"check",
+		]);
+	});
+
+	it("alternates which version goes first between workloads", async () => {
+		const deps = stubDeps(() => measured());
+		const acc = await runMatrix(
+			["1.3.14", "1.4.0"],
+			[LINT, { ...LINT, id: "check" }, { ...LINT, id: "build" }],
+			CWD,
+			async () => {},
+			deps,
+		);
+		expect(acc.workloads.map((w) => `${w.id}:${w.version}`)).toEqual([
+			"lint:1.3.14",
+			"lint:1.4.0",
+			"check:1.4.0",
+			"check:1.3.14",
+			"build:1.3.14",
+			"build:1.4.0",
+		]);
+	});
+
+	it("reinstalls dependencies with the version about to be measured", async () => {
+		const deps = stubDeps(() => measured());
+		await runMatrix(["1.3.14", "1.4.0"], [LINT], CWD, async () => {}, deps);
+		expect(deps.calls.filter((c) => isInstall(c.argv))).toHaveLength(2);
+	});
+
+	it("does not reinstall when the next workload uses the same version", async () => {
+		const deps = stubDeps(() => measured());
+		// Counterbalancing puts 1.4.0 last on workload 1 and first on workload 2,
+		// so that boundary must not trigger a redundant install.
+		await runMatrix(
+			["1.3.14", "1.4.0"],
+			[LINT, { ...LINT, id: "check" }],
+			CWD,
+			async () => {},
+			deps,
+		);
+		expect(deps.calls.filter((c) => isInstall(c.argv))).toHaveLength(3);
 	});
 
 	it("flushes partial results after every workload so an interrupt keeps data", async () => {
