@@ -1,0 +1,192 @@
+{
+  "schemaVersion": 1,
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 10.54443359375,
+    "powerSource": "ac",
+    "startedAt": "2026-08-21T16:25:16.020Z"
+  },
+  "versions": [
+    "1.3.14",
+    "1.4.0"
+  ],
+  "workloads": [
+    {
+      "id": "test",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 68198.338875,
+          "peakRssBytes": 3451977728,
+          "exitCode": 0
+        },
+        {
+          "ms": 62803.27258400002,
+          "peakRssBytes": 3154542592,
+          "exitCode": 0
+        },
+        {
+          "ms": 62228.684458,
+          "peakRssBytes": 3424403456,
+          "exitCode": 0
+        },
+        {
+          "ms": 61472.15700000001,
+          "peakRssBytes": 3856089088,
+          "exitCode": 0
+        },
+        {
+          "ms": 61726.86204199999,
+          "peakRssBytes": 3639803904,
+          "exitCode": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 62228.684458,
+        "minMs": 61472.15700000001,
+        "maxMs": 68198.338875,
+        "medianPeakRssBytes": 3451977728,
+        "sampleCount": 5
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "test",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 61180.57354099996,
+          "peakRssBytes": 3743285248,
+          "exitCode": 0
+        },
+        {
+          "ms": 61314.669166000036,
+          "peakRssBytes": 3264544768,
+          "exitCode": 0
+        },
+        {
+          "ms": 62673.933457999956,
+          "peakRssBytes": 3089186816,
+          "exitCode": 0
+        },
+        {
+          "ms": 64444.69529100007,
+          "peakRssBytes": 2994159616,
+          "exitCode": 0
+        },
+        {
+          "ms": 62571.43091700005,
+          "peakRssBytes": 3710992384,
+          "exitCode": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 62571.43091700005,
+        "minMs": 61180.57354099996,
+        "maxMs": 64444.69529100007,
+        "medianPeakRssBytes": 3264544768,
+        "sampleCount": 5
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "test-e2e",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 12363.41845899995,
+          "peakRssBytes": 534904832,
+          "exitCode": 0
+        },
+        {
+          "ms": 13913.844417000073,
+          "peakRssBytes": 496566272,
+          "exitCode": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 13138.631438000011,
+        "minMs": 12363.41845899995,
+        "maxMs": 13913.844417000073,
+        "medianPeakRssBytes": 515735552,
+        "sampleCount": 2
+      },
+      "attempts": 5,
+      "failures": 3,
+      "extra": {
+        "passed": 49,
+        "failed": 0
+      }
+    },
+    {
+      "id": "test-e2e",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 12763.167540999944,
+          "peakRssBytes": 595623936,
+          "exitCode": 0
+        },
+        {
+          "ms": 12250.950834000017,
+          "peakRssBytes": 616398848,
+          "exitCode": 0
+        },
+        {
+          "ms": 12425.565458000056,
+          "peakRssBytes": 593100800,
+          "exitCode": 0
+        },
+        {
+          "ms": 12466.228249999927,
+          "peakRssBytes": 612909056,
+          "exitCode": 0
+        },
+        {
+          "ms": 12394.977083000005,
+          "peakRssBytes": 618315776,
+          "exitCode": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 12425.565458000056,
+        "minMs": 12250.950834000017,
+        "maxMs": 12763.167540999944,
+        "medianPeakRssBytes": 612909056,
+        "sampleCount": 5
+      },
+      "attempts": 5,
+      "failures": 1,
+      "extra": {
+        "passed": 49,
+        "failed": 0
+      }
+    }
+  ],
+  "runtime": [],
+  "findings": [
+    {
+      "kind": "compat",
+      "version": "1.4.0",
+      "workloadId": "test-e2e",
+      "exitCode": 1,
+      "stderrTail": "$ playwright test\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[31m\u001b[2m2026-08-21T16:38:20.780Z\u001b[0m \u001b[31mERROR\u001b[0m \u001b[1m[Better Auth]:\u001b[0m Invalid password\u001b[0m\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\nerror: script \"test:e2e\" exited with code 1\n",
+      "failedAttempts": 3,
+      "totalAttempts": 6
+    },
+    {
+      "kind": "compat",
+      "version": "1.3.14",
+      "workloadId": "test-e2e",
+      "exitCode": 1,
+      "stderrTail": "\u001b[2m[WebServer] \u001b[22m\u001b[0m\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[31m{\"event\":\"analytics_record_failed\",\"postId\":4,\"error\":\"Failed query: update \\\"posts\\\" set \\\"view_count\\\" = view_count + 1 where \\\"posts\\\".\\\"id\\\" = $1\\nparams: 4\"}\u001b[0m\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[31m[pg-proxy] execProtocolRaw rejected: \u001b[0m\u001b[1m159 |\u001b[0m \t\t\t\t\u001b[0m\u001b[35mlet\u001b[0m settled = \u001b[0m\u001b[33mfalse\u001b[0m\u001b[0m\u001b[2m;\u001b[0m\n\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[1m160 |\u001b[0m \t\t\t\t\u001b[0m\u001b[35mconst\u001b[0m timer = setTimeout(() => {\n\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[1m161 |\u001b[0m \t\t\t\t\t\u001b[0m\u001b[35mif\u001b[0m (settled) \u001b[0m\u001b[35mreturn\u001b[0m\u001b[0m\u001b[2m;\u001b[0m\n\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[1m162 |\u001b[0m \t\t\t\t\tsettled = \u001b[0m\u001b[33mtrue\u001b[0m\u001b[0m\u001b[2m;\u001b[0m\n\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[1m163 |\u001b[0m \t\t\t\t\treject(\n\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[1m164 |\u001b[0m \t\t\t\t\t\t\u001b[0m\u001b[35mnew\u001b[0m \u001b[0m\u001b[1mError\u001b[0m(\n\u001b[2m[WebServer] \u001b[22m                \u001b[31m\u001b[1m^\u001b[0m\n\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[31merror\u001b[0m\u001b[2m:\u001b[0m \u001b[1m[pg-proxy] unnamed-slot lock held >5000ms; acquire timeout\u001b[0m\n\u001b[2m[WebServer] \u001b[22m\u001b[0m      \u001b[2mat \u001b[0m\u001b[0m\u001b[2m<anonymous>\u001b[0m\u001b[2m (\u001b[0m\u001b[0m\u001b[36m\u001b[2m/Users/antoniofulg/Projects/blog/\u001b[0m\u001b[36mtests/e2e/db.ts\u001b[0m\u001b[2m:\u001b[0m\u001b[33m164\u001b[0m\u001b[2m:\u001b[33m11\u001b[0m\u001b[2m)\u001b[0m\n\u001b[2m[WebServer] \u001b[22m\u001b[0m\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[31m\u001b[2m2026-08-21T16:40:08.663Z\u001b[0m \u001b[31mERROR\u001b[0m \u001b[1m[Better Auth]:\u001b[0m Invalid password\u001b[0m\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\nerror: script \"test:e2e\" exited with code 1\n",
+      "failedAttempts": 1,
+      "totalAttempts": 6
+    }
+  ]
+}
