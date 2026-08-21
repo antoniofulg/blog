@@ -81,6 +81,17 @@ describe("bench runtime measurement", () => {
 		expect(await portOwner(PORT)).toBeNull();
 	}, 60_000);
 
+	it("refuses to measure a load mix that includes a route the app does not serve", async () => {
+		// A 404 is cheap for every version, so a wrong route drags the whole
+		// latency distribution down instead of failing. The first two real
+		// runs of this harness sent a quarter of their load to a `/blog`
+		// route that does not exist.
+		await expect(
+			measureRuntime(opts({ routes: ["/", "/missing"] })),
+		).rejects.toThrow(/answered 404/);
+		expect(await portOwner(PORT)).toBeNull();
+	}, 30_000);
+
 	it("refuses to measure a server it did not start", async () => {
 		// A leftover listener answers the boot probe instantly and reports
 		// another process's memory. Failing loudly is the only safe outcome:

@@ -118,7 +118,11 @@ export async function resolveRuntimeRoutes(): Promise<string[]> {
 		(p) =>
 			p.lang === "pt-br" && p.slug === en?.slug && p.frontmatter.draft !== true,
 	);
-	const routes = ["/", "/blog"];
+	// `/` and `/pt-br/` are the two locale home routes. There is no `/blog`
+	// route in this app — an earlier version of this list assumed one, and a
+	// quarter of every load phase went to a 404 that both versions served
+	// cheaply, flattering the absolute latency and throughput numbers.
+	const routes = ["/", "/pt-br/"];
 	if (en) routes.push(`/${en.slug}`);
 	if (ptBr) routes.push(`/pt-br/${ptBr.slug}`);
 	return routes;

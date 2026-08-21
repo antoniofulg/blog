@@ -223,12 +223,21 @@ export async function runWorkload(
 		await deps.spawn(["bun", "run", "build"], env, opts);
 	}
 
+	let attempts = 0;
+	let failures = 0;
+	let firstFailure: MeasuredRun | undefined;
+
 	for (let i = 0; i <= workload.reps; i++) {
 		await deps.prepare(workload.prepare, version, cwd);
 		const run = await deps.spawn(workload.argv, env, opts);
+		if (i > 0) attempts += 1;
 		if (run.timedOut || run.exitCode !== 0) {
-			findings.push(findingFor(workload.id, version, run));
-			break;
+			// Keep going. Aborting on the first failure means one flaky
+			// repetition erases the whole workload, and a flake then looks
+			// exactly like a genuine incompatibility in the report.
+			failures += 1;
+			firstFailure ??= run;
+			continue;
 		}
 		lastStdout = run.stdout;
 		if (i === 0) continue; // warm-up, deliberately discarded
@@ -239,11 +248,21 @@ export async function runWorkload(
 		});
 	}
 
+	if (firstFailure) {
+		findings.push({
+			...findingFor(workload.id, version, firstFailure),
+			failedAttempts: failures,
+			totalAttempts: workload.reps + 1,
+		});
+	}
+
 	const result: WorkloadResult = {
 		id: workload.id,
 		version,
 		samples,
 		aggregate: aggregate(samples),
+		attempts,
+		failures,
 	};
 	if (workload.parseExtra && samples.length > 0) {
 		result.extra = workload.parseExtra(lastStdout);

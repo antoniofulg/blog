@@ -215,6 +215,19 @@ export async function measureRuntime(
 			);
 		}
 
+		// Every route must actually be served. A 404 is cheap for both
+		// versions, so a wrong route silently drags the whole latency
+		// distribution down instead of failing.
+		for (const route of opts.routes) {
+			const probe = await fetch(`${baseUrl}${route}`);
+			await probe.arrayBuffer();
+			if (!probe.ok) {
+				throw new Error(
+					`route ${route} answered ${probe.status} under bun ${opts.version}; refusing to measure a load mix that is partly errors`,
+				);
+			}
+		}
+
 		await sleep(opts.settleMs ?? SETTLE_MS);
 		const idleRssBytes = await groupRssBytes(pgid);
 

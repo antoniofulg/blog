@@ -241,7 +241,7 @@ describe("bench preflight", () => {
 	it("resolves four real SSR routes from the post inventory", async () => {
 		const routes = await resolveRuntimeRoutes();
 		expect(routes[0]).toBe("/");
-		expect(routes[1]).toBe("/blog");
+		expect(routes[1]).toBe("/pt-br/");
 		expect(routes.some((r) => r.startsWith("/pt-br/"))).toBe(true);
 		expect(routes).toHaveLength(4);
 	});

@@ -15,6 +15,11 @@ if (process.env.STUB_IGNORE_SIGTERM === "1") {
 const held: Buffer[] = [];
 
 const server = createServer((req, res) => {
+	if ((req.url ?? "/") === "/missing") {
+		res.writeHead(404, { "content-type": "text/plain" });
+		res.end("not found");
+		return;
+	}
 	if ((req.url ?? "/") === "/heavy") {
 		held.push(Buffer.alloc(40 * 1024 * 1024, 1));
 	}

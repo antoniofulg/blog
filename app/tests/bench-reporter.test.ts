@@ -132,7 +132,7 @@ describe("bench report rendering", () => {
 				],
 			}),
 		);
-		expect(md).toContain("| `test-e2e` | 1.4.0 | compat | 1 |");
+		expect(md).toContain("| `test-e2e` | 1.4.0 | compat | 1 | unknown |");
 		expect(md).toContain("TypeError: boom");
 	});
 
@@ -150,7 +150,7 @@ describe("bench report rendering", () => {
 				],
 			}),
 		);
-		expect(md).toContain("| `build` | 1.3.14 | timeout | killed |");
+		expect(md).toContain("| `build` | 1.3.14 | timeout | killed | unknown |");
 	});
 
 	it("renders the runtime table with boot, memory and latency for each version", () => {
@@ -215,6 +215,25 @@ describe("bench report rendering", () => {
 
 	it("states that the noise verdict does not cover the memory columns", () => {
 		expect(renderReport(run())).toContain("RSS columns carry no verdict");
+	});
+
+	it("separates a flaky workload from an incompatible one by the failure ratio", () => {
+		const md = renderReport(
+			run({
+				findings: [
+					{
+						kind: "compat",
+						version: "1.4.0",
+						workloadId: "test-e2e",
+						exitCode: 1,
+						stderrTail: "Invalid password",
+						failedAttempts: 1,
+						totalAttempts: 6,
+					},
+				],
+			}),
+		);
+		expect(md).toContain("| `test-e2e` | 1.4.0 | compat | 1 | 1 of 6 |");
 	});
 
 	it("formats byte counts as megabytes", () => {

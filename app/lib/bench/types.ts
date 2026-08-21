@@ -25,6 +25,10 @@ export type WorkloadResult = {
 	samples: Sample[];
 	/** null when every repetition failed, so no honest aggregate exists. */
 	aggregate: Aggregate | null;
+	/** Timed repetitions attempted, warm-up excluded. */
+	attempts?: number;
+	/** How many of those exited non-zero or timed out. */
+	failures?: number;
 	extra?: Record<string, unknown>;
 };
 
@@ -72,6 +76,11 @@ export type Finding = {
 	workloadId: string;
 	exitCode: number | null;
 	stderrTail: string;
+	/** Repetitions that failed. A workload that fails once out of six is a
+	 * flake; one that fails six out of six is an incompatibility. Reporting
+	 * only "it failed" makes those two look identical. */
+	failedAttempts?: number;
+	totalAttempts?: number;
 };
 
 export type PowerSource = "ac" | "battery" | "unknown";

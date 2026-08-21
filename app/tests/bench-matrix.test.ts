@@ -103,7 +103,7 @@ describe("bench workload execution", () => {
 		expect(result.aggregate?.maxMs).toBe(30);
 	});
 
-	it("records a compat finding on a non-zero exit and stops that workload", async () => {
+	it("records a compat finding when every repetition fails", async () => {
 		const deps = stubDeps((i) =>
 			i === 0 ? measured() : measured({ exitCode: 2, stderrTail: "boom" }),
 		);
@@ -112,7 +112,34 @@ describe("bench workload execution", () => {
 		expect(findings[0].kind).toBe("compat");
 		expect(findings[0].exitCode).toBe(2);
 		expect(findings[0].stderrTail).toBe("boom");
+		expect(findings[0].failedAttempts).toBe(3);
 		expect(result.aggregate).toBeNull();
+	});
+
+	it("keeps measuring after one repetition fails", async () => {
+		// A single flaky repetition used to erase the whole workload, which is
+		// how a flake ended up indistinguishable from an incompatibility.
+		const deps = stubDeps((i) =>
+			i === 2
+				? measured({ exitCode: 1, stderrTail: "flake" })
+				: measured({ ms: 50 }),
+		);
+		const { result, findings } = await runWorkload(LINT, "1.4.0", CWD, deps);
+		expect(deps.calls).toHaveLength(4); // warm-up + 3 reps, none skipped
+		expect(result.aggregate?.sampleCount).toBe(2);
+		expect(result.aggregate?.medianMs).toBe(50);
+		expect(findings).toHaveLength(1);
+		expect(findings[0].failedAttempts).toBe(1);
+		expect(findings[0].totalAttempts).toBe(4);
+	});
+
+	it("counts attempts and failures on the result", async () => {
+		const deps = stubDeps((i) =>
+			i === 2 ? measured({ exitCode: 1 }) : measured(),
+		);
+		const { result } = await runWorkload(LINT, "1.4.0", CWD, deps);
+		expect(result.attempts).toBe(3);
+		expect(result.failures).toBe(1);
 	});
 
 	it("records a timeout finding with a null exit code", async () => {
@@ -120,6 +147,7 @@ describe("bench workload execution", () => {
 		const { findings } = await runWorkload(LINT, "1.4.0", CWD, deps);
 		expect(findings[0].kind).toBe("timeout");
 		expect(findings[0].exitCode).toBeNull();
+		expect(findings[0].failedAttempts).toBe(4);
 	});
 
 	it("builds the bundle first for a bundle-dependent workload and excludes it from the samples", async () => {

@@ -119,7 +119,11 @@ try {
 	if (includeRuntime) {
 		const routes = await resolveRuntimeRoutes();
 		log(`measuring runtime on ${routes.join(", ")}`);
-		for (const version of versions) {
+		// Counterbalanced A,B,B,A so drift in machine conditions across the
+		// runtime phase cannot land on one version and not the other. Each
+		// version is therefore measured twice and both rows are reported.
+		const order = [...versions, ...[...versions].reverse()];
+		for (const version of order) {
 			// The bundle must be produced by the version whose runtime we measure.
 			await spawnMeasured(["bun", "run", "build"], envFor(version, process.env, cwd), {
 				timeoutMs: WORKLOAD_TIMEOUT_MS,

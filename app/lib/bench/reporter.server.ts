@@ -132,12 +132,17 @@ export function renderReport(run: RunResult): string {
 		parts.push("None — every workload completed under every version.", "");
 	} else {
 		parts.push(
-			"| Workload | Version | Kind | Exit code |",
-			"| -------- | ------- | ---- | --------- |",
-			...run.findings.map(
-				(f) =>
-					`| \`${f.workloadId}\` | ${f.version} | ${f.kind} | ${f.exitCode ?? "killed"} |`,
-			),
+			"| Workload | Version | Kind | Exit code | Failed reps |",
+			"| -------- | ------- | ---- | --------- | ----------- |",
+			...run.findings.map((f) => {
+				const ratio =
+					f.failedAttempts !== undefined && f.totalAttempts !== undefined
+						? `${f.failedAttempts} of ${f.totalAttempts}`
+						: "unknown";
+				return `| \`${f.workloadId}\` | ${f.version} | ${f.kind} | ${f.exitCode ?? "killed"} | ${ratio} |`;
+			}),
+			"",
+			"A workload that fails a few of its repetitions is flaky; one that fails all of them is incompatible. The ratio is what separates them — a bare failure count cannot.",
 			"",
 		);
 		for (const f of run.findings) {
