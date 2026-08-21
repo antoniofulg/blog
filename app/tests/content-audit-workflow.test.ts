@@ -50,9 +50,9 @@ describe("unit: .github/workflows/content-audit.yml", () => {
 		expect(yml).toContain("content-audit-report-");
 	});
 
-	it("uses oven-sh/setup-bun@v2 with version 1.3.13", () => {
+	it("uses oven-sh/setup-bun@v2 with version 1.4.0", () => {
 		expect(yml).toContain("oven-sh/setup-bun@v2");
-		expect(yml).toContain('bun-version: "1.3.13"');
+		expect(yml).toContain('bun-version: "1.4.0"');
 	});
 
 	it("installs dependencies with frozen lockfile", () => {
