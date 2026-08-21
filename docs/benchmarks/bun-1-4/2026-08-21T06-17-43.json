@@ -1,0 +1,54 @@
+{
+  "schemaVersion": 1,
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 2.43994140625,
+    "powerSource": "ac",
+    "startedAt": "2026-08-21T06:17:43.188Z"
+  },
+  "versions": [
+    "1.4.0"
+  ],
+  "workloads": [
+    {
+      "id": "test-e2e",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 11507.777374999998,
+          "peakRssBytes": 624640000,
+          "exitCode": 0
+        },
+        {
+          "ms": 11401.923208000004,
+          "peakRssBytes": 631488512,
+          "exitCode": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 11454.8502915,
+        "minMs": 11401.923208000004,
+        "maxMs": 11507.777374999998,
+        "medianPeakRssBytes": 628064256,
+        "sampleCount": 2
+      },
+      "extra": {
+        "passed": 49,
+        "failed": 0
+      }
+    }
+  ],
+  "runtime": [],
+  "findings": [
+    {
+      "kind": "compat",
+      "version": "1.4.0",
+      "workloadId": "test-e2e",
+      "exitCode": 1,
+      "stderrTail": "$ playwright test\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[31m\u001b[2m2026-08-21T06:18:33.817Z\u001b[0m \u001b[31mERROR\u001b[0m \u001b[1m[Better Auth]:\u001b[0m Invalid password\u001b[0m\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\nerror: script \"test:e2e\" exited with code 1\n"
+    }
+  ]
+}
