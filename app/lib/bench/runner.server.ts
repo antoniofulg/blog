@@ -197,6 +197,7 @@ function findingFor(
 		workloadId,
 		exitCode: run.timedOut ? null : run.exitCode,
 		stderrTail: run.stderrTail,
+		stdoutTail: tailLines(run.stdout, 30),
 	};
 }
 

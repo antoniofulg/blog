@@ -136,6 +136,46 @@ describe("bench report rendering", () => {
 		expect(md).toContain("TypeError: boom");
 	});
 
+	it("prefers the stdout excerpt, where the test runners print their failures", () => {
+		// Playwright and Vitest write their failure summary to stdout; stderr
+		// holds server log noise. Rendering stderr made a passing negative-path
+		// test ("Invalid password") read as the cause of a compat finding.
+		const md = renderReport(
+			run({
+				findings: [
+					{
+						kind: "compat",
+						version: "1.4.0",
+						workloadId: "test-e2e",
+						exitCode: 1,
+						stderrTail: "[WebServer] Invalid password",
+						stdoutTail: "1 failed\n  locale switcher: modal cancel",
+					},
+				],
+			}),
+		);
+		expect(md).toContain("locale switcher: modal cancel");
+		expect(md).not.toContain("[WebServer] Invalid password");
+	});
+
+	it("falls back to stderr when the workload printed nothing to stdout", () => {
+		const md = renderReport(
+			run({
+				findings: [
+					{
+						kind: "compat",
+						version: "1.4.0",
+						workloadId: "check",
+						exitCode: 2,
+						stderrTail: "TS2345: argument of type",
+						stdoutTail: "   ",
+					},
+				],
+			}),
+		);
+		expect(md).toContain("TS2345: argument of type");
+	});
+
 	it("shows a timeout finding as killed rather than as exit code zero", () => {
 		const md = renderReport(
 			run({

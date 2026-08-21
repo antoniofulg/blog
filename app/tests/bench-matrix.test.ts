@@ -142,6 +142,24 @@ describe("bench workload execution", () => {
 		expect(result.failures).toBe(1);
 	});
 
+	it("carries the failing run's stdout into the finding", async () => {
+		// The reporter prefers this excerpt because the test runners print
+		// their failure summary to stdout. Populating it is the runner's job,
+		// and a reporter test that builds findings by hand cannot prove it.
+		const deps = stubDeps((_i, argv) =>
+			isInstall(argv)
+				? measured()
+				: measured({
+						exitCode: 1,
+						stdout: "1 failed\n  locale switcher: modal cancel",
+						stderrTail: "[WebServer] Invalid password",
+					}),
+		);
+		const { findings } = await runWorkload(LINT, "1.4.0", CWD, deps);
+		expect(findings[0].stdoutTail).toContain("locale switcher: modal cancel");
+		expect(findings[0].stderrTail).toContain("Invalid password");
+	});
+
 	it("records a timeout finding with a null exit code", async () => {
 		const deps = stubDeps(() => measured({ timedOut: true, exitCode: -1 }));
 		const { findings } = await runWorkload(LINT, "1.4.0", CWD, deps);

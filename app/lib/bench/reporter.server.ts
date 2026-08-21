@@ -150,7 +150,7 @@ export function renderReport(run: RunResult): string {
 				`### \`${f.workloadId}\` under ${f.version} (${f.kind})`,
 				"",
 				"```",
-				f.stderrTail,
+				f.stdoutTail?.trim() ? f.stdoutTail : f.stderrTail,
 				"```",
 				"",
 			);

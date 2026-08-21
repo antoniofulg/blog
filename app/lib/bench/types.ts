@@ -76,6 +76,10 @@ export type Finding = {
 	workloadId: string;
 	exitCode: number | null;
 	stderrTail: string;
+	/** Tail of stdout. Vitest and Playwright print their failure summary here;
+	 * stderr alone tends to carry server log noise that looks like a cause and
+	 * is not one. */
+	stdoutTail?: string;
 	/** Repetitions that failed. A workload that fails once out of six is a
 	 * flake; one that fails six out of six is an incompatibility. Reporting
 	 * only "it failed" makes those two look identical. */
