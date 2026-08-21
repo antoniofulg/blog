@@ -56,6 +56,27 @@ Run this on a quiet machine. The harness refuses to start when the 1-minute load
 average exceeds 0.25 per core — about 2.75 on an 11-core machine — because
 numbers taken under contention are not worth publishing.
 
+**Contention breaks the test suites before it distorts the numbers.** Both the
+Playwright and the Vitest integration suites run PGLite, an in-process Postgres
+that competes for the same cores as everything else. Measured on this machine:
+
+| Condition | Playwright suite |
+| --------- | ---------------- |
+| load ~1 (quiet) | 49/49 passed, six runs in a row |
+| load ~9-13 (nine busy loops) | one to two failures per run |
+
+The failing test is not stable across runs. At one load level it was the locale
+switcher; at another, `analytics-referrer.spec.ts:283`, with the server logging
+`analytics_record_failed` on a `view_count` update. The Vitest side fails the
+same way, as `Hook timed out in 10000ms` inside `createTestDb()`.
+
+This was investigated and there is no application bug behind it — a proposed
+hydration-race fix was tested against a no-fix control under identical load and
+made no difference (2 pass / 2 fail in both arms). The failures are contention,
+and they matter here for one specific reason: a workload that exits non-zero is
+recorded as a `compat` finding against a Bun version. Run `test` and `test-e2e`
+on a loaded machine and the report will blame Bun for a busy laptop.
+
 Containers count. A stopped-looking Docker fleet still burns CPU: two idle
 Supabase stacks plus a few worker containers were enough to hold this machine
 around load 7. `docker compose stop` in the other projects is usually the
