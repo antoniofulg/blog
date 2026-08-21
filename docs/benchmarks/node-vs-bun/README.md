@@ -32,7 +32,9 @@ Round 1 warms both caches — ignore it. Steady state, rounds 2 and 3:
 The memory gap is the one that matters for parallel worktrees: four concurrent
 installs are ~4.4 GB under npm against ~230 MB under Bun.
 
-## Test suite — not comparable
+## Test suite — the first comparison was invalid
+
+The first attempt looked like a Bun win and was not one:
 
 | Round | Runtime | Time | Peak RSS | Tests run |
 | ----- | ------- | ---- | -------- | --------- |
@@ -43,25 +45,57 @@ installs are ~4.4 GB under npm against ~230 MB under Bun.
 | 3 | Node 24 | 65.8 s | 3688 MB | 2231 passed |
 | 3 | Bun 1.4 | 61.0 s | 2642 MB | 34 failed / 1501 passed |
 
-**Do not quote these as a speed or memory result.** Bun ran 1587 tests, Node ran
-2283. The 696 missing tests are the reason Bun looks faster and lighter: 32 of
-124 files never load.
-
-Root cause, one incompatibility with 66 symptoms:
+Bun ran 1587 tests, Node ran 2283. Bun looked faster and lighter because 32 of
+124 files never loaded, taking 696 tests with them.
 
 ```
 ReferenceError: module is not defined
   at node_modules/react/index.js:6
 ```
 
-React ships CommonJS. Vite 8's module runner loads it in an ESM context where
-`module` does not exist under Bun. Every test file importing React dies at load
-time; Zod then resolves to `undefined`, producing
-`TypeError: undefined is not an object (evaluating 'z.object')` downstream.
+### It was a vitest configuration gap, not a Bun incompatibility
 
-The 32 files that do not load are every React-touching test: components,
-routes, MDX, i18n, analytics widgets. The 34 individual failures concentrate in
-`lang-slug-route.test.ts` (23) and `og-slug-route.test.ts` (11).
+One line in `vite.config.ts` makes the whole suite run:
+
+```ts
+test: {
+  server: { deps: { inline: [/react/, /react-dom/, /zod/] } },
+}
+```
+
+With it: **124/124 files, 2231 tests pass** — under Bun 1.4.0 *and* under Bun
+1.3.14, identically. So this was never a 1.4 improvement and never an upstream
+Bun bug; the suite could always have run under Bun with the right config.
+
+### The comparison, with both runtimes running the same 2283 tests
+
+| Round | Runtime | Time | Peak RSS | Load |
+| ----- | ------- | ---- | -------- | ---- |
+| 1 | Node 24 | 64.8 s | 2980 MB | 11.1 |
+| 1 | Bun 1.4 | 62.2 s | 2998 MB | 10.6 |
+| 2 | Bun 1.4 | 61.4 s | 2927 MB | 14.4 |
+| 2 | Node 24 | 63.7 s | 3379 MB | 8.7 |
+| 3 | Node 24 | 62.6 s | 3494 MB | 9.5 |
+| 3 | Bun 1.4 | 62.2 s | 2893 MB | 15.2 |
+
+Medians: Node 63.7 s / 3379 MB, Bun 62.2 s / 2927 MB.
+
+**Time is a tie.** 62.2 s against 63.7 s is -2.4%, and the spreads overlap.
+
+**Memory is roughly 10% lower under Bun**, consistent across all three rounds,
+and Bun carried the higher load in two of them — which should have hurt it, not
+helped. Three samples is too few to publish a precise figure; "consistently a
+little lower" is what the data supports.
+
+### The config line costs Node nothing
+
+| Config | Time | Peak RSS |
+| ------ | ---- | -------- |
+| without inline | 66.1 / 68.2 / 66.6 s | 3532 / 3426 / 3023 MB |
+| with inline | 63.1 / 67.0 / 68.6 s | 3710 / 3360 / 4296 MB |
+
+Medians 66.6 s against 67.0 s. Indistinguishable, and the RSS spread is wide
+enough on both sides that no difference can be claimed.
 
 ## Production runtime — not measured
 
@@ -96,3 +130,20 @@ honours the shebang. `bun --bun run test` forces Bun instead.
 This is why `test`, `build`, `check`, `lint` and `audit-fe` all read `within
 noise` when comparing Bun 1.3.14 against 1.4.0: both arms ran the same Node.
 That was not an absence of gain, it was an absence of Bun.
+
+## What the numbers support
+
+| Front | Node 24 | Bun 1.4 | Verdict |
+| ----- | ------- | ------- | ------- |
+| `bun install` vs `npm ci` | 8.7 s / 1095 MB | 1.9 s / 57 MB | 4.6x time, 19x memory |
+| Test suite, time | 63.7 s | 62.2 s | tie |
+| Test suite, memory | 3379 MB | 2927 MB | ~10% lower, consistent |
+| Production runtime | cannot run the current bundle | runs it | not comparable |
+
+Install is the only decisive gain, and it needs no runtime migration: `bun
+install` works with Node running everything else.
+
+The case for putting tests on Bun is not performance. Today production runs on
+Bun and the suite runs on Node 22, so the tests never exercise the runtime that
+serves the site. The React CJS failure had been latent the whole time and only
+surfaced when Bun was forced.
