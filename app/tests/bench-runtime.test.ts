@@ -1,11 +1,18 @@
 import { spawn } from "node:child_process";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
+import { beforeAll, describe, expect, it } from "vitest";
 import { portOwner } from "#/lib/bench/preflight.server";
 import { findFreePort, measureRuntime } from "#/lib/bench/runtime.server";
 
 const STUB = join(process.cwd(), "app/tests/fixtures/bench-stub-server.ts");
-const PORT = 4187;
+// Allocated per run rather than hardcoded. A fixed port turns one orphaned
+// server — from a killed run, or from a mutation experiment — into a cascade
+// of failures across every test in this file.
+let PORT = 0;
+
+beforeAll(async () => {
+	PORT = await findFreePort();
+});
 
 function opts(over: Record<string, unknown> = {}) {
 	return {
@@ -26,18 +33,23 @@ describe("bench runtime measurement", () => {
 		// Relative rather than absolute: a slow machine shifts both boots
 		// equally, but a wrong implementation (a constant, or a clock started
 		// after the server was already up) cannot reproduce the gap.
+		// The gap has to dwarf the noise, not merely exceed it. A busy machine
+		// adds the same large constant to both boots, which compresses a small
+		// configured difference until the assertion trips on load rather than
+		// on a wrong implementation. Three seconds of sleep cannot be
+		// compressed away.
 		const fast = await measureRuntime(
 			opts({ env: { ...process.env, STUB_BOOT_DELAY_MS: "0" } }),
 		);
 		const slow = await measureRuntime(
-			opts({ env: { ...process.env, STUB_BOOT_DELAY_MS: "800" } }),
+			opts({ env: { ...process.env, STUB_BOOT_DELAY_MS: "3000" } }),
 		);
-		expect(slow.bootMs - fast.bootMs).toBeGreaterThan(500);
+		expect(slow.bootMs - fast.bootMs).toBeGreaterThan(2000);
 		// Lower bound on the delayed boot alone: machine load can only push it
 		// up, so this can fail for exactly one reason — the probe was answered
 		// by a server left over from the previous measurement.
-		expect(slow.bootMs).toBeGreaterThan(700);
-	}, 60_000);
+		expect(slow.bootMs).toBeGreaterThan(2500);
+	}, 120_000);
 
 	it("records idle, peak and post-load resident memory", async () => {
 		const result = await measureRuntime(opts());
