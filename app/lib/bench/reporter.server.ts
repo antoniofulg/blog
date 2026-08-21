@@ -78,13 +78,17 @@ function singleVersionTable(run: RunResult, version: string): string {
 }
 
 function runtimeTable(runtime: RuntimeResult[]): string {
+	// The pass number is the measurement order. Each version is measured twice
+	// in an A,B,B,A sequence, so comparing pass 1 against pass 4 shows how much
+	// the machine drifted during the runtime phase — the same thing the load
+	// columns do for the workload table.
 	const rows = runtime.map(
-		(r) =>
-			`| ${r.version} | ${formatMs(r.bootMs)} | ${formatBytes(r.idleRssBytes)} | ${formatBytes(r.peakRssBytes)} | ${formatBytes(r.postLoadRssBytes)} | ${formatMs(r.latency.p50)} | ${formatMs(r.latency.p95)} | ${formatMs(r.latency.p99)} | ${r.totalRequests} |`,
+		(r, i) =>
+			`| ${i + 1} | ${r.version} | ${formatMs(r.bootMs)} | ${formatBytes(r.idleRssBytes)} | ${formatBytes(r.peakRssBytes)} | ${formatBytes(r.postLoadRssBytes)} | ${formatMs(r.latency.p50)} | ${formatMs(r.latency.p95)} | ${formatMs(r.latency.p99)} | ${r.totalRequests} |`,
 	);
 	return [
-		"| Version | Boot | Idle RSS | Peak RSS | Post-load RSS | p50 | p95 | p99 | Requests |",
-		"| ------- | ---- | -------- | -------- | ------------- | --- | --- | --- | -------- |",
+		"| Pass | Version | Boot | Idle RSS | Peak RSS | Post-load RSS | p50 | p95 | p99 | Requests |",
+		"| ---- | ------- | ---- | -------- | -------- | ------------- | --- | --- | --- | -------- |",
 		...rows,
 	].join("\n");
 }
