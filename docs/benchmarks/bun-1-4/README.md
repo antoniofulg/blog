@@ -223,6 +223,19 @@ wants to check a claim must be able to open the source data. This is the
 opposite of `docs/_reports/`, which is gitignored because audit runs are
 transient and per-developer.
 
+**The run dirties the working tree — do not `git add -A` afterwards.**
+`sync` regenerates OG cards and `audit-fe` appends a row to
+`docs/audits/SUMMARY.md`, and the benchmark runs each of them twelve times. A
+full run therefore leaves modified PNGs under `public/og/` and twelve bogus
+audit rows in a committed, append-only history file.
+
+Commit the results by explicit path, then discard the rest:
+
+```sh
+git add docs/benchmarks/            # never `git add -A` here
+git checkout -- public/og docs/audits/SUMMARY.md
+```
+
 **Result files accumulate; the report does not.** Every run writes its own
 timestamped JSON and nothing is ever overwritten, so running subsets across
 several sessions leaves every measurement on disk. `REPORT.md`, on the other
