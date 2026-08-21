@@ -70,11 +70,32 @@ switcher; at another, `analytics-referrer.spec.ts:283`, with the server logging
 `analytics_record_failed` on a `view_count` update. The Vitest side fails the
 same way, as `Hook timed out in 10000ms` inside `createTestDb()`.
 
-This was investigated and there is no application bug behind it — a proposed
-hydration-race fix was tested against a no-fix control under identical load and
-made no difference (2 pass / 2 fail in both arms). The failures are contention,
-and they matter here for one specific reason: a workload that exits non-zero is
-recorded as a `compat` finding against a Bun version. Run `test` and `test-e2e`
+This was investigated twice. A proposed hydration-race fix was tested against a
+no-fix control under identical load and made no difference (2 pass / 2 fail in
+both arms), so there is no application bug behind it.
+
+It is also not a Bun 1.4 regression. Running the same bundle and the same
+`node_modules` under each version — the only variable being which `bun`
+executes the server, and therefore PGLite — with the arms interleaved to cancel
+ambient load drift:
+
+| Version | Result (4 runs each, load 22-38) |
+| ------- | -------------------------------- |
+| 1.3.14 | 1 passed / 3 failed |
+| 1.4.0 | 2 passed / 2 failed |
+
+Both versions fail under contention. Four samples per arm cannot separate 3
+failures from 2, so this says only that neither version is reliable under this
+load — not that either is worse.
+
+A first attempt at this comparison ran the versions in blocks rather than
+interleaved, and produced the opposite-looking result (1.3.14 failing 2 of 3,
+1.4.0 passing 3 of 3). That was an artefact: ambient load was decaying, the
+1.3.14 arm ran first on the busier machine, and its runs took 31-37 s against
+17 s for the arm that followed. Interleaving is what removes that.
+
+Why any of this matters for the benchmark: a workload that exits non-zero is
+recorded as a `compat` finding against a Bun version. Run `test` or `test-e2e`
 on a loaded machine and the report will blame Bun for a busy laptop.
 
 Containers count. A stopped-looking Docker fleet still burns CPU: two idle
