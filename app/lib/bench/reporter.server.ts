@@ -166,7 +166,73 @@ export async function writeReport(
 	dir: string,
 ): Promise<string> {
 	await mkdir(dir, { recursive: true });
-	const path = join(dir, "REPORT.md");
+	// Named after the run, like its JSON. A fixed REPORT.md was overwritten by
+	// the next run, which made "which run is this?" a question you had to
+	// answer from the header instead of the filename.
+	const stamp = run.host.startedAt.slice(0, 19).replace(/:/g, "-");
+	const path = join(dir, `${stamp}.md`);
 	await writeFile(path, renderReport(run), "utf-8");
+	return path;
+}
+
+/**
+ * One row per workload per run, so a delta that reverses between runs is
+ * visible instead of having to be remembered. This is the answer to "is this
+ * number real or an artefact of the machine that day" — the question a single
+ * report cannot answer no matter how carefully it is written.
+ */
+export function renderSummary(runs: RunResult[]): string {
+	const ordered = [...runs].sort((a, b) =>
+		a.host.startedAt.localeCompare(b.host.startedAt),
+	);
+	const ids: string[] = [];
+	for (const run of ordered)
+		for (const w of run.workloads) if (!ids.includes(w.id)) ids.push(w.id);
+
+	const header = ordered.map((r) => r.host.startedAt.slice(5, 16));
+	const parts: string[] = [
+		"# Bun benchmark — all runs",
+		"",
+		`${ordered.length} run(s). Each cell is the time delta of the later version against the earlier one, with the median load average both sides ran under in parentheses. A workload whose sign changes between runs has not been measured reliably, whatever a single report says.`,
+		"",
+		`| Workload | ${header.join(" | ")} |`,
+		`| -------- | ${header.map(() => "---").join(" | ")} |`,
+	];
+
+	for (const id of ids) {
+		const cells = ordered.map((run) => {
+			const [before, after] = run.versions;
+			const a = run.workloads.find(
+				(w) => w.id === id && w.version === before,
+			)?.aggregate;
+			const b = run.workloads.find(
+				(w) => w.id === id && w.version === after,
+			)?.aggregate;
+			if (!a || !b) return "n/a";
+			const delta = classifyDelta(a, b);
+			const sign = delta.deltaPct >= 0 ? "+" : "";
+			const tag = delta.verdict === "within-noise" ? " ~" : "";
+			// Runs recorded before the load columns existed are read too — the
+			// point of the index is the history. Say "?" rather than inventing
+			// a condition those numbers were never measured under.
+			const show = (n: number | undefined) =>
+				typeof n === "number" ? n.toFixed(0) : "?";
+			const load = `${show(a.medianLoadAvg1)}/${show(b.medianLoadAvg1)}`;
+			return `${sign}${delta.deltaPct.toFixed(1)}%${tag} (${load})`;
+		});
+		parts.push(`| \`${id}\` | ${cells.join(" | ")} |`);
+	}
+
+	parts.push("", "`~` marks a delta inside that run's own noise band.", "");
+	return parts.join("\n");
+}
+
+export async function writeSummary(
+	runs: RunResult[],
+	dir: string,
+): Promise<string> {
+	await mkdir(dir, { recursive: true });
+	const path = join(dir, "ALL-RUNS.md");
+	await writeFile(path, renderSummary(runs), "utf-8");
 	return path;
 }

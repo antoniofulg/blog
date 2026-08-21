@@ -216,7 +216,8 @@ If a run is killed hard enough to skip the restore (`kill -9`), run
 | Artifact | Path | Committed |
 | -------- | ---- | --------- |
 | Raw results | `docs/benchmarks/bun-1-4/<ISO-timestamp>.json` | yes |
-| Rendered comparison | `docs/benchmarks/bun-1-4/REPORT.md` | yes |
+| Rendered comparison | `docs/benchmarks/bun-1-4/<ISO-timestamp>.md` | yes |
+| Cross-run index | `docs/benchmarks/bun-1-4/ALL-RUNS.md` | yes |
 
 Results are committed on purpose. The post cites these numbers, and a reader who
 wants to check a claim must be able to open the source data. This is the
@@ -236,14 +237,29 @@ git add docs/benchmarks/            # never `git add -A` here
 git checkout -- public/og docs/audits/SUMMARY.md
 ```
 
-**Result files accumulate; the report does not.** Every run writes its own
-timestamped JSON and nothing is ever overwritten, so running subsets across
-several sessions leaves every measurement on disk. `REPORT.md`, on the other
-hand, is a rendered view of the run that just finished — a second run replaces
-it. To re-render an older run:
+**Nothing is overwritten.** Every run writes its own timestamped JSON and its
+own timestamped markdown report, so running subsets across several sessions
+leaves every measurement on disk. To re-render an older run:
 
 ```sh
 bun run bench --report-only=docs/benchmarks/bun-1-4/2026-08-20T22-15-48.json
+```
+
+**Read `ALL-RUNS.md` before quoting any number.** It is rebuilt after every run
+and puts each workload's delta side by side across every run on disk, with the
+median load each side was measured under. A single report cannot tell you that
+a number failed to hold; this one can, and it already has:
+
+```
+| `install-warm`  | -38.0%       | -30.7%       |   <- holds
+| `install-cold`  |  -2.3% ~     | +10.5% ~     |   <- reversed sign, not measured
+| `test-e2e`      | -10.7% ~     |  +5.7% ~     |   <- reversed sign, not measured
+```
+
+Rebuild it without measuring anything:
+
+```sh
+bun run bench --summary
 ```
 
 The harness deliberately does not merge separate runs into one comparison table.

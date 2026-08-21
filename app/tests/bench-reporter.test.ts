@@ -5,6 +5,7 @@ import { describe, expect, it } from "vitest";
 import {
 	formatBytes,
 	renderReport,
+	renderSummary,
 	writeReport,
 } from "#/lib/bench/reporter.server";
 import type { Aggregate, RunResult } from "#/lib/bench/types";
@@ -218,11 +219,18 @@ describe("bench report rendering", () => {
 		expect(md).toContain("sampled every 100 ms");
 	});
 
-	it("writes REPORT.md into the given directory and returns its path", async () => {
+	it("names the report after its run so the next run cannot overwrite it", async () => {
 		const dir = await mkdtemp(join(tmpdir(), "bench-report-"));
-		const path = await writeReport(run(), dir);
-		expect(path).toBe(join(dir, "REPORT.md"));
-		expect(await readFile(path, "utf-8")).toContain("# Bun 1.3.14 vs 1.4.0");
+		const first = await writeReport(run(), dir);
+		const second = await writeReport(
+			run({
+				host: { ...run().host, startedAt: "2026-08-22T09:30:00.000Z" },
+			}),
+			dir,
+		);
+		expect(first).toBe(join(dir, "2026-08-20T12-00-00.md"));
+		expect(second).not.toBe(first);
+		expect(await readFile(first, "utf-8")).toContain("# Bun 1.3.14 vs 1.4.0");
 	});
 
 	it("reports the peak RSS delta alongside the timing delta", () => {
@@ -302,5 +310,80 @@ describe("bench report rendering", () => {
 
 	it("formats byte counts as megabytes", () => {
 		expect(formatBytes(1024 * 1024 * 3)).toBe("3.0 MB");
+	});
+});
+
+describe("cross-run index", () => {
+	function runAt(startedAt: string, deltas: [number, number][]): RunResult {
+		const base = run();
+		return {
+			...base,
+			host: { ...base.host, startedAt },
+			workloads: deltas.flatMap(([before, after], i) => [
+				{
+					id: `w${i}`,
+					version: "1.3.14",
+					samples: [],
+					aggregate: { ...agg(before, before - 1, before + 1) },
+				},
+				{
+					id: `w${i}`,
+					version: "1.4.0",
+					samples: [],
+					aggregate: { ...agg(after, after - 1, after + 1) },
+				},
+			]),
+		};
+	}
+
+	it("puts every run in a column, oldest first", () => {
+		const md = renderSummary([
+			runAt("2026-08-22T09:00:00.000Z", [[100, 50]]),
+			runAt("2026-08-21T09:00:00.000Z", [[100, 50]]),
+		]);
+		expect(md.indexOf("08-21T09:00")).toBeLessThan(md.indexOf("08-22T09:00"));
+	});
+
+	it("shows a delta that reverses sign between runs", () => {
+		// The whole reason this file exists: one report cannot tell you that a
+		// number did not hold.
+		const md = renderSummary([
+			runAt("2026-08-21T09:00:00.000Z", [[100, 90]]),
+			runAt("2026-08-22T09:00:00.000Z", [[100, 110]]),
+		]);
+		expect(md).toContain("-10.0%");
+		expect(md).toContain("+10.0%");
+	});
+
+	it("marks a delta that sits inside its own run's noise band", () => {
+		// Assert the cell, not the legend: the footer explaining `~` also
+		// contains a `~`, so a bare contains() passes even with the tag gone.
+		const noisy = renderSummary([
+			runAt("2026-08-21T09:00:00.000Z", [[100, 99]]),
+		]);
+		expect(noisy).toContain("-1.0% ~");
+
+		const real = renderSummary([
+			runAt("2026-08-21T09:00:00.000Z", [[100, 50]]),
+		]);
+		expect(real).toContain("-50.0% (");
+		expect(real).not.toContain("-50.0% ~");
+	});
+
+	it("reports an unknown load rather than inventing one for older runs", () => {
+		const older = runAt("2026-08-21T09:00:00.000Z", [[100, 50]]);
+		for (const w of older.workloads) {
+			if (w.aggregate)
+				(w.aggregate as { medianLoadAvg1?: number }).medianLoadAvg1 = undefined;
+		}
+		expect(renderSummary([older])).toContain("(?/?)");
+	});
+
+	it("renders n/a for a workload a given run did not measure", () => {
+		const md = renderSummary([
+			runAt("2026-08-21T09:00:00.000Z", [[100, 50]]),
+			runAt("2026-08-22T09:00:00.000Z", []),
+		]);
+		expect(md).toContain("n/a");
 	});
 });

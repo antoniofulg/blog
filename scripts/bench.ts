@@ -5,7 +5,7 @@
 // The working tree is mutated during a run (node_modules, .output, caches), so
 // every exit path — including SIGINT — flushes partial results and reinstalls
 // node_modules with the developer's default bun.
-import { mkdir, readFile, writeFile } from "node:fs/promises";
+import { mkdir, readdir, readFile, writeFile } from "node:fs/promises";
 import { dirname } from "node:path";
 import {
 	parseBenchArgs,
@@ -18,7 +18,7 @@ import {
 	preflight,
 	resolveRuntimeRoutes,
 } from "#/lib/bench/preflight.server";
-import { writeReport } from "#/lib/bench/reporter.server";
+import { writeReport, writeSummary } from "#/lib/bench/reporter.server";
 import {
 	type MatrixRun,
 	restoreNodeModules,
@@ -41,6 +41,29 @@ function log(message: string): void {
 async function writeResult(run: RunResult, path: string): Promise<void> {
 	await mkdir(dirname(path), { recursive: true });
 	await writeFile(path, `${JSON.stringify(run, null, 2)}\n`, "utf-8");
+}
+
+async function refreshSummary(): Promise<void> {
+	const entries = await readdir(RESULTS_DIR).catch(() => [] as string[]);
+	const runs: RunResult[] = [];
+	for (const name of entries.filter((n) => n.endsWith(".json")).sort()) {
+		try {
+			runs.push(
+				JSON.parse(
+					await readFile(`${RESULTS_DIR}/${name}`, "utf-8"),
+				) as RunResult,
+			);
+		} catch {
+			// A half-written file from an interrupted run is not a reason to
+			// refuse to index every other run.
+		}
+	}
+	if (runs.length > 0) log(`index written to ${await writeSummary(runs, RESULTS_DIR)}`);
+}
+
+if (args.summaryOnly) {
+	await refreshSummary();
+	process.exit(0);
 }
 
 if (args.reportOnly) {
@@ -138,6 +161,7 @@ try {
 	}
 
 	log(`report written to ${await writeReport(run, RESULTS_DIR)}`);
+	await refreshSummary();
 	await finish(0);
 } catch (error) {
 	process.stderr.write(

@@ -12,6 +12,8 @@ export type BenchArgs = {
 	strictLoad: boolean;
 	/** Skip measuring and re-render the report from an existing result file. */
 	reportOnly?: string;
+	/** Skip measuring and only rebuild the cross-run index. */
+	summaryOnly: boolean;
 	/** Pin the runtime port. Unset means the harness binds a free one. */
 	runtimePort?: number;
 };
@@ -39,6 +41,7 @@ export function parseBenchArgs(argv: string[]): BenchArgs {
 		only: listFlag(argv, "only"),
 		versions: listFlag(argv, "versions"),
 		strictLoad: argv.includes("--strict-load"),
+		summaryOnly: argv.includes("--summary"),
 		reportOnly: reportOnly
 			? reportOnly.slice("--report-only=".length)
 			: undefined,
