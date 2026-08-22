@@ -4,10 +4,12 @@ import { dirname, extname, relative, resolve, sep } from "node:path";
 import * as ts from "typescript";
 
 export type TestRunner = "vitest" | "bun:test";
+export type TestCohort = "pure" | "dom" | "mocks-timers" | "integration-infra";
 
 export type TestFileInventory = {
 	relativePath: string;
 	runner: TestRunner;
+	cohort?: TestCohort;
 	testCount: number;
 	assertionCount: number;
 	tests: number;
@@ -77,10 +79,26 @@ function fixtureReferences(
 } {
 	const paths = new Set<string>();
 	const missing = new Set<string>();
+	const pathCallNames = new Set([
+		"join",
+		"resolve",
+		"readFile",
+		"readFileSync",
+		"stat",
+		"access",
+	]);
 	function visit(node: ts.Node): void {
 		if (ts.isStringLiteralLike(node)) {
 			const value = node.text;
-			if (/(?:^|[\\/])fixtures?(?:[\\/]|$)/i.test(value)) {
+			const parent = node.parent;
+			const isImportPath = ts.isImportDeclaration(parent);
+			const isPathCall =
+				ts.isCallExpression(parent) &&
+				pathCallNames.has(calleeName(parent.expression) ?? "");
+			if (
+				/(?:^|[\\/])fixtures?(?:[\\/]|$)/i.test(value) &&
+				(isImportPath || isPathCall)
+			) {
 				const resolved = resolve(dirname(filePath), value);
 				const path = normalized(value);
 				paths.add(path);
@@ -114,7 +132,14 @@ function residualVitestApis(source: ts.SourceFile, text: string): string[] {
 }
 
 function omissionMarkers(text: string): string[] {
-	return OMITTED_MOCK.test(text) ? ["partial mock skipped"] : [];
+	const marker = text
+		.split("\n")
+		.find((line) =>
+			/(?:^\s*\/\/|^\s*\/\*|^\s*\*|NOTE:).*partial\s+mock\s+skipped/i.test(
+				line,
+			),
+		);
+	return marker && OMITTED_MOCK.test(marker) ? ["partial mock skipped"] : [];
 }
 
 async function scanFile(

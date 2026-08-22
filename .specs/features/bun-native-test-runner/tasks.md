@@ -201,13 +201,13 @@ T19 → T20
 
 **Done when**:
 
-- [ ] `test:parity` checks the full twin inventory
-- [ ] Cohorts classify as pure, DOM, mocks/timers, or integration/infra using source evidence
-- [ ] `test:bun:cohort -- <name>` runs only the selected deterministic file list
-- [ ] Unknown/empty cohorts fail with known names
-- [ ] Reference and candidate tests cover classification and CLI argument behavior
-- [ ] Gate check passes
-- [ ] Test count: 8 new tests pass in each runner
+- [x] `test:parity` checks the full twin inventory
+- [x] Cohorts classify as pure, DOM, mocks/timers, or integration/infra using source evidence
+- [x] `test:bun:cohort -- <name>` runs only the selected deterministic file list
+- [x] Unknown/empty cohorts fail with known names
+- [x] Reference and candidate tests cover classification and CLI argument behavior
+- [x] Gate check passes
+- [x] Test count: 8 new tests pass in each runner
 
 **Tests**: unit
 **Gate**: quick

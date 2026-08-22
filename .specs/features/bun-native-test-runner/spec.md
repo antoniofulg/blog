@@ -186,8 +186,8 @@ reversible cutover.
 | -------------- | ----- | ----- | ------ |
 | BTR-01 | P1: Parallel paths | Tasks | Implementing (T2) |
 | BTR-02 | P1: Runtime provenance | Tasks | Implementing (T1-T2) |
-| BTR-03 | P1: Cohort inventory | Tasks | Implementing (T3) |
-| BTR-04 | P1: Behavioral parity | Tasks | Implementing (T3) |
+| BTR-03 | P1: Cohort inventory | Tasks | Implementing (T3-T4) |
+| BTR-04 | P1: Behavioral parity | Tasks | Implementing (T3-T4) |
 | BTR-05 | P1: DOM and lifecycle | Tasks | In Tasks |
 | BTR-06 | P1: A/B/C harness | Tasks | In Tasks |
 | BTR-07 | P1: Measurement provenance | Tasks | In Tasks |
