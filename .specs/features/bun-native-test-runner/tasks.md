@@ -115,6 +115,19 @@ T18 → T19
 T19 → T20
 ```
 
+### Phase 6: Independent validation fixes
+
+Order: T21, T22, T23, T24, T25, T26
+
+```text
+T20 → T21
+T21 → T22
+T22 → T23
+T23 → T24
+T24 → T25
+T25 → T26
+```
+
 ---
 
 ## Task Breakdown
@@ -692,11 +705,11 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Test writes a temporary Bun test fixture with a deterministic timed-out hook
-- [ ] Spawned Bun Test exits non-zero within a bounded time
-- [ ] Combined output names the fixture basename and hook timeout
-- [ ] Temporary files and child process are always cleaned
-- [ ] Vitest and Bun twins assert the same diagnostic contract
+- [x] Test writes a temporary Bun test fixture with a deterministic timed-out hook
+- [x] Spawned Bun Test exits non-zero within a bounded time
+- [x] Combined output names the fixture basename and hook timeout
+- [x] Temporary files and child process are always cleaned
+- [x] Vitest and Bun twins assert the same diagnostic contract
 
 **Tests**: integration
 **Gate**: quick
