@@ -8,8 +8,8 @@ decision after ten real consecutive green CI shadow runs with matching inventory
 **Post-validation amendment (2026-08-22)**: the Playwright-on-Node boundary in
 P2 was superseded by the approved local design in
 `docs/plans/2026-08-22-bun-playwright-webview-design.md`. Playwright now runs
-through Bun with an explicit Node fallback; Bun.WebView is local-only and does
-not alter the Bun Test cutover criteria. The original P2 text below is retained
+through Bun with an explicit Node fallback; the completed Bun.WebView experiment
+was retired and does not alter the Bun Test cutover criteria. The original P2 text below is retained
 as the independently verified historical baseline.
 
 ## Problem Statement

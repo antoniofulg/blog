@@ -2,6 +2,8 @@
 
 > Historical design note: the Playwright-on-Node boundary was superseded on
 > 2026-08-22 by `docs/plans/2026-08-22-bun-playwright-webview-design.md`.
+> Playwright now runs through Bun with a Node fallback; the WebView experiment
+> was completed and retired.
 
 **Spec**: `.specs/features/bun-native-test-runner/spec.md`
 **Status**: Approved by standing execution authorization
@@ -50,7 +52,7 @@ flowchart TD
     C --> SH[CI shadow candidate]
     SH --> AR[Uploaded shadow artifact]
 
-    PW[Playwright on Node] --> BS[Blog server on Bun]
+    PW[Playwright on Bun] --> BS[Blog server on Bun]
 ```
 
 Execution remains sequential. The diagram shows coexistence, not concurrent

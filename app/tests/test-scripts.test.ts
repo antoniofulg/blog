@@ -58,17 +58,13 @@ describe("A/B/C test scripts", () => {
 		);
 	});
 
-	it("keeps Bun and Node Playwright routes plus local WebView", () => {
+	it("keeps Bun and Node Playwright routes", () => {
 		expect(scripts["test:e2e"]).toBe("bun run test:e2e:bun");
 		expect(scripts["test:e2e:bun"]).toBe("bunx --bun playwright test");
 		expect(scripts["test:e2e:node"]).toBe(
 			"node node_modules/@playwright/test/cli.js test",
 		);
-		expect(scripts["test:e2e:webview"]).toContain(
-			"bun run scripts/run-e2e-webview.ts",
-		);
-		expect(scripts["bench:e2e:webview"]).toContain(
-			"bun run scripts/bench-e2e-webview.ts",
-		);
+		expect(scripts["test:e2e:webview"]).toBeUndefined();
+		expect(scripts["bench:e2e:webview"]).toBeUndefined();
 	});
 });

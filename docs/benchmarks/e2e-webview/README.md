@@ -1,16 +1,15 @@
-# Bun Playwright vs Bun.WebView
+# Bun Playwright vs Bun.WebView — archived experiment
 
-This local benchmark compares browser automation overhead using five identical
-public-route smoke scenarios.
+This directory preserves the completed local benchmark as historical evidence.
+The WebView harness and package scripts were retired after the evaluation; the
+commands below document how the committed reports were produced and are no
+longer available in the current checkout.
 
 ## Commands
 
 ```sh
-bun run test:e2e          # full Playwright suite through Bun
-bun run test:e2e:bun      # explicit Bun Playwright route
-bun run test:e2e:node     # Node fallback
-bun run test:e2e:webview  # local five-scenario WebView smoke suite
-bun run bench:e2e:webview # warm-up + five interleaved comparison runs
+bun run test:e2e:webview
+bun run bench:e2e:webview
 ```
 
 ## Comparison boundary
@@ -38,5 +37,7 @@ RSS after each pass, load, executable provenance, and per-scenario outcomes.
 Reports are invalid when browser paths, viewport, scenario inventories,
 outcomes, sample counts, or exit statuses differ.
 
-Bun.WebView is experimental and local-only. These reports cannot justify
-removing Playwright or adding WebView to CI.
+Bun.WebView was experimental and local-only. The results did not justify
+maintaining the second harness: WebView was slower in both primary comparisons
+and lacked Playwright's full test capabilities. Playwright through Bun remains
+canonical, with the Node route retained as fallback.

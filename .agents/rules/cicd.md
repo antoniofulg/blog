@@ -46,7 +46,8 @@ failure, timeout, noisy run, or inventory mismatch resets the suffix. Rollback
 maps `test` to `test:vitest:node`; migrated tests and benchmark history remain.
 The canonical Playwright command is forced through Bun while its web server also
 runs through Bun. `test:e2e:node` remains the explicit local fallback. The
-Bun.WebView smoke suite and benchmark are local-only and do not run in CI.
+retired Bun.WebView experiment is preserved as documentation and does not run
+in CI.
 
 ### E2E gate behavior
 

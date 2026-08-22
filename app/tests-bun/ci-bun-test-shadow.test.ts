@@ -57,7 +57,7 @@ describe("Bun Test CI shadow", () => {
 		expect(playwright).toContain("reuseExistingServer: false");
 	});
 
-	test("keeps Bun.WebView local-only", () => {
+	test("keeps retired Bun.WebView routes out of CI", () => {
 		expect(ci).not.toContain("test:e2e:webview");
 		expect(ci).not.toContain("bench:e2e:webview");
 	});

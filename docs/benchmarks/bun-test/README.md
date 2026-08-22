@@ -81,5 +81,6 @@ Playwright remains the primary E2E suite, now forced through Bun by
 `test:e2e:bun`. Its configured web server starts the Blog through
 `bun run scripts/e2e-server.ts`. The project keeps one worker, Chromium,
 fixtures, traces, reporters, retries, and screenshots. `test:e2e:node` remains
-the explicit fallback. The local-only Bun.WebView smoke suite and benchmark are
-not Bun Test cutover evidence. Firefox and WebKit remain deferred.
+the explicit fallback. The retired Bun.WebView experiment is historical
+evidence only and is not part of the Bun Test cutover. Firefox and WebKit remain
+deferred.

@@ -32,14 +32,12 @@
     "test:e2e": "bun run test:e2e:bun",
     "test:e2e:bun": "bunx --bun playwright test",
     "test:e2e:node": "node node_modules/@playwright/test/cli.js test",
-    "test:e2e:webview": "bun run build && bun run scripts/run-e2e-webview.ts",
     "audit:content": "bun run scripts/audit-content.ts",
     "audit:fe": "bun run scripts/audit-fe.ts",
     "audit": "bun run audit:content && bun run audit:fe",
     "favicons": "bun run scripts/generate-favicons.ts",
     "bench": "bun run scripts/bench.ts",
-    "bench:tests": "bun run scripts/bench-tests.ts",
-    "bench:e2e:webview": "bun run build && bun run scripts/bench-e2e-webview.ts"
+    "bench:tests": "bun run scripts/bench-tests.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

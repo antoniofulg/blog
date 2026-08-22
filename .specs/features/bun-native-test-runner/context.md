@@ -44,7 +44,8 @@ Playwright as a separate E2E concern.
 
 > Historical baseline: superseded on 2026-08-22 by
 > `docs/plans/2026-08-22-bun-playwright-webview-design.md`. Current Playwright
-> runs through Bun, retains a Node fallback, and evaluates Bun.WebView locally.
+> runs through Bun and retains a Node fallback. The completed Bun.WebView
+> experiment is archived as benchmark evidence.
 
 - Playwright remains the E2E runner on its supported Node runtime.
 - The application under E2E continues to run through Bun.
@@ -78,5 +79,5 @@ Playwright as a separate E2E concern.
 ## Deferred Ideas
 
 - Playwright Firefox and WebKit projects.
-- Bun.WebView smoke tests.
+- Restoring or extending the retired Bun.WebView smoke experiment.
 - Removing Vitest before the incompatible inventory reaches zero.
