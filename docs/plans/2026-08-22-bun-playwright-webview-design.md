@@ -85,3 +85,16 @@ Bun.WebView is experimental and local-only. It does not enter CI, replace
 Playwright, or count as Bun Test cutover evidence. The implementation adds no
 new dependency and uses the installed Playwright Chromium for an engine-matched
 comparison.
+
+## Retirement decision
+
+The completed cold and warm-session measurements did not justify maintaining a
+second browser harness. WebView was slower in the measured smoke workload and
+does not provide the fixtures, locators, authentication storage, traces, or
+reporters used by the full Playwright suite.
+
+The executable WebView routes, harness, and their unit tests are therefore
+retired. The raw JSON and Markdown reports remain under
+`docs/benchmarks/e2e-webview/` as historical evidence. Playwright through Bun
+is the canonical E2E route, with Playwright through Node retained as the local
+fallback.
