@@ -1,6 +1,8 @@
 import "./happydom";
 import { afterEach, describe, expect, test } from "bun:test";
-import { cleanup, render, screen } from "@testing-library/react";
+
+const { cleanup, render, screen } = await import("@testing-library/react");
+
 import React from "react";
 import { StaticPageProfile } from "#/components/ui/static-page-profile";
 import { strings } from "#/lib/i18n/strings";

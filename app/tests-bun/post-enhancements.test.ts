@@ -8,7 +8,9 @@ import {
 	mock,
 	test,
 } from "bun:test";
-import { act, cleanup } from "@testing-library/react";
+
+const { act, cleanup } = await import("@testing-library/react");
+
 import {
 	COPY_BUTTON_CLASS,
 	RAW_SOURCE_ATTR,

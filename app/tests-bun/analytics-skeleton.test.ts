@@ -12,7 +12,9 @@ import "./happydom";
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
-import { cleanup, render, screen } from "@testing-library/react";
+
+const { cleanup, render, screen } = await import("@testing-library/react");
+
 import React from "react";
 
 // ── SUT import ────────────────────────────────────────────────────────────────

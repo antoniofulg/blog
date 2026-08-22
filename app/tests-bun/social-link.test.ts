@@ -1,6 +1,8 @@
 import "./happydom";
 import { afterEach, describe, expect, test } from "bun:test";
-import { cleanup, render } from "@testing-library/react";
+
+const { cleanup, render } = await import("@testing-library/react");
+
 import React from "react";
 import { SocialLink } from "#/components/ui/social-link";
 

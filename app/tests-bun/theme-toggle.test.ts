@@ -28,14 +28,11 @@ import {
 	mock,
 	test,
 } from "bun:test";
-import {
-	act,
-	cleanup,
-	createEvent,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+
+const { act, cleanup, createEvent, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────

@@ -1,12 +1,10 @@
 import "./happydom";
 import { afterEach, describe, expect, jest, mock, test } from "bun:test";
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+
+const { act, cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
 import {
 	LOCALE_NAMES,

@@ -12,7 +12,9 @@ import "./happydom";
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
-import { cleanup, render } from "@testing-library/react";
+
+const { cleanup, render } = await import("@testing-library/react");
+
 import React from "react";
 import { TicTacToe } from "#/components/posts/tic-tac-toe";
 import { EMBEDS, Embed } from "#/lib/mdx/embeds";

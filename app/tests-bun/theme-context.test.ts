@@ -22,7 +22,9 @@ import {
 	mock,
 	test,
 } from "bun:test";
-import { act, cleanup, renderHook } from "@testing-library/react";
+
+const { act, cleanup, renderHook } = await import("@testing-library/react");
+
 import React from "react";
 import { LocaleProvider } from "#/lib/locale";
 import {

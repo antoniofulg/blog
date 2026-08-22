@@ -8,7 +8,11 @@ import {
 	mock,
 	test,
 } from "bun:test";
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+
+const { act, cleanup, render, waitFor } = await import(
+	"@testing-library/react"
+);
+
 import { createElement } from "react";
 import type { Post } from "#/db/schema";
 import { strings } from "#/lib/i18n/strings";

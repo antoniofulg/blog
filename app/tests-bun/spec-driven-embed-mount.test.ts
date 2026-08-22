@@ -13,7 +13,9 @@ import "./happydom";
  */
 
 import { afterEach, beforeEach, describe, expect, test } from "bun:test";
-import { act, cleanup } from "@testing-library/react";
+
+const { act, cleanup } = await import("@testing-library/react");
+
 import type { Locale } from "#/lib/locale";
 import { mountEmbeds } from "#/lib/mdx/post-enhancements.client";
 

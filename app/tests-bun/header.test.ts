@@ -8,13 +8,11 @@ import {
 	mock,
 	test,
 } from "bun:test";
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+
+const { act, cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
 import { Header } from "#/components/layout/header";
 import { LanguageMenu } from "#/components/ui/language-menu";

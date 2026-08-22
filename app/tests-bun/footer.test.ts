@@ -1,6 +1,8 @@
 import "./happydom";
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
-import { cleanup, render } from "@testing-library/react";
+
+const { cleanup, render } = await import("@testing-library/react");
+
 import React from "react";
 
 // ─── Locale holder (allows per-describe locale switching) ─────────────────────

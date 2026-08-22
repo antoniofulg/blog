@@ -16,13 +16,11 @@ import {
 	mock,
 	test,
 } from "bun:test";
-import {
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-	within,
-} from "@testing-library/react";
+
+const { cleanup, fireEvent, render, screen, within } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────

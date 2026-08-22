@@ -15,7 +15,11 @@ import "./happydom";
  */
 
 import { afterEach, describe, expect, jest, mock, test } from "bun:test";
-import { cleanup, render, screen, within } from "@testing-library/react";
+
+const { cleanup, render, screen, within } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────

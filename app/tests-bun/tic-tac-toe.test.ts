@@ -13,7 +13,11 @@ import "./happydom";
  */
 
 import { afterEach, describe, expect, test } from "bun:test";
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+
+const { cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
 import { calculateWinner, TicTacToe } from "#/components/posts/tic-tac-toe";
 

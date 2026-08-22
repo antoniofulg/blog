@@ -23,13 +23,11 @@ import {
 	mock,
 	test,
 } from "bun:test";
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+
+const { act, cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
 
 // ── JSDOM polyfills for Radix UI ──────────────────────────────────────────────
