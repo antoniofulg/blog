@@ -166,7 +166,13 @@ describe("link-parser: integration — whole tree parse", () => {
 		}
 	});
 
-	it("whole-tree parse completes in under 2 seconds", async () => {
+	// Guards against a pathological regression in the parser — an accidental
+	// O(n^2), a per-file re-read — not against a busy machine. Measured cost of
+	// the real tree (35 files) is 280-916 ms, so this bound is 15-50x the
+	// observed value. The previous 2 s bound was tight enough that full-suite
+	// worker contention alone tripped it, which inside a version benchmark
+	// showed up as a compat finding against whichever runtime was unlucky.
+	it("whole-tree parse completes without a pathological slowdown", async () => {
 		const postsDir = path.resolve(
 			import.meta.dirname,
 			"../../app/content/posts",
@@ -175,6 +181,6 @@ describe("link-parser: integration — whole tree parse", () => {
 		const start = Date.now();
 		await Promise.all(files.map((f) => extractLinks(f)));
 		const elapsed = Date.now() - start;
-		expect(elapsed).toBeLessThan(2000);
+		expect(elapsed).toBeLessThan(15_000);
 	});
 });

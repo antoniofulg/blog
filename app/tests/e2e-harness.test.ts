@@ -11,7 +11,7 @@ describe("createTestDb()", () => {
 
 	beforeAll(async () => {
 		testDb = await createTestDb();
-	}, 15_000);
+	}, 60_000);
 
 	afterAll(async () => {
 		await testDb.close();
@@ -100,7 +100,7 @@ describe("TestDb.close()", () => {
 		const testDb = await createTestDb();
 		await testDb.close();
 		await expect(testDb.close()).resolves.toBeUndefined();
-	}, 15_000);
+	}, 60_000);
 });
 
 // ── Unit: seedAdminUser() ──────────────────────────────────────────────────
@@ -110,7 +110,7 @@ describe("seedAdminUser()", () => {
 
 	beforeAll(async () => {
 		testDb = await createTestDb();
-	}, 15_000);
+	}, 60_000);
 
 	afterAll(async () => {
 		await testDb.close();
