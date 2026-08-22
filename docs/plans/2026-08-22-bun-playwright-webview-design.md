@@ -59,6 +59,26 @@ runs.
 - Run one warm-up plus five interleaved benchmark repetitions.
 - Run typecheck, lint, lint-tests, build, and the full Bun Playwright suite.
 
+## Complete headless evaluation amendment
+
+The initial cold-suite result is not sufficient to describe a browser that
+stays open. The benchmark therefore has two explicit modes:
+
+1. **Cold suite**: each sample starts a new browser, runs all five scenarios,
+   and closes it. The first cold sample per arm is retained as warm-up evidence
+   but excluded from the primary five-sample aggregate. The report also shows
+   totals and aggregates with that warm-up included.
+2. **Warm session**: each arm starts one browser, executes one complete scenario
+   pass as an in-session warm-up, then executes five timed passes without
+   restarting the browser. This isolates navigation, rendering, evaluation,
+   and automation from browser startup.
+
+The two arms still use the same Chromium executable, viewport, server, database,
+scenario order, and DOM assertions. Warm-session arms run sequentially in
+alternating session order across two rounds so machine load does not always
+favor one implementation. Reports keep cold and warm results separate; neither
+mode is allowed to borrow samples from the other.
+
 ## Constraints
 
 Bun.WebView is experimental and local-only. It does not enter CI, replace
