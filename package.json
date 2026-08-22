@@ -34,7 +34,8 @@
     "audit:fe": "bun run scripts/audit-fe.ts",
     "audit": "bun run audit:content && bun run audit:fe",
     "favicons": "bun run scripts/generate-favicons.ts",
-    "bench": "bun run scripts/bench.ts"
+    "bench": "bun run scripts/bench.ts",
+    "bench:tests": "bun run scripts/bench-tests.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

@@ -556,13 +556,13 @@ T19 → T20
 
 **Done when**:
 
-- [ ] `bun run bench:tests` runs all arms with documented defaults
-- [ ] `--only` and positive bounded `--repetitions` validation work
-- [ ] CLI prints JSON and Markdown artifact paths
-- [ ] Interrupts flush completed samples and restore no mutated test state
-- [ ] Package/static tests prove registration and arguments
-- [ ] Build gate passes
-- [ ] Test count: 6 new CLI tests pass in each runner
+- [x] `bun run bench:tests` runs all arms with documented defaults
+- [x] `--only` and positive bounded `--repetitions` validation work
+- [x] CLI prints JSON and Markdown artifact paths
+- [x] Interrupts flush completed samples and restore no mutated test state
+- [x] Package/static tests prove registration and arguments
+- [x] Build gate passes
+- [x] Test count: 6 new CLI tests pass in each runner
 
 **Tests**: none
 **Gate**: build
