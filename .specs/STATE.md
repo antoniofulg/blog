@@ -10,13 +10,21 @@
 - **Date**: 2026-08-20
 - **Status**: active
 
+### AD-002
+- **Decision**: Run the canonical Playwright E2E command through Bun, retain an explicit Node fallback, and keep Bun.WebView local-only as an experimental smoke benchmark.
+- **Reason**: Bun-driven Playwright preserves the full 49-test coverage while WebView lacks the fixtures, locators, auth storage, traces, and reporters required to replace it.
+- **Trade-off**: Three local E2E routes remain. WebView covers only five shared public scenarios and cannot be treated as equivalent full-suite coverage.
+- **Scope**: E2E runtime commands and local browser automation benchmarks.
+- **Date**: 2026-08-22
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: bun-native-test-runner (`.specs/features/bun-native-test-runner/`)
-- **Phase / Task**: Validate complete; independent verification iteration 2 PASS.
-- **Completed**: T1-T26. Spec-anchored validation matched 34/34 acceptance criteria; parity is exact at 138 files, 2,289 static tests, and 3,761 assertions per tree; all build gates passed; Playwright passed 49/49; the discrimination sensor killed 3/3 mutations.
+- **Feature**: Bun Playwright and WebView evaluation (`docs/plans/2026-08-22-bun-playwright-webview-design.md`)
+- **Phase / Task**: Implementation and local benchmark complete.
+- **Completed**: `test:e2e` now delegates to Bun-driven Playwright; `test:e2e:bun`, `test:e2e:node`, and local `test:e2e:webview` routes exist. Full Playwright passed 49/49 on Bun and Node 24; WebView smoke passed 5/5; both unit trees passed 2,352 tests. The valid five-repetition comparison found WebView 116.75% slower with 18.92% higher median browser RSS.
 - **In-progress** (file:line): none.
-- **Next step**: Run the Bun Test job in CI shadow mode until ten real consecutive green, matching, non-noisy artifacts exist. Then make a separate explicit cutover decision; do not infer it from local timings.
-- **Blockers**: Cutover is intentionally gated. Current A/C outcomes differ by five Bun Test skips, so the comparison is invalid and has no performance winner. Vitest A/B also emit shutdown noise despite exit code 0; keep it visible in shadow evidence.
-- **Uncommitted files**: final TLC validation/state/lesson artifacts pending the closeout commit.
+- **Next step**: Decide CI structure separately. Keep WebView local unless a broader, equivalent suite changes the current performance and capability evidence.
+- **Blockers**: none. One Node fallback E2E run hit the known PGLite lock timeout; the required subsequent full retry passed 49/49.
+- **Uncommitted files**: final timestamped WebView benchmark JSON/Markdown and this handoff update pending the results commit.
 - **Branch**: feat/bun-native-test-runner
