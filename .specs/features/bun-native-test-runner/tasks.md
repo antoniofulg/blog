@@ -583,13 +583,13 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Results sort by timestamp, not filesystem order
-- [ ] Failure, timeout, noise, or inventory mismatch resets the suffix to zero at that point
-- [ ] Eligibility requires ten consecutive valid green candidate results
-- [ ] Empty, malformed, duplicate, and mixed-commit histories return explicit ineligible reasons
-- [ ] Reference and candidate unit tests cover boundary counts 0, 9, 10, and 11
-- [ ] Gate check passes
-- [ ] Test count: 8 new tests pass in each runner
+- [x] Results sort by timestamp, not filesystem order
+- [x] Failure, timeout, noise, or inventory mismatch resets the suffix to zero at that point
+- [x] Eligibility requires ten consecutive valid green candidate results
+- [x] Empty, malformed, duplicate, and mixed-commit histories return explicit ineligible reasons
+- [x] Reference and candidate unit tests cover boundary counts 0, 9, 10, and 11
+- [x] Gate check passes
+- [x] Test count: 8 new tests pass in each runner
 
 **Tests**: unit
 **Gate**: quick
