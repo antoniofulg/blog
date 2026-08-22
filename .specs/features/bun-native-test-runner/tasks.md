@@ -282,12 +282,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] All 12 DOM-without-mocks files are selected deterministically
-- [ ] Accessible roles, text, interaction, cleanup, and required shims match reference outcomes
-- [ ] Real timers and DOM globals are restored after every file
-- [ ] Cohort passes twice consecutively with exact parity
-- [ ] No jsdom-only behavior is replaced by a weaker assertion
-- [ ] Test count: candidate DOM-simple count equals reference count exactly
+- [x] All 12 DOM-without-mocks files are selected deterministically
+- [x] Accessible roles, text, interaction, cleanup, and required shims match reference outcomes
+- [x] Real timers and DOM globals are restored after every file
+- [x] Cohort passes twice consecutively with exact parity
+- [x] No jsdom-only behavior is replaced by a weaker assertion
+- [x] Test count: candidate DOM-simple count equals reference count exactly
 
 **Tests**: unit
 **Gate**: cohort

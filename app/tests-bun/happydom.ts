@@ -6,7 +6,13 @@
 import { afterEach } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
-GlobalRegistrator.register();
+const nativeRequest = globalThis.Request;
+GlobalRegistrator.register({ url: "http://localhost" });
+
+// happy-dom filters Cookie headers like a browser. Server-request tests need
+// Bun's native Request while retaining happy-dom's DOM globals.
+if (nativeRequest) globalThis.Request = nativeRequest;
+process.env.SITE_URL ??= "http://localhost";
 
 afterEach(() => {
 	document.body.replaceChildren();
