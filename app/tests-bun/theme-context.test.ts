@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * Unit and integration tests for app/lib/theme.tsx.
  *

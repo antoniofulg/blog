@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * Tests for app/components/posts/tic-tac-toe.tsx — the interactive demo embedded
  * at the end of the Spec-Driven Development post.

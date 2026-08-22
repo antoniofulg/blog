@@ -253,10 +253,31 @@ All models use `type`, matching project conventions.
 | Migration topology | Temporary twin trees plus parity analyzer | Preserves reference and rollback without a custom test abstraction. |
 | Comparison topology | A/B/C rather than A/C | Separates runtime delta from runner delta. |
 | Benchmark implementation | New focused test-bench layer over existing low-level helpers | Reuses proven process measurement without destabilizing published version benchmarks. |
-| DOM environment | happy-dom only under Bun Test root | It is Bun's documented component-test path; jsdom remains with Vitest where needed. |
+| DOM environment | Explicit `./happydom` import per Bun Test DOM file; no global preload | It is Bun's documented component-test path. Per-file setup prevents happy-dom Request/Headers/Response globals from contaminating server and integration tests; jsdom remains with Vitest where needed. |
 | CI role | Compatibility shadow, not performance benchmark | Shared-runner timing is not trustworthy. |
 | E2E boundary | Playwright runner on Node, Blog server on Bun | Exercises production runtime while keeping supported runner semantics. |
 | Project decisions | Conform to AD-001 | Timestamped evidence is stored under `docs/benchmarks/bun-test/`. |
 
 No new project-level AD is required. These decisions are local to this
 migration and remain reversible.
+
+### DOM setup ownership
+
+`app/tests-bun/happydom.ts` is imported explicitly by each DOM-bearing Bun
+test. The current ownership set is:
+
+```text
+admin-analytics-route, admin-share, admin-sidebar,
+analytics-a11y, analytics-daily-trend-chart, analytics-device-split-donut,
+analytics-filter-chip, analytics-language-split-pie, analytics-range-selector,
+analytics-referrer-sources-bar, analytics-skeleton, analytics-summary-cards,
+analytics-top-posts-table, dialog, dom-setup, embeds, footer, header,
+lang-slug-post-enhancements, language-menu, locale, missing-twin-dialog,
+pilot-vitest, post-enhancements, post-share, social-link,
+spec-driven-embed-mount, static-page-about, theme-context, theme-toggle,
+tic-tac-toe
+```
+
+All other Bun Test files retain Bun's native fetch classes and do not import
+the DOM setup. `dom-setup.test.ts` proves both DOM globals and native
+`Request`/`Headers` behavior.

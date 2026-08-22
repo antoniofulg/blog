@@ -1,3 +1,4 @@
+import "./happydom";
 import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 import { cleanup, render } from "@testing-library/react";
 import React from "react";

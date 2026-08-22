@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * Unit tests for SummaryCards component.
  *

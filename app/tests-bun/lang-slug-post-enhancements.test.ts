@@ -1,3 +1,4 @@
+import "./happydom";
 import {
 	afterEach,
 	beforeEach,

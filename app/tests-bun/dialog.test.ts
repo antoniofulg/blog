@@ -1,3 +1,4 @@
+import "./happydom";
 import { afterEach, describe, expect, test } from "bun:test";
 import {
 	act,

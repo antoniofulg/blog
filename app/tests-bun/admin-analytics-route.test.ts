@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * Unit tests for the /admin/analytics route, server fn, and search-param schema.
  *

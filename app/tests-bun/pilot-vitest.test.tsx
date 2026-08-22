@@ -1,3 +1,4 @@
+import "./happydom";
 import { describe, expect, mock, test } from "bun:test";
 import { render, screen } from "@testing-library/react";
 import { Badge } from "../tests-bun/fixtures/Badge";

@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * Unit and integration tests for app/components/ui/theme-toggle.tsx
  *

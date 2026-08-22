@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * Tests for app/lib/mdx/embeds.tsx — the embed allowlist registry and the
  * server `Embed` placeholder supplied to the MDX components map.

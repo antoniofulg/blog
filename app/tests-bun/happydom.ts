@@ -1,17 +1,18 @@
-// Preload for `bun test`. Registers happy-dom globals before any test file is
-// evaluated, which is what gives the React component tests a DOM to render
-// into. Vitest gets the same thing from `environment: "jsdom"` in its config;
-// under Bun the environment is opt-in through this file.
+// Explicit setup for DOM tests. Server-side Bun tests must not import this file.
 
 import { afterEach } from "bun:test";
 import { GlobalRegistrator } from "@happy-dom/global-registrator";
 
 const nativeRequest = globalThis.Request;
+const nativeResponse = globalThis.Response;
+const nativeHeaders = globalThis.Headers;
 GlobalRegistrator.register({ url: "http://localhost" });
 
-// happy-dom filters Cookie headers like a browser. Server-request tests need
-// Bun's native Request while retaining happy-dom's DOM globals.
+// happy-dom filters Cookie headers like a browser. Keep server-request tests'
+// native fetch classes while retaining happy-dom's DOM globals.
 if (nativeRequest) globalThis.Request = nativeRequest;
+if (nativeResponse) globalThis.Response = nativeResponse;
+if (nativeHeaders) globalThis.Headers = nativeHeaders;
 process.env.SITE_URL ??= "http://localhost";
 
 afterEach(() => {

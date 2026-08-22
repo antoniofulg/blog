@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * task_07 (client side) — twin of `spec-driven-embed-render.test.ts`. That node
  * suite proves the real spec-driven post compiles the `<Embed name="tic-tac-toe" />`

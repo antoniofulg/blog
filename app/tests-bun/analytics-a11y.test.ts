@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * A11y and responsive unit tests for analytics dashboard widgets (task_19).
  *

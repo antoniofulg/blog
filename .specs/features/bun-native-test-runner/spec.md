@@ -40,7 +40,7 @@ reversible cutover.
 | Candidate environment | `bun:test` executed by Bun 1.4.0 | Production is pinned to Bun 1.4.0 and the migration targets its native runner. | y |
 | Control environment | Vitest executed explicitly by Bun 1.4.0 | This separates the runtime effect from the runner effect. | y |
 | Existing Bun twins | Preserve the current files and repair them in cohorts | Deleting the existing work would lose useful migration effort; validating everything at once is too risky. | y |
-| DOM implementation | Use happy-dom only in the Bun Test tree; retain jsdom for Vitest-only cases | Bun documents happy-dom for DOM testing, while equivalence must be proven per test. | y |
+| DOM implementation | Import happy-dom setup explicitly only in Bun Test files that use DOM APIs; retain jsdom for Vitest-only cases | A global preload replaces Bun's native Request/Headers/Response and breaks server-side cookie behavior. Per-file setup keeps DOM shims local to component tests. | y |
 | CI promotion threshold | Ten consecutive green Bun Test shadow runs with identical result inventory | Ten runs provide a concrete initial flakiness window without pretending to be statistical proof. | n |
 | Candidate CI failure | Report and retain artifacts without blocking the reference gate | Shadow mode must expose gaps without blocking unrelated development. | y |
 | Benchmark execution | Run A/B/C sequentially and interleave order on one machine | Parallel runs and separate shared runners confound CPU, memory, and PGLite results. | y |

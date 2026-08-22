@@ -1,3 +1,4 @@
+import "./happydom";
 import { afterEach, describe, expect, test } from "bun:test";
 
 afterEach(() => {
@@ -19,6 +20,14 @@ describe("DOM test setup", () => {
 		expect(media.matches).toBe(false);
 		expect(typeof media.addEventListener).toBe("function");
 		expect(typeof media.removeEventListener).toBe("function");
+	});
+
+	test("keeps Bun-native Request and Headers for server-compatible DOM tests", () => {
+		const request = new Request("http://localhost/test", {
+			headers: { Cookie: "session=test" },
+		});
+		expect(request.headers).toBeInstanceOf(Headers);
+		expect(request.headers.get("Cookie")).toBe("session=test");
 	});
 
 	test("clears DOM nodes after each test", () => {

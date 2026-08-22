@@ -1,3 +1,5 @@
+import "./happydom";
+
 /**
  * Unit / component tests for the admin posts list Share column (task 10).
  *

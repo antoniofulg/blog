@@ -10,6 +10,12 @@ Verifier.
 **Design**: `.specs/features/bun-native-test-runner/design.md`
 **Status**: In Progress
 
+### Validation fix: isolate DOM setup
+
+The candidate no longer uses a global happy-dom preload. Each DOM-bearing
+`app/tests-bun` file imports `./happydom`; server, database, watcher, and
+subprocess tests keep Bun-native `Request`, `Response`, and `Headers`.
+
 ---
 
 ## Test Coverage Matrix
