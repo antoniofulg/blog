@@ -474,12 +474,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] A, B, and C have exact runner/runtime/version contracts
-- [ ] Result types include provenance, outcomes, timing, RSS, load, validity, and reasons
-- [ ] Existing benchmark public types remain unchanged
-- [ ] Reference and candidate type/arm tests pass
-- [ ] Gate check passes
-- [ ] Test count: 6 new tests pass in each runner
+- [x] A, B, and C have exact runner/runtime/version contracts
+- [x] Result types include provenance, outcomes, timing, RSS, load, validity, and reasons
+- [x] Existing benchmark public types remain unchanged
+- [x] Reference and candidate type/arm tests pass
+- [x] Gate check passes
+- [x] Test count: 6 new tests pass in each runner
 
 **Tests**: unit
 **Gate**: quick
