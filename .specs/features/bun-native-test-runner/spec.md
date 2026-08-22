@@ -1,5 +1,10 @@
 # Bun Native Test Runner Migration Specification
 
+**Status**: Verified (independent validation iteration 2, 2026-08-22)
+
+Implementation is verified in shadow mode. Cutover remains a separate explicit
+decision after ten real consecutive green CI shadow runs with matching inventory.
+
 ## Problem Statement
 
 The Blog runs production on Bun 1.4, but its unit, component, and integration
