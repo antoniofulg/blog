@@ -174,13 +174,13 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Analyzer returns deterministic inventories sorted by relative path
-- [ ] Missing twin, missing fixture, lower test/assertion count, residual Vitest API, and omission marker each fail with a precise reason
-- [ ] Explicit Vitest-only disposition requires file, reason, evidence, and owner/follow-up
-- [ ] Invalid or stale dispositions fail
-- [ ] Reference and Bun twin unit tests cover every branch and edge case
-- [ ] Gate check passes
-- [ ] Test count: 12 new tests pass in each runner
+- [x] Analyzer returns deterministic inventories sorted by relative path
+- [x] Missing twin, missing fixture, lower test/assertion count, residual Vitest API, and omission marker each fail with a precise reason
+- [x] Explicit Vitest-only disposition requires file, reason, evidence, and owner/follow-up
+- [x] Invalid or stale dispositions fail
+- [x] Reference and Bun twin unit tests cover every branch and edge case
+- [x] Gate check passes
+- [x] Test count: 12 new tests pass in each runner
 
 **Tests**: unit
 **Gate**: quick
