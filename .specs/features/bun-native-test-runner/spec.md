@@ -184,18 +184,18 @@ reversible cutover.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| BTR-01 | P1: Parallel paths | Tasks | Implementing (T2) |
-| BTR-02 | P1: Runtime provenance | Tasks | Implementing (T1-T2) |
-| BTR-03 | P1: Cohort inventory | Tasks | Implementing (T3-T13) |
-| BTR-04 | P1: Behavioral parity | Tasks | Implementing (T3-T13) |
-| BTR-05 | P1: DOM and lifecycle | Tasks | Implementing (T5-T13) |
-| BTR-06 | P1: A/B/C harness | Tasks | In Tasks |
-| BTR-07 | P1: Measurement provenance | Tasks | In Tasks |
-| BTR-08 | P1: Valid comparison | Tasks | In Tasks |
-| BTR-09 | P2: CI shadow | Tasks | In Tasks |
-| BTR-10 | P2: Cutover state | Tasks | In Tasks |
-| BTR-11 | P2: Rollback and Vitest removal | Tasks | In Tasks |
-| BTR-12 | P2: Playwright boundary | Tasks | Implementing (T11) |
+| BTR-01 | P1: Parallel paths | Tasks | Verified (T2) |
+| BTR-02 | P1: Runtime provenance | Tasks | Verified (T1-T2) |
+| BTR-03 | P1: Cohort inventory | Tasks | Verified (T3-T13) |
+| BTR-04 | P1: Behavioral parity | Tasks | Verified (T3-T13) |
+| BTR-05 | P1: DOM and lifecycle | Tasks | Verified (T5-T13) |
+| BTR-06 | P1: A/B/C harness | Tasks | Verified (T14-T17) |
+| BTR-07 | P1: Measurement provenance | Tasks | Verified (T14-T17) |
+| BTR-08 | P1: Valid comparison | Tasks | Verified (T15-T17) |
+| BTR-09 | P2: CI shadow | Tasks | Verified (T18-T19) |
+| BTR-10 | P2: Cutover state | Tasks | Verified (T18-T20) |
+| BTR-11 | P2: Rollback and Vitest removal | Tasks | Verified (T20) |
+| BTR-12 | P2: Playwright boundary | Tasks | Verified (T11, T19-T20) |
 
 **Coverage:** 12 total, 12 mapped to tasks, 0 unmapped.
 

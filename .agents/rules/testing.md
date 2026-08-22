@@ -12,6 +12,19 @@
 Rule: if the test requires a real browser, it belongs in `tests/e2e/`. If it
 can run in Node with JSDOM or just file reads, it belongs in `app/tests/`.
 
+## Bun Test migration boundary
+
+During shadow mode, `test` and the blocking CI quality entry use the explicit
+Node 24/Vitest reference. `test:vitest:bun` is the Bun control arm and
+`test:bun` is the Bun Test candidate. Run `test:parity` before interpreting
+candidate results. Bun Test does not become the default until ten consecutive
+green, matching-inventory shadow results are recorded. Any failure, timeout,
+noise, or mismatch resets that suffix. Keep `test:vitest:node` as rollback and
+do not remove Vitest while the Vitest-only inventory is non-empty.
+
+Benchmark reports under `docs/benchmarks/bun-test/` are compatibility evidence;
+timing from shared CI runners is not a performance claim.
+
 ## Layout
 
 ```

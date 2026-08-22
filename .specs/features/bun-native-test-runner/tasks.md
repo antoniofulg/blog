@@ -638,14 +638,14 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Commands and runtime meanings match package scripts exactly
-- [ ] Report explains why A/B/C is required and when comparison is invalid
-- [ ] Shadow eligibility and reset rules are operationally reproducible
-- [ ] Cutover keeps explicit Vitest fallback; removal requires empty Vitest-only inventory
-- [ ] Playwright Node/Bun-server boundary and deferred browsers are explicit
-- [ ] Project testing/CI rules describe the transition without claiming completion early
-- [ ] Spec traceability is updated to Implementing/Verified as evidence permits
-- [ ] Build, documentation links, structural validators, and final E2E gates pass
+- [x] Commands and runtime meanings match package scripts exactly
+- [x] Report explains why A/B/C is required and when comparison is invalid
+- [x] Shadow eligibility and reset rules are operationally reproducible
+- [x] Cutover keeps explicit Vitest fallback; removal requires empty Vitest-only inventory
+- [x] Playwright Node/Bun-server boundary and deferred browsers are explicit
+- [x] Project testing/CI rules describe the transition without claiming completion early
+- [x] Spec traceability is updated to Implementing/Verified as evidence permits
+- [x] Build, documentation links, structural validators, and final E2E gates pass
 
 **Tests**: none
 **Gate**: build
