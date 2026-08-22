@@ -1,0 +1,610 @@
+{
+  "schemaVersion": 2,
+  "mode": "cold",
+  "timestamp": "2026-08-22T20:24:33.426Z",
+  "commit": "d4f09c6ede2d7d3681d6d07a109a6a8ffcae408d",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 16.66552734375,
+    "powerSource": "ac",
+    "startedAt": "2026-08-22T20:24:33.471Z"
+  },
+  "repetitions": 5,
+  "warmupsPerArm": 1,
+  "sessionsPerArm": 0,
+  "scenarios": [
+    {
+      "id": "en-post",
+      "path": "/e2e-public-fixture",
+      "expectedLang": "en",
+      "expectedHeading": "E2E Public Fixture",
+      "expectedText": "English body"
+    },
+    {
+      "id": "pt-br-post",
+      "path": "/pt-br/e2e-public-fixture",
+      "expectedLang": "pt-BR",
+      "expectedHeading": "E2E Fixture Público",
+      "expectedText": "português"
+    },
+    {
+      "id": "en-index",
+      "path": "/",
+      "expectedLang": "en",
+      "expectedCanonicalPath": "/"
+    },
+    {
+      "id": "pt-br-index",
+      "path": "/pt-br/",
+      "expectedLang": "pt-BR",
+      "expectedCanonicalPath": "/pt-br/"
+    },
+    {
+      "id": "not-found",
+      "path": "/this-slug-does-not-exist-e2e-99999",
+      "expectedHeading": "Post not found"
+    }
+  ],
+  "warmups": [
+    {
+      "arm": "playwright",
+      "repetition": 0,
+      "phase": "warmup",
+      "ms": 3535.314291,
+      "peakRssBytes": 136970240,
+      "exitCode": 0,
+      "loadAvg1": 16.66552734375,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "playwright",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.60.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 763.4698330000001,
+        "browserRssBytes": 811696128,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "webview",
+      "repetition": 0,
+      "phase": "warmup",
+      "ms": 3341.6879169999993,
+      "peakRssBytes": 1001406464,
+      "exitCode": 0,
+      "loadAvg1": 16.66552734375,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "webview",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.4.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 3024.777209,
+        "browserRssBytes": 882966528,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "samples": [
+    {
+      "arm": "playwright",
+      "repetition": 1,
+      "phase": "measured",
+      "ms": 1819.7637920000016,
+      "peakRssBytes": 136527872,
+      "exitCode": 0,
+      "loadAvg1": 16.05126953125,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "playwright",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.60.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 762.9090829999999,
+        "browserRssBytes": 739917824,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "webview",
+      "repetition": 1,
+      "phase": "measured",
+      "ms": 3207.166583,
+      "peakRssBytes": 1088159744,
+      "exitCode": 0,
+      "loadAvg1": 16.05126953125,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "webview",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.4.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 2871.6575409999996,
+        "browserRssBytes": 895139840,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "webview",
+      "repetition": 2,
+      "phase": "measured",
+      "ms": 3105.545083000001,
+      "peakRssBytes": 1059602432,
+      "exitCode": 0,
+      "loadAvg1": 17.0078125,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "webview",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.4.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 2767.5302500000003,
+        "browserRssBytes": 978599936,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "playwright",
+      "repetition": 2,
+      "phase": "measured",
+      "ms": 2464.8984579999997,
+      "peakRssBytes": 138444800,
+      "exitCode": 0,
+      "loadAvg1": 16.2861328125,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "playwright",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.60.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 913.4252079999999,
+        "browserRssBytes": 765034496,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "playwright",
+      "repetition": 3,
+      "phase": "measured",
+      "ms": 2327.1866670000018,
+      "peakRssBytes": 135987200,
+      "exitCode": 0,
+      "loadAvg1": 16.2861328125,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "playwright",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.60.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 963.066292,
+        "browserRssBytes": 777551872,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "webview",
+      "repetition": 3,
+      "phase": "measured",
+      "ms": 3108.939542,
+      "peakRssBytes": 1055784960,
+      "exitCode": 0,
+      "loadAvg1": 15.78271484375,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "webview",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.4.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 2611.0960830000004,
+        "browserRssBytes": 951746560,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "webview",
+      "repetition": 4,
+      "phase": "measured",
+      "ms": 2691.4067499999983,
+      "peakRssBytes": 1164836864,
+      "exitCode": 0,
+      "loadAvg1": 15.78271484375,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "webview",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.4.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 2437.956834,
+        "browserRssBytes": 1050476544,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "playwright",
+      "repetition": 4,
+      "phase": "measured",
+      "ms": 1380.8755409999976,
+      "peakRssBytes": 138739712,
+      "exitCode": 0,
+      "loadAvg1": 15.1591796875,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "playwright",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.60.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 595.2365000000001,
+        "browserRssBytes": 817905664,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "playwright",
+      "repetition": 5,
+      "phase": "measured",
+      "ms": 1598.0629579999986,
+      "peakRssBytes": 137887744,
+      "exitCode": 0,
+      "loadAvg1": 15.1591796875,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "playwright",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.60.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 772.858208,
+        "browserRssBytes": 760954880,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    },
+    {
+      "arm": "webview",
+      "repetition": 5,
+      "phase": "measured",
+      "ms": 3275.240540999999,
+      "peakRssBytes": 1029603328,
+      "exitCode": 0,
+      "loadAvg1": 15.1591796875,
+      "timedOut": false,
+      "outcome": {
+        "schemaVersion": 1,
+        "arm": "webview",
+        "runtime": "bun",
+        "runtimeVersion": "1.4.0",
+        "automationVersion": "1.4.0",
+        "browserExecutable": "/Users/antoniofulg/Library/Caches/ms-playwright/chromium-1223/chrome-mac-arm64/Google Chrome for Testing.app/Contents/MacOS/Google Chrome for Testing",
+        "viewport": {
+          "width": 1280,
+          "height": 720
+        },
+        "durationMs": 2908.925083,
+        "browserRssBytes": 933003264,
+        "scenarios": [
+          {
+            "id": "en-post",
+            "passed": true
+          },
+          {
+            "id": "pt-br-post",
+            "passed": true
+          },
+          {
+            "id": "en-index",
+            "passed": true
+          },
+          {
+            "id": "pt-br-index",
+            "passed": true
+          },
+          {
+            "id": "not-found",
+            "passed": true
+          }
+        ]
+      }
+    }
+  ],
+  "sessionTotals": [],
+  "validComparison": true,
+  "invalidReasons": []
+}
