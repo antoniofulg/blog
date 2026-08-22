@@ -1,5 +1,8 @@
 # Bun Native Test Runner Migration Design
 
+> Historical design note: the Playwright-on-Node boundary was superseded on
+> 2026-08-22 by `docs/plans/2026-08-22-bun-playwright-webview-design.md`.
+
 **Spec**: `.specs/features/bun-native-test-runner/spec.md`
 **Status**: Approved by standing execution authorization
 

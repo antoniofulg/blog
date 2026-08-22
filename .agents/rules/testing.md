@@ -6,11 +6,14 @@
 |---------|------|----------|
 | Unit logic, pure functions | Vitest | `app/tests/` |
 | Component rendering, route loading | Vitest | `app/tests/` |
-| Full browser flows, auth round-trips | Playwright | `tests/e2e/` |
+| Full browser flows, auth round-trips | Playwright through Bun | `tests/e2e/` |
+| Local experimental browser smoke | Bun.WebView | `app/lib/e2e-bench.ts`, `scripts/run-e2e-webview.ts` |
 | CI infra validation, file assertions | Vitest | `app/tests/` |
 
 Rule: if the test requires a real browser, it belongs in `tests/e2e/`. If it
 can run in Node with JSDOM or just file reads, it belongs in `app/tests/`.
+The Bun.WebView route is a local benchmark smoke harness, not a replacement for
+the Playwright coverage inventory.
 
 ## Bun Test migration boundary
 
@@ -36,6 +39,16 @@ tests/e2e/      — Playwright E2E specs
   *.setup.ts    — Playwright setup projects (auth.setup.ts)
   global-setup.ts, global-teardown.ts — PGLite harness lifecycle
 ```
+
+## E2E runtime routes
+
+- `bun run test:e2e` and `bun run test:e2e:bun` run the full Playwright suite
+  through Bun.
+- `bun run test:e2e:node` preserves the direct Node fallback.
+- `bun run test:e2e:webview` runs five local public-route smoke scenarios with
+  Bun.WebView and the Playwright Chromium binary.
+- `bun run bench:e2e:webview` compares those same scenarios under Bun-driven
+  Playwright and Bun.WebView. WebView remains local-only and experimental.
 
 ## Selector Hierarchy
 

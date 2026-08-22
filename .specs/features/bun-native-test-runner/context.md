@@ -42,6 +42,10 @@ Playwright as a separate E2E concern.
 
 ### Playwright
 
+> Historical baseline: superseded on 2026-08-22 by
+> `docs/plans/2026-08-22-bun-playwright-webview-design.md`. Current Playwright
+> runs through Bun, retains a Node fallback, and evaluates Bun.WebView locally.
+
 - Playwright remains the E2E runner on its supported Node runtime.
 - The application under E2E continues to run through Bun.
 - Forced-Bun Playwright is optional, non-blocking, and excluded from Bun Test cutover evidence.

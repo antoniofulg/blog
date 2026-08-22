@@ -56,4 +56,9 @@ describe("Bun Test CI shadow", () => {
 		expect(playwright).toContain('command: "bun run scripts/e2e-server.ts"');
 		expect(playwright).toContain("reuseExistingServer: false");
 	});
+
+	it("keeps Bun.WebView local-only", () => {
+		expect(ci).not.toContain("test:e2e:webview");
+		expect(ci).not.toContain("bench:e2e:webview");
+	});
 });

@@ -77,8 +77,9 @@ separate removal decision is recorded. This checkout remains before cutover:
 
 ## Playwright boundary
 
-Playwright remains the supported Node-runner for E2E. Its configured web server
-starts the Blog through `bun run scripts/e2e-server.ts`. The project keeps one
-worker, Chromium, fixtures, traces, reporters, retries, and screenshots. A
-forced-Bun Playwright runner experiment is not cutover evidence. Firefox and
-WebKit remain deferred.
+Playwright remains the primary E2E suite, now forced through Bun by
+`test:e2e:bun`. Its configured web server starts the Blog through
+`bun run scripts/e2e-server.ts`. The project keeps one worker, Chromium,
+fixtures, traces, reporters, retries, and screenshots. `test:e2e:node` remains
+the explicit fallback. The local-only Bun.WebView smoke suite and benchmark are
+not Bun Test cutover evidence. Firefox and WebKit remain deferred.

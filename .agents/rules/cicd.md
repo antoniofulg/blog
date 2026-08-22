@@ -44,14 +44,17 @@ compatibility evidence without replacing the reference gate.
 Cutover is manual after ten consecutive green, matching-inventory results. A
 failure, timeout, noisy run, or inventory mismatch resets the suffix. Rollback
 maps `test` to `test:vitest:node`; migrated tests and benchmark history remain.
-Playwright stays on its Node runner while its web server runs through Bun.
+The canonical Playwright command is forced through Bun while its web server also
+runs through Bun. `test:e2e:node` remains the explicit local fallback. The
+Bun.WebView smoke suite and benchmark are local-only and do not run in CI.
 
 ### E2E gate behavior
 
 The `e2e` matrix entry:
 - Restores Chromium from cache (key: `playwright-<os>-<bun.lock-hash>`); on the first run it installs and populates the cache, subsequent runs skip the download.
 - Runs `bun run build` (required by `playwright.config.ts` which starts a `vite preview` server).
-- Runs `bunx playwright test` via `make test-e2e`.
+- Runs `bunx --bun playwright test` via `make test-e2e` and the `test:e2e`
+  package alias.
 - Uploads `playwright-report/` and `test-results/` as a GHA artifact (7-day retention) regardless of pass/fail.
 
 ## Image publication and deployment workflow (cd.yml)
