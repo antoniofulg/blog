@@ -1,13 +1,5 @@
 import "./happydom";
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	jest,
-	mock,
-	test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, jest, test } from "bun:test";
 
 const { act, cleanup } = await import("@testing-library/react");
 
@@ -244,7 +236,7 @@ describe("mountEmbeds", () => {
 			detach = mountEmbeds(root, "en");
 		});
 
-		expect(warn).toHaveBeenCalledOnce();
+		expect(warn).toHaveBeenCalledTimes(1);
 		expect(warn.mock.calls[0]?.[0]).toContain("does-not-exist");
 		expect(node.querySelector(".embed-fallback")).not.toBeNull();
 
@@ -289,7 +281,7 @@ describe("mountEmbeds", () => {
 
 		// Still mounts (props fall back to {}); warning records the parse failure.
 		expect(node.textContent).toContain(TTT_HEADING_EN);
-		expect(warn).toHaveBeenCalledOnce();
+		expect(warn).toHaveBeenCalledTimes(1);
 
 		act(() => detach());
 	});

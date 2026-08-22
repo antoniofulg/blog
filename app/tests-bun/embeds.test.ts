@@ -23,7 +23,7 @@ afterEach(cleanup);
 
 describe("EMBEDS registry", () => {
 	test("resolves the tic-tac-toe key to the TicTacToe component", () => {
-		expect(EMBEDS["tic-tac-toe"]).toBe(TicTacToe);
+		expect(EMBEDS["tic-tac-toe"] as unknown).toBe(TicTacToe);
 	});
 
 	test("returns undefined for an unregistered key", () => {

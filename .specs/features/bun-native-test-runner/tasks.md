@@ -444,12 +444,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Benchmark, CI, Docker, Makefile, Biome, skill, and policy tests match reference outcomes
-- [ ] Full `bun test` passes twice consecutively without unhandled errors
-- [ ] Full parity reports 124 original twins plus the repaired pilot with zero unexplained differences
-- [ ] Vitest/Node 24, Vitest/Bun 1.4, typecheck, lint, build, and lint-tests pass
-- [ ] No test, assertion, fixture, mock behavior, or timeout failure was hidden
-- [ ] Test count: full candidate inventory equals reference inventory exactly
+- [x] Benchmark, CI, Docker, Makefile, Biome, skill, and policy tests match reference outcomes
+- [x] Full `bun test` passes twice consecutively without unhandled errors
+- [x] Full parity reports 124 original twins plus the repaired pilot with zero unexplained differences
+- [x] Vitest/Node 24, Vitest/Bun 1.4, typecheck, lint, build, and lint-tests pass
+- [x] No test, assertion, fixture, mock behavior, or timeout failure was hidden
+- [x] Test count: full candidate inventory equals reference inventory exactly
 
 **Tests**: integration
 **Gate**: build

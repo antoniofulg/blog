@@ -159,6 +159,11 @@ benchmark execution.
 - **Dependencies**: Bun 1.4.0, Node 24, frozen install.
 - **Reuses**: current setup, caching, secrets, and artifact retention patterns.
 
+The Vitest/Bun control arm excludes `app/tests/test-runtime.test.ts`, whose
+assertions intentionally describe the Node 24 reference process. Bun runtime
+provenance is verified by its preflight guard and the Bun Test twin instead of
+running those Node-specific assertions under Bun.
+
 ---
 
 ## Data Models

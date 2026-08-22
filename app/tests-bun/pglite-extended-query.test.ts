@@ -23,7 +23,12 @@ describe("PGLite proxy: lock-acquire timer cleanup", () => {
 		const port = Number(new URL(testDb.connectionString).port);
 		const unhandledErrors: Error[] = [];
 		const onUnhandled = (err: Error) => unhandledErrors.push(err);
-		process.on("unhandledRejection", onUnhandled);
+		(
+			process.on as unknown as (
+				event: string,
+				listener: (error: Error) => void,
+			) => void
+		)("unhandledRejection", onUnhandled);
 
 		try {
 			for (let i = 0; i < 100; i++) {
@@ -50,7 +55,12 @@ describe("PGLite proxy: lock-acquire timer cleanup", () => {
 
 			expect(unhandledErrors).toHaveLength(0);
 		} finally {
-			process.removeListener("unhandledRejection", onUnhandled);
+			(
+				process.removeListener as unknown as (
+					event: string,
+					listener: (error: Error) => void,
+				) => void
+			)("unhandledRejection", onUnhandled);
 		}
 	}, 15_000);
 });

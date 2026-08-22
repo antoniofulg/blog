@@ -2,6 +2,8 @@ import { describe, expect, test } from "bun:test";
 import { strings, uiStringsSchema } from "#/lib/i18n/strings";
 import { LOCALES } from "#/lib/locale";
 
+const localeRows = LOCALES.map((locale) => [locale] as [typeof locale]);
+
 describe("uiStringsSchema — postShare namespace", () => {
 	const chipKeys = [
 		"twitter",
@@ -11,6 +13,7 @@ describe("uiStringsSchema — postShare namespace", () => {
 		"email",
 		"copy",
 	] as const;
+	const chipRows = chipKeys.map((key) => [key] as [typeof key]);
 
 	describe("chips — exactly 6 keys in both locales", () => {
 		test("en: postShare.chips has exactly 6 keys (sorted)", () => {
@@ -38,7 +41,7 @@ describe("uiStringsSchema — postShare namespace", () => {
 		});
 
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: all 6 chip keys are non-empty strings", (locale) => {
 			for (const key of chipKeys) {
 				expect(
@@ -74,11 +77,11 @@ describe("uiStringsSchema — postShare namespace", () => {
 	});
 
 	describe("AC-3 — all 6 chip keys per locale", () => {
-		test.each(chipKeys)("en: chips.%s exists", (key) => {
+		test.each(chipRows)("en: chips.%s exists", (key) => {
 			expect(strings.en.postShare.chips[key]).toBeTruthy();
 		});
 
-		test.each(chipKeys)("pt-br: chips.%s exists", (key) => {
+		test.each(chipRows)("pt-br: chips.%s exists", (key) => {
 			expect(strings["pt-br"].postShare.chips[key]).toBeTruthy();
 		});
 	});
@@ -159,7 +162,7 @@ describe("uiStringsSchema — postShare namespace", () => {
 
 	describe("AC-4 — module-load Zod parse succeeds", () => {
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: uiStringsSchema.parse(strings[locale]) does not throw", (locale) => {
 			expect(() => uiStringsSchema.parse(strings[locale])).not.toThrow();
 		});
@@ -169,14 +172,14 @@ describe("uiStringsSchema — postShare namespace", () => {
 describe("uiStringsSchema — admin namespace", () => {
 	describe("sidebar keys", () => {
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: sidebar.posts is non-empty string", (locale) => {
 			expect(typeof strings[locale].admin.sidebar.posts).toBe("string");
 			expect(strings[locale].admin.sidebar.posts.length).toBeGreaterThan(0);
 		});
 
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: sidebar.analytics is non-empty string", (locale) => {
 			expect(typeof strings[locale].admin.sidebar.analytics).toBe("string");
 			expect(strings[locale].admin.sidebar.analytics.length).toBeGreaterThan(0);
@@ -184,7 +187,9 @@ describe("uiStringsSchema — admin namespace", () => {
 	});
 
 	describe("analytics.pageTitle", () => {
-		test.each(LOCALES)("locale %s: pageTitle is non-empty string", (locale) => {
+		test.each(
+			localeRows,
+		)("locale %s: pageTitle is non-empty string", (locale) => {
 			expect(typeof strings[locale].admin.analytics.pageTitle).toBe("string");
 			expect(strings[locale].admin.analytics.pageTitle.length).toBeGreaterThan(
 				0,
@@ -201,7 +206,7 @@ describe("uiStringsSchema — admin namespace", () => {
 		] as const;
 
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: all summary keys are non-empty strings", (locale) => {
 			for (const key of summaryKeys) {
 				expect(
@@ -225,7 +230,7 @@ describe("uiStringsSchema — admin namespace", () => {
 		] as const;
 
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: all widget labels are non-empty strings", (locale) => {
 			for (const key of widgetKeys) {
 				expect(
@@ -244,7 +249,7 @@ describe("uiStringsSchema — admin namespace", () => {
 		const rangeKeys = ["7d", "30d", "90d", "mtd", "ytd", "all"] as const;
 
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: all 6 range-preset keys are non-empty strings", (locale) => {
 			for (const key of rangeKeys) {
 				expect(
@@ -261,7 +266,7 @@ describe("uiStringsSchema — admin namespace", () => {
 
 	describe("analytics.filter keys", () => {
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: filter.activeChip is non-empty string", (locale) => {
 			expect(typeof strings[locale].admin.analytics.filter.activeChip).toBe(
 				"string",
@@ -272,7 +277,7 @@ describe("uiStringsSchema — admin namespace", () => {
 		});
 
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: filter.clearAll is non-empty string", (locale) => {
 			expect(typeof strings[locale].admin.analytics.filter.clearAll).toBe(
 				"string",
@@ -285,7 +290,7 @@ describe("uiStringsSchema — admin namespace", () => {
 
 	describe("analytics.empty keys", () => {
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: empty.awaitingData is non-empty string", (locale) => {
 			expect(typeof strings[locale].admin.analytics.empty.awaitingData).toBe(
 				"string",
@@ -296,7 +301,7 @@ describe("uiStringsSchema — admin namespace", () => {
 		});
 
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: empty.awaitingDataDescription is non-empty string", (locale) => {
 			expect(
 				typeof strings[locale].admin.analytics.empty.awaitingDataDescription,
@@ -309,7 +314,7 @@ describe("uiStringsSchema — admin namespace", () => {
 
 	describe("boot-time Zod parse (AC-2)", () => {
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: uiStringsSchema.parse(strings[locale]) does not throw", (locale) => {
 			expect(() => uiStringsSchema.parse(strings[locale])).not.toThrow();
 		});
@@ -348,7 +353,9 @@ describe("uiStringsSchema — admin namespace", () => {
 	});
 
 	describe("admin.dashboard — AC-1: title non-empty in both locales", () => {
-		test.each(LOCALES)("locale %s: dashboard.title is non-empty", (locale) => {
+		test.each(
+			localeRows,
+		)("locale %s: dashboard.title is non-empty", (locale) => {
 			expect(strings[locale].admin.dashboard.title.length).toBeGreaterThan(0);
 		});
 	});
@@ -376,12 +383,12 @@ describe("uiStringsSchema — admin namespace", () => {
 				strings["pt-br"].admin.dashboard.filter.label.length,
 			).toBeGreaterThan(0);
 		});
-		test.each(LOCALES)("locale %s: filter.en is non-empty", (locale) => {
+		test.each(localeRows)("locale %s: filter.en is non-empty", (locale) => {
 			expect(strings[locale].admin.dashboard.filter.en.length).toBeGreaterThan(
 				0,
 			);
 		});
-		test.each(LOCALES)("locale %s: filter.ptBr is non-empty", (locale) => {
+		test.each(localeRows)("locale %s: filter.ptBr is non-empty", (locale) => {
 			expect(
 				strings[locale].admin.dashboard.filter.ptBr.length,
 			).toBeGreaterThan(0);
@@ -428,7 +435,7 @@ describe("uiStringsSchema — admin namespace", () => {
 
 	describe("admin.dashboard — AC-5: module-load parse succeeds", () => {
 		test.each(
-			LOCALES,
+			localeRows,
 		)("locale %s: uiStringsSchema.parse(strings[locale]) does not throw", (locale) => {
 			expect(() => uiStringsSchema.parse(strings[locale])).not.toThrow();
 		});

@@ -24,7 +24,7 @@ describe("install-cold clears the store the measured version actually uses", () 
 				{ PATH: "/usr/bin" },
 				CWD,
 			).BUN_INSTALL_CACHE_DIR;
-			expect(cleared).toBe(used);
+			expect(cleared).toBe(used as string);
 			expect(cleared).toBe(toolchainFor(version, CWD).cacheDir);
 		}
 	});

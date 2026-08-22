@@ -16,15 +16,7 @@
  *   AC-5: non-existent postId → zeros/empty, no exception
  */
 
-import {
-	afterAll,
-	beforeAll,
-	describe,
-	expect,
-	jest,
-	mock,
-	test,
-} from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { analyticsEvents, posts } from "#/db/schema";
 import type { TestDb } from "../../tests/e2e/db";
 import { createTestDb } from "../../tests/e2e/db";

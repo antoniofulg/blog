@@ -34,8 +34,16 @@ import {
 	useTheme,
 } from "#/lib/theme";
 
-window.happyDOM.settings.disableCSSFileLoading = true;
-window.happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
+const happyDomWindow = window as unknown as Window & {
+	happyDOM: {
+		settings: {
+			disableCSSFileLoading: boolean;
+			handleDisabledFileLoadingAsSuccess: boolean;
+		};
+	};
+};
+happyDomWindow.happyDOM.settings.disableCSSFileLoading = true;
+happyDomWindow.happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 // Must be declared before any imports so ()() runs first.
@@ -153,7 +161,7 @@ describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
 			result.current.setTheme("cs16", "keyboard");
 		});
 
-		expect(mocks.recordThemeEvent).toHaveBeenCalledOnce();
+		expect(mocks.recordThemeEvent).toHaveBeenCalledTimes(1);
 		expect(mocks.recordThemeEvent).toHaveBeenCalledWith({
 			data: { theme: "cs16", source: "keyboard", lang: "en" },
 		});

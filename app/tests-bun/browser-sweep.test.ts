@@ -1,4 +1,4 @@
-import { describe, expect, jest, mock, test } from "bun:test";
+import { describe, expect, jest, test } from "bun:test";
 import type { Page } from "@playwright/test";
 import {
 	classifyNetworkStatus,

@@ -14,7 +14,7 @@ import "./happydom";
  * Recharts mocked to avoid ResizeObserver / SVG failures in jsdom.
  */
 
-import { afterEach, describe, expect, jest, mock, test } from "bun:test";
+import { afterEach, describe, expect, mock, test } from "bun:test";
 
 const { cleanup, render, screen, within } = await import(
 	"@testing-library/react"

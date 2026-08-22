@@ -308,7 +308,7 @@ describe("getAnalyticsDashboardFn", () => {
 		const input = { range: "30d" as const };
 		const result = await getAnalyticsDashboardFn(input);
 		expect(mocks.getDashboardSpy).toHaveBeenCalledWith(input);
-		expect(result).toEqual(mocks.state.dashboardResult);
+		expect(result as unknown).toEqual(mocks.state.dashboardResult);
 	});
 
 	test("passes postId filter through to getAnalyticsDashboard", async () => {
@@ -319,7 +319,7 @@ describe("getAnalyticsDashboardFn", () => {
 
 	test("returns the shape matching AnalyticsDashboardData (mocked DB)", async () => {
 		const data = await getAnalyticsDashboardFn({ range: "30d" });
-		expect(data).toHaveProperty("summary");
+		expect(data as Record<string, unknown>).toHaveProperty("summary");
 		expect(data).toHaveProperty("dailyTrend");
 		expect(data).toHaveProperty("referrerByDay");
 		expect(data).toHaveProperty("topPosts");

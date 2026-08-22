@@ -12,15 +12,7 @@
  *   AC-2: Googlebot UA → view_count = 0 and zero event rows inserted.
  */
 
-import {
-	afterAll,
-	beforeAll,
-	describe,
-	expect,
-	jest,
-	mock,
-	test,
-} from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { analyticsEvents, posts } from "#/db/schema";
 import type { TestDb } from "../../tests/e2e/db";

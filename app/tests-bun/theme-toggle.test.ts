@@ -79,8 +79,16 @@ import * as realTheme from "#/lib/theme";
 
 const realUseTheme = realTheme.useTheme;
 
-window.happyDOM.settings.disableCSSFileLoading = true;
-window.happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
+const happyDomWindow = window as unknown as Window & {
+	happyDOM: {
+		settings: {
+			disableCSSFileLoading: boolean;
+			handleDisabledFileLoadingAsSuccess: boolean;
+		};
+	};
+};
+happyDomWindow.happyDOM.settings.disableCSSFileLoading = true;
+happyDomWindow.happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
 
 mock.module("#/lib/theme", () => ({
 	...realTheme,
@@ -185,7 +193,7 @@ describe("unit: handleKeyDown — ArrowDown opens the popover", () => {
 		const preventSpy = jest.spyOn(event, "preventDefault");
 		fireEvent(btn, event);
 
-		expect(preventSpy).toHaveBeenCalledOnce();
+		expect(preventSpy).toHaveBeenCalledTimes(1);
 	});
 
 	test("Space does NOT call preventDefault — uses native button activation", () => {
@@ -430,7 +438,7 @@ describe("unit: AC-6 — short-click calls toggle(), popover stays closed", () =
 		fireEvent.pointerUp(btn);
 		fireEvent.click(btn);
 
-		expect(mocks.mockToggle).toHaveBeenCalledOnce();
+		expect(mocks.mockToggle).toHaveBeenCalledTimes(1);
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
 	});
 

@@ -23,6 +23,7 @@ const siteModelMocks = (() => ({
 const fetchMock = jest
 	.fn<typeof fetch>()
 	.mockResolvedValue(new Response("ok", { status: 200 }));
+const nativeFetch = globalThis.fetch;
 
 const probeMocks = (() => ({
 	sweepRoute: jest.fn().mockResolvedValue([]),
@@ -53,8 +54,6 @@ mock.module("#/lib/site-model.server", () => ({
 	getRouteInventory: siteModelMocks.getRouteInventory,
 	resolveRoutePath: siteModelMocks.resolveRoutePath,
 }));
-
-jest.stubGlobal("fetch", fetchMock);
 
 mock.module("#/lib/app-audit/browser-sweep.server", () => ({
 	sweepRoute: probeMocks.sweepRoute,
@@ -112,6 +111,7 @@ const { runAppAudit } = await import("#/lib/app-audit/checks.server");
 describe("runAppAudit orchestrator", () => {
 	beforeEach(() => {
 		jest.clearAllMocks();
+		globalThis.fetch = fetchMock as unknown as typeof fetch;
 		fetchMock.mockResolvedValue(new Response("ok", { status: 200 }));
 		siteModelMocks.getRouteInventory.mockResolvedValue(FIXTURE_ROUTES);
 		siteModelMocks.resolveRoutePath.mockImplementation(
@@ -136,6 +136,7 @@ describe("runAppAudit orchestrator", () => {
 
 	afterEach(() => {
 		jest.clearAllMocks();
+		globalThis.fetch = nativeFetch;
 	});
 
 	test("2 routes × 2 locales × 2 auth-states → sweepRoute called 8 times", async () => {

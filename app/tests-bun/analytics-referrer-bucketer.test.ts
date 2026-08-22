@@ -1,0 +1,293 @@
+import { describe, expect, test } from "bun:test";
+import type { ReferrerSource } from "#/lib/analytics/referrer-bucketer";
+import {
+	bucketEvent,
+	bucketReferrer,
+	bucketUtmSource,
+} from "#/lib/analytics/referrer-bucketer";
+
+// AC-6: importing the module must not trigger any DB connection.
+// Verified implicitly: referrer-bucketer.ts has no DB imports; this import
+// succeeds in a pure Node environment with no database configured.
+
+describe("bucketReferrer", () => {
+	// ── V1 bucket table ──────────────────────────────────────────────────────────
+	// Each row: [raw Referer header, expected ReferrerSource]
+
+	const cases: Array<[string, ReferrerSource]> = [
+		// LinkedIn
+		["https://www.linkedin.com/feed/", "linkedin"],
+		["https://linkedin.com/in/username", "linkedin"],
+		["https://lnkd.in/abc123", "linkedin"],
+		// HackerNews
+		["https://news.ycombinator.com/item?id=42", "hackernews"],
+		// Reddit
+		["https://reddit.com/r/webdev/comments/abc/post", "reddit"],
+		["https://www.reddit.com/r/programming", "reddit"],
+		// Google (bare domain + country variants)
+		["https://google.com/search?q=tanstack", "google"],
+		["https://google.co.uk/search?q=bun", "google"],
+		["https://google.com.br/search?q=react", "google"],
+		["https://www.google.com/search?q=drizzle", "google"],
+		// GitHub
+		["https://github.com/tanstack/router", "github"],
+		["https://github.com/", "github"],
+		// Twitter / X
+		["https://twitter.com/username/status/123", "twitter"],
+		["https://x.com/username/status/123", "twitter"],
+		["https://t.co/abc123", "twitter"],
+		// Bluesky
+		["https://bsky.app/profile/username.bsky.social", "bluesky"],
+		// dev.to
+		["https://dev.to/author/post-title", "dev.to"],
+		// Medium
+		["https://medium.com/@author/post-title", "medium"],
+		// Mastodon
+		["https://mastodon.social/@username", "mastodon"],
+	];
+
+	test.each(cases)("maps %s → %s", (referer, expected) => {
+		expect(bucketReferrer(referer)).toBe(expected);
+	});
+
+	// ── Direct (empty / null / undefined) ───────────────────────────────────────
+
+	test("returns direct for null", () => {
+		expect(bucketReferrer(null)).toBe("direct");
+	});
+
+	test("returns direct for undefined", () => {
+		expect(bucketReferrer(undefined)).toBe("direct");
+	});
+
+	test("returns direct for empty string", () => {
+		expect(bucketReferrer("")).toBe("direct");
+	});
+
+	// ── Malformed URL → other ────────────────────────────────────────────────────
+
+	test("returns other for plain text without throwing", () => {
+		expect(() => bucketReferrer("not a url")).not.toThrow();
+		expect(bucketReferrer("not a url")).toBe("other");
+	});
+
+	test("returns other for an unknown domain", () => {
+		expect(bucketReferrer("https://unknown-site.example.com/page")).toBe(
+			"other",
+		);
+	});
+
+	test("returns other for a protocol-relative string", () => {
+		expect(bucketReferrer("//example.com/page")).toBe("other");
+	});
+
+	// ── Google TLD tightening (typosquatting guard) ──────────────────────────────
+
+	test("maps google.com to google (canonical TLD)", () => {
+		expect(bucketReferrer("https://google.com/search?q=test")).toBe("google");
+	});
+
+	test("maps google.com.br to google (multi-part country TLD)", () => {
+		expect(bucketReferrer("https://google.com.br/search?q=test")).toBe(
+			"google",
+		);
+	});
+
+	test("maps www.google.com to google (subdomain variant)", () => {
+		expect(bucketReferrer("https://www.google.com/search?q=test")).toBe(
+			"google",
+		);
+	});
+
+	test("returns other for google.evil.com (typosquatting domain starting with google.)", () => {
+		expect(bucketReferrer("https://google.evil.com/page")).toBe("other");
+	});
+
+	test("returns other for google.example.org (unknown TLD after google.)", () => {
+		expect(bucketReferrer("https://google.example.org/page")).toBe("other");
+	});
+
+	test("returns other for google.fake (single-word unknown TLD)", () => {
+		expect(bucketReferrer("https://google.fake/search")).toBe("other");
+	});
+});
+
+// ── ADR-001: simplified single-arg API ──────────────────────────────────────
+// The legacy UTM short-circuit (hasShareUTM / "share" bucket) was removed.
+// These tests verify the simplified signature and hostname-only attribution.
+
+describe("bucketReferrer — simplified API (ADR-001)", () => {
+	// null / undefined / empty → "direct"
+	test("returns 'direct' for null", () => {
+		expect(bucketReferrer(null)).toBe("direct");
+	});
+
+	test("returns 'direct' for empty string", () => {
+		expect(bucketReferrer("")).toBe("direct");
+	});
+
+	// Malformed URL → "other" via try/catch
+	test("returns 'other' for a string without a protocol (malformed URL)", () => {
+		expect(() => bucketReferrer("malformed-url-no-protocol")).not.toThrow();
+		expect(bucketReferrer("malformed-url-no-protocol")).toBe("other");
+	});
+
+	// Named hostname buckets
+	test("returns 'linkedin' for www.linkedin.com", () => {
+		expect(bucketReferrer("https://www.linkedin.com/in/foo")).toBe("linkedin");
+	});
+
+	test("returns 'twitter' for x.com", () => {
+		expect(bucketReferrer("https://x.com/foo")).toBe("twitter");
+	});
+
+	test("returns 'hackernews' for news.ycombinator.com", () => {
+		expect(bucketReferrer("https://news.ycombinator.com/item?id=1")).toBe(
+			"hackernews",
+		);
+	});
+
+	test("returns 'google' for www.google.com.br", () => {
+		expect(bucketReferrer("https://www.google.com.br/search")).toBe("google");
+	});
+
+	test("returns 'other' for an unknown host", () => {
+		expect(bucketReferrer("https://unknown-host.example/path")).toBe("other");
+	});
+
+	// Compile-time check: "share" must NOT be a valid ReferrerSource.
+	// If the type still contains "share" this @ts-expect-error line will itself
+	// be a TS error (the expected error no longer occurs), failing tsc --noEmit.
+	test("type assertion: 'share' is not assignable to ReferrerSource", () => {
+		// @ts-expect-error "share" was removed from ReferrerSource (ADR-001)
+		const _source: ReferrerSource = "share";
+		void _source; // suppress unused-var lint
+	});
+});
+
+// ── bucketUtmSource ─────────────────────────────────────────────────────────
+
+describe("bucketUtmSource", () => {
+	test("returns null for null / undefined / empty", () => {
+		expect(bucketUtmSource(null)).toBeNull();
+		expect(bucketUtmSource(undefined)).toBeNull();
+		expect(bucketUtmSource("")).toBeNull();
+		expect(bucketUtmSource("   ")).toBeNull();
+	});
+
+	test("maps known utm_source values to the matching bucket", () => {
+		expect(bucketUtmSource("whatsapp")).toBe("whatsapp");
+		expect(bucketUtmSource("email")).toBe("email");
+		expect(bucketUtmSource("linkedin")).toBe("linkedin");
+		expect(bucketUtmSource("twitter")).toBe("twitter");
+		expect(bucketUtmSource("reddit")).toBe("reddit");
+	});
+
+	test("aliases utm_source=x to the twitter bucket", () => {
+		// The PostShare component currently emits utm_source=twitter, but the
+		// "x" alias future-proofs the bucket for the rebrand.
+		expect(bucketUtmSource("x")).toBe("twitter");
+	});
+
+	test("normalises case and surrounding whitespace", () => {
+		expect(bucketUtmSource("WhatsApp")).toBe("whatsapp");
+		expect(bucketUtmSource("  LinkedIn  ")).toBe("linkedin");
+	});
+
+	test("returns null for unknown utm_source values (anti-spoofing)", () => {
+		expect(bucketUtmSource("evil-source")).toBeNull();
+		expect(bucketUtmSource("not-a-platform")).toBeNull();
+	});
+});
+
+// ── bucketEvent (composite) ─────────────────────────────────────────────────
+
+describe("bucketEvent — utm_source takes precedence over Referer", () => {
+	test("prefers a known utm_source over a known Referer host", () => {
+		// Share-intent click: utm_source survives the redirect, Referer is the
+		// intermediate hop (or empty). The utm wins.
+		const result = bucketEvent({
+			utmSource: "whatsapp",
+			referer: "https://news.ycombinator.com/item?id=1",
+		});
+		expect(result).toBe("whatsapp");
+	});
+
+	test("falls back to Referer when utm_source is missing", () => {
+		expect(bucketEvent({ referer: "https://www.linkedin.com/" })).toBe(
+			"linkedin",
+		);
+	});
+
+	test("falls back to Referer when utm_source is an unknown value", () => {
+		expect(
+			bucketEvent({
+				utmSource: "not-a-platform",
+				referer: "https://github.com/foo",
+			}),
+		).toBe("github");
+	});
+
+	test("returns 'direct' when both signals are missing", () => {
+		expect(bucketEvent({ utmSource: null, referer: null })).toBe("direct");
+		expect(bucketEvent({})).toBe("direct");
+	});
+
+	test("aliases utm_source=x to the twitter bucket end-to-end", () => {
+		expect(bucketEvent({ utmSource: "x", referer: null })).toBe("twitter");
+	});
+});
+
+describe("bucketEvent — self-host referer is internal → direct", () => {
+	test("buckets a same-host referer as direct (internal post-to-post hop)", () => {
+		const result = bucketEvent({
+			referer: "https://antoniofulg.tech/react-suspense-typescript",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("direct");
+	});
+
+	test("ignores the port on the Host header when comparing", () => {
+		const result = bucketEvent({
+			referer: "http://localhost/some-post",
+			selfHost: "localhost:4173",
+		});
+		expect(result).toBe("direct");
+	});
+
+	test("treats a subdomain of the self-host as internal", () => {
+		const result = bucketEvent({
+			referer: "https://www.antoniofulg.tech/post",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("direct");
+	});
+
+	test("still buckets a known external host normally when selfHost is set", () => {
+		const result = bucketEvent({
+			referer: "https://www.linkedin.com/feed/",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("linkedin");
+	});
+
+	test("utm_source still wins over an internal referer", () => {
+		// A reader who arrived from WhatsApp and then navigated internally to a
+		// post that still carries ?utm_source=whatsapp is attributed to
+		// whatsapp, not direct.
+		const result = bucketEvent({
+			utmSource: "whatsapp",
+			referer: "https://antoniofulg.tech/post-a",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("whatsapp");
+	});
+
+	test("falls back to 'other' for an external unknown host (no selfHost match)", () => {
+		const result = bucketEvent({
+			referer: "https://some-random-blog.example/article",
+			selfHost: "antoniofulg.tech",
+		});
+		expect(result).toBe("other");
+	});
+});

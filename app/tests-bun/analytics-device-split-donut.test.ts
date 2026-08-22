@@ -12,15 +12,7 @@ import "./happydom";
  * to match the project's vitest include pattern (`app/tests/**\/*.test.ts`).
  */
 
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	jest,
-	mock,
-	test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 const { cleanup, render, screen } = await import("@testing-library/react");
 

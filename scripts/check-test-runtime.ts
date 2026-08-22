@@ -72,6 +72,11 @@ function detectRunner(runtime: RuntimeKind, expected: RuntimeExpectation): Runne
 		return { runner: "vitest", runnerVersion: installedVitestVersion() };
 	}
 	if (runtime === "bun") {
+		// The preflight command runs before Vitest sets VITEST. Its explicit
+		// expectation is the only runner signal available at that point.
+		if (expected.runner === "vitest") {
+			return { runner: "vitest", runnerVersion: installedVitestVersion() };
+		}
 		return { runner: "bun:test", runnerVersion: bunVersion() ?? "unknown" };
 	}
 

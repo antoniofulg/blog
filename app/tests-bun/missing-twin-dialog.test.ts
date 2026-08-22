@@ -1,5 +1,5 @@
 import "./happydom";
-import { afterEach, describe, expect, jest, mock, test } from "bun:test";
+import { afterEach, describe, expect, jest, test } from "bun:test";
 
 const { act, cleanup, fireEvent, render, screen } = await import(
 	"@testing-library/react"

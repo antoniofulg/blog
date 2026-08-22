@@ -69,7 +69,7 @@ const { PostView } = await import("#/routes/{-$locale}/$slug");
 
 import type { PostLoaderResult } from "#/routes/{-$locale}/$slug.server";
 
-const initSpy = initPostEnhancements;
+const initSpy = initPostEnhancements as unknown as ReturnType<typeof jest.fn>;
 
 // TicTacToe headings per locale — proof the embed island mounted with its locale.
 const TTT_HEADING_EN = "Try it: tic-tac-toe";

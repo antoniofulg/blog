@@ -7,15 +7,7 @@ import "./happydom";
  * zero-previous-period guard, and ArrowUp/ArrowDown icon presence.
  */
 
-import {
-	afterEach,
-	beforeEach,
-	describe,
-	expect,
-	jest,
-	mock,
-	test,
-} from "bun:test";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
 
 const { cleanup, render, screen } = await import("@testing-library/react");
 

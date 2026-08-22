@@ -77,6 +77,13 @@ import { posts } from "#/db/schema";
 import { findFirstCodeBlock } from "#/lib/mdx/code-blocks.server";
 import { generateOgImage } from "#/lib/og/generate";
 
+const findFirstCodeBlockMock = findFirstCodeBlock as unknown as ReturnType<
+	typeof jest.fn
+>;
+const generateOgImageMock = generateOgImage as unknown as ReturnType<
+	typeof jest.fn
+>;
+
 const FIXTURES = join(process.cwd(), "app/tests/fixtures");
 
 function resetMocks() {
@@ -442,16 +449,16 @@ describe("unit: upsertPost — OG integration", () => {
 	beforeEach(resetMocks);
 
 	test("calls generateOgImage with correct locale/slug/title after frontmatter parse", async () => {
-		findFirstCodeBlock.mockReturnValue({
+		findFirstCodeBlockMock.mockReturnValue({
 			lang: "typescript",
 			code: "const x = 1;",
 		});
-		generateOgImage.mockResolvedValue("/og/en/hello-world.png");
+		generateOgImageMock.mockResolvedValue("/og/en/hello-world.png");
 
 		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
 
-		expect(generateOgImage).toHaveBeenCalledOnce();
-		const callArg = generateOgImage.mock.calls[0]?.[0];
+		expect(generateOgImageMock).toHaveBeenCalledTimes(1);
+		const callArg = generateOgImageMock.mock.calls[0]?.[0];
 		expect(callArg?.locale).toBe("en");
 		expect(callArg?.slug).toBe("hello-world");
 		expect(callArg?.title).toBe("Hello World");
@@ -462,7 +469,7 @@ describe("unit: upsertPost — OG integration", () => {
 	});
 
 	test("skips generateOgImage when walker returns null (no code block)", async () => {
-		findFirstCodeBlock.mockReturnValue(null);
+		findFirstCodeBlockMock.mockReturnValue(null);
 
 		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
 
@@ -473,12 +480,12 @@ describe("unit: upsertPost — OG integration", () => {
 	});
 
 	test("AC-5: generateOgImage returning null does not interrupt DB upsert", async () => {
-		findFirstCodeBlock.mockReturnValue({
+		findFirstCodeBlockMock.mockReturnValue({
 			lang: "ts",
 			code: "const x = 1;",
 		});
 		// Simulate OG generation returning null (internal failure)
-		generateOgImage.mockResolvedValue(null);
+		generateOgImageMock.mockResolvedValue(null);
 
 		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
 
@@ -488,11 +495,11 @@ describe("unit: upsertPost — OG integration", () => {
 	});
 
 	test("AC-5b: generateOgImage throwing does not interrupt DB upsert", async () => {
-		findFirstCodeBlock.mockReturnValue({
+		findFirstCodeBlockMock.mockReturnValue({
 			lang: "ts",
 			code: "const x = 1;",
 		});
-		generateOgImage.mockRejectedValue(new Error("simulated OG crash"));
+		generateOgImageMock.mockRejectedValue(new Error("simulated OG crash"));
 
 		await upsertPost(join(FIXTURES, "en", "hello.mdx"));
 
@@ -502,13 +509,13 @@ describe("unit: upsertPost — OG integration", () => {
 	});
 
 	test("calls findFirstCodeBlock with the MDX source string", async () => {
-		findFirstCodeBlock.mockReturnValue(null);
-		generateOgImage.mockResolvedValue(null);
+		findFirstCodeBlockMock.mockReturnValue(null);
+		generateOgImageMock.mockResolvedValue(null);
 
 		await upsertPost(join(FIXTURES, "en", "with-code.mdx"));
 
-		expect(findFirstCodeBlock).toHaveBeenCalledOnce();
-		const sourceArg = findFirstCodeBlock.mock.calls[0]?.[0];
+		expect(findFirstCodeBlockMock).toHaveBeenCalledTimes(1);
+		const sourceArg = findFirstCodeBlockMock.mock.calls[0]?.[0];
 		expect(typeof sourceArg).toBe("string");
 		expect(sourceArg).toContain("typescript");
 	});

@@ -40,6 +40,7 @@ describe("A/B/C test scripts", () => {
 		expect(scripts["test:bun"]).toContain(
 			"bun test --timeout 60000 app/tests-bun",
 		);
+		expect(scripts["test:bun"]).toContain("--isolate");
 	});
 
 	test("pins Bun 1.4 provenance for the candidate", () => {

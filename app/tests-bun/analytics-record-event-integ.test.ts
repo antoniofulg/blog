@@ -15,15 +15,7 @@
  *   AC-5: Inserted row has country_code = NULL, is_bot = false.
  */
 
-import {
-	afterAll,
-	beforeAll,
-	describe,
-	expect,
-	jest,
-	mock,
-	test,
-} from "bun:test";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { eq } from "drizzle-orm";
 import { analyticsEvents, posts } from "#/db/schema";
 import type { TestDb } from "../../tests/e2e/db";
