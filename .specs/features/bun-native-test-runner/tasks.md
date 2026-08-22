@@ -229,13 +229,13 @@ T19 → T20
 
 **Done when**:
 
-- [ ] `@happy-dom/global-registrator` is pinned exactly
-- [ ] Candidate files parse, typecheck, lint, and format
-- [ ] Fixture consumers use one verified source instead of missing duplicate paths
-- [ ] ResizeObserver and matchMedia shims have focused assertions and cleanup
-- [ ] No production/application behavior changes
-- [ ] Focused Vitest/Bun fixture and DOM-setup tests plus Biome checks pass
-- [ ] Test count: setup tests pass and no reference/candidate inventory count decreases
+- [x] `@happy-dom/global-registrator` is pinned exactly
+- [x] Candidate files parse, typecheck, lint, and format
+- [x] Fixture consumers use one verified source instead of missing duplicate paths
+- [x] ResizeObserver and matchMedia shims have focused assertions and cleanup
+- [x] No production/application behavior changes
+- [x] Focused Vitest/Bun fixture and DOM-setup tests plus Biome checks pass
+- [x] Test count: setup tests pass and no reference/candidate inventory count decreases
 
 **Tests**: integration
 **Gate**: quick
