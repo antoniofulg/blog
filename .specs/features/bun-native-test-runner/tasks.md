@@ -528,14 +528,14 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Valid report includes per-arm median time/RSS, outcome inventory, provenance, and deltas
-- [ ] Invalid report leads with reasons and omits winner/improvement language
-- [ ] JSON preserves every raw sample and failure excerpt
-- [ ] Two writes in one second cannot overwrite one another
-- [ ] Output paths remain under `docs/benchmarks/bun-test/`
-- [ ] Reference and candidate unit tests cover valid, invalid, partial, and collision cases
-- [ ] Gate check passes
-- [ ] Test count: 10 new tests pass in each runner
+- [x] Valid report includes per-arm median time/RSS, outcome inventory, provenance, and deltas
+- [x] Invalid report leads with reasons and omits winner/improvement language
+- [x] JSON preserves every raw sample and failure excerpt
+- [x] Two writes in one second cannot overwrite one another
+- [x] Output paths remain under `docs/benchmarks/bun-test/`
+- [x] Reference and candidate unit tests cover valid, invalid, partial, and collision cases
+- [x] Gate check passes
+- [x] Test count: 10 new tests pass in each runner
 
 **Tests**: unit
 **Gate**: quick
