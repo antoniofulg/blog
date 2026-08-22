@@ -366,12 +366,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Every DB/PGLite/auth file uses isolated database state and closes it in teardown
-- [ ] Schema, migration, query, auth, and error outcomes match reference assertions
-- [ ] No integration depends on execution order or a production database
-- [ ] Cohort passes twice consecutively on an idle machine with exact parity
-- [ ] No timeout is raised without measured evidence
-- [ ] Test count: candidate DB/auth count equals reference count exactly
+- [x] Every DB/PGLite/auth file uses isolated database state and closes it in teardown
+- [x] Schema, migration, query, auth, and error outcomes match reference assertions
+- [x] No integration depends on execution order or a production database
+- [x] Cohort passes twice consecutively on an idle machine with exact parity
+- [x] No timeout is raised without measured evidence
+- [x] Test count: candidate DB/auth count equals reference count exactly
 
 **Tests**: integration
 **Gate**: cohort
