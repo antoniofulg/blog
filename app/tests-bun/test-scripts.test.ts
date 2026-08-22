@@ -18,6 +18,10 @@ const scripts = scriptsOf(
 		readFileSync(new URL("../../package.json", import.meta.url), "utf8"),
 	),
 );
+const viteConfig = readFileSync(
+	new URL("../../vite.config.ts", import.meta.url),
+	"utf8",
+);
 
 describe("A/B/C test scripts", () => {
 	test("keeps test mapped to the Node 24 Vitest reference", () => {
@@ -41,6 +45,11 @@ describe("A/B/C test scripts", () => {
 			"bun test --timeout 60000 app/tests-bun",
 		);
 		expect(scripts["test:bun"]).toContain("--isolate");
+	});
+
+	test("includes both TypeScript reference test extensions", () => {
+		expect(viteConfig).toContain('"app/tests/**/*.test.ts"');
+		expect(viteConfig).toContain('"app/tests/**/*.test.tsx"');
 	});
 
 	test("pins Bun 1.4 provenance for the candidate", () => {

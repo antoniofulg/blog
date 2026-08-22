@@ -123,7 +123,7 @@ const config = defineConfig({
 	],
 	test: {
 		environment: "node",
-		include: ["app/tests/**/*.test.ts"],
+		include: ["app/tests/**/*.test.ts", "app/tests/**/*.test.tsx"],
 		// The integration tests boot PGLite, a Postgres compiled to WASM, inside
 		// a `beforeAll` hook. A single boot measured 1.5-4.3 s on an 11-core M3
 		// Pro at a load average around 20, and vitest runs one worker per core,

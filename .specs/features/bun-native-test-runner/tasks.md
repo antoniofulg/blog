@@ -16,6 +16,10 @@ The candidate no longer uses a global happy-dom preload. Each DOM-bearing
 `app/tests-bun` file imports `./happydom`; server, database, watcher, and
 subprocess tests keep Bun-native `Request`, `Response`, and `Headers`.
 
+The Vitest reference inventory explicitly includes both `app/tests/**/*.test.ts`
+and `app/tests/**/*.test.tsx`; the mirrored script tests guard this inclusion
+so the repaired pilot remains present in a clean checkout.
+
 ---
 
 ## Test Coverage Matrix
