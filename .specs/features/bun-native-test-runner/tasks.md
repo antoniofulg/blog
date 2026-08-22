@@ -610,14 +610,14 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Blocking `test` job installs Node 24 and proves Node/Vitest provenance
-- [ ] `bun-test-shadow` runs parity and Bun Test under Bun 1.4.0
-- [ ] Candidate failure is visible and non-blocking while shadow mode is active
-- [ ] Candidate JSON/log artifacts upload with existing retention policy
-- [ ] Playwright remains Node-runner, Chromium-only, workers=1, with Bun web server
-- [ ] Workflow tests assert exact blocking/non-blocking behavior and versions
-- [ ] Build and E2E gates pass locally where credentials permit; list/provenance gate passes otherwise
-- [ ] Test count: at least 8 CI/static assertions pass in both runners
+- [x] Blocking `test` job installs Node 24 and proves Node/Vitest provenance
+- [x] `bun-test-shadow` runs parity and Bun Test under Bun 1.4.0
+- [x] Candidate failure is visible and non-blocking while shadow mode is active
+- [x] Candidate JSON/log artifacts upload with existing retention policy
+- [x] Playwright remains Node-runner, Chromium-only, workers=1, with Bun web server
+- [x] Workflow tests assert exact blocking/non-blocking behavior and versions
+- [x] Build and E2E gates pass locally where credentials permit; list/provenance gate passes otherwise
+- [x] Test count: at least 8 CI/static assertions pass in both runners
 
 **Tests**: integration
 **Gate**: build

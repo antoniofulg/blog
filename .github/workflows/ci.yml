@@ -29,6 +29,11 @@ jobs:
       - name: Install Playwright Chromium
         if: matrix.check == 'e2e'
         run: bunx playwright install --with-deps chromium
+      - name: Setup Node 24 reference
+        if: matrix.check == 'test'
+        uses: actions/setup-node@v4
+        with:
+          node-version: "24"
       - name: Build app for e2e
         if: matrix.check == 'e2e'
         run: bun run build
@@ -51,6 +56,35 @@ jobs:
           path: |
             playwright-report/
             test-results/
+          retention-days: 7
+
+  bun-test-shadow:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+      - run: bun install --frozen-lockfile
+      - run: cp .env.example .env
+      - name: Run Bun Test shadow
+        shell: bash
+        run: |
+          mkdir -p docs/benchmarks/bun-test
+          set +e
+          bun run test:parity > docs/benchmarks/bun-test/shadow-parity.log 2>&1
+          parity_status=$?
+          bun run test:bun > docs/benchmarks/bun-test/shadow-bun-test.log 2>&1
+          bun_status=$?
+          PARITY_STATUS=$parity_status BUN_STATUS=$bun_status node -e 'const fs=require("node:fs"); const parityStatus=Number(process.env.PARITY_STATUS); const bunStatus=Number(process.env.BUN_STATUS); fs.writeFileSync("docs/benchmarks/bun-test/shadow-result.json", JSON.stringify({timestamp:new Date().toISOString(),commit:process.env.GITHUB_SHA,runner:"bun:test",runtime:"bun",runtimeVersion:"1.4.0",parityStatus,bunStatus,validComparison:parityStatus===0&&bunStatus===0}, null, 2)+"\n")'
+          exit 0
+      - name: Upload Bun Test shadow evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bun-test-shadow-${{ github.run_id }}
+          path: docs/benchmarks/bun-test/
           retention-days: 7
 
   docker-build:
