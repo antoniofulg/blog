@@ -33,6 +33,7 @@ function inventory(
 		missingFixtures: [],
 		residualVitestApis: [],
 		omissionMarkers: [],
+		mockExports: [],
 		...overrides,
 	};
 }
@@ -87,7 +88,9 @@ describe("test tree parity analyzer", () => {
 			[inventory({ testCount: 3 })],
 			[inventory({ testCount: 2 })],
 		);
-		expect(result.reasons).toContain("sample.test.ts: test declarations 2 < 3");
+		expect(result.reasons).toContain(
+			"sample.test.ts: test declarations 2 != 3",
+		);
 	});
 
 	test("fails when candidate assertions are lower", () => {
@@ -95,7 +98,55 @@ describe("test tree parity analyzer", () => {
 			[inventory({ assertionCount: 3 })],
 			[inventory({ assertionCount: 2 })],
 		);
-		expect(result.reasons).toContain("sample.test.ts: assertions 2 < 3");
+		expect(result.reasons).toContain("sample.test.ts: assertions 2 != 3");
+	});
+
+	test("fails when candidate test declarations are higher", () => {
+		const result = compareTestTrees(
+			[inventory({ testCount: 2 })],
+			[inventory({ testCount: 3 })],
+		);
+		expect(result.reasons).toContain(
+			"sample.test.ts: test declarations 3 != 2",
+		);
+	});
+
+	test("fails when a candidate mock omits a static export", () => {
+		const result = compareTestTrees(
+			[
+				inventory({
+					mockExports: [{ module: "pkg", symbols: ["keep", "missing"] }],
+				}),
+			],
+			[inventory({ mockExports: [{ module: "pkg", symbols: ["keep"] }] })],
+		);
+		expect(result.reasons).toContain(
+			"sample.test.ts: mock pkg missing export missing",
+		);
+	});
+
+	test("accepts equal partial mock exports", () => {
+		const result = compareTestTrees(
+			[inventory({ mockExports: [{ module: "pkg", symbols: ["keep"] }] })],
+			[inventory({ mockExports: [{ module: "pkg", symbols: ["keep"] }] })],
+		);
+		expect(result.ok).toBe(true);
+	});
+
+	test("ignores dynamic importOriginal mock spreads", async () => {
+		const reference = await rootWithFiles({
+			"sample.test.ts":
+				'vi.mock("pkg", async (importOriginal) => ({ ...(await importOriginal()) }));',
+		});
+		const candidate = await rootWithFiles({
+			"sample.test.ts":
+				'mock.module("pkg", async (importOriginal) => ({ ...(await importOriginal()) }));',
+		});
+		const result = compareTestTrees(
+			await scanTestTree(reference, "vitest"),
+			await scanTestTree(candidate, "bun:test"),
+		);
+		expect(result.ok).toBe(true);
 	});
 
 	test("fails when candidate retains a Vitest API", () => {

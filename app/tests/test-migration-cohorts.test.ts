@@ -27,6 +27,7 @@ function file(
 		missingFixtures: [],
 		residualVitestApis: [],
 		omissionMarkers: [],
+		mockExports: [],
 	};
 }
 
@@ -122,6 +123,6 @@ describe("Bun Test cohorts", () => {
 			filterCohortInventory(candidate, "pure"),
 		);
 		expect(result.ok).toBe(false);
-		expect(result.reasons).toContain("pure.test.ts: assertions 0 < 1");
+		expect(result.reasons).toContain("pure.test.ts: assertions 0 != 1");
 	});
 });

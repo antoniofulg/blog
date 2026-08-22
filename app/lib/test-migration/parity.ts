@@ -6,6 +6,11 @@ import * as ts from "typescript";
 export type TestRunner = "vitest" | "bun:test";
 export type TestCohort = "pure" | "dom" | "mocks-timers" | "integration-infra";
 
+export type MockExportInventory = {
+	module: string;
+	symbols: string[];
+};
+
 export type TestFileInventory = {
 	relativePath: string;
 	runner: TestRunner;
@@ -18,6 +23,7 @@ export type TestFileInventory = {
 	missingFixtures: string[];
 	residualVitestApis: string[];
 	omissionMarkers: string[];
+	mockExports: MockExportInventory[];
 };
 
 export type VitestOnlyDisposition = {
@@ -158,6 +164,79 @@ function omissionMarkers(text: string): string[] {
 	return marker && OMITTED_MOCK.test(marker) ? ["partial mock skipped"] : [];
 }
 
+function mockCallModule(expression: ts.Expression): string | undefined {
+	if (!ts.isPropertyAccessExpression(expression)) return undefined;
+	if (!ts.isIdentifier(expression.expression)) return undefined;
+	if (expression.name.text !== "mock" && expression.name.text !== "module")
+		return undefined;
+	return expression.expression.text === "vi" ||
+		expression.expression.text === "mock"
+		? expression.name.text
+		: undefined;
+}
+
+function staticPropertyName(
+	name: ts.PropertyName | undefined,
+): string | undefined {
+	if (!name) return undefined;
+	if (
+		ts.isIdentifier(name) ||
+		ts.isStringLiteral(name) ||
+		ts.isNumericLiteral(name)
+	)
+		return name.text;
+	return undefined;
+}
+
+function factoryObject(
+	factory: ts.Expression,
+): ts.ObjectLiteralExpression | undefined {
+	if (!ts.isArrowFunction(factory) && !ts.isFunctionExpression(factory))
+		return undefined;
+	const body = ts.isParenthesizedExpression(factory.body)
+		? factory.body.expression
+		: factory.body;
+	if (ts.isObjectLiteralExpression(body)) return body;
+	if (!ts.isBlock(body)) return undefined;
+	for (const statement of body.statements) {
+		if (!ts.isReturnStatement(statement) || !statement.expression) continue;
+		if (ts.isObjectLiteralExpression(statement.expression))
+			return statement.expression;
+	}
+	return undefined;
+}
+
+function mockExports(source: ts.SourceFile): MockExportInventory[] {
+	const byModule = new Map<string, Set<string>>();
+	function visit(node: ts.Node): void {
+		if (ts.isCallExpression(node) && mockCallModule(node.expression)) {
+			const moduleName = node.arguments[0];
+			const factory = node.arguments[1];
+			if (ts.isStringLiteralLike(moduleName) && factory) {
+				const object = factoryObject(factory);
+				if (object) {
+					const symbols = byModule.get(moduleName.text) ?? new Set<string>();
+					for (const property of object.properties) {
+						// Spread properties are deliberately ignored: importOriginal and
+						// other dynamic sources cannot be proven statically.
+						if (ts.isSpreadAssignment(property)) continue;
+						const name = ts.isShorthandPropertyAssignment(property)
+							? property.name.text
+							: staticPropertyName(property.name);
+						if (name) symbols.add(name);
+					}
+					byModule.set(moduleName.text, symbols);
+				}
+			}
+		}
+		ts.forEachChild(node, visit);
+	}
+	visit(source);
+	return [...byModule.entries()]
+		.map(([module, symbols]) => ({ module, symbols: [...symbols].sort() }))
+		.sort((a, b) => a.module.localeCompare(b.module));
+}
+
 async function scanFile(
 	root: string,
 	filePath: string,
@@ -194,6 +273,7 @@ async function scanFile(
 		missingFixtures: fixtures.missing,
 		residualVitestApis: residualVitestApis(source, text),
 		omissionMarkers: omissionMarkers(text),
+		mockExports: mockExports(source),
 	};
 }
 
@@ -266,14 +346,14 @@ export function compareTestTrees(
 			reasons.push(`stale Vitest-only disposition: ${path}`);
 			continue;
 		}
-		if (candidateFile.testCount < referenceFile.testCount) {
+		if (candidateFile.testCount !== referenceFile.testCount) {
 			reasons.push(
-				`${path}: test declarations ${candidateFile.testCount} < ${referenceFile.testCount}`,
+				`${path}: test declarations ${candidateFile.testCount} != ${referenceFile.testCount}`,
 			);
 		}
-		if (candidateFile.assertionCount < referenceFile.assertionCount) {
+		if (candidateFile.assertionCount !== referenceFile.assertionCount) {
 			reasons.push(
-				`${path}: assertions ${candidateFile.assertionCount} < ${referenceFile.assertionCount}`,
+				`${path}: assertions ${candidateFile.assertionCount} != ${referenceFile.assertionCount}`,
 			);
 		}
 		for (const fixture of candidateFile.missingFixtures) {
@@ -295,6 +375,22 @@ export function compareTestTrees(
 		}
 		for (const marker of candidateFile.omissionMarkers) {
 			reasons.push(`${path}: forbidden omission marker ${marker}`);
+		}
+		const candidateMocks = new Map(
+			(candidateFile.mockExports ?? []).map((mock) => [
+				mock.module,
+				new Set(mock.symbols),
+			]),
+		);
+		for (const referenceMock of referenceFile.mockExports ?? []) {
+			const candidateSymbols = candidateMocks.get(referenceMock.module);
+			for (const symbol of referenceMock.symbols) {
+				if (!candidateSymbols?.has(symbol)) {
+					reasons.push(
+						`${path}: mock ${referenceMock.module} missing export ${symbol}`,
+					);
+				}
+			}
 		}
 	}
 

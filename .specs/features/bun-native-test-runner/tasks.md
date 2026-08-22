@@ -654,16 +654,167 @@ T19 → T20
 
 ---
 
+### T21: Enforce exact twin and mock-export parity
+
+**What**: Reject extra or missing candidate tests/assertions and candidate mock factories that omit exports present in their Vitest twin.
+**Where**: `app/lib/test-migration/parity.ts`
+**Depends on**: T20
+**Reuses**: TypeScript AST inventory and existing parity diagnostics
+**Requirement**: BTR-03, BTR-04
+
+**Tools**: MCP: NONE — Skill: typescript-advanced, no-workarounds, ponytail
+
+**Done when**:
+
+- [x] Test and assertion counts must be exactly equal unless an explicit disposition applies
+- [x] Reference and candidate DOM/script probes have equal intentional coverage
+- [x] Static mock factory exports are inventoried per mocked module
+- [x] A candidate missing any statically declared reference mock export fails with module and symbol
+- [x] Full repository parity passes with exact file/test/assertion inventories
+- [x] Mirrored unit tests cover extra count, missing export, equal partial mock, and dynamic-import factory behavior
+
+**Tests**: unit
+**Gate**: full
+
+**Commit**: `fix(test): enforce exact twin parity`
+
+---
+
+### T22: Prove Bun hook-timeout diagnostics
+
+**What**: Add an isolated subprocess test proving Bun Test timeout failures identify the responsible fixture file and lifecycle hook.
+**Where**: `app/tests/hook-timeout-diagnostics.test.ts`
+**Depends on**: T21
+**Reuses**: temp-directory and subprocess cleanup patterns from benchmark tests
+**Requirement**: BTR-05
+
+**Tools**: MCP: NONE — Skill: Bun, no-workarounds, ponytail
+
+**Done when**:
+
+- [ ] Test writes a temporary Bun test fixture with a deterministic timed-out hook
+- [ ] Spawned Bun Test exits non-zero within a bounded time
+- [ ] Combined output names the fixture basename and hook timeout
+- [ ] Temporary files and child process are always cleaned
+- [ ] Vitest and Bun twins assert the same diagnostic contract
+
+**Tests**: integration
+**Gate**: quick
+
+**Commit**: `test(bun): prove hook timeout diagnostics`
+
+---
+
+### T23: Add Node 24 installation hint
+
+**What**: Include an actionable Node 24 installation/version-manager hint when the reference runtime guard detects another Node major.
+**Where**: `scripts/check-test-runtime.ts`
+**Depends on**: T22
+**Reuses**: existing runtime mismatch error
+**Requirement**: BTR-02
+
+**Tools**: MCP: NONE — Skill: ponytail
+
+**Done when**:
+
+- [ ] Node major mismatch message keeps expected/detected/execPath evidence
+- [ ] Message includes a concrete Node 24 setup hint without assuming one mandatory version manager
+- [ ] Bun mismatch messages remain unchanged
+- [ ] Mirrored tests assert the exact hint and Bun/Node separation
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(test): add node 24 setup hint`
+
+---
+
+### T24: Invalidate unequal A/C outcomes independently
+
+**What**: Make dynamic reference/candidate outcome mismatches invalidate comparison and repair the masked inventory-conjunct test.
+**Where**: `app/lib/test-bench/runner.server.ts`
+**Depends on**: T23
+**Reuses**: parsed `TestOutcome` and existing invalid-reason collection
+**Requirement**: BTR-08
+
+**Tools**: MCP: NONE — Skill: no-workarounds, ponytail
+
+**Done when**:
+
+- [ ] A/C file, pass, fail, and skip count mismatches produce explicit invalid reasons
+- [ ] Comparison remains invalid when static inventory is false even if every sample is otherwise valid
+- [ ] Inventory-only test fixtures use correct per-arm provenance so no other reason masks the conjunct
+- [ ] A mutation removing `inventory.ok` fails the focused runner test
+- [ ] Equal outcome repetitions remain valid
+
+**Tests**: integration
+**Gate**: full
+
+**Commit**: `fix(test-bench): reject unequal test outcomes`
+
+---
+
+### T25: Align shadow history with real CI runs
+
+**What**: Define one shadow-result producer contract and evaluate ten green runs across normal distinct commits.
+**Where**: `app/lib/test-bench/shadow.ts`
+**Depends on**: T24
+**Reuses**: Bun summary parser, exact parity result, test-arm outcome types
+**Requirement**: BTR-09, BTR-10
+
+**Tools**: MCP: NONE — Skill: no-workarounds, ponytail
+
+**Done when**:
+
+- [ ] Pure producer builds a valid `ShadowRunRecord` from parity, Bun status/output, commit, timestamp, and load/noise evidence
+- [ ] Producer marks PGLite hook-timeout evidence noisy and keeps ordinary test failures non-noisy
+- [ ] Evaluator accepts a chronological history spanning different commits
+- [ ] Ten valid green distinct-commit runs are eligible; a later failure/noise/mismatch resets only the suffix
+- [ ] Producer output is parsed by the evaluator in mirrored contract tests
+
+**Tests**: unit
+**Gate**: quick
+
+**Commit**: `fix(test-bench): align shadow result contract`
+
+---
+
+### T26: Emit evaluable CI shadow artifacts
+
+**What**: Replace hand-written CI JSON with the tested producer and prove the workflow artifact can feed eligibility evaluation.
+**Where**: `scripts/write-shadow-result.ts`
+**Depends on**: T25
+**Reuses**: shadow producer and existing CI logs/artifact upload
+**Requirement**: BTR-09, BTR-10, BTR-12
+
+**Tools**: MCP: Context7 only if Actions syntax is unclear — Skill: find-rules, Bun, ponytail
+
+**Done when**:
+
+- [ ] CLI reads parity/Bun statuses and Bun output without exposing secrets
+- [ ] CI invokes the CLI and uploads its schema-compatible JSON plus logs
+- [ ] Workflow contract test parses a representative emitted artifact through `evaluateShadowEligibility`
+- [ ] Static CI tests retain Node24 blocking, Bun shadow non-blocking, 7-day artifacts, and Playwright boundary
+- [ ] Build gate and a fresh full E2E 49-test run pass
+
+**Tests**: integration
+**Gate**: build
+
+**Commit**: `fix(ci): emit evaluable bun shadow result`
+
+---
+
 ## Phase Execution Map
 
 ```text
-Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5
+Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6
 
 Phase 1: T1 → T2 → T3 → T4
 Phase 2: T5 → T6 → T7
 Phase 3: T8 → T9 → T10 → T11 → T12 → T13
 Phase 4: T14 → T15 → T16 → T17 → T18
 Phase 5: T19 → T20
+Phase 6: T21 → T22 → T23 → T24 → T25 → T26
 ```
 
 ---
@@ -692,6 +843,12 @@ Phase 5: T19 → T20
 | T18 | One eligibility function | ✅ Granular |
 | T19 | One CI workflow | ✅ Granular |
 | T20 | One operational document plus rule reconciliation | ✅ Cohesive documentation unit |
+| T21 | One parity contract | ✅ Granular |
+| T22 | One hook-timeout diagnostic contract | ✅ Granular |
+| T23 | One runtime error path | ✅ Granular |
+| T24 | One comparison validity rule | ✅ Granular |
+| T25 | One shadow producer/evaluator contract | ✅ Granular |
+| T26 | One CI artifact writer/integration | ✅ Granular |
 
 ---
 
@@ -719,6 +876,12 @@ Phase 5: T19 → T20
 | T18 | T17 | T17 → T18 | ✅ Match |
 | T19 | T13, T18 | T13 → T19; T18 → T19 | ✅ Match |
 | T20 | T19 | T19 → T20 | ✅ Match |
+| T21 | T20 | T20 → T21 | ✅ Match |
+| T22 | T21 | T21 → T22 | ✅ Match |
+| T23 | T22 | T22 → T23 | ✅ Match |
+| T24 | T23 | T23 → T24 | ✅ Match |
+| T25 | T24 | T24 → T25 | ✅ Match |
+| T26 | T25 | T25 → T26 | ✅ Match |
 
 ---
 
@@ -746,3 +909,9 @@ Phase 5: T19 → T20
 | T18 | Pure state evaluation | unit | unit | ✅ OK |
 | T19 | CI config | integration | integration | ✅ OK |
 | T20 | Documentation | none | none | ✅ OK |
+| T21 | Pure parity logic | unit | unit | ✅ OK |
+| T22 | Bun subprocess diagnostics | integration | integration | ✅ OK |
+| T23 | Pure provenance logic | unit | unit | ✅ OK |
+| T24 | Process orchestration | integration | integration | ✅ OK |
+| T25 | Pure shadow contract | unit | unit | ✅ OK |
+| T26 | CI config/artifact integration | integration | integration | ✅ OK |

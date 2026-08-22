@@ -47,6 +47,14 @@ describe("DOM test setup", () => {
 		expect(typeof media.removeEventListener).toBe("function");
 	});
 
+	it("keeps Bun-native Request and Headers for server-compatible DOM tests", () => {
+		const request = new Request("http://localhost/test", {
+			headers: { Cookie: "session=test" },
+		});
+		expect(request.headers).toBeInstanceOf(Headers);
+		expect(request.headers.get("Cookie")).toBe("session=test");
+	});
+
 	it("clears DOM nodes after each test", () => {
 		document.body.append(document.createElement("div"));
 		expect(document.body.childElementCount).toBe(1);
