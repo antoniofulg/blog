@@ -2,10 +2,14 @@ import { describe, expect, test } from "bun:test";
 import {
 	COHORTS,
 	classifyTestFile,
+	filterCohortInventory,
 	parseCohortArgument,
 	selectCohortFiles,
 } from "../lib/test-migration/cohorts";
-import type { TestFileInventory } from "../lib/test-migration/parity";
+import {
+	compareTestTrees,
+	type TestFileInventory,
+} from "../lib/test-migration/parity";
 
 function file(
 	relativePath: string,
@@ -83,5 +87,41 @@ describe("Bun Test cohorts", () => {
 		expect(() => parseCohortArgument(["--cohort"])).toThrow(
 			/Unknown or empty cohort/,
 		);
+	});
+
+	test("parity filter ignores incompatible files from later cohorts", () => {
+		const reference = [
+			file("pure.test.ts", "pure"),
+			file("future.test.ts", "integration-infra"),
+		];
+		const candidate = [
+			file("pure.test.ts", "pure"),
+			file("future.test.ts", "integration-infra"),
+		];
+		candidate[1].omissionMarkers = ["partial mock skipped"];
+		const result = compareTestTrees(
+			filterCohortInventory(reference, "pure"),
+			filterCohortInventory(candidate, "pure"),
+		);
+		expect(result.ok).toBe(true);
+		expect(result.reasons).toEqual([]);
+	});
+
+	test("parity filter still catches drift inside the active cohort", () => {
+		const reference = [
+			file("pure.test.ts", "pure"),
+			file("future.test.ts", "integration-infra"),
+		];
+		const candidate = [
+			file("pure.test.ts", "pure"),
+			file("future.test.ts", "integration-infra"),
+		];
+		candidate[0].assertionCount = 0;
+		const result = compareTestTrees(
+			filterCohortInventory(reference, "pure"),
+			filterCohortInventory(candidate, "pure"),
+		);
+		expect(result.ok).toBe(false);
+		expect(result.reasons).toContain("pure.test.ts: assertions 0 < 1");
 	});
 });

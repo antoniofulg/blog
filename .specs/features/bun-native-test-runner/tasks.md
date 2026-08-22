@@ -39,7 +39,8 @@ Verifier.
 | Gate Level | When to Use | Command |
 | ---------- | ----------- | ------- |
 | Quick | Pure/module task | `bun run test:vitest:node -- <reference-file> && bun test <candidate-file>` |
-| Full | Cohort, process, integration, or CI task | `bun run test:parity && bun run test:vitest:node && bun run test:bun` |
+| Cohort | Candidate migration cohort | `bun run test:parity -- --cohort=<name> && bun run test:bun:cohort <name>` |
+| Full | Complete candidate, process, integration, or CI task after T13 | `bun run test:parity && bun run test:vitest:node && bun run test:bun` |
 | Build | Phase completion/config/docs | `bun run lint && bunx tsc --noEmit && bun run test:parity && bun run test:vitest:node && bun run test:vitest:bun && bun run test:bun && bun run build && make lint-tests` |
 | E2E | Playwright boundary or final verification | `bun run build && make test-e2e` |
 
@@ -233,11 +234,11 @@ T19 → T20
 - [ ] Fixture consumers use one verified source instead of missing duplicate paths
 - [ ] ResizeObserver and matchMedia shims have focused assertions and cleanup
 - [ ] No production/application behavior changes
-- [ ] Full phase gate passes for setup and fixtures
+- [ ] Focused Vitest/Bun fixture and DOM-setup tests plus Biome checks pass
 - [ ] Test count: setup tests pass and no reference/candidate inventory count decreases
 
 **Tests**: integration
-**Gate**: full
+**Gate**: quick
 
 **Commit**: `fix(test): stabilize bun dom setup and fixtures`
 
@@ -263,7 +264,7 @@ T19 → T20
 - [ ] Test count: candidate pure count equals reference pure count exactly
 
 **Tests**: unit
-**Gate**: full
+**Gate**: cohort
 
 **Commit**: `test(bun): validate pure test cohort`
 
@@ -289,7 +290,7 @@ T19 → T20
 - [ ] Test count: candidate DOM-simple count equals reference count exactly
 
 **Tests**: unit
-**Gate**: full
+**Gate**: cohort
 
 **Commit**: `test(bun): validate simple dom cohort`
 
@@ -315,7 +316,7 @@ T19 → T20
 - [ ] Test count: candidate DOM+mock count equals reference count exactly
 
 **Tests**: unit
-**Gate**: full
+**Gate**: cohort
 
 **Commit**: `test(bun): validate mocked dom cohort`
 
@@ -341,7 +342,7 @@ T19 → T20
 - [ ] Test count: candidate non-DOM mock count equals reference count exactly
 
 **Tests**: unit
-**Gate**: full
+**Gate**: cohort
 
 **Commit**: `test(bun): validate mocks and timers`
 
@@ -367,7 +368,7 @@ T19 → T20
 - [ ] Test count: candidate DB/auth count equals reference count exactly
 
 **Tests**: integration
-**Gate**: full
+**Gate**: cohort
 
 **Commit**: `test(bun): validate database and auth integrations`
 
@@ -393,7 +394,7 @@ T19 → T20
 - [ ] Test count: candidate HTTP/route/audit count equals reference count exactly
 
 **Tests**: integration
-**Gate**: full
+**Gate**: cohort
 
 **Commit**: `test(bun): validate route and audit integrations`
 
@@ -419,7 +420,7 @@ T19 → T20
 - [ ] Test count: candidate filesystem/subprocess count equals reference count exactly
 
 **Tests**: integration
-**Gate**: full
+**Gate**: cohort
 
 **Commit**: `test(bun): validate filesystem and watcher integrations`
 

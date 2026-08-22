@@ -17,7 +17,7 @@
     "test:vitest:bun": "bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run",
     "test:bun": "bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && bun test --timeout 60000 app/tests-bun",
     "test:parity": "bun run scripts/check-test-parity.ts",
-    "test:bun:cohort": "bun run scripts/check-test-parity.ts --cohort",
+    "test:bun:cohort": "bun run scripts/check-test-parity.ts --execute-cohort --cohort",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",

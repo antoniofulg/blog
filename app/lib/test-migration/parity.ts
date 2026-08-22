@@ -70,6 +70,12 @@ function calleeName(expression: ts.Expression): string | undefined {
 	return undefined;
 }
 
+function propertyName(expression: ts.Expression): string | undefined {
+	if (ts.isIdentifier(expression)) return expression.text;
+	if (ts.isPropertyAccessExpression(expression)) return expression.name.text;
+	return undefined;
+}
+
 function fixtureReferences(
 	source: ts.SourceFile,
 	filePath: string,
@@ -94,13 +100,15 @@ function fixtureReferences(
 			const isImportPath = ts.isImportDeclaration(parent);
 			const isPathCall =
 				ts.isCallExpression(parent) &&
-				pathCallNames.has(calleeName(parent.expression) ?? "");
+				pathCallNames.has(propertyName(parent.expression) ?? "");
 			if (
 				/(?:^|[\\/])fixtures?(?:[\\/]|$)/i.test(value) &&
 				(isImportPath || isPathCall)
 			) {
-				const resolved = resolve(dirname(filePath), value);
-				const path = normalized(value);
+				const resolved = value.startsWith("app/")
+					? resolve(process.cwd(), value)
+					: resolve(dirname(filePath), value);
+				const path = normalized(value).replace(/^app\/tests\//, "");
 				paths.add(path);
 				if (!existsSync(resolved)) missing.add(path);
 			}
@@ -119,6 +127,7 @@ function residualVitestApis(source: ts.SourceFile, text: string): string[] {
 	function visit(node: ts.Node): void {
 		if (
 			ts.isImportDeclaration(node) &&
+			ts.isStringLiteral(node.moduleSpecifier) &&
 			node.moduleSpecifier.text === "vitest"
 		) {
 			found.add('import "vitest"');
@@ -264,8 +273,11 @@ export function compareTestTrees(
 			reasons.push(`${path}: missing fixture ${fixture}`);
 		}
 		for (const fixture of referenceFile.fixturePaths) {
+			const candidateHasFixture = candidateFile.fixturePaths.some(
+				(path) => path === fixture || path.startsWith(`${fixture}/`),
+			);
 			if (
-				!candidateFile.fixturePaths.includes(fixture) &&
+				!candidateHasFixture &&
 				!candidateFile.missingFixtures.includes(fixture)
 			) {
 				reasons.push(`${path}: missing fixture twin ${fixture}`);

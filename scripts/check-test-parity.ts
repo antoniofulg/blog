@@ -10,6 +10,7 @@ import {
 import {
 	COHORTS,
 	classifyTestFile,
+	filterCohortInventory,
 	parseCohortArgument,
 	selectCohortFiles,
 } from "../app/lib/test-migration/cohorts";
@@ -18,26 +19,39 @@ const root = process.cwd();
 const referenceRoot = resolve(root, "app/tests");
 const candidateRoot = resolve(root, "app/tests-bun");
 
-async function withCohorts(inventory: TestFileInventory[]): Promise<TestFileInventory[]> {
+async function withCohorts(
+	rootPath: string,
+	inventory: TestFileInventory[],
+): Promise<TestFileInventory[]> {
 	return Promise.all(
 		inventory.map(async (file) => ({
 			...file,
-			cohort: classifyTestFile(await readFile(resolve(candidateRoot, file.relativePath), "utf8")),
+			cohort: classifyTestFile(await readFile(resolve(rootPath, file.relativePath), "utf8")),
 		})),
 	);
 }
 
-export async function checkParity(): Promise<number> {
+export async function checkParity(args: string[] = []): Promise<number> {
 	const reference = await scanTestTree(referenceRoot, "vitest");
 	const candidate = await scanTestTree(candidateRoot, "bun:test");
-	const result = compareTestTrees(reference, candidate);
+	const cohort = args.some((arg) => arg === "--cohort" || arg.startsWith("--cohort="))
+		? parseCohortArgument(args)
+		: undefined;
+	const referenceWithCohorts = await withCohorts(referenceRoot, reference);
+	const candidateWithCohorts = await withCohorts(candidateRoot, candidate);
+	const result = cohort
+		? compareTestTrees(
+				filterCohortInventory(referenceWithCohorts, cohort),
+				filterCohortInventory(candidateWithCohorts, cohort),
+			)
+		: compareTestTrees(referenceWithCohorts, candidateWithCohorts);
 	console.log(formatParityFailure(result));
 	return result.ok ? 0 : 1;
 }
 
 export async function runCohort(args: string[]): Promise<number> {
 	const cohort = parseCohortArgument(args);
-	const candidate = await withCohorts(await scanTestTree(candidateRoot, "bun:test"));
+	const candidate = await withCohorts(candidateRoot, await scanTestTree(candidateRoot, "bun:test"));
 	const files = selectCohortFiles(candidate, cohort).map((file) => resolve(candidateRoot, file));
 	if (files.length === 0) {
 		throw new Error(`Cohort ${cohort} is empty`);
@@ -53,9 +67,9 @@ export async function runCohort(args: string[]): Promise<number> {
 if (import.meta.main) {
 	try {
 		const args = process.argv.slice(2);
-		const status = args.some((arg) => arg === "--cohort" || arg.startsWith("--cohort="))
+		const status = args.includes("--execute-cohort")
 			? await runCohort(args)
-			: await checkParity();
+			: await checkParity(args);
 		process.exitCode = status;
 	} catch (error) {
 		console.error(error instanceof Error ? error.message : String(error));

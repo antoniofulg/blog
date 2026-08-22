@@ -35,6 +35,15 @@ export function selectCohortFiles(
 		.sort((a, b) => a.localeCompare(b));
 }
 
+export function filterCohortInventory(
+	inventory: Array<TestFileInventory & { cohort?: TestCohort }>,
+	cohort: TestCohort,
+): TestFileInventory[] {
+	return inventory
+		.filter((file) => file.cohort === cohort)
+		.sort((a, b) => a.relativePath.localeCompare(b.relativePath));
+}
+
 export function parseCohortArgument(args: string[]): TestCohort {
 	const index = args.findIndex(
 		(arg) => arg === "--cohort" || arg.startsWith("--cohort="),
