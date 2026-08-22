@@ -149,8 +149,12 @@ export function assertRuntime(input: unknown): RuntimeProvenance {
 	const expectedLabel = `${expectation.runtime === "node" ? "Node" : "Bun"} ${expectation.version}`;
 	const detectedLabel = `${provenance.runtime === "node" ? "Node" : "Bun"} ${provenance.runtimeVersion}`;
 	if (!expectedVersionMatches(expectation, provenance.runtimeVersion) || provenance.runtime !== expectation.runtime) {
+		const nodeSetupHint =
+			expectation.runtime === "node" && provenance.runtime === "node"
+				? ". Install or select Node 24 using your preferred version manager or the official Node.js installer."
+				: "";
 		throw new Error(
-			`Runtime mismatch: expected ${expectedLabel}, detected ${detectedLabel} at ${provenance.execPath}`,
+			`Runtime mismatch: expected ${expectedLabel}, detected ${detectedLabel} at ${provenance.execPath}${nodeSetupHint}`,
 		);
 	}
 	if (provenance.runner !== expectation.runner) {

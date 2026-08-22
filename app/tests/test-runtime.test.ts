@@ -44,7 +44,7 @@ describe("test runtime provenance", () => {
 
 	it("rejects a wrong Node major", () => {
 		expect(() => assertRuntime({ ...expected, version: "23" })).toThrow(
-			/expected Node 23, detected Node 24\.\d+\.\d+ at .+/,
+			/expected Node 23, detected Node 24\.\d+\.\d+ at .+\. Install or select Node 24 using your preferred version manager or the official Node\.js installer\./,
 		);
 	});
 

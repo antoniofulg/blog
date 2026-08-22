@@ -44,7 +44,9 @@ describe("test runtime provenance", () => {
 				version: "24",
 				runner: "vitest",
 			}),
-		).toThrow(/expected Node 24, detected Bun 1\.4\.0.*at /);
+		).toThrow(
+			/expected Node 24, detected Bun 1\.4\.0.*at (?!.*Install or select Node 24)/,
+		);
 	});
 
 	test("rejects a wrong Bun version", () => {

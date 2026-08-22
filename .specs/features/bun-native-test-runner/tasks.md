@@ -730,10 +730,10 @@ T25 → T26
 
 **Done when**:
 
-- [ ] Node major mismatch message keeps expected/detected/execPath evidence
-- [ ] Message includes a concrete Node 24 setup hint without assuming one mandatory version manager
-- [ ] Bun mismatch messages remain unchanged
-- [ ] Mirrored tests assert the exact hint and Bun/Node separation
+- [x] Node major mismatch message keeps expected/detected/execPath evidence
+- [x] Message includes a concrete Node 24 setup hint without assuming one mandatory version manager
+- [x] Bun mismatch messages remain unchanged
+- [x] Mirrored tests assert the exact hint and Bun/Node separation
 
 **Tests**: unit
 **Gate**: quick
