@@ -1,7 +1,7 @@
 import { describe, expect, mock, test } from "bun:test";
 import { render, screen } from "@testing-library/react";
-import { Badge } from "./fixtures/Badge";
-import { groupByLang, type Post, slugify } from "./fixtures/subject";
+import { Badge } from "../tests-bun/fixtures/Badge";
+import { groupByLang, type Post, slugify } from "../tests-bun/fixtures/subject";
 
 describe("pure logic", () => {
 	test("slugify strips accents and punctuation", () => {
@@ -29,13 +29,13 @@ describe("pure logic", () => {
 	});
 });
 
-mock.module("./fixtures/reader", () => ({
+mock.module("../tests-bun/fixtures/reader", () => ({
 	readTitle: (slug: string) => `mocked:${slug}`,
 }));
 
 describe("module mocking", () => {
 	test("mock.module replaces the dependency", async () => {
-		const { loadTitle } = await import("./fixtures/subject");
+		const { loadTitle } = await import("../tests-bun/fixtures/subject");
 		expect(await loadTitle("hello")).toBe("mocked:hello");
 	});
 });

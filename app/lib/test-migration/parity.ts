@@ -45,6 +45,13 @@ function normalized(value: string): string {
 	return value.split(sep).join("/");
 }
 
+function fixtureExists(path: string): boolean {
+	if (existsSync(path)) return true;
+	return [".ts", ".tsx", ".js", ".jsx", ".json", ".mdx"].some((extension) =>
+		existsSync(`${path}${extension}`),
+	);
+}
+
 async function testFiles(root: string): Promise<string[]> {
 	const entries = await readdir(root, { withFileTypes: true });
 	const files: string[] = [];
@@ -110,7 +117,7 @@ function fixtureReferences(
 					: resolve(dirname(filePath), value);
 				const path = normalized(value).replace(/^app\/tests\//, "");
 				paths.add(path);
-				if (!existsSync(resolved)) missing.add(path);
+				if (!fixtureExists(resolved)) missing.add(path);
 			}
 		}
 		ts.forEachChild(node, visit);

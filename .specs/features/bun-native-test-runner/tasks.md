@@ -308,12 +308,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] All 22 DOM+mock files are selected deterministically
-- [ ] Mock factories export every symbol consumed by the subject
-- [ ] Partial module behavior uses supported import-original semantics or remains explicitly Vitest-only
-- [ ] DOM cleanup, mock restoration, and real timers run after each test
-- [ ] Cohort passes twice consecutively with exact parity
-- [ ] Test count: candidate DOM+mock count equals reference count exactly
+- [x] All 22 DOM+mock files are selected deterministically
+- [x] Mock factories export every symbol consumed by the subject
+- [x] Partial module behavior uses supported import-original semantics or remains explicitly Vitest-only
+- [x] DOM cleanup, mock restoration, and real timers run after each test
+- [x] Cohort passes twice consecutively with exact parity
+- [x] Test count: candidate DOM+mock count equals reference count exactly
 
 **Tests**: unit
 **Gate**: cohort
