@@ -500,14 +500,14 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Vitest and Bun Test summaries parse pass/fail/skip/file counts
-- [ ] Arm order is sequential and reverses/interleaves across repetitions
-- [ ] Timeout kills the process group and remaining arms continue
-- [ ] Runtime provenance and host load are captured per sample
-- [ ] Unequal inventory, missing outcome, timeout, and failed arm invalidate comparison
-- [ ] Stub-driven reference and candidate integration tests cover every failure mode
-- [ ] Gate check passes
-- [ ] Test count: 14 new tests pass in each runner
+- [x] Vitest and Bun Test summaries parse pass/fail/skip/file counts
+- [x] Arm order is sequential and reverses/interleaves across repetitions
+- [x] Timeout kills the process group and remaining arms continue
+- [x] Runtime provenance and host load are captured per sample
+- [x] Unequal inventory, missing outcome, timeout, and failed arm invalidate comparison
+- [x] Stub-driven reference and candidate integration tests cover every failure mode
+- [x] Gate check passes
+- [x] Test count: 14 new tests pass in each runner
 
 **Tests**: integration
 **Gate**: full
