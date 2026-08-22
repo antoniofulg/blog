@@ -392,12 +392,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Route and server-module mocks export exact consumed contracts
-- [ ] HTTP success/error, audit finding, sitemap, robots, and harness outcomes match reference
-- [ ] Fetch, env, server, and mock state are restored after each file
-- [ ] Playwright remains a contract dependency, not replaced by Bun.WebView
-- [ ] Cohort passes twice consecutively with exact parity
-- [ ] Test count: candidate HTTP/route/audit count equals reference count exactly
+- [x] Route and server-module mocks export exact consumed contracts
+- [x] HTTP success/error, audit finding, sitemap, robots, and harness outcomes match reference
+- [x] Fetch, env, server, and mock state are restored after each file
+- [x] Playwright remains a contract dependency, not replaced by Bun.WebView
+- [x] Cohort passes twice consecutively with exact parity
+- [x] Test count: candidate HTTP/route/audit count equals reference count exactly
 
 **Tests**: integration
 **Gate**: cohort

@@ -187,15 +187,15 @@ reversible cutover.
 | BTR-01 | P1: Parallel paths | Tasks | Implementing (T2) |
 | BTR-02 | P1: Runtime provenance | Tasks | Implementing (T1-T2) |
 | BTR-03 | P1: Cohort inventory | Tasks | Implementing (T3-T6) |
-| BTR-04 | P1: Behavioral parity | Tasks | Implementing (T3-T10) |
-| BTR-05 | P1: DOM and lifecycle | Tasks | Implementing (T5-T10) |
+| BTR-04 | P1: Behavioral parity | Tasks | Implementing (T3-T11) |
+| BTR-05 | P1: DOM and lifecycle | Tasks | Implementing (T5-T11) |
 | BTR-06 | P1: A/B/C harness | Tasks | In Tasks |
 | BTR-07 | P1: Measurement provenance | Tasks | In Tasks |
 | BTR-08 | P1: Valid comparison | Tasks | In Tasks |
 | BTR-09 | P2: CI shadow | Tasks | In Tasks |
 | BTR-10 | P2: Cutover state | Tasks | In Tasks |
 | BTR-11 | P2: Rollback and Vitest removal | Tasks | In Tasks |
-| BTR-12 | P2: Playwright boundary | Tasks | In Tasks |
+| BTR-12 | P2: Playwright boundary | Tasks | Implementing (T11) |
 
 **Coverage:** 12 total, 12 mapped to tasks, 0 unmapped.
 
