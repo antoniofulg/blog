@@ -184,8 +184,8 @@ reversible cutover.
 
 | Requirement ID | Story | Phase | Status |
 | -------------- | ----- | ----- | ------ |
-| BTR-01 | P1: Parallel paths | Tasks | In Tasks |
-| BTR-02 | P1: Runtime provenance | Tasks | Implementing (T1) |
+| BTR-01 | P1: Parallel paths | Tasks | Implementing (T2) |
+| BTR-02 | P1: Runtime provenance | Tasks | Implementing (T1-T2) |
 | BTR-03 | P1: Cohort inventory | Tasks | In Tasks |
 | BTR-04 | P1: Behavioral parity | Tasks | In Tasks |
 | BTR-05 | P1: DOM and lifecycle | Tasks | In Tasks |

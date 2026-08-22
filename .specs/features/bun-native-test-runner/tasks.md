@@ -147,13 +147,13 @@ T19 → T20
 
 **Done when**:
 
-- [ ] `test:vitest:node`, `test:vitest:bun`, and `test:bun` exist with explicit runtimes
-- [ ] `test` delegates to `test:vitest:node`
-- [ ] Candidate Bun timeout is explicit and justified by existing integration budgets
-- [ ] Dependency versions remain pinned
-- [ ] Static reference and candidate tests assert exact script semantics
-- [ ] Gate check passes
-- [ ] Test count: 5 new/updated script assertions pass in both runners
+- [x] `test:vitest:node`, `test:vitest:bun`, and `test:bun` exist with explicit runtimes
+- [x] `test` delegates to `test:vitest:node`
+- [x] Candidate Bun timeout is explicit and justified by existing integration budgets
+- [x] Dependency versions remain pinned
+- [x] Static reference and candidate tests assert exact script semantics
+- [x] Gate check passes
+- [x] Test count: 5 new/updated script assertions pass in both runners
 
 **Tests**: unit
 **Gate**: build
