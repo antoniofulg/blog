@@ -779,11 +779,11 @@ T25 → T26
 
 **Done when**:
 
-- [ ] Pure producer builds a valid `ShadowRunRecord` from parity, Bun status/output, commit, timestamp, and load/noise evidence
-- [ ] Producer marks PGLite hook-timeout evidence noisy and keeps ordinary test failures non-noisy
-- [ ] Evaluator accepts a chronological history spanning different commits
-- [ ] Ten valid green distinct-commit runs are eligible; a later failure/noise/mismatch resets only the suffix
-- [ ] Producer output is parsed by the evaluator in mirrored contract tests
+- [x] Pure producer builds a valid `ShadowRunRecord` from parity, Bun status/output, commit, timestamp, and load/noise evidence
+- [x] Producer marks PGLite hook-timeout evidence noisy and keeps ordinary test failures non-noisy
+- [x] Evaluator accepts a chronological history spanning different commits
+- [x] Ten valid green distinct-commit runs are eligible; a later failure/noise/mismatch resets only the suffix
+- [x] Producer output is parsed by the evaluator in mirrored contract tests
 
 **Tests**: unit
 **Gate**: quick

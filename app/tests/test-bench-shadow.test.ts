@@ -1,6 +1,8 @@
 import { describe, expect, it } from "vitest";
 import {
+	createShadowRunRecord,
 	evaluateShadowEligibility,
+	isPgliteHookTimeout,
 	type ShadowRunRecord,
 } from "#/lib/test-bench/shadow";
 
@@ -103,8 +105,44 @@ describe("Bun Test shadow eligibility", () => {
 			"duplicate shadow timestamps",
 		);
 		expect(
-			evaluateShadowEligibility([result(0), result(1, { commit: "def" })])
-				.reasons,
-		).toContain("mixed shadow commits");
+			evaluateShadowEligibility(
+				Array.from({ length: 10 }, (_, index) =>
+					result(index, { commit: `commit-${index}` }),
+				),
+			).eligible,
+		).toBe(true);
+	});
+
+	it("produces an evaluable record from Bun output and parity", () => {
+		const record = createShadowRunRecord({
+			parity: { ok: true, reasons: [] },
+			bunStatus: 0,
+			bunOutput: "2 pass\n1 skip\nRan 3 tests across 1 file.",
+			commit: "abc",
+			timestamp: "2026-08-22T00:00:00.000Z",
+			loadAvg1: 0.5,
+		});
+		expect(record.validComparison).toBe(true);
+		expect(record.samples[0].exitCode).toBe(0);
+		expect(record.samples[0].outcome?.testsPassed).toBe(2);
+		expect(record.loadAvg1).toBe(0.5);
+		expect(evaluateShadowEligibility([record]).consecutiveGreen).toBe(1);
+	});
+
+	it("marks PGLite hook timeouts noisy but ordinary failures clean", () => {
+		const noisy = "PGLite beforeEach/afterEach hook timed out after 25ms";
+		expect(isPgliteHookTimeout(noisy)).toBe(true);
+		expect(isPgliteHookTimeout("1 fail\nRan 1 test across 1 file.")).toBe(
+			false,
+		);
+		expect(
+			createShadowRunRecord({
+				parity: { ok: true, reasons: [] },
+				bunStatus: 1,
+				bunOutput: noisy,
+				commit: "abc",
+				timestamp: "2026-08-22T00:00:00.000Z",
+			}).noisy,
+		).toBe(true);
 	});
 });

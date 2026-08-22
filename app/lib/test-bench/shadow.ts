@@ -1,12 +1,24 @@
-import type { TestArmSample } from "#/lib/test-bench/types";
+import type { TestArmSample, TestOutcome } from "#/lib/test-bench/types";
+import type { ParityResult } from "#/lib/test-migration/parity";
 
 export type ShadowRunRecord = {
 	timestamp: string;
 	commit: string;
 	validComparison: boolean;
 	noisy?: boolean;
+	noiseEvidence?: string;
+	loadAvg1?: number;
 	inventory: { ok: boolean; reasons: string[] };
 	samples: Pick<TestArmSample, "exitCode" | "timedOut" | "outcome">[];
+};
+
+export type ShadowRunInput = {
+	parity: Pick<ParityResult, "ok" | "reasons">;
+	bunStatus: number;
+	bunOutput: string;
+	commit: string;
+	timestamp: string;
+	loadAvg1?: number;
 };
 
 export type ShadowEligibility = {
@@ -16,6 +28,58 @@ export type ShadowEligibility = {
 };
 
 const GREEN_THRESHOLD = 10;
+
+function count(output: string, word: string): number {
+	return Number.parseInt(
+		output.match(new RegExp(`(\\d+)\\s+${word}\\b`, "i"))?.[1] ?? "0",
+		10,
+	);
+}
+
+function parseBunOutcome(output: string): TestOutcome | null {
+	const ran = output.match(/Ran\s+(\d+)\s+tests?\s+across\s+(\d+)\s+files?/i);
+	if (!ran) return null;
+	const testsFailed = count(output, "fail");
+	return {
+		filesPassed: testsFailed === 0 ? Number.parseInt(ran[2], 10) : 0,
+		filesFailed: testsFailed > 0 ? Number.parseInt(ran[2], 10) : 0,
+		testsPassed: count(output, "pass"),
+		testsFailed,
+		testsSkipped: count(output, "skip"),
+		testFileCount: Number.parseInt(ran[2], 10),
+	};
+}
+
+export function isPgliteHookTimeout(output: string): boolean {
+	return (
+		/pg[_ -]?lite/i.test(output) &&
+		/(?:hook|before(?:all|each)|after(?:all|each)).*(?:timed?\s*out|timeout)|(?:timed?\s*out|timeout).*(?:hook|before(?:all|each)|after(?:all|each))/i.test(
+			output,
+		)
+	);
+}
+
+export function createShadowRunRecord(input: ShadowRunInput): ShadowRunRecord {
+	const outcome = parseBunOutcome(input.bunOutput);
+	const noisy = isPgliteHookTimeout(input.bunOutput);
+	return {
+		timestamp: input.timestamp,
+		commit: input.commit,
+		validComparison:
+			input.parity.ok && input.bunStatus === 0 && outcome !== null,
+		noisy,
+		...(noisy ? { noiseEvidence: "PGLite hook timeout" } : {}),
+		...(input.loadAvg1 === undefined ? {} : { loadAvg1: input.loadAvg1 }),
+		inventory: { ok: input.parity.ok, reasons: [...input.parity.reasons] },
+		samples: [
+			{
+				exitCode: input.bunStatus === 0 ? 0 : input.bunStatus,
+				timedOut: /timed?\s*out|timeout/i.test(input.bunOutput),
+				outcome,
+			},
+		],
+	};
+}
 
 function isRecord(value: unknown): value is Record<string, unknown> {
 	return typeof value === "object" && value !== null;
@@ -41,6 +105,10 @@ function parseShadowRun(value: unknown): ShadowRunRecord | undefined {
 		commit: value.commit,
 		validComparison: value.validComparison,
 		noisy: value.noisy === true,
+		...(typeof value.noiseEvidence === "string"
+			? { noiseEvidence: value.noiseEvidence }
+			: {}),
+		...(typeof value.loadAvg1 === "number" ? { loadAvg1: value.loadAvg1 } : {}),
 		inventory: {
 			ok: inventory.ok,
 			reasons: inventory.reasons.filter(
@@ -91,8 +159,6 @@ export function evaluateShadowEligibility(
 	const timestamps = new Set(runs.map((run) => run.timestamp));
 	if (timestamps.size !== runs.length)
 		reasons.push("duplicate shadow timestamps");
-	const commits = new Set(runs.map((run) => run.commit));
-	if (commits.size > 1) reasons.push("mixed shadow commits");
 	if (reasons.length > 0 && runs.length !== results.length) {
 		return {
 			eligible: false,
