@@ -804,11 +804,11 @@ T25 → T26
 
 **Done when**:
 
-- [ ] CLI reads parity/Bun statuses and Bun output without exposing secrets
-- [ ] CI invokes the CLI and uploads its schema-compatible JSON plus logs
-- [ ] Workflow contract test parses a representative emitted artifact through `evaluateShadowEligibility`
-- [ ] Static CI tests retain Node24 blocking, Bun shadow non-blocking, 7-day artifacts, and Playwright boundary
-- [ ] Build gate and a fresh full E2E 49-test run pass
+- [x] CLI reads parity/Bun statuses and Bun output without exposing secrets
+- [x] CI invokes the CLI and uploads its schema-compatible JSON plus logs
+- [x] Workflow contract test parses a representative emitted artifact through `evaluateShadowEligibility`
+- [x] Static CI tests retain Node24 blocking, Bun shadow non-blocking, 7-day artifacts, and Playwright boundary
+- [x] Build gate and a fresh full E2E 49-test run pass
 
 **Tests**: integration
 **Gate**: build

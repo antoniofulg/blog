@@ -32,6 +32,12 @@ describe("Bun Test CI shadow", () => {
 		expect(shadow).toContain("bun run test:bun");
 	});
 
+	it("writes schema-compatible results through the tested producer", () => {
+		const shadow = ci.slice(ci.indexOf("bun-test-shadow:"));
+		expect(shadow).toContain("scripts/write-shadow-result.ts");
+		expect(shadow).not.toContain("node -e");
+	});
+
 	it("uploads JSON and logs with seven-day retention", () => {
 		const shadow = ci.slice(ci.indexOf("bun-test-shadow:"));
 		expect(shadow).toContain("shadow-result.json");

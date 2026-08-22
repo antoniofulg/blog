@@ -77,7 +77,11 @@ jobs:
           parity_status=$?
           bun run test:bun > docs/benchmarks/bun-test/shadow-bun-test.log 2>&1
           bun_status=$?
-          PARITY_STATUS=$parity_status BUN_STATUS=$bun_status node -e 'const fs=require("node:fs"); const parityStatus=Number(process.env.PARITY_STATUS); const bunStatus=Number(process.env.BUN_STATUS); fs.writeFileSync("docs/benchmarks/bun-test/shadow-result.json", JSON.stringify({timestamp:new Date().toISOString(),commit:process.env.GITHUB_SHA,runner:"bun:test",runtime:"bun",runtimeVersion:"1.4.0",parityStatus,bunStatus,validComparison:parityStatus===0&&bunStatus===0}, null, 2)+"\n")'
+          PARITY_STATUS=$parity_status BUN_STATUS=$bun_status bun run scripts/write-shadow-result.ts \
+            --parity-log docs/benchmarks/bun-test/shadow-parity.log \
+            --bun-log docs/benchmarks/bun-test/shadow-bun-test.log \
+            --output docs/benchmarks/bun-test/shadow-result.json \
+            --commit "$GITHUB_SHA"
           exit 0
       - name: Upload Bun Test shadow evidence
         if: always()
