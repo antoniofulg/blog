@@ -8,6 +8,7 @@ import {
 	mock,
 	test,
 } from "bun:test";
+import * as realPromises from "node:fs/promises";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
@@ -47,9 +48,13 @@ mock.module("#/db/client", () => ({
 	},
 }));
 
+mock.module("node:fs/promises", () => ({
+	...realPromises,
+	unlink: mocks.mockUnlink,
+}));
+
 // Preserve real readFile/readdir so fixture reads in upsertPost tests work;
 // mock only unlink so removePost OG cleanup path is observable in tests.
-// NOTE: partial mock skipped under bun:test — see docs/benchmarks/bun-runner/README.md
 
 // Mock OG generator — returns null by default; individual tests can override.
 // This also keeps existing unit tests fast (no real satori render).
@@ -65,7 +70,8 @@ mock.module("#/lib/mdx/code-blocks.server", () => ({
 	findFirstCodeBlock: jest.fn().mockReturnValue(null),
 }));
 
-import { removePost, syncAll, upsertPost } from "#/db/indexer";
+const { removePost, syncAll, upsertPost } = await import("#/db/indexer");
+
 import { listPostsFn } from "#/db/queries";
 import { posts } from "#/db/schema";
 import { findFirstCodeBlock } from "#/lib/mdx/code-blocks.server";

@@ -334,12 +334,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] `jest.importActual`, unavailable async timer helpers, residual `vi`, and unsupported waits are removed through equivalent APIs
-- [ ] All six `partial mock skipped` markers are removed only after behavior is restored
-- [ ] Static imports do not bypass intended `mock.module` factories
-- [ ] Mocks and timers are restored after each file
-- [ ] Cohort passes twice consecutively with exact parity
-- [ ] Test count: candidate non-DOM mock count equals reference count exactly
+- [x] `jest.importActual`, unavailable async timer helpers, residual `vi`, and unsupported waits are removed through equivalent APIs
+- [x] All six `partial mock skipped` markers are removed only after behavior is restored
+- [x] Static imports do not bypass intended `mock.module` factories
+- [x] Mocks and timers are restored after each file
+- [x] Cohort passes twice consecutively with exact parity
+- [x] Test count: candidate non-DOM mock count equals reference count exactly
 
 **Tests**: unit
 **Gate**: cohort
