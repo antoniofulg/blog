@@ -754,11 +754,11 @@ T25 → T26
 
 **Done when**:
 
-- [ ] A/C file, pass, fail, and skip count mismatches produce explicit invalid reasons
-- [ ] Comparison remains invalid when static inventory is false even if every sample is otherwise valid
-- [ ] Inventory-only test fixtures use correct per-arm provenance so no other reason masks the conjunct
-- [ ] A mutation removing `inventory.ok` fails the focused runner test
-- [ ] Equal outcome repetitions remain valid
+- [x] A/C file, pass, fail, and skip count mismatches produce explicit invalid reasons
+- [x] Comparison remains invalid when static inventory is false even if every sample is otherwise valid
+- [x] Inventory-only test fixtures use correct per-arm provenance so no other reason masks the conjunct
+- [x] A mutation removing `inventory.ok` fails the focused runner test
+- [x] Equal outcome repetitions remain valid
 
 **Tests**: integration
 **Gate**: full

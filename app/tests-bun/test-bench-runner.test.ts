@@ -7,7 +7,11 @@ import {
 	runTestComparison,
 	type TestRunDeps,
 } from "#/lib/test-bench/runner.server";
-import { TEST_ARMS } from "#/lib/test-bench/types";
+import {
+	TEST_ARMS,
+	type TestArm,
+	type TestOutcome,
+} from "#/lib/test-bench/types";
 
 function measured(over: Partial<MeasuredRun> = {}): MeasuredRun {
 	return {
@@ -22,6 +26,22 @@ function measured(over: Partial<MeasuredRun> = {}): MeasuredRun {
 		pgid: 1,
 		...over,
 	};
+}
+
+function measuredFor(arm: TestArm, outcome: TestOutcome): MeasuredRun {
+	const provenance = JSON.stringify({
+		command: arm.command.join(" "),
+		execPath: arm.runtime === "node" ? "/bin/node" : "/bin/bun",
+		runtime: arm.runtime,
+		runtimeVersion: arm.runtimeVersion,
+		runner: arm.runner,
+		runnerVersion: arm.runnerVersion,
+	});
+	const stdout =
+		arm.runner === "vitest"
+			? `${provenance}\nTest Files  ${outcome.filesPassed} passed | ${outcome.filesFailed} failed (${outcome.testFileCount})\nTests  ${outcome.testsPassed} passed | ${outcome.testsFailed} failed | ${outcome.testsSkipped} skipped (${outcome.testsPassed + outcome.testsFailed + outcome.testsSkipped})`
+			: `${provenance}\n${outcome.testsPassed} pass\n${outcome.testsFailed} fail\n${outcome.testsSkipped} skip\nRan ${outcome.testsPassed + outcome.testsFailed + outcome.testsSkipped} tests across ${outcome.testFileCount} files.`;
+	return measured({ stdout });
 }
 
 const inventory = {
@@ -196,7 +216,7 @@ describe("test arm orchestration", () => {
 
 	test("invalidates a comparison when inventory differs", async () => {
 		const result = await runTestComparison(
-			[TEST_ARMS.A],
+			[TEST_ARMS.C],
 			1,
 			deps([measured()], {
 				inventory: async () => ({
@@ -209,6 +229,74 @@ describe("test arm orchestration", () => {
 		);
 		expect(result.validComparison).toBe(false);
 		expect(result.invalidReasons).toContain("missing twin");
+	});
+
+	test("invalidates unequal A/C file, pass, fail, and skip outcomes", async () => {
+		const reference: TestOutcome = {
+			filesPassed: 2,
+			filesFailed: 1,
+			testsPassed: 8,
+			testsFailed: 2,
+			testsSkipped: 3,
+			testFileCount: 3,
+		};
+		const candidate: TestOutcome = {
+			filesPassed: 1,
+			filesFailed: 2,
+			testsPassed: 7,
+			testsFailed: 1,
+			testsSkipped: 4,
+			testFileCount: 4,
+		};
+		const result = await runTestComparison(
+			[TEST_ARMS.A, TEST_ARMS.C],
+			1,
+			deps([
+				measuredFor(TEST_ARMS.A, reference),
+				measuredFor(TEST_ARMS.C, candidate),
+			]),
+		);
+		expect(result.validComparison).toBe(false);
+		expect(result.invalidReasons).toContain(
+			"A/C outcome testFileCount mismatch: A=3, C=4",
+		);
+		expect(result.invalidReasons).toContain(
+			"A/C outcome filesPassed mismatch: A=2, C=0",
+		);
+		expect(result.invalidReasons).toContain(
+			"A/C outcome filesFailed mismatch: A=1, C=4",
+		);
+		expect(result.invalidReasons).toContain(
+			"A/C outcome testsPassed mismatch: A=8, C=7",
+		);
+		expect(result.invalidReasons).toContain(
+			"A/C outcome testsFailed mismatch: A=2, C=1",
+		);
+		expect(result.invalidReasons).toContain(
+			"A/C outcome testsSkipped mismatch: A=3, C=4",
+		);
+	});
+
+	test("keeps equal A/C outcomes valid across repetitions", async () => {
+		const outcome: TestOutcome = {
+			filesPassed: 1,
+			filesFailed: 0,
+			testsPassed: 2,
+			testsFailed: 0,
+			testsSkipped: 1,
+			testFileCount: 1,
+		};
+		const result = await runTestComparison(
+			[TEST_ARMS.A, TEST_ARMS.C],
+			2,
+			deps([
+				measuredFor(TEST_ARMS.A, outcome),
+				measuredFor(TEST_ARMS.C, outcome),
+				measuredFor(TEST_ARMS.C, outcome),
+				measuredFor(TEST_ARMS.A, outcome),
+			]),
+		);
+		expect(result.validComparison).toBe(true);
 	});
 
 	test("invalidates a comparison when an outcome is missing", async () => {

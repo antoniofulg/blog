@@ -215,6 +215,37 @@ function validSample(sample: TestArmSample, arm: TestArm): boolean {
 	return sampleReasons(sample, arm).length === 0;
 }
 
+function outcomeMismatches(samples: TestArmSample[]): string[] {
+	const reference = samples.filter((sample) => sample.arm === "A");
+	const candidate = samples.filter((sample) => sample.arm === "C");
+	const fields: Array<keyof TestOutcome> = [
+		"testFileCount",
+		"filesPassed",
+		"filesFailed",
+		"testsPassed",
+		"testsFailed",
+		"testsSkipped",
+	];
+	const reasons: string[] = [];
+	for (
+		let index = 0;
+		index < Math.min(reference.length, candidate.length);
+		index += 1
+	) {
+		const referenceOutcome = reference[index].outcome;
+		const candidateOutcome = candidate[index].outcome;
+		if (!referenceOutcome || !candidateOutcome) continue;
+		for (const field of fields) {
+			if (referenceOutcome[field] !== candidateOutcome[field]) {
+				reasons.push(
+					`A/C outcome ${field} mismatch: A=${referenceOutcome[field]}, C=${candidateOutcome[field]}`,
+				);
+			}
+		}
+	}
+	return reasons;
+}
+
 function defaultHost(): HostMeta {
 	return {
 		host: "unknown",
@@ -243,7 +274,8 @@ export async function runTestComparison(
 		}
 	}
 	const inventory = await deps.inventory();
-	const invalidReasons = [...inventory.reasons];
+	const outcomeReasons = outcomeMismatches(samples);
+	const invalidReasons = [...inventory.reasons, ...outcomeReasons];
 	for (const sample of samples) {
 		const arm = arms.find((candidate) => candidate.id === sample.arm);
 		if (arm) invalidReasons.push(...sampleReasons(sample, arm));
@@ -257,6 +289,7 @@ export async function runTestComparison(
 		inventory,
 		validComparison:
 			inventory.ok &&
+			outcomeReasons.length === 0 &&
 			samples.every((sample) => {
 				const arm = arms.find((candidate) => candidate.id === sample.arm);
 				return arm ? validSample(sample, arm) : false;
