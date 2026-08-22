@@ -4,6 +4,7 @@ import { afterEach, describe, expect, test } from "bun:test";
 const { cleanup, render, screen } = await import("@testing-library/react");
 
 import React from "react";
+import { renderToString } from "react-dom/server";
 import { LanguageMenu } from "#/components/ui/language-menu";
 
 afterEach(() => {
@@ -17,6 +18,18 @@ afterEach(() => {
 // ─── unit: aria-label — issue 002 ────────────────────────────────────────────
 
 describe("unit: aria-label on menu items (issue 002 — screen reader accessibility)", () => {
+	test("keeps controls disabled in SSR markup until hydration", () => {
+		const html = renderToString(
+			React.createElement(LanguageMenu, {
+				variant: "list",
+				items: [{ locale: "pt-br", label: "Português", available: true }],
+				currentLocale: "en",
+			}),
+		);
+
+		expect(html).toContain("disabled");
+	});
+
 	test("available item aria-label is just the locale label", () => {
 		// Non-active locale so the item config (label/available) is consumed.
 		render(

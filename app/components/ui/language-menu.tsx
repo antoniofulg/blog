@@ -1,4 +1,4 @@
-import { Fragment, forwardRef, useCallback } from "react";
+import { Fragment, forwardRef, useCallback, useEffect, useState } from "react";
 import { LOCALES, type Locale } from "#/lib/locale";
 
 const localeLabel: Record<Locale, string> = {
@@ -56,11 +56,28 @@ function getItemFor(
 
 export const LanguageMenu = forwardRef<HTMLButtonElement, LanguageMenuProps>(
 	function LanguageMenu({ variant = "pair", items, currentLocale }, ref) {
+		const [isHydrated, setIsHydrated] = useState(false);
+
+		useEffect(() => {
+			setIsHydrated(true);
+		}, []);
+
 		if (variant === "list") {
-			return <LanguageList items={items} currentLocale={currentLocale} />;
+			return (
+				<LanguageList
+					items={items}
+					currentLocale={currentLocale}
+					isHydrated={isHydrated}
+				/>
+			);
 		}
 		return (
-			<LanguagePair ref={ref} items={items} currentLocale={currentLocale} />
+			<LanguagePair
+				ref={ref}
+				items={items}
+				currentLocale={currentLocale}
+				isHydrated={isHydrated}
+			/>
 		);
 	},
 );
@@ -77,8 +94,9 @@ const LanguagePair = forwardRef<
 	{
 		items: LanguageMenuItemConfig[];
 		currentLocale: Locale;
+		isHydrated: boolean;
 	}
->(function LanguagePair({ items, currentLocale }, ref) {
+>(function LanguagePair({ items, currentLocale, isHydrated }, ref) {
 	const hint = NO_TRANSLATION_HINT[currentLocale];
 	const switchAction = switchActionByLocale[currentLocale];
 
@@ -126,6 +144,7 @@ const LanguagePair = forwardRef<
 						<button
 							ref={idx === firstAlternateIdx ? setRef : undefined}
 							type="button"
+							disabled={!isHydrated}
 							onClick={isActive ? undefined : item?.onClick}
 							tabIndex={isActive ? -1 : 0}
 							aria-current={isActive ? "true" : undefined}
@@ -152,9 +171,11 @@ const LanguagePair = forwardRef<
 function LanguageList({
 	items,
 	currentLocale,
+	isHydrated,
 }: {
 	items: LanguageMenuItemConfig[];
 	currentLocale: Locale;
+	isHydrated: boolean;
 }) {
 	const hint = NO_TRANSLATION_HINT[currentLocale];
 	return (
@@ -183,6 +204,7 @@ function LanguageList({
 						<li key={locale}>
 							<button
 								type="button"
+								disabled={!isHydrated}
 								onClick={isActive ? undefined : item?.onClick}
 								tabIndex={isActive ? -1 : 0}
 								aria-current={isActive ? "true" : undefined}

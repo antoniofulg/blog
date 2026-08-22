@@ -8,7 +8,7 @@
 import { writeFile, unlink, access } from "node:fs/promises";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
-import { spawn } from "node:child_process";
+import { type ChildProcess, spawn } from "node:child_process";
 import { createTestDb } from "../tests/e2e/db";
 
 const NITRO_BUNDLE = join(process.cwd(), ".output/server/index.mjs");
@@ -59,21 +59,46 @@ const child = spawn("bun", ["run", ".output/server/index.mjs"], {
 	stdio: "inherit",
 });
 
-async function cleanup() {
-	child.kill("SIGTERM");
-	await testDb.close().catch(() => {});
-	await unlink(E2E_SERVER_STATE_FILE).catch(() => {});
+async function stopChild(childProcess: ChildProcess): Promise<void> {
+	if (childProcess.exitCode !== null || childProcess.signalCode !== null) return;
+
+	childProcess.kill("SIGTERM");
+	await new Promise<void>((resolve) => {
+		const timer = setTimeout(() => {
+			if (childProcess.exitCode === null && childProcess.signalCode === null) {
+				childProcess.kill("SIGKILL");
+			}
+			resolve();
+		}, 5_000);
+		childProcess.once("close", () => {
+			clearTimeout(timer);
+			resolve();
+		});
+	});
 }
 
-process.on("SIGTERM", async () => {
-	await cleanup();
-	process.exit(0);
-});
-process.on("SIGINT", async () => {
-	await cleanup();
-	process.exit(0);
-});
-child.on("exit", async (code) => {
-	await testDb.close().catch(() => {});
-	process.exit(code ?? 0);
+let cleanupPromise: Promise<void> | undefined;
+function cleanup(): Promise<void> {
+	cleanupPromise ??= (async () => {
+		await stopChild(child);
+		await testDb.close();
+		await unlink(E2E_SERVER_STATE_FILE).catch(() => {});
+	})();
+	return cleanupPromise;
+}
+
+function exitAfterCleanup(code: number): void {
+	void cleanup().then(
+		() => process.exit(code),
+		(error) => {
+			process.stderr.write(`[e2e-server] cleanup failed: ${String(error)}\n`);
+			process.exit(1);
+		},
+	);
+}
+
+process.once("SIGTERM", () => exitAfterCleanup(0));
+process.once("SIGINT", () => exitAfterCleanup(130));
+child.once("exit", (code) => {
+	if (!cleanupPromise) exitAfterCleanup(code ?? 1);
 });
