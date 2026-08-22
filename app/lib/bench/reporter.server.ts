@@ -1,0 +1,242 @@
+import "@tanstack/react-start/server-only";
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { RSS_SAMPLE_INTERVAL_MS } from "#/lib/bench/runner.server";
+import { classifyDelta } from "#/lib/bench/stats";
+import type { Aggregate, RunResult, RuntimeResult } from "#/lib/bench/types";
+
+export function formatMs(ms: number): string {
+	return ms >= 1000 ? `${(ms / 1000).toFixed(2)} s` : `${ms.toFixed(0)} ms`;
+}
+
+export function formatBytes(bytes: number): string {
+	return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+}
+
+function aggregateFor(
+	run: RunResult,
+	id: string,
+	version: string,
+): Aggregate | null {
+	return (
+		run.workloads.find((w) => w.id === id && w.version === version)
+			?.aggregate ?? null
+	);
+}
+
+function workloadIds(run: RunResult): string[] {
+	const seen: string[] = [];
+	for (const w of run.workloads) if (!seen.includes(w.id)) seen.push(w.id);
+	return seen;
+}
+
+function rssDeltaPct(a: Aggregate, b: Aggregate): string {
+	if (a.medianPeakRssBytes === 0) return "n/a";
+	const pct =
+		((b.medianPeakRssBytes - a.medianPeakRssBytes) / a.medianPeakRssBytes) *
+		100;
+	return `${pct >= 0 ? "+" : ""}${pct.toFixed(1)}%`;
+}
+
+function comparisonTable(
+	run: RunResult,
+	before: string,
+	after: string,
+): string {
+	const rows = workloadIds(run).map((id) => {
+		const a = aggregateFor(run, id, before);
+		const b = aggregateFor(run, id, after);
+		if (!a || !b) {
+			return `| \`${id}\` | ${a ? formatMs(a.medianMs) : "n/a"} | ${b ? formatMs(b.medianMs) : "n/a"} | n/a | no result | n/a | n/a | n/a | n/a |`;
+		}
+		const delta = classifyDelta(a, b);
+		const pct = `${delta.deltaPct >= 0 ? "+" : ""}${delta.deltaPct.toFixed(1)}%`;
+		const verdict =
+			delta.verdict === "within-noise" ? "within noise" : delta.verdict;
+		const load = `${a.medianLoadAvg1.toFixed(1)} / ${b.medianLoadAvg1.toFixed(1)}`;
+		return `| \`${id}\` | ${formatMs(a.medianMs)} | ${formatMs(b.medianMs)} | ${pct} | ${verdict} | ${formatBytes(a.medianPeakRssBytes)} | ${formatBytes(b.medianPeakRssBytes)} | ${rssDeltaPct(a, b)} | ${load} |`;
+	});
+	return [
+		`| Workload | ${before} median | ${after} median | Time % | Verdict | ${before} peak RSS | ${after} peak RSS | RSS % | Load ${before} / ${after} |`,
+		"| -------- | -------------- | ------------- | ------ | ------- | ---------------- | --------------- | ----- | ---- |",
+		...rows,
+	].join("\n");
+}
+
+function singleVersionTable(run: RunResult, version: string): string {
+	const rows = workloadIds(run).map((id) => {
+		const a = aggregateFor(run, id, version);
+		return a
+			? `| \`${id}\` | ${formatMs(a.medianMs)} | ${formatMs(a.minMs)} | ${formatMs(a.maxMs)} | ${formatBytes(a.medianPeakRssBytes)} |`
+			: `| \`${id}\` | n/a | n/a | n/a | n/a |`;
+	});
+	return [
+		"| Workload | Median | Min | Max | Median peak RSS |",
+		"| -------- | ------ | --- | --- | --------------- |",
+		...rows,
+	].join("\n");
+}
+
+function runtimeTable(runtime: RuntimeResult[]): string {
+	// The pass number is the measurement order. Each version is measured twice
+	// in an A,B,B,A sequence, so comparing pass 1 against pass 4 shows how much
+	// the machine drifted during the runtime phase — the same thing the load
+	// columns do for the workload table.
+	const rows = runtime.map(
+		(r, i) =>
+			`| ${i + 1} | ${r.version} | ${formatMs(r.bootMs)} | ${formatBytes(r.idleRssBytes)} | ${formatBytes(r.peakRssBytes)} | ${formatBytes(r.postLoadRssBytes)} | ${formatMs(r.latency.p50)} | ${formatMs(r.latency.p95)} | ${formatMs(r.latency.p99)} | ${r.totalRequests} |`,
+	);
+	return [
+		"| Pass | Version | Boot | Idle RSS | Peak RSS | Post-load RSS | p50 | p95 | p99 | Requests |",
+		"| ---- | ------- | ---- | -------- | -------- | ------------- | --- | --- | --- | -------- |",
+		...rows,
+	].join("\n");
+}
+
+/**
+ * Renders a result file as markdown. Pure so it can be checked against a
+ * fixture, and so `--report-only` can re-render an old run without measuring.
+ */
+export function renderReport(run: RunResult): string {
+	const [before, after] = run.versions;
+	const parts: string[] = [
+		`# Bun ${run.versions.join(" vs ")} — benchmark report`,
+		"",
+		`Run started ${run.host.startedAt} on ${run.host.host} (${run.host.cpuModel}, ${run.host.cores} cores, ${formatBytes(run.host.totalMemBytes)} RAM, power: ${run.host.powerSource}, 1-min load at start: ${run.host.loadAvg1.toFixed(2)}).`,
+		"",
+		"Medians over the timed repetitions, warm-up discarded. A delta smaller than the run's own min-to-max spread is reported as `within noise` and must not be quoted as an improvement. The noise band is computed from timings only, so the RSS columns carry no verdict: read a small memory delta as unresolved, not as change. The last column is the median 1-minute load average each side was measured under: when the two differ much, the row is comparing conditions as well as versions.",
+		"",
+		"## Workloads",
+		"",
+	];
+
+	if (run.versions.length < 2) {
+		parts.push(
+			singleVersionTable(run, before ?? "unknown"),
+			"",
+			"Only one version was measured, so no comparison is available.",
+			"",
+		);
+	} else {
+		parts.push(comparisonTable(run, before, after), "");
+	}
+
+	if (run.runtime.length > 0) {
+		parts.push(
+			"## Runtime (production bundle)",
+			"",
+			runtimeTable(run.runtime),
+			"",
+			`Resident memory is sampled every ${RSS_SAMPLE_INTERVAL_MS} ms, so peaks shorter than that are missed. The bias is identical for both versions.`,
+			"",
+		);
+	}
+
+	parts.push("## Findings", "");
+	if (run.findings.length === 0) {
+		parts.push("None — every workload completed under every version.", "");
+	} else {
+		parts.push(
+			"| Workload | Version | Kind | Exit code | Failed reps |",
+			"| -------- | ------- | ---- | --------- | ----------- |",
+			...run.findings.map((f) => {
+				const ratio =
+					f.failedAttempts !== undefined && f.totalAttempts !== undefined
+						? `${f.failedAttempts} of ${f.totalAttempts}`
+						: "unknown";
+				return `| \`${f.workloadId}\` | ${f.version} | ${f.kind} | ${f.exitCode ?? "killed"} | ${ratio} |`;
+			}),
+			"",
+			"A workload that fails a few of its repetitions is flaky; one that fails all of them is incompatible. The ratio is what separates them — a bare failure count cannot.",
+			"",
+		);
+		for (const f of run.findings) {
+			parts.push(
+				`### \`${f.workloadId}\` under ${f.version} (${f.kind})`,
+				"",
+				"```",
+				f.stdoutTail?.trim() ? f.stdoutTail : f.stderrTail,
+				"```",
+				"",
+			);
+		}
+	}
+
+	return parts.join("\n");
+}
+
+export async function writeReport(
+	run: RunResult,
+	dir: string,
+): Promise<string> {
+	await mkdir(dir, { recursive: true });
+	// Named after the run, like its JSON. A fixed REPORT.md was overwritten by
+	// the next run, which made "which run is this?" a question you had to
+	// answer from the header instead of the filename.
+	const stamp = run.host.startedAt.slice(0, 19).replace(/:/g, "-");
+	const path = join(dir, `${stamp}.md`);
+	await writeFile(path, renderReport(run), "utf-8");
+	return path;
+}
+
+/**
+ * One row per workload per run, so a delta that reverses between runs is
+ * visible instead of having to be remembered. This is the answer to "is this
+ * number real or an artefact of the machine that day" — the question a single
+ * report cannot answer no matter how carefully it is written.
+ */
+export function renderSummary(runs: RunResult[]): string {
+	const ordered = [...runs].sort((a, b) =>
+		a.host.startedAt.localeCompare(b.host.startedAt),
+	);
+	const ids: string[] = [];
+	for (const run of ordered)
+		for (const w of run.workloads) if (!ids.includes(w.id)) ids.push(w.id);
+
+	const header = ordered.map((r) => r.host.startedAt.slice(5, 16));
+	const parts: string[] = [
+		"# Bun benchmark — all runs",
+		"",
+		`${ordered.length} run(s). Each cell is the time delta of the later version against the earlier one, with the median load average both sides ran under in parentheses. A workload whose sign changes between runs has not been measured reliably, whatever a single report says.`,
+		"",
+		`| Workload | ${header.join(" | ")} |`,
+		`| -------- | ${header.map(() => "---").join(" | ")} |`,
+	];
+
+	for (const id of ids) {
+		const cells = ordered.map((run) => {
+			const [before, after] = run.versions;
+			const a = run.workloads.find(
+				(w) => w.id === id && w.version === before,
+			)?.aggregate;
+			const b = run.workloads.find(
+				(w) => w.id === id && w.version === after,
+			)?.aggregate;
+			if (!a || !b) return "n/a";
+			const delta = classifyDelta(a, b);
+			const sign = delta.deltaPct >= 0 ? "+" : "";
+			const tag = delta.verdict === "within-noise" ? " ~" : "";
+			// Runs recorded before the load columns existed are read too — the
+			// point of the index is the history. Say "?" rather than inventing
+			// a condition those numbers were never measured under.
+			const show = (n: number | undefined) =>
+				typeof n === "number" ? n.toFixed(0) : "?";
+			const load = `${show(a.medianLoadAvg1)}/${show(b.medianLoadAvg1)}`;
+			return `${sign}${delta.deltaPct.toFixed(1)}%${tag} (${load})`;
+		});
+		parts.push(`| \`${id}\` | ${cells.join(" | ")} |`);
+	}
+
+	parts.push("", "`~` marks a delta inside that run's own noise band.", "");
+	return parts.join("\n");
+}
+
+export async function writeSummary(
+	runs: RunResult[],
+	dir: string,
+): Promise<string> {
+	await mkdir(dir, { recursive: true });
+	const path = join(dir, "ALL-RUNS.md");
+	await writeFile(path, renderSummary(runs), "utf-8");
+	return path;
+}

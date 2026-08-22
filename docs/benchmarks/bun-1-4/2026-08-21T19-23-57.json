@@ -1,0 +1,916 @@
+{
+  "schemaVersion": 1,
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 5.802734375,
+    "powerSource": "ac",
+    "startedAt": "2026-08-21T19:23:57.463Z"
+  },
+  "versions": [
+    "1.3.14",
+    "1.4.0"
+  ],
+  "workloads": [
+    {
+      "id": "install-cold",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 14137.210542000004,
+          "peakRssBytes": 292519936,
+          "exitCode": 0,
+          "loadAvg1": 6.271484375
+        },
+        {
+          "ms": 11948.944875000001,
+          "peakRssBytes": 278921216,
+          "exitCode": 0,
+          "loadAvg1": 6.8369140625
+        },
+        {
+          "ms": 12310.53304200001,
+          "peakRssBytes": 176291840,
+          "exitCode": 0,
+          "loadAvg1": 6.6640625
+        }
+      ],
+      "aggregate": {
+        "medianMs": 12310.53304200001,
+        "minMs": 11948.944875000001,
+        "maxMs": 14137.210542000004,
+        "medianPeakRssBytes": 278921216,
+        "sampleCount": 3,
+        "medianLoadAvg1": 6.6640625,
+        "maxLoadAvg1": 6.8369140625
+      },
+      "attempts": 3,
+      "failures": 0
+    },
+    {
+      "id": "install-cold",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 8636.993750000009,
+          "peakRssBytes": 265404416,
+          "exitCode": 0,
+          "loadAvg1": 8.509765625
+        },
+        {
+          "ms": 8363.177209000001,
+          "peakRssBytes": 208109568,
+          "exitCode": 0,
+          "loadAvg1": 9.1982421875
+        },
+        {
+          "ms": 8594.582750000016,
+          "peakRssBytes": 197378048,
+          "exitCode": 0,
+          "loadAvg1": 10.578125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 8594.582750000016,
+        "minMs": 8363.177209000001,
+        "maxMs": 8636.993750000009,
+        "medianPeakRssBytes": 208109568,
+        "sampleCount": 3,
+        "medianLoadAvg1": 9.1982421875,
+        "maxLoadAvg1": 10.578125
+      },
+      "attempts": 3,
+      "failures": 0
+    },
+    {
+      "id": "install-warm",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 1528.53695899999,
+          "peakRssBytes": 68124672,
+          "exitCode": 0,
+          "loadAvg1": 11.3681640625
+        },
+        {
+          "ms": 1437.5786249999946,
+          "peakRssBytes": 71745536,
+          "exitCode": 0,
+          "loadAvg1": 12.05908203125
+        },
+        {
+          "ms": 1547.0803339999984,
+          "peakRssBytes": 71188480,
+          "exitCode": 0,
+          "loadAvg1": 11.73388671875
+        },
+        {
+          "ms": 1411.6202500000072,
+          "peakRssBytes": 55033856,
+          "exitCode": 0,
+          "loadAvg1": 13.6767578125
+        },
+        {
+          "ms": 1531.9100420000032,
+          "peakRssBytes": 71794688,
+          "exitCode": 0,
+          "loadAvg1": 12.98193359375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 1528.53695899999,
+        "minMs": 1411.6202500000072,
+        "maxMs": 1547.0803339999984,
+        "medianPeakRssBytes": 71188480,
+        "sampleCount": 5,
+        "medianLoadAvg1": 12.05908203125,
+        "maxLoadAvg1": 13.6767578125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "install-warm",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 2145.0293340000208,
+          "peakRssBytes": 165806080,
+          "exitCode": 0,
+          "loadAvg1": 11.88232421875
+        },
+        {
+          "ms": 2085.7944170000264,
+          "peakRssBytes": 165789696,
+          "exitCode": 0,
+          "loadAvg1": 11.4111328125
+        },
+        {
+          "ms": 2028.9087500000023,
+          "peakRssBytes": 166068224,
+          "exitCode": 0,
+          "loadAvg1": 11.2978515625
+        },
+        {
+          "ms": 1910.9840420000255,
+          "peakRssBytes": 166019072,
+          "exitCode": 0,
+          "loadAvg1": 11.19384765625
+        },
+        {
+          "ms": 2015.8586669999931,
+          "peakRssBytes": 166117376,
+          "exitCode": 0,
+          "loadAvg1": 10.93798828125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 2028.9087500000023,
+        "minMs": 1910.9840420000255,
+        "maxMs": 2145.0293340000208,
+        "medianPeakRssBytes": 166019072,
+        "sampleCount": 5,
+        "medianLoadAvg1": 11.2978515625,
+        "maxLoadAvg1": 11.88232421875
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "build",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 6538.753375,
+          "peakRssBytes": 965574656,
+          "exitCode": 0,
+          "loadAvg1": 10.18505859375
+        },
+        {
+          "ms": 7506.69975,
+          "peakRssBytes": 845168640,
+          "exitCode": 0,
+          "loadAvg1": 10.009765625
+        },
+        {
+          "ms": 8200.794416999997,
+          "peakRssBytes": 841170944,
+          "exitCode": 0,
+          "loadAvg1": 10.62939453125
+        },
+        {
+          "ms": 5830.446083999996,
+          "peakRssBytes": 1090453504,
+          "exitCode": 0,
+          "loadAvg1": 10.73876953125
+        },
+        {
+          "ms": 5960.07920800001,
+          "peakRssBytes": 1014890496,
+          "exitCode": 0,
+          "loadAvg1": 9.46826171875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 6538.753375,
+        "minMs": 5830.446083999996,
+        "maxMs": 8200.794416999997,
+        "medianPeakRssBytes": 965574656,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.18505859375,
+        "maxLoadAvg1": 10.73876953125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "build",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 5608.274082999997,
+          "peakRssBytes": 1019314176,
+          "exitCode": 0,
+          "loadAvg1": 8.56005859375
+        },
+        {
+          "ms": 5550.882916000002,
+          "peakRssBytes": 1108525056,
+          "exitCode": 0,
+          "loadAvg1": 8.11474609375
+        },
+        {
+          "ms": 5563.3817909999925,
+          "peakRssBytes": 1004748800,
+          "exitCode": 0,
+          "loadAvg1": 7.625
+        },
+        {
+          "ms": 10996.831958000024,
+          "peakRssBytes": 661635072,
+          "exitCode": 0,
+          "loadAvg1": 7.57470703125
+        },
+        {
+          "ms": 11774.419374999998,
+          "peakRssBytes": 869941248,
+          "exitCode": 0,
+          "loadAvg1": 9.77001953125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 5608.274082999997,
+        "minMs": 5550.882916000002,
+        "maxMs": 11774.419374999998,
+        "medianPeakRssBytes": 1004748800,
+        "sampleCount": 5,
+        "medianLoadAvg1": 8.11474609375,
+        "maxLoadAvg1": 9.77001953125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "test",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 62967.739625000046,
+          "peakRssBytes": 2990407680,
+          "exitCode": 0,
+          "loadAvg1": 20.59765625
+        },
+        {
+          "ms": 64033.82229099999,
+          "peakRssBytes": 2812215296,
+          "exitCode": 0,
+          "loadAvg1": 15.908203125
+        },
+        {
+          "ms": 62672.67979199992,
+          "peakRssBytes": 3331948544,
+          "exitCode": 0,
+          "loadAvg1": 17.31689453125
+        },
+        {
+          "ms": 63393.47287499998,
+          "peakRssBytes": 3359637504,
+          "exitCode": 0,
+          "loadAvg1": 21.36181640625
+        },
+        {
+          "ms": 62356.45299999998,
+          "peakRssBytes": 3385229312,
+          "exitCode": 0,
+          "loadAvg1": 23.1298828125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 62967.739625000046,
+        "minMs": 62356.45299999998,
+        "maxMs": 64033.82229099999,
+        "medianPeakRssBytes": 3331948544,
+        "sampleCount": 5,
+        "medianLoadAvg1": 20.59765625,
+        "maxLoadAvg1": 23.1298828125
+      },
+      "attempts": 5,
+      "failures": 1
+    },
+    {
+      "id": "test",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 64958.60408399999,
+          "peakRssBytes": 3517038592,
+          "exitCode": 0,
+          "loadAvg1": 29.1728515625
+        },
+        {
+          "ms": 63770.15979100007,
+          "peakRssBytes": 3262267392,
+          "exitCode": 0,
+          "loadAvg1": 28.11474609375
+        },
+        {
+          "ms": 62406.918083,
+          "peakRssBytes": 3154673664,
+          "exitCode": 0,
+          "loadAvg1": 30.7421875
+        },
+        {
+          "ms": 65310.056375000044,
+          "peakRssBytes": 2790244352,
+          "exitCode": 0,
+          "loadAvg1": 33.4130859375
+        },
+        {
+          "ms": 62747.786250000005,
+          "peakRssBytes": 3113631744,
+          "exitCode": 0,
+          "loadAvg1": 32.30615234375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 63770.15979100007,
+        "minMs": 62406.918083,
+        "maxMs": 65310.056375000044,
+        "medianPeakRssBytes": 3154673664,
+        "sampleCount": 5,
+        "medianLoadAvg1": 30.7421875,
+        "maxLoadAvg1": 33.4130859375
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "test-e2e",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 13409.206708000042,
+          "peakRssBytes": 477380608,
+          "exitCode": 0,
+          "loadAvg1": 20.8125
+        },
+        {
+          "ms": 13255.430042000022,
+          "peakRssBytes": 466386944,
+          "exitCode": 0,
+          "loadAvg1": 17.1494140625
+        },
+        {
+          "ms": 13495.61654200009,
+          "peakRssBytes": 518651904,
+          "exitCode": 0,
+          "loadAvg1": 14.81982421875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 13409.206708000042,
+        "minMs": 13255.430042000022,
+        "maxMs": 13495.61654200009,
+        "medianPeakRssBytes": 477380608,
+        "sampleCount": 3,
+        "medianLoadAvg1": 17.1494140625,
+        "maxLoadAvg1": 20.8125
+      },
+      "attempts": 5,
+      "failures": 3,
+      "extra": {
+        "passed": 49,
+        "failed": 0
+      }
+    },
+    {
+      "id": "test-e2e",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 15227.94458300015,
+          "peakRssBytes": 398966784,
+          "exitCode": 0,
+          "loadAvg1": 9.36767578125
+        },
+        {
+          "ms": 12457.904209000058,
+          "peakRssBytes": 555843584,
+          "exitCode": 0,
+          "loadAvg1": 8.375
+        },
+        {
+          "ms": 12397.957374999998,
+          "peakRssBytes": 604848128,
+          "exitCode": 0,
+          "loadAvg1": 7.75
+        },
+        {
+          "ms": 12979.4482499999,
+          "peakRssBytes": 543997952,
+          "exitCode": 0,
+          "loadAvg1": 7.00537109375
+        },
+        {
+          "ms": 14129.643125000177,
+          "peakRssBytes": 548274176,
+          "exitCode": 0,
+          "loadAvg1": 6.45654296875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 12979.4482499999,
+        "minMs": 12397.957374999998,
+        "maxMs": 15227.94458300015,
+        "medianPeakRssBytes": 548274176,
+        "sampleCount": 5,
+        "medianLoadAvg1": 7.75,
+        "maxLoadAvg1": 9.36767578125
+      },
+      "attempts": 5,
+      "failures": 0,
+      "extra": {
+        "passed": 49,
+        "failed": 0
+      }
+    },
+    {
+      "id": "lint",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 140.72762500005774,
+          "peakRssBytes": 107315200,
+          "exitCode": 0,
+          "loadAvg1": 7.1650390625
+        },
+        {
+          "ms": 137.1099169999361,
+          "peakRssBytes": 108347392,
+          "exitCode": 0,
+          "loadAvg1": 7.1650390625
+        },
+        {
+          "ms": 132.0728329999838,
+          "peakRssBytes": 111443968,
+          "exitCode": 0,
+          "loadAvg1": 7.1650390625
+        },
+        {
+          "ms": 134.8294169998262,
+          "peakRssBytes": 109133824,
+          "exitCode": 0,
+          "loadAvg1": 7.1650390625
+        },
+        {
+          "ms": 143.85862499987707,
+          "peakRssBytes": 103858176,
+          "exitCode": 0,
+          "loadAvg1": 7.1650390625
+        }
+      ],
+      "aggregate": {
+        "medianMs": 137.1099169999361,
+        "minMs": 132.0728329999838,
+        "maxMs": 143.85862499987707,
+        "medianPeakRssBytes": 108347392,
+        "sampleCount": 5,
+        "medianLoadAvg1": 7.1650390625,
+        "maxLoadAvg1": 7.1650390625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "lint",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 132.9659170000814,
+          "peakRssBytes": 108953600,
+          "exitCode": 0,
+          "loadAvg1": 8.9130859375
+        },
+        {
+          "ms": 131.10875000013039,
+          "peakRssBytes": 108806144,
+          "exitCode": 0,
+          "loadAvg1": 8.9130859375
+        },
+        {
+          "ms": 131.04187500011176,
+          "peakRssBytes": 110149632,
+          "exitCode": 0,
+          "loadAvg1": 8.9130859375
+        },
+        {
+          "ms": 125.7218339999672,
+          "peakRssBytes": 111591424,
+          "exitCode": 0,
+          "loadAvg1": 8.9130859375
+        },
+        {
+          "ms": 128.40208299993537,
+          "peakRssBytes": 108937216,
+          "exitCode": 0,
+          "loadAvg1": 8.9130859375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 131.04187500011176,
+        "minMs": 125.7218339999672,
+        "maxMs": 132.9659170000814,
+        "medianPeakRssBytes": 108953600,
+        "sampleCount": 5,
+        "medianLoadAvg1": 8.9130859375,
+        "maxLoadAvg1": 8.9130859375
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "check",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 4610.380624999991,
+          "peakRssBytes": 925138944,
+          "exitCode": 0,
+          "loadAvg1": 8.51953125
+        },
+        {
+          "ms": 4588.789708000142,
+          "peakRssBytes": 928628736,
+          "exitCode": 0,
+          "loadAvg1": 8.0771484375
+        },
+        {
+          "ms": 4507.600000000093,
+          "peakRssBytes": 883113984,
+          "exitCode": 0,
+          "loadAvg1": 7.75048828125
+        },
+        {
+          "ms": 4501.748666000087,
+          "peakRssBytes": 867074048,
+          "exitCode": 0,
+          "loadAvg1": 7.44970703125
+        },
+        {
+          "ms": 4427.846249999944,
+          "peakRssBytes": 902463488,
+          "exitCode": 0,
+          "loadAvg1": 7.44970703125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 4507.600000000093,
+        "minMs": 4427.846249999944,
+        "maxMs": 4610.380624999991,
+        "medianPeakRssBytes": 902463488,
+        "sampleCount": 5,
+        "medianLoadAvg1": 7.75048828125,
+        "maxLoadAvg1": 8.51953125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "check",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 5339.373916999903,
+          "peakRssBytes": 909688832,
+          "exitCode": 0,
+          "loadAvg1": 7.07275390625
+        },
+        {
+          "ms": 4363.5141659998335,
+          "peakRssBytes": 961871872,
+          "exitCode": 0,
+          "loadAvg1": 6.66748046875
+        },
+        {
+          "ms": 7636.318874999881,
+          "peakRssBytes": 833290240,
+          "exitCode": 0,
+          "loadAvg1": 6.66748046875
+        },
+        {
+          "ms": 5700.606083999854,
+          "peakRssBytes": 934297600,
+          "exitCode": 0,
+          "loadAvg1": 7.05126953125
+        },
+        {
+          "ms": 4377.010082999943,
+          "peakRssBytes": 966230016,
+          "exitCode": 0,
+          "loadAvg1": 6.806640625
+        }
+      ],
+      "aggregate": {
+        "medianMs": 5339.373916999903,
+        "minMs": 4363.5141659998335,
+        "maxMs": 7636.318874999881,
+        "medianPeakRssBytes": 934297600,
+        "sampleCount": 5,
+        "medianLoadAvg1": 6.806640625,
+        "maxLoadAvg1": 7.07275390625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "sync",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 7449.3949160000775,
+          "peakRssBytes": 609337344,
+          "exitCode": 0,
+          "loadAvg1": 6.38720703125
+        },
+        {
+          "ms": 7476.623083000071,
+          "peakRssBytes": 596541440,
+          "exitCode": 0,
+          "loadAvg1": 6.11572265625
+        },
+        {
+          "ms": 7429.5160000000615,
+          "peakRssBytes": 601112576,
+          "exitCode": 0,
+          "loadAvg1": 6.65185546875
+        },
+        {
+          "ms": 7312.806042000186,
+          "peakRssBytes": 619315200,
+          "exitCode": 0,
+          "loadAvg1": 7.240234375
+        },
+        {
+          "ms": 7571.986166000133,
+          "peakRssBytes": 593362944,
+          "exitCode": 0,
+          "loadAvg1": 6.98193359375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 7449.3949160000775,
+        "minMs": 7312.806042000186,
+        "maxMs": 7571.986166000133,
+        "medianPeakRssBytes": 601112576,
+        "sampleCount": 5,
+        "medianLoadAvg1": 6.65185546875,
+        "maxLoadAvg1": 7.240234375
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "sync",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 7020.945833000122,
+          "peakRssBytes": 618184704,
+          "exitCode": 0,
+          "loadAvg1": 7.12744140625
+        },
+        {
+          "ms": 7894.573707999894,
+          "peakRssBytes": 668336128,
+          "exitCode": 0,
+          "loadAvg1": 6.876953125
+        },
+        {
+          "ms": 7085.202750000171,
+          "peakRssBytes": 675430400,
+          "exitCode": 0,
+          "loadAvg1": 6.50146484375
+        },
+        {
+          "ms": 7249.776916000061,
+          "peakRssBytes": 663388160,
+          "exitCode": 0,
+          "loadAvg1": 6.380859375
+        },
+        {
+          "ms": 8456.697582999943,
+          "peakRssBytes": 569671680,
+          "exitCode": 0,
+          "loadAvg1": 6.10986328125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 7249.776916000061,
+        "minMs": 7020.945833000122,
+        "maxMs": 8456.697582999943,
+        "medianPeakRssBytes": 663388160,
+        "sampleCount": 5,
+        "medianLoadAvg1": 6.50146484375,
+        "maxLoadAvg1": 7.12744140625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "audit-fe",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 23590.971082999837,
+          "peakRssBytes": 415383552,
+          "exitCode": 0,
+          "loadAvg1": 8.27099609375
+        },
+        {
+          "ms": 23677.58504200005,
+          "peakRssBytes": 361414656,
+          "exitCode": 0,
+          "loadAvg1": 7.49560546875
+        },
+        {
+          "ms": 23637.545667000115,
+          "peakRssBytes": 347357184,
+          "exitCode": 0,
+          "loadAvg1": 7.08544921875
+        },
+        {
+          "ms": 23619.7591250001,
+          "peakRssBytes": 387055616,
+          "exitCode": 0,
+          "loadAvg1": 6.87255859375
+        },
+        {
+          "ms": 24011.59300000011,
+          "peakRssBytes": 386940928,
+          "exitCode": 0,
+          "loadAvg1": 7.17626953125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 23637.545667000115,
+        "minMs": 23590.971082999837,
+        "maxMs": 24011.59300000011,
+        "medianPeakRssBytes": 386940928,
+        "sampleCount": 5,
+        "medianLoadAvg1": 7.17626953125,
+        "maxLoadAvg1": 8.27099609375
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "audit-fe",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 23188.751875000075,
+          "peakRssBytes": 416563200,
+          "exitCode": 0,
+          "loadAvg1": 9.96923828125
+        },
+        {
+          "ms": 24294.711417000042,
+          "peakRssBytes": 322519040,
+          "exitCode": 0,
+          "loadAvg1": 9.20068359375
+        },
+        {
+          "ms": 24140.557333000004,
+          "peakRssBytes": 371261440,
+          "exitCode": 0,
+          "loadAvg1": 9.31103515625
+        },
+        {
+          "ms": 23605.116582999937,
+          "peakRssBytes": 369623040,
+          "exitCode": 0,
+          "loadAvg1": 11.22705078125
+        },
+        {
+          "ms": 23145.499291999964,
+          "peakRssBytes": 348307456,
+          "exitCode": 0,
+          "loadAvg1": 16.3310546875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 23605.116582999937,
+        "minMs": 23145.499291999964,
+        "maxMs": 24294.711417000042,
+        "medianPeakRssBytes": 369623040,
+        "sampleCount": 5,
+        "medianLoadAvg1": 9.96923828125,
+        "maxLoadAvg1": 16.3310546875
+      },
+      "attempts": 5,
+      "failures": 0
+    }
+  ],
+  "runtime": [
+    {
+      "version": "1.3.14",
+      "bootMs": 335.8780829999596,
+      "idleRssBytes": 172392448,
+      "peakRssBytes": 379600896,
+      "postLoadRssBytes": 160481280,
+      "latency": {
+        "p50": 2367.0890830000862,
+        "p95": 3325.5147919999436,
+        "p99": 3776.985958999954
+      },
+      "totalRequests": 284,
+      "nonOk": []
+    },
+    {
+      "version": "1.4.0",
+      "bootMs": 313.44454099982977,
+      "idleRssBytes": 169459712,
+      "peakRssBytes": 420855808,
+      "postLoadRssBytes": 178962432,
+      "latency": {
+        "p50": 664.5477500001434,
+        "p95": 1054.5515000000596,
+        "p99": 1254.7409159999806
+      },
+      "totalRequests": 886,
+      "nonOk": []
+    },
+    {
+      "version": "1.4.0",
+      "bootMs": 208.5839159998577,
+      "idleRssBytes": 173047808,
+      "peakRssBytes": 396345344,
+      "postLoadRssBytes": 136380416,
+      "latency": {
+        "p50": 641.3181670000777,
+        "p95": 1037.6272499999031,
+        "p99": 1142.0760840000585
+      },
+      "totalRequests": 899,
+      "nonOk": []
+    },
+    {
+      "version": "1.3.14",
+      "bootMs": 327.49258400010876,
+      "idleRssBytes": 231276544,
+      "peakRssBytes": 353632256,
+      "postLoadRssBytes": 69730304,
+      "latency": {
+        "p50": 2141.876292000059,
+        "p95": 3342.1077499999665,
+        "p99": 3647.5319170001894
+      },
+      "totalRequests": 277,
+      "nonOk": []
+    }
+  ],
+  "findings": [
+    {
+      "kind": "compat",
+      "version": "1.4.0",
+      "workloadId": "test",
+      "exitCode": 1,
+      "stderrTail": "\u001b[31m+ Received\u001b[39m\n\n\u001b[32m- 3\u001b[39m\n\u001b[31m+ 2\u001b[39m\n\n\u001b[36m \u001b[2m❯\u001b[22m app/tests/indexer-integ.test.ts:\u001b[2m108:16\u001b[22m\u001b[39m\n    \u001b[90m106|\u001b[39m   \u001b[35mconst\u001b[39m rows \u001b[33m=\u001b[39m\n    \u001b[90m107|\u001b[39m    await sql`SELECT id FROM posts WHERE file_path LIKE ${`${syncDir}/%…\n    \u001b[90m108|\u001b[39m   \u001b[34mexpect\u001b[39m(rows)\u001b[33m.\u001b[39m\u001b[34mtoHaveLength\u001b[39m(\u001b[34m3\u001b[39m)\u001b[33m;\u001b[39m\n    \u001b[90m   |\u001b[39m                \u001b[31m^\u001b[39m\n    \u001b[90m109|\u001b[39m  })\u001b[33m;\u001b[39m\n    \u001b[90m110|\u001b[39m\n\n\u001b[31m\u001b[2m⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯⎯[2/2]⎯\u001b[22m\u001b[39m\n\nclose timed out after 10000ms\nTests closed successfully but something prevents Vite server from exiting\nYou can try to identify the cause by enabling \"hanging-process\" reporter. See https://vitest.dev/guide/reporters.html#hanging-process-reporter\nerror: script \"test\" exited with code 1\n",
+      "stdoutTail": " \u001b[32m✓\u001b[39m app/tests/mdx-integ.test.ts \u001b[2m(\u001b[22m\u001b[2m3 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 342\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m rendering fixture to string produces <h1> matching the first heading \u001b[33m 338\u001b[2mms\u001b[22m\u001b[39m\n\u001b[90mstdout\u001b[2m | app/tests/indexer-og-integ.test.ts\u001b[2m > \u001b[22m\u001b[2mintegration: upsertPost OG generation\u001b[2m > \u001b[22m\u001b[2mwrites a PNG to public/og/en/<slug>.png AND upserts the DB row\n\u001b[22m\u001b[39m{\"level\":\"INFO\",\"action\":\"indexed\",\"filePath\":\"app/tests/fixtures/en/with-code.mdx\",\"slug\":\"with-code\",\"lang\":\"en\",\"category\":null}\n\n \u001b[32m✓\u001b[39m app/tests/indexer-og-integ.test.ts \u001b[2m(\u001b[22m\u001b[2m1 test\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 2044\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m writes a PNG to public/og/en/<slug>.png AND upserts the DB row \u001b[33m 2038\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m app/tests/bench-runner.test.ts \u001b[2m(\u001b[22m\u001b[2m8 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 11802\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m measures wall-clock duration of the spawned command \u001b[33m 444\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m reports higher peak RSS for a child that allocates than one that does not \u001b[33m 7064\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m counts a descendant's memory, not only the direct child's \u001b[33m 3557\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m kills a command that exceeds the timeout and leaves no orphan \u001b[33m 711\u001b[2mms\u001b[22m\u001b[39m\n \u001b[32m✓\u001b[39m app/tests/bench-runtime.test.ts \u001b[2m(\u001b[22m\u001b[2m12 tests\u001b[22m\u001b[2m)\u001b[22m\u001b[33m 53057\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m records boot time from spawn to the first successful response \u001b[33m 5817\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m records idle, peak and post-load resident memory \u001b[33m 3506\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m shows a higher peak than idle when the load makes the server allocate \u001b[33m 2460\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m reports the latency and request counts from the load phase \u001b[33m 1151\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m tags the result with the version it measured \u001b[33m 1134\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m leaves no listener on the port once it returns \u001b[33m 1183\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m escalates to SIGKILL when the server ignores a polite shutdown \u001b[33m 6257\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m refuses to measure a server it did not start \u001b[33m 316\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m frees the port even when the server never boots \u001b[33m 30145\u001b[2mms\u001b[22m\u001b[39m\n     \u001b[33m\u001b[2m✓\u001b[22m\u001b[39m boots on a self-chosen port when none is pinned \u001b[33m 629\u001b[2mms\u001b[22m\u001b[39m\n\n\u001b[2m Test Files \u001b[22m \u001b[1m\u001b[31m1 failed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[1m\u001b[32m123 passed\u001b[39m\u001b[22m\u001b[90m (124)\u001b[39m\n\u001b[2m      Tests \u001b[22m \u001b[1m\u001b[31m2 failed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[1m\u001b[32m2229 passed\u001b[39m\u001b[22m\u001b[2m | \u001b[22m\u001b[33m52 skipped\u001b[39m\u001b[90m (2283)\u001b[39m\n\u001b[2m   Start at \u001b[22m 16:28:43\n\u001b[2m   Duration \u001b[22m 82.98s\u001b[2m (transform 27.70s, setup 0ms, import 105.51s, tests 374.43s, environment 51.32s)\u001b[22m\n\n",
+      "failedAttempts": 1,
+      "totalAttempts": 6
+    },
+    {
+      "kind": "compat",
+      "version": "1.3.14",
+      "workloadId": "test-e2e",
+      "exitCode": 1,
+      "stderrTail": "$ playwright test\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22m\u001b[0m\u001b[31m\u001b[2m2026-08-21T19:42:14.242Z\u001b[0m \u001b[31mERROR\u001b[0m \u001b[1m[Better Auth]:\u001b[0m Invalid password\u001b[0m\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\n\u001b[1A\u001b[2K\u001b[2m[WebServer] \u001b[22mNo IP address found for rate limiting\nerror: script \"test:e2e\" exited with code 1\n",
+      "stdoutTail": "      145 | \t\t\t\t.click({ force: true });\n      146 |\n    > 147 | \t\t\tawait expect(page.getByRole(\"dialog\")).toBeVisible();\n          | \t\t\t                                       ^\n      148 | \t\t\tawait expect(page.getByText(\"Content not available\")).toBeVisible();\n      149 |\n      150 | \t\t\tawait page.getByRole(\"button\", { name: \"Continue\" }).click();\n        at /Users/antoniofulg/Projects/blog/tests/e2e/public-read.spec.ts:147:43\n\n    Error Context: test-results/public-read-public-read-lo-25a53-pens-modal-confirm-→-pt-br--chromium/error-context.md\n\n\n\u001b[1A\u001b[2K[38/49] [chromium] › tests/e2e/public-read.spec.ts:157:2 › public read › locale switcher: modal cancel closes dialog and URL stays unchanged for en-only post @public @smoke\n\u001b[1A\u001b[2K[39/49] [chromium] › tests/e2e/public-read.spec.ts:183:2 › public read › 404: non-existent slug renders Post not found heading @public @smoke\n\u001b[1A\u001b[2K[40/49] [chromium] › tests/e2e/public-read.spec.ts:207:3 › locale-index routes › /pt-br/ renders 200, sets html[lang], and canonical contains expected path @public @smoke\n\u001b[1A\u001b[2K[41/49] [chromium] › tests/e2e/public-read.spec.ts:207:3 › locale-index routes › /en/ renders 200, sets html[lang], and canonical contains expected path @public @smoke\n\u001b[1A\u001b[2K[42/49] [chromium] › tests/e2e/public-read.spec.ts:207:3 › locale-index routes › / renders 200, sets html[lang], and canonical contains expected path @public @smoke\n\u001b[1A\u001b[2K[43/49] [chromium] › tests/e2e/public-read.spec.ts:227:2 › locale-index routes › /pt-br (no trailing slash) redirects to /pt-br/ with 200 @public @smoke\n\u001b[1A\u001b[2K[44/49] [chromium] › tests/e2e/ux-polish.spec.ts:48:2 › /about social row › en /about: avatar img + ≥ 2 social links visible @public @smoke\n\u001b[1A\u001b[2K[45/49] [chromium] › tests/e2e/ux-polish.spec.ts:71:2 › /about social row › pt-br /about: avatar img + ≥ 2 social links visible @public @smoke\n\u001b[1A\u001b[2K[46/49] [chromium] › tests/e2e/ux-polish.spec.ts:97:2 › post share row › desktop: 6 chips visible; Copy Link writes UTM-tagged URL to clipboard @public @smoke\n\u001b[1A\u001b[2K[47/49] [chromium] › tests/e2e/ux-polish.spec.ts:177:2 › post share row › mobile native: single Share button visible; chip row absent when navigator.share mocked @public @smoke\n\u001b[1A\u001b[2K[48/49] [chromium] › tests/e2e/ux-polish.spec.ts:221:2 › admin lang switcher › column headers swap on locale toggle and persist on page reload @admin @smoke\n\n\u001b[1A\u001b[2K[49/49] [chromium] › tests/e2e/ux-polish.spec.ts:264:2 › admin translations › en mode contains zero pt-br-specific strings in visible DOM @admin @smoke\n\n\u001b[1A\u001b[2K  1 failed\n    [chromium] › tests/e2e/public-read.spec.ts:135:2 › public read › locale switcher: clicking unavailable PT chip opens modal, confirm → /pt-br/ @public @smoke \n  48 passed (20.0s)\n",
+      "failedAttempts": 3,
+      "totalAttempts": 6
+    }
+  ]
+}

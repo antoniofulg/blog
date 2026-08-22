@@ -28,7 +28,8 @@
     "audit:content": "bun run scripts/audit-content.ts",
     "audit:fe": "bun run scripts/audit-fe.ts",
     "audit": "bun run audit:content && bun run audit:fe",
-    "favicons": "bun run scripts/generate-favicons.ts"
+    "favicons": "bun run scripts/generate-favicons.ts",
+    "bench": "bun run scripts/bench.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

@@ -1,0 +1,907 @@
+{
+  "schemaVersion": 1,
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 5.5712890625,
+    "powerSource": "ac",
+    "startedAt": "2026-08-21T20:31:45.888Z"
+  },
+  "versions": [
+    "1.3.14",
+    "1.4.0"
+  ],
+  "workloads": [
+    {
+      "id": "install-cold",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 9509.962416999999,
+          "peakRssBytes": 223215616,
+          "exitCode": 0,
+          "loadAvg1": 5.84619140625
+        },
+        {
+          "ms": 8736.831958000002,
+          "peakRssBytes": 198017024,
+          "exitCode": 0,
+          "loadAvg1": 5.7578125
+        },
+        {
+          "ms": 10187.040792,
+          "peakRssBytes": 251772928,
+          "exitCode": 0,
+          "loadAvg1": 6.6484375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 9509.962416999999,
+        "minMs": 8736.831958000002,
+        "maxMs": 10187.040792,
+        "medianPeakRssBytes": 223215616,
+        "sampleCount": 3,
+        "medianLoadAvg1": 5.84619140625,
+        "maxLoadAvg1": 6.6484375
+      },
+      "attempts": 3,
+      "failures": 0
+    },
+    {
+      "id": "install-cold",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 9866.917249999999,
+          "peakRssBytes": 175505408,
+          "exitCode": 0,
+          "loadAvg1": 7.45556640625
+        },
+        {
+          "ms": 9433.983041,
+          "peakRssBytes": 134037504,
+          "exitCode": 0,
+          "loadAvg1": 7.80517578125
+        },
+        {
+          "ms": 9110.283458000005,
+          "peakRssBytes": 192888832,
+          "exitCode": 0,
+          "loadAvg1": 10.046875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 9433.983041,
+        "minMs": 9110.283458000005,
+        "maxMs": 9866.917249999999,
+        "medianPeakRssBytes": 175505408,
+        "sampleCount": 3,
+        "medianLoadAvg1": 7.80517578125,
+        "maxLoadAvg1": 10.046875
+      },
+      "attempts": 3,
+      "failures": 0
+    },
+    {
+      "id": "install-warm",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 1372.3460829999822,
+          "peakRssBytes": 55083008,
+          "exitCode": 0,
+          "loadAvg1": 9.37158203125
+        },
+        {
+          "ms": 1372.0964160000149,
+          "peakRssBytes": 69042176,
+          "exitCode": 0,
+          "loadAvg1": 8.94140625
+        },
+        {
+          "ms": 1397.0895420000015,
+          "peakRssBytes": 58998784,
+          "exitCode": 0,
+          "loadAvg1": 8.94140625
+        },
+        {
+          "ms": 1294.4997080000176,
+          "peakRssBytes": 54984704,
+          "exitCode": 0,
+          "loadAvg1": 8.46533203125
+        },
+        {
+          "ms": 1358.9621669999906,
+          "peakRssBytes": 69320704,
+          "exitCode": 0,
+          "loadAvg1": 8.5078125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 1372.0964160000149,
+        "minMs": 1294.4997080000176,
+        "maxMs": 1397.0895420000015,
+        "medianPeakRssBytes": 58998784,
+        "sampleCount": 5,
+        "medianLoadAvg1": 8.94140625,
+        "maxLoadAvg1": 9.37158203125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "install-warm",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 2051.7498750000086,
+          "peakRssBytes": 161267712,
+          "exitCode": 0,
+          "loadAvg1": 7.97412109375
+        },
+        {
+          "ms": 2233.569959000015,
+          "peakRssBytes": 166428672,
+          "exitCode": 0,
+          "loadAvg1": 8.61669921875
+        },
+        {
+          "ms": 2002.5872910000035,
+          "peakRssBytes": 166379520,
+          "exitCode": 0,
+          "loadAvg1": 9.12744140625
+        },
+        {
+          "ms": 2034.6240830000024,
+          "peakRssBytes": 165920768,
+          "exitCode": 0,
+          "loadAvg1": 9.837890625
+        },
+        {
+          "ms": 2097.7149590000045,
+          "peakRssBytes": 165969920,
+          "exitCode": 0,
+          "loadAvg1": 9.6904296875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 2051.7498750000086,
+        "minMs": 2002.5872910000035,
+        "maxMs": 2233.569959000015,
+        "medianPeakRssBytes": 165969920,
+        "sampleCount": 5,
+        "medianLoadAvg1": 9.12744140625,
+        "maxLoadAvg1": 9.837890625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "build",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 6328.995833000023,
+          "peakRssBytes": 894156800,
+          "exitCode": 0,
+          "loadAvg1": 9.10986328125
+        },
+        {
+          "ms": 8278.612499999988,
+          "peakRssBytes": 928530432,
+          "exitCode": 0,
+          "loadAvg1": 10.5419921875
+        },
+        {
+          "ms": 6319.487250000006,
+          "peakRssBytes": 1057701888,
+          "exitCode": 0,
+          "loadAvg1": 11.82275390625
+        },
+        {
+          "ms": 7025.43845799999,
+          "peakRssBytes": 821493760,
+          "exitCode": 0,
+          "loadAvg1": 11.1962890625
+        },
+        {
+          "ms": 7062.8954579999845,
+          "peakRssBytes": 923959296,
+          "exitCode": 0,
+          "loadAvg1": 10.85986328125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 7025.43845799999,
+        "minMs": 6319.487250000006,
+        "maxMs": 8278.612499999988,
+        "medianPeakRssBytes": 923959296,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.85986328125,
+        "maxLoadAvg1": 11.82275390625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "build",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 5545.682166999992,
+          "peakRssBytes": 1040121856,
+          "exitCode": 0,
+          "loadAvg1": 9.7939453125
+        },
+        {
+          "ms": 6758.806792000018,
+          "peakRssBytes": 919060480,
+          "exitCode": 0,
+          "loadAvg1": 9.32958984375
+        },
+        {
+          "ms": 7402.473207999981,
+          "peakRssBytes": 871792640,
+          "exitCode": 0,
+          "loadAvg1": 8.5224609375
+        },
+        {
+          "ms": 5400.647667000012,
+          "peakRssBytes": 1029570560,
+          "exitCode": 0,
+          "loadAvg1": 10.001953125
+        },
+        {
+          "ms": 6780.32241600001,
+          "peakRssBytes": 977813504,
+          "exitCode": 0,
+          "loadAvg1": 9.52099609375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 6758.806792000018,
+        "minMs": 5400.647667000012,
+        "maxMs": 7402.473207999981,
+        "medianPeakRssBytes": 977813504,
+        "sampleCount": 5,
+        "medianLoadAvg1": 9.52099609375,
+        "maxLoadAvg1": 10.001953125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "test",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 60970.29800000001,
+          "peakRssBytes": 3375087616,
+          "exitCode": 0,
+          "loadAvg1": 12.62548828125
+        },
+        {
+          "ms": 62500.003042,
+          "peakRssBytes": 3053846528,
+          "exitCode": 0,
+          "loadAvg1": 14.31591796875
+        },
+        {
+          "ms": 62972.668083,
+          "peakRssBytes": 3388129280,
+          "exitCode": 0,
+          "loadAvg1": 12.1318359375
+        },
+        {
+          "ms": 63047.65316600003,
+          "peakRssBytes": 2959671296,
+          "exitCode": 0,
+          "loadAvg1": 11.09521484375
+        },
+        {
+          "ms": 61396.84933300002,
+          "peakRssBytes": 3381690368,
+          "exitCode": 0,
+          "loadAvg1": 12.10595703125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 62500.003042,
+        "minMs": 60970.29800000001,
+        "maxMs": 63047.65316600003,
+        "medianPeakRssBytes": 3375087616,
+        "sampleCount": 5,
+        "medianLoadAvg1": 12.1318359375,
+        "maxLoadAvg1": 14.31591796875
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "test",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 60397.480457999976,
+          "peakRssBytes": 4007706624,
+          "exitCode": 0,
+          "loadAvg1": 10.236328125
+        },
+        {
+          "ms": 62522.92541699996,
+          "peakRssBytes": 3364945920,
+          "exitCode": 0,
+          "loadAvg1": 9.7265625
+        },
+        {
+          "ms": 61414.57529200008,
+          "peakRssBytes": 3643441152,
+          "exitCode": 0,
+          "loadAvg1": 15.94580078125
+        },
+        {
+          "ms": 61046.100707999896,
+          "peakRssBytes": 3778166784,
+          "exitCode": 0,
+          "loadAvg1": 11.54931640625
+        },
+        {
+          "ms": 61948.668250000104,
+          "peakRssBytes": 3231973376,
+          "exitCode": 0,
+          "loadAvg1": 9.53076171875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 61414.57529200008,
+        "minMs": 60397.480457999976,
+        "maxMs": 62522.92541699996,
+        "medianPeakRssBytes": 3643441152,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.236328125,
+        "maxLoadAvg1": 15.94580078125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "test-e2e",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 14957.987625000067,
+          "peakRssBytes": 486719488,
+          "exitCode": 0,
+          "loadAvg1": 16.54833984375
+        },
+        {
+          "ms": 18488.527000000002,
+          "peakRssBytes": 440778752,
+          "exitCode": 0,
+          "loadAvg1": 19.0947265625
+        },
+        {
+          "ms": 17763.548582999967,
+          "peakRssBytes": 482476032,
+          "exitCode": 0,
+          "loadAvg1": 18.5546875
+        },
+        {
+          "ms": 17558.92812499986,
+          "peakRssBytes": 404750336,
+          "exitCode": 0,
+          "loadAvg1": 14.88134765625
+        },
+        {
+          "ms": 17606.50733300019,
+          "peakRssBytes": 362528768,
+          "exitCode": 0,
+          "loadAvg1": 12.908203125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 17606.50733300019,
+        "minMs": 14957.987625000067,
+        "maxMs": 18488.527000000002,
+        "medianPeakRssBytes": 440778752,
+        "sampleCount": 5,
+        "medianLoadAvg1": 16.54833984375,
+        "maxLoadAvg1": 19.0947265625
+      },
+      "attempts": 5,
+      "failures": 0,
+      "extra": {
+        "passed": 49,
+        "failed": 0
+      }
+    },
+    {
+      "id": "test-e2e",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 13921.160374999978,
+          "peakRssBytes": 474071040,
+          "exitCode": 0,
+          "loadAvg1": 10.8125
+        },
+        {
+          "ms": 13383.716208999977,
+          "peakRssBytes": 545488896,
+          "exitCode": 0,
+          "loadAvg1": 9.9248046875
+        },
+        {
+          "ms": 13804.727750000078,
+          "peakRssBytes": 469417984,
+          "exitCode": 0,
+          "loadAvg1": 8.93212890625
+        },
+        {
+          "ms": 13174.918958999915,
+          "peakRssBytes": 465747968,
+          "exitCode": 0,
+          "loadAvg1": 8.82373046875
+        },
+        {
+          "ms": 15149.40791700012,
+          "peakRssBytes": 513032192,
+          "exitCode": 0,
+          "loadAvg1": 7.822265625
+        }
+      ],
+      "aggregate": {
+        "medianMs": 13804.727750000078,
+        "minMs": 13174.918958999915,
+        "maxMs": 15149.40791700012,
+        "medianPeakRssBytes": 474071040,
+        "sampleCount": 5,
+        "medianLoadAvg1": 8.93212890625,
+        "maxLoadAvg1": 10.8125
+      },
+      "attempts": 5,
+      "failures": 0,
+      "extra": {
+        "passed": 49,
+        "failed": 0
+      }
+    },
+    {
+      "id": "lint",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 161.41229200013913,
+          "peakRssBytes": 100564992,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 159.94770899997093,
+          "peakRssBytes": 102957056,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 177.76645900006406,
+          "peakRssBytes": 96436224,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 178.73858299991116,
+          "peakRssBytes": 98549760,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 175.8287910001818,
+          "peakRssBytes": 101498880,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 175.8287910001818,
+        "minMs": 159.94770899997093,
+        "maxMs": 178.73858299991116,
+        "medianPeakRssBytes": 100564992,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.58740234375,
+        "maxLoadAvg1": 10.58740234375
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "lint",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 191.01858300017193,
+          "peakRssBytes": 93667328,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 171.05320800002664,
+          "peakRssBytes": 103137280,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 193.21945800003596,
+          "peakRssBytes": 96403456,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 186.17424999992363,
+          "peakRssBytes": 100597760,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        },
+        {
+          "ms": 204.1327080000192,
+          "peakRssBytes": 93454336,
+          "exitCode": 0,
+          "loadAvg1": 10.58740234375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 191.01858300017193,
+        "minMs": 171.05320800002664,
+        "maxMs": 204.1327080000192,
+        "medianPeakRssBytes": 96403456,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.58740234375,
+        "maxLoadAvg1": 10.58740234375
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "check",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 10136.237749999855,
+          "peakRssBytes": 823164928,
+          "exitCode": 0,
+          "loadAvg1": 11.69140625
+        },
+        {
+          "ms": 9694.697124999948,
+          "peakRssBytes": 853147648,
+          "exitCode": 0,
+          "loadAvg1": 16.5556640625
+        },
+        {
+          "ms": 7756.71029099985,
+          "peakRssBytes": 899989504,
+          "exitCode": 0,
+          "loadAvg1": 15.54736328125
+        },
+        {
+          "ms": 7005.727167000063,
+          "peakRssBytes": 791969792,
+          "exitCode": 0,
+          "loadAvg1": 15.58349609375
+        },
+        {
+          "ms": 7135.225707999896,
+          "peakRssBytes": 815693824,
+          "exitCode": 0,
+          "loadAvg1": 14.64453125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 7756.71029099985,
+        "minMs": 7005.727167000063,
+        "maxMs": 10136.237749999855,
+        "medianPeakRssBytes": 823164928,
+        "sampleCount": 5,
+        "medianLoadAvg1": 15.54736328125,
+        "maxLoadAvg1": 16.5556640625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "check",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 6679.842915999936,
+          "peakRssBytes": 888766464,
+          "exitCode": 0,
+          "loadAvg1": 14.98876953125
+        },
+        {
+          "ms": 10076.325582999969,
+          "peakRssBytes": 854097920,
+          "exitCode": 0,
+          "loadAvg1": 14.3486328125
+        },
+        {
+          "ms": 10384.351458999794,
+          "peakRssBytes": 770441216,
+          "exitCode": 0,
+          "loadAvg1": 15.24267578125
+        },
+        {
+          "ms": 7953.562541999854,
+          "peakRssBytes": 914259968,
+          "exitCode": 0,
+          "loadAvg1": 16.43505859375
+        },
+        {
+          "ms": 7195.82170900004,
+          "peakRssBytes": 918831104,
+          "exitCode": 0,
+          "loadAvg1": 16.17529296875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 7953.562541999854,
+        "minMs": 6679.842915999936,
+        "maxMs": 10384.351458999794,
+        "medianPeakRssBytes": 888766464,
+        "sampleCount": 5,
+        "medianLoadAvg1": 15.24267578125,
+        "maxLoadAvg1": 16.43505859375
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "sync",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 16353.135541999945,
+          "peakRssBytes": 529072128,
+          "exitCode": 0,
+          "loadAvg1": 15.7568359375
+        },
+        {
+          "ms": 15034.910374999978,
+          "peakRssBytes": 562233344,
+          "exitCode": 0,
+          "loadAvg1": 19.6826171875
+        },
+        {
+          "ms": 10927.836291999789,
+          "peakRssBytes": 617398272,
+          "exitCode": 0,
+          "loadAvg1": 24.166015625
+        },
+        {
+          "ms": 24918.266541999998,
+          "peakRssBytes": 441794560,
+          "exitCode": 0,
+          "loadAvg1": 21.82373046875
+        },
+        {
+          "ms": 16240.529624999966,
+          "peakRssBytes": 602456064,
+          "exitCode": 0,
+          "loadAvg1": 20.80859375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 16240.529624999966,
+        "minMs": 10927.836291999789,
+        "maxMs": 24918.266541999998,
+        "medianPeakRssBytes": 562233344,
+        "sampleCount": 5,
+        "medianLoadAvg1": 20.80859375,
+        "maxLoadAvg1": 24.166015625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "sync",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 13079.620542000048,
+          "peakRssBytes": 419528704,
+          "exitCode": 0,
+          "loadAvg1": 17.83251953125
+        },
+        {
+          "ms": 8147.622124999994,
+          "peakRssBytes": 627523584,
+          "exitCode": 0,
+          "loadAvg1": 16.85546875
+        },
+        {
+          "ms": 8706.31391700008,
+          "peakRssBytes": 605257728,
+          "exitCode": 0,
+          "loadAvg1": 15.98583984375
+        },
+        {
+          "ms": 12882.935334000038,
+          "peakRssBytes": 489619456,
+          "exitCode": 0,
+          "loadAvg1": 14.54931640625
+        },
+        {
+          "ms": 9204.975209000055,
+          "peakRssBytes": 630669312,
+          "exitCode": 0,
+          "loadAvg1": 14.748046875
+        }
+      ],
+      "aggregate": {
+        "medianMs": 9204.975209000055,
+        "minMs": 8147.622124999994,
+        "maxMs": 13079.620542000048,
+        "medianPeakRssBytes": 605257728,
+        "sampleCount": 5,
+        "medianLoadAvg1": 15.98583984375,
+        "maxLoadAvg1": 17.83251953125
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "audit-fe",
+      "version": "1.3.14",
+      "samples": [
+        {
+          "ms": 25463.53841700009,
+          "peakRssBytes": 323502080,
+          "exitCode": 0,
+          "loadAvg1": 12.75390625
+        },
+        {
+          "ms": 23777.954791999888,
+          "peakRssBytes": 476774400,
+          "exitCode": 0,
+          "loadAvg1": 12.29833984375
+        },
+        {
+          "ms": 25912.32091699983,
+          "peakRssBytes": 329007104,
+          "exitCode": 0,
+          "loadAvg1": 10.712890625
+        },
+        {
+          "ms": 27851.19916700013,
+          "peakRssBytes": 311803904,
+          "exitCode": 0,
+          "loadAvg1": 11.875
+        },
+        {
+          "ms": 26079.347124999855,
+          "peakRssBytes": 349175808,
+          "exitCode": 0,
+          "loadAvg1": 10.6328125
+        }
+      ],
+      "aggregate": {
+        "medianMs": 25912.32091699983,
+        "minMs": 23777.954791999888,
+        "maxMs": 27851.19916700013,
+        "medianPeakRssBytes": 329007104,
+        "sampleCount": 5,
+        "medianLoadAvg1": 11.875,
+        "maxLoadAvg1": 12.75390625
+      },
+      "attempts": 5,
+      "failures": 0
+    },
+    {
+      "id": "audit-fe",
+      "version": "1.4.0",
+      "samples": [
+        {
+          "ms": 24595.371916999808,
+          "peakRssBytes": 333856768,
+          "exitCode": 0,
+          "loadAvg1": 8.87939453125
+        },
+        {
+          "ms": 23769.642041999847,
+          "peakRssBytes": 378257408,
+          "exitCode": 0,
+          "loadAvg1": 10.45166015625
+        },
+        {
+          "ms": 24002.41658399999,
+          "peakRssBytes": 324272128,
+          "exitCode": 0,
+          "loadAvg1": 9.55029296875
+        },
+        {
+          "ms": 25430.07224999997,
+          "peakRssBytes": 365494272,
+          "exitCode": 0,
+          "loadAvg1": 8.443359375
+        },
+        {
+          "ms": 24559.71170799993,
+          "peakRssBytes": 303906816,
+          "exitCode": 0,
+          "loadAvg1": 12.08349609375
+        }
+      ],
+      "aggregate": {
+        "medianMs": 24559.71170799993,
+        "minMs": 23769.642041999847,
+        "maxMs": 25430.07224999997,
+        "medianPeakRssBytes": 333856768,
+        "sampleCount": 5,
+        "medianLoadAvg1": 9.55029296875,
+        "maxLoadAvg1": 12.08349609375
+      },
+      "attempts": 5,
+      "failures": 0
+    }
+  ],
+  "runtime": [
+    {
+      "version": "1.3.14",
+      "bootMs": 344.14004200021736,
+      "idleRssBytes": 172015616,
+      "peakRssBytes": 379092992,
+      "postLoadRssBytes": 61161472,
+      "latency": {
+        "p50": 2882.840584000107,
+        "p95": 5423.923583999975,
+        "p99": 6165.811166999862
+      },
+      "totalRequests": 208,
+      "nonOk": []
+    },
+    {
+      "version": "1.4.0",
+      "bootMs": 374.3382500000298,
+      "idleRssBytes": 52510720,
+      "peakRssBytes": 434536448,
+      "postLoadRssBytes": 136740864,
+      "latency": {
+        "p50": 874.5632500001229,
+        "p95": 2004.4730830001645,
+        "p99": 3462.3360000001267
+      },
+      "totalRequests": 644,
+      "nonOk": []
+    },
+    {
+      "version": "1.4.0",
+      "bootMs": 253.0264999999199,
+      "idleRssBytes": 222314496,
+      "peakRssBytes": 415596544,
+      "postLoadRssBytes": 190316544,
+      "latency": {
+        "p50": 732.2558339999523,
+        "p95": 1189.9954170000274,
+        "p99": 1322.8276250001509
+      },
+      "totalRequests": 784,
+      "nonOk": []
+    },
+    {
+      "version": "1.3.14",
+      "bootMs": 378.1803339999169,
+      "idleRssBytes": 80855040,
+      "peakRssBytes": 329056256,
+      "postLoadRssBytes": 61865984,
+      "latency": {
+        "p50": 2698.230875000125,
+        "p95": 4656.443708000006,
+        "p99": 4854.811250000028
+      },
+      "totalRequests": 220,
+      "nonOk": []
+    }
+  ],
+  "findings": []
+}

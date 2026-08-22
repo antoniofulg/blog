@@ -132,6 +132,7 @@ const config = defineConfig({
 		// fails on a busy machine and passes on an idle one, which reads as
 		// flakiness and, inside a version benchmark, as a compat finding
 		// against whichever runtime happened to be measured under load.
+		server: { deps: { inline: [/react/, /react-dom/, /zod/] } },
 		hookTimeout: 60_000,
 		testTimeout: 30_000,
 	},
