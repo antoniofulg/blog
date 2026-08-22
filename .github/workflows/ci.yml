@@ -70,6 +70,9 @@ jobs:
       - run: cp .env.example .env
       - name: Run Bun Test shadow
         shell: bash
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
         run: |
           mkdir -p docs/benchmarks/bun-test
           set +e

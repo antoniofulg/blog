@@ -61,7 +61,8 @@ export function isPgliteHookTimeout(output: string): boolean {
 
 export function createShadowRunRecord(input: ShadowRunInput): ShadowRunRecord {
 	const outcome = parseBunOutcome(input.bunOutput);
-	const noisy = isPgliteHookTimeout(input.bunOutput);
+	const failed = input.bunStatus !== 0;
+	const noisy = failed && isPgliteHookTimeout(input.bunOutput);
 	return {
 		timestamp: input.timestamp,
 		commit: input.commit,
@@ -74,7 +75,7 @@ export function createShadowRunRecord(input: ShadowRunInput): ShadowRunRecord {
 		samples: [
 			{
 				exitCode: input.bunStatus === 0 ? 0 : input.bunStatus,
-				timedOut: /timed?\s*out|timeout/i.test(input.bunOutput),
+				timedOut: failed && /timed?\s*out|timeout/i.test(input.bunOutput),
 				outcome,
 			},
 		],

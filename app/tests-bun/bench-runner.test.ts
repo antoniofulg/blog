@@ -31,7 +31,7 @@ describe("bench spawn measurement", () => {
 			{ timeoutMs: 30_000 },
 		);
 		expect(heavy.peakRssBytes).toBeGreaterThan(idle.peakRssBytes);
-		expect(heavy.peakRssBytes).toBeGreaterThan(150 * MB);
+		expect(heavy.peakRssBytes - idle.peakRssBytes).toBeGreaterThan(32 * MB);
 	});
 
 	test("counts a descendant's memory, not only the direct child's", async () => {

@@ -144,5 +144,14 @@ describe("Bun Test shadow eligibility", () => {
 				timestamp: "2026-08-22T00:00:00.000Z",
 			}).noisy,
 		).toBe(true);
+		const successful = createShadowRunRecord({
+			parity: { ok: true, reasons: [] },
+			bunStatus: 0,
+			bunOutput: `${noisy}\n1 pass\nRan 1 test across 1 file.`,
+			commit: "abc",
+			timestamp: "2026-08-22T00:00:00.000Z",
+		});
+		expect(successful.noisy).toBe(false);
+		expect(successful.samples[0].timedOut).toBe(false);
 	});
 });

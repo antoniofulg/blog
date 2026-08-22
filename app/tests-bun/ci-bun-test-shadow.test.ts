@@ -32,6 +32,14 @@ describe("Bun Test CI shadow", () => {
 		expect(shadow).toContain("bun run test:bun");
 	});
 
+	test("provides E2E credentials to the candidate suite", () => {
+		const shadow = ci.slice(ci.indexOf("bun-test-shadow:"));
+		expect(shadow).toContain("E2E_ADMIN_EMAIL:");
+		expect(shadow).toContain("secrets.E2E_ADMIN_EMAIL");
+		expect(shadow).toContain("E2E_ADMIN_PASSWORD:");
+		expect(shadow).toContain("secrets.E2E_ADMIN_PASSWORD");
+	});
+
 	test("writes schema-compatible results through the tested producer", () => {
 		const shadow = ci.slice(ci.indexOf("bun-test-shadow:"));
 		expect(shadow).toContain("scripts/write-shadow-result.ts");
