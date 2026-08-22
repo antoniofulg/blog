@@ -1,9 +1,11 @@
 import { mkdir, open, readFile, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import { aggregate, classifyDelta } from "#/lib/bench/stats";
-import type { HostMeta, Sample } from "#/lib/bench/types";
+import type { Aggregate, HostMeta, Sample } from "#/lib/bench/types";
 
 export type E2ESmokeArm = "playwright" | "webview";
+export type E2EBenchmarkMode = "cold" | "warm-session";
+export type E2EBenchmarkPhase = "warmup" | "measured";
 
 export type E2ESmokeScenario = {
 	id: string;
@@ -28,35 +30,58 @@ export type E2EScenarioResult = {
 	error?: string;
 };
 
-export type E2ESmokeOutcome = {
+export type E2EPassOutcome = {
+	durationMs: number;
+	browserRssBytes: number;
+	scenarios: E2EScenarioResult[];
+};
+
+type E2EOutcomeProvenance = {
 	schemaVersion: 1;
 	arm: E2ESmokeArm;
 	runtime: "bun";
 	runtimeVersion: string;
 	automationVersion: string;
 	browserExecutable: string;
-	browserRssBytes: number;
 	viewport: { width: number; height: number };
-	scenarios: E2EScenarioResult[];
+};
+
+export type E2ESmokeOutcome = E2EOutcomeProvenance & E2EPassOutcome;
+
+export type E2ESessionOutcome = E2EOutcomeProvenance & {
+	warmup: E2EPassOutcome;
+	passes: E2EPassOutcome[];
 };
 
 export type E2EBenchmarkSample = Sample & {
 	repetition: number;
 	arm: E2ESmokeArm;
+	phase: E2EBenchmarkPhase;
+	session?: number;
 	timedOut: boolean;
 	outcome: E2ESmokeOutcome | null;
 	failureExcerpt?: string;
 };
 
+export type E2ESessionTotal = Sample & {
+	arm: E2ESmokeArm;
+	session: number;
+	timedOut: boolean;
+};
+
 export type E2EBenchmarkRun = {
-	schemaVersion: 1;
+	schemaVersion: 2;
+	mode: E2EBenchmarkMode;
 	timestamp: string;
 	commit: string;
 	host: HostMeta;
 	repetitions: number;
 	warmupsPerArm: number;
+	sessionsPerArm: number;
 	scenarios: E2ESmokeScenario[];
+	warmups: E2EBenchmarkSample[];
 	samples: E2EBenchmarkSample[];
+	sessionTotals: E2ESessionTotal[];
 	validComparison: boolean;
 	invalidReasons: string[];
 };
@@ -98,6 +123,7 @@ export const E2E_SMOKE_SCENARIOS: E2ESmokeScenario[] = [
 ];
 
 export const E2E_SMOKE_RESULT_PREFIX = "E2E_SMOKE_RESULT ";
+export const E2E_SESSION_RESULT_PREFIX = "E2E_SESSION_RESULT ";
 
 export const PAGE_SNAPSHOT_EXPRESSION = `(() => ({
   readyState: document.readyState,
@@ -123,32 +149,27 @@ export function assessScenario(
 	snapshot: E2EPageSnapshot,
 ): E2EScenarioResult {
 	const errors: string[] = [];
-	if (snapshot.readyState !== "complete") {
+	if (snapshot.readyState !== "complete")
 		errors.push(`readyState=${snapshot.readyState}`);
-	}
-	if (scenario.expectedLang && snapshot.lang !== scenario.expectedLang) {
+	if (scenario.expectedLang && snapshot.lang !== scenario.expectedLang)
 		errors.push(`lang expected ${scenario.expectedLang}, got ${snapshot.lang}`);
-	}
 	if (
 		scenario.expectedHeading &&
 		!snapshot.headings.includes(scenario.expectedHeading)
-	) {
+	)
 		errors.push(`heading not found: ${scenario.expectedHeading}`);
-	}
 	if (
 		scenario.expectedText &&
 		!snapshot.bodyText.includes(scenario.expectedText)
-	) {
+	)
 		errors.push(`text not found: ${scenario.expectedText}`);
-	}
 	if (
 		scenario.expectedCanonicalPath &&
 		canonicalPath(snapshot.canonical) !== scenario.expectedCanonicalPath
-	) {
+	)
 		errors.push(
 			`canonical expected ${scenario.expectedCanonicalPath}, got ${canonicalPath(snapshot.canonical) ?? "missing"}`,
 		);
-	}
 	return {
 		id: scenario.id,
 		passed: errors.length === 0,
@@ -168,18 +189,24 @@ export function benchmarkOrder(
 	);
 }
 
-export function parseSmokeOutcome(stdout: string): E2ESmokeOutcome | null {
+function parsePrefixed<T>(stdout: string, prefix: string): T | null {
 	for (const line of stdout.split("\n").reverse()) {
-		if (!line.startsWith(E2E_SMOKE_RESULT_PREFIX)) continue;
+		if (!line.startsWith(prefix)) continue;
 		try {
-			return JSON.parse(
-				line.slice(E2E_SMOKE_RESULT_PREFIX.length),
-			) as E2ESmokeOutcome;
+			return JSON.parse(line.slice(prefix.length)) as T;
 		} catch {
 			return null;
 		}
 	}
 	return null;
+}
+
+export function parseSmokeOutcome(stdout: string): E2ESmokeOutcome | null {
+	return parsePrefixed(stdout, E2E_SMOKE_RESULT_PREFIX);
+}
+
+export function parseSessionOutcome(stdout: string): E2ESessionOutcome | null {
+	return parsePrefixed(stdout, E2E_SESSION_RESULT_PREFIX);
 }
 
 function expectedScenarioIds(): string[] {
@@ -196,10 +223,11 @@ function sampleReasons(sample: E2EBenchmarkSample): string[] {
 		reasons.push(`${sample.arm}: outcome arm mismatch`);
 	if (sample.outcome.runtime !== "bun")
 		reasons.push(`${sample.arm}: runtime is not Bun`);
+	if (JSON.stringify(sample.outcome.viewport) !== JSON.stringify(E2E_VIEWPORT))
+		reasons.push(`${sample.arm}: viewport mismatch`);
 	const ids = sample.outcome.scenarios.map((scenario) => scenario.id);
-	if (JSON.stringify(ids) !== JSON.stringify(expectedScenarioIds())) {
+	if (JSON.stringify(ids) !== JSON.stringify(expectedScenarioIds()))
 		reasons.push(`${sample.arm}: scenario inventory mismatch`);
-	}
 	for (const scenario of sample.outcome.scenarios) {
 		if (!scenario.passed)
 			reasons.push(
@@ -210,56 +238,102 @@ function sampleReasons(sample: E2EBenchmarkSample): string[] {
 }
 
 export function buildE2EBenchmarkRun(input: {
+	mode?: E2EBenchmarkMode;
 	timestamp: string;
 	commit: string;
 	host: HostMeta;
 	repetitions: number;
+	warmupsPerArm?: number;
+	sessionsPerArm?: number;
+	warmups?: E2EBenchmarkSample[];
 	samples: E2EBenchmarkSample[];
+	sessionTotals?: E2ESessionTotal[];
 }): E2EBenchmarkRun {
-	const reasons = input.samples.flatMap(sampleReasons);
+	const mode = input.mode ?? "cold";
+	const warmups = input.warmups ?? [];
+	const warmupsPerArm = input.warmupsPerArm ?? 0;
+	const sessionsPerArm = input.sessionsPerArm ?? 0;
+	const sessionTotals = input.sessionTotals ?? [];
+	const reasons = [...warmups, ...input.samples].flatMap(sampleReasons);
 	for (const arm of ["playwright", "webview"] as const) {
-		const count = input.samples.filter((sample) => sample.arm === arm).length;
-		if (count !== input.repetitions) {
+		const sampleCount = input.samples.filter(
+			(sample) => sample.arm === arm,
+		).length;
+		const warmupCount = warmups.filter((sample) => sample.arm === arm).length;
+		const sessionCount = sessionTotals.filter(
+			(sample) => sample.arm === arm,
+		).length;
+		if (sampleCount !== input.repetitions)
 			reasons.push(
-				`${arm}: expected ${input.repetitions} samples, received ${count}`,
+				`${arm}: expected ${input.repetitions} samples, received ${sampleCount}`,
 			);
-		}
+		if (warmupCount !== warmupsPerArm)
+			reasons.push(
+				`${arm}: expected ${warmupsPerArm} warmups, received ${warmupCount}`,
+			);
+		if (sessionCount !== sessionsPerArm)
+			reasons.push(
+				`${arm}: expected ${sessionsPerArm} session totals, received ${sessionCount}`,
+			);
 	}
 	const executables = new Set(
-		input.samples
+		[...warmups, ...input.samples]
 			.map((sample) => sample.outcome?.browserExecutable)
 			.filter((value): value is string => Boolean(value)),
 	);
 	if (executables.size !== 1) reasons.push("browser executable mismatch");
 	return {
-		schemaVersion: 1,
+		schemaVersion: 2,
+		mode,
 		timestamp: input.timestamp,
 		commit: input.commit,
 		host: input.host,
 		repetitions: input.repetitions,
-		warmupsPerArm: 1,
+		warmupsPerArm,
+		sessionsPerArm,
 		scenarios: E2E_SMOKE_SCENARIOS,
+		warmups,
 		samples: input.samples,
+		sessionTotals,
 		validComparison: reasons.length === 0,
 		invalidReasons: [...new Set(reasons)],
 	};
 }
 
-function aggregateArm(run: E2EBenchmarkRun, arm: E2ESmokeArm) {
-	return aggregate(
-		run.samples
-			.filter((sample) => sample.arm === arm)
-			.map(({ ms, peakRssBytes, exitCode, loadAvg1 }) => ({
-				ms,
-				peakRssBytes,
-				exitCode,
-				loadAvg1,
-			})),
+function samplesFor(
+	run: E2EBenchmarkRun,
+	arm: E2ESmokeArm,
+	includeWarmups = false,
+): E2EBenchmarkSample[] {
+	return [...(includeWarmups ? run.warmups : []), ...run.samples].filter(
+		(sample) => sample.arm === arm,
 	);
 }
 
-function mib(value: number): string {
-	return `${(value / (1024 * 1024)).toFixed(1)} MiB`;
+function aggregateSamples(samples: E2EBenchmarkSample[]): Aggregate | null {
+	return aggregate(
+		samples.map(({ ms, peakRssBytes, exitCode, loadAvg1 }) => ({
+			ms,
+			peakRssBytes,
+			exitCode,
+			loadAvg1,
+		})),
+	);
+}
+
+function aggregateArm(
+	run: E2EBenchmarkRun,
+	arm: E2ESmokeArm,
+	includeWarmups = false,
+): Aggregate | null {
+	return aggregateSamples(samplesFor(run, arm, includeWarmups));
+}
+
+function aggregateSessionTotals(
+	run: E2EBenchmarkRun,
+	arm: E2ESmokeArm,
+): Aggregate | null {
+	return aggregate(run.sessionTotals.filter((sample) => sample.arm === arm));
 }
 
 function median(values: number[]): number {
@@ -271,23 +345,63 @@ function median(values: number[]): number {
 		: (sorted[middle - 1] + sorted[middle]) / 2;
 }
 
-function medianBrowserRss(run: E2EBenchmarkRun, arm: E2ESmokeArm): number {
+function medianBrowserRss(
+	run: E2EBenchmarkRun,
+	arm: E2ESmokeArm,
+	includeWarmups = false,
+): number {
 	return median(
-		run.samples
-			.filter((sample) => sample.arm === arm)
-			.map((sample) => sample.outcome?.browserRssBytes ?? 0),
+		samplesFor(run, arm, includeWarmups).map(
+			(sample) => sample.outcome?.browserRssBytes ?? 0,
+		),
 	);
+}
+
+function totalMs(samples: E2EBenchmarkSample[]): number {
+	return samples.reduce((total, sample) => total + sample.ms, 0);
+}
+
+function mib(value: number): string {
+	return `${(value / (1024 * 1024)).toFixed(1)} MiB`;
+}
+
+function resultTable(run: E2EBenchmarkRun, includeWarmups = false): string[] {
+	const playwright = aggregateArm(run, "playwright", includeWarmups);
+	const webview = aggregateArm(run, "webview", includeWarmups);
+	if (!playwright || !webview) return ["Aggregate missing."];
+	const delta = classifyDelta(playwright, webview);
+	return [
+		"| Arm | Median | Min | Max | Total | Median browser RSS | Samples |",
+		"| --- | ---: | ---: | ---: | ---: | ---: | ---: |",
+		`| Bun + Playwright | ${(playwright.medianMs / 1000).toFixed(3)} s | ${(playwright.minMs / 1000).toFixed(3)} s | ${(playwright.maxMs / 1000).toFixed(3)} s | ${(totalMs(samplesFor(run, "playwright", includeWarmups)) / 1000).toFixed(3)} s | ${mib(medianBrowserRss(run, "playwright", includeWarmups))} | ${playwright.sampleCount} |`,
+		`| Bun.WebView | ${(webview.medianMs / 1000).toFixed(3)} s | ${(webview.minMs / 1000).toFixed(3)} s | ${(webview.maxMs / 1000).toFixed(3)} s | ${(totalMs(samplesFor(run, "webview", includeWarmups)) / 1000).toFixed(3)} s | ${mib(medianBrowserRss(run, "webview", includeWarmups))} | ${webview.sampleCount} |`,
+		"",
+		`WebView delta: ${delta.deltaPct.toFixed(2)}% (${delta.verdict}).`,
+	];
+}
+
+function sessionTotalsTable(run: E2EBenchmarkRun): string[] {
+	const playwright = aggregateSessionTotals(run, "playwright");
+	const webview = aggregateSessionTotals(run, "webview");
+	if (!playwright || !webview) return ["Session totals unavailable."];
+	return [
+		"| Arm | Median total process time | Min | Max | Sessions |",
+		"| --- | ---: | ---: | ---: | ---: |",
+		`| Bun + Playwright | ${(playwright.medianMs / 1000).toFixed(3)} s | ${(playwright.minMs / 1000).toFixed(3)} s | ${(playwright.maxMs / 1000).toFixed(3)} s | ${playwright.sampleCount} |`,
+		`| Bun.WebView | ${(webview.medianMs / 1000).toFixed(3)} s | ${(webview.minMs / 1000).toFixed(3)} s | ${(webview.maxMs / 1000).toFixed(3)} s | ${webview.sampleCount} |`,
+	];
 }
 
 export function renderE2EBenchmark(run: E2EBenchmarkRun): string {
 	const lines = [
-		"# Bun Playwright vs Bun.WebView",
+		`# Bun Playwright vs Bun.WebView — ${run.mode}`,
 		"",
 		`- Commit: \`${run.commit}\``,
 		`- Timestamp: ${run.timestamp}`,
 		`- Host: ${run.host.host} (${run.host.cpuModel}, ${run.host.cores} cores)`,
-		`- Scenarios: ${run.scenarios.length}`,
-		`- Timed repetitions per arm: ${run.repetitions}`,
+		`- Scenarios per pass: ${run.scenarios.length}`,
+		`- Measured samples per arm: ${run.repetitions}`,
+		`- Warm-ups per arm: ${run.warmupsPerArm}`,
 		"- Browser: same Chromium executable in both arms",
 		"- Server: one shared Bun server, excluded from measured process groups",
 		"",
@@ -298,23 +412,30 @@ export function renderE2EBenchmark(run: E2EBenchmarkRun): string {
 		lines.push("", "No performance conclusion is reported.", "");
 		return lines.join("\n");
 	}
-	const playwright = aggregateArm(run, "playwright");
-	const webview = aggregateArm(run, "webview");
-	if (!playwright || !webview) {
-		return `${lines.join("\n")}## Comparison invalid\n\n- aggregate missing\n`;
+	lines.push("## Primary result", "", ...resultTable(run), "");
+	if (run.mode === "cold") {
+		lines.push(
+			"## Cold result including warm-up",
+			"",
+			...resultTable(run, true),
+			"",
+		);
+	} else {
+		const passesPerSession =
+			run.sessionsPerArm === 0 ? 0 : run.repetitions / run.sessionsPerArm;
+		lines.push(
+			"## Warm-session result including in-session warm-ups",
+			"",
+			...resultTable(run, true),
+			"",
+			"## Whole-session process cost",
+			"",
+			...sessionTotalsTable(run),
+			"",
+			`Primary warm-session timings measure only each five-scenario pass with the browser already open. Each whole session includes browser startup, one internal warm-up, ${passesPerSession} measured passes, and shutdown.`,
+			"",
+		);
 	}
-	const delta = classifyDelta(playwright, webview);
-	lines.push(
-		"## Results",
-		"",
-		"| Arm | Median | Min | Max | Median browser RSS | Samples |",
-		"| --- | ---: | ---: | ---: | ---: | ---: |",
-		`| Bun + Playwright | ${(playwright.medianMs / 1000).toFixed(2)} s | ${(playwright.minMs / 1000).toFixed(2)} s | ${(playwright.maxMs / 1000).toFixed(2)} s | ${mib(medianBrowserRss(run, "playwright"))} | ${playwright.sampleCount} |`,
-		`| Bun.WebView | ${(webview.medianMs / 1000).toFixed(2)} s | ${(webview.minMs / 1000).toFixed(2)} s | ${(webview.maxMs / 1000).toFixed(2)} s | ${mib(medianBrowserRss(run, "webview"))} | ${webview.sampleCount} |`,
-		"",
-		`WebView delta: ${delta.deltaPct.toFixed(2)}% (${delta.verdict}).`,
-		"",
-	);
 	return lines.join("\n");
 }
 
@@ -325,11 +446,12 @@ export const E2E_BENCHMARK_DIR = resolve(
 
 async function reserveReportStem(
 	dir: string,
+	mode: E2EBenchmarkMode,
 	timestamp: string,
 ): Promise<string> {
 	const base = timestamp.replace(/[^0-9A-Za-z-]/g, "-");
 	for (let suffix = 0; suffix < 10_000; suffix += 1) {
-		const stem = `comparison-${base}${suffix === 0 ? "" : `-${suffix}`}`;
+		const stem = `comparison-${mode}-${base}${suffix === 0 ? "" : `-${suffix}`}`;
 		try {
 			const handle = await open(join(dir, `${stem}.json`), "wx");
 			await handle.close();
@@ -346,7 +468,7 @@ export async function writeE2EBenchmark(
 	dir = E2E_BENCHMARK_DIR,
 ): Promise<{ jsonPath: string; markdownPath: string }> {
 	await mkdir(dir, { recursive: true });
-	const stem = await reserveReportStem(dir, run.timestamp);
+	const stem = await reserveReportStem(dir, run.mode, run.timestamp);
 	const jsonPath = join(dir, `${stem}.json`);
 	const markdownPath = join(dir, `${stem}.md`);
 	await writeFile(jsonPath, `${JSON.stringify(run, null, 2)}\n`, "utf8");

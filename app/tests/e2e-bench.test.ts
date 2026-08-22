@@ -7,11 +7,13 @@ import {
 	assessScenario,
 	benchmarkOrder,
 	buildE2EBenchmarkRun,
+	E2E_SESSION_RESULT_PREFIX,
 	E2E_SMOKE_RESULT_PREFIX,
 	E2E_SMOKE_SCENARIOS,
 	type E2EBenchmarkSample,
 	type E2ESmokeArm,
 	type E2ESmokeOutcome,
+	parseSessionOutcome,
 	parseSmokeOutcome,
 	readE2EBenchmark,
 	renderE2EBenchmark,
@@ -40,6 +42,7 @@ function outcome(
 		automationVersion: arm === "playwright" ? "1.60.0" : "1.4.0",
 		browserExecutable: "/chromium",
 		browserRssBytes: arm === "playwright" ? 200 : 150,
+		durationMs: arm === "playwright" ? 1_100 : 800,
 		viewport: { width: 1280, height: 720 },
 		scenarios: E2E_SMOKE_SCENARIOS.map((scenario) => ({
 			id: scenario.id,
@@ -57,6 +60,7 @@ function sample(
 	return {
 		arm,
 		repetition,
+		phase: "measured",
 		ms: arm === "playwright" ? 1_200 : 900,
 		peakRssBytes: arm === "playwright" ? 200 : 150,
 		exitCode: 0,
@@ -136,12 +140,84 @@ describe("E2E WebView benchmark", () => {
 		expect(parseSmokeOutcome("noise only")).toBeNull();
 	});
 
+	it("parses a warm-session result with warmup and measured passes", () => {
+		const pass = {
+			durationMs: 100,
+			browserRssBytes: 200,
+			scenarios: outcome("webview").scenarios,
+		};
+		const expected = {
+			...outcome("webview"),
+			warmup: pass,
+			passes: [pass, pass],
+		};
+		delete (expected as Partial<typeof expected>).durationMs;
+		delete (expected as Partial<typeof expected>).browserRssBytes;
+		delete (expected as Partial<typeof expected>).scenarios;
+		expect(
+			parseSessionOutcome(
+				`${E2E_SESSION_RESULT_PREFIX}${JSON.stringify(expected)}`,
+			),
+		).toEqual(expected);
+	});
+
 	it("accepts matching successful arms", () => {
 		const run = validRun();
 		expect(run.validComparison).toBe(true);
 		expect(run.invalidReasons).toEqual([]);
 		expect(renderE2EBenchmark(run)).toContain("Median browser RSS");
 		expect(renderE2EBenchmark(run)).toContain("WebView delta:");
+	});
+
+	it("persists cold warmups and renders an inclusive aggregate", () => {
+		const run = buildE2EBenchmarkRun({
+			timestamp: "2026-08-22T00:00:00.000Z",
+			commit: "abc123",
+			host,
+			repetitions: 2,
+			warmupsPerArm: 1,
+			warmups: [
+				sample("playwright", 0, { phase: "warmup" }),
+				sample("webview", 0, { phase: "warmup" }),
+			],
+			samples: benchmarkOrder(2).map(({ arm, repetition }) =>
+				sample(arm, repetition),
+			),
+		});
+		expect(run.validComparison).toBe(true);
+		expect(run.warmups).toHaveLength(2);
+		expect(renderE2EBenchmark(run)).toContain("Cold result including warm-up");
+	});
+
+	it("keeps warm-session pass and whole-process timing separate", () => {
+		const run = buildE2EBenchmarkRun({
+			mode: "warm-session",
+			timestamp: "2026-08-22T00:00:00.000Z",
+			commit: "abc123",
+			host,
+			repetitions: 2,
+			warmupsPerArm: 1,
+			sessionsPerArm: 1,
+			warmups: [
+				sample("playwright", 0, { phase: "warmup", session: 1 }),
+				sample("webview", 0, { phase: "warmup", session: 1 }),
+			],
+			samples: benchmarkOrder(2).map(({ arm, repetition }) =>
+				sample(arm, repetition, { session: 1 }),
+			),
+			sessionTotals: [
+				{ ...sample("playwright", 1), session: 1 },
+				{ ...sample("webview", 1), session: 1 },
+			],
+		});
+		expect(run.validComparison).toBe(true);
+		expect(renderE2EBenchmark(run)).toContain("Whole-session process cost");
+		expect(renderE2EBenchmark(run)).toContain(
+			"Warm-session result including in-session warm-ups",
+		);
+		expect(renderE2EBenchmark(run)).toContain(
+			"Primary warm-session timings measure only",
+		);
 	});
 
 	it("rejects failures, missing samples, and browser mismatches", () => {

@@ -25,11 +25,18 @@ and the not-found route. Authentication, analytics, permissions, request
 inspection, traces, and the rest of the 49-test Playwright inventory remain
 Playwright-only.
 
-One warm-up per arm is discarded. Five timed repetitions reverse order on each
-pass. Reports record wall time, measured process-group peak RSS, browser RSS
-after the scenarios, load, executable provenance, and per-scenario outcomes.
-Reports are invalid when browser paths, scenario inventories, outcomes, or exit
-statuses differ.
+The complete evaluation produces two reports:
+
+- **cold**: one recorded warm-up plus five timed browser startups per arm. The
+  primary result excludes warm-up; a second table includes all six samples.
+- **warm-session**: two sessions per arm in reversed order. Each session keeps
+  one browser open for one recorded warm-up pass plus five timed passes, giving
+  ten measured passes per arm. A separate table reports whole-process cost.
+
+Reports record pass and process time, sampled process-group peak RSS, browser
+RSS after each pass, load, executable provenance, and per-scenario outcomes.
+Reports are invalid when browser paths, viewport, scenario inventories,
+outcomes, sample counts, or exit statuses differ.
 
 Bun.WebView is experimental and local-only. These reports cannot justify
 removing Playwright or adding WebView to CI.
