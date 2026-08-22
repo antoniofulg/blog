@@ -418,12 +418,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Every fixture path resolves to intentional shared or candidate data
-- [ ] Watcher waits use supported polling without fixed sleeps
-- [ ] Temporary files/directories and subprocess groups are always reaped
-- [ ] CLI exit codes and output match reference assertions
-- [ ] Cohort passes twice consecutively with exact parity
-- [ ] Test count: candidate filesystem/subprocess count equals reference count exactly
+- [x] Every fixture path resolves to intentional shared or candidate data
+- [x] Watcher waits use supported polling without fixed sleeps
+- [x] Temporary files/directories and subprocess groups are always reaped
+- [x] CLI exit codes and output match reference assertions
+- [x] Cohort passes twice consecutively with exact parity
+- [x] Test count: candidate filesystem/subprocess count equals reference count exactly
 
 **Tests**: integration
 **Gate**: cohort
