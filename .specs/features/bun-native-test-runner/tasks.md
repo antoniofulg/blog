@@ -256,12 +256,12 @@ T19 → T20
 
 **Done when**:
 
-- [ ] Every pure candidate file passes individually and as one cohort
-- [ ] Parity reports equal file, test, and assertion inventories for the cohort
-- [ ] No reference assertion or test is removed or weakened
-- [ ] Candidate imports use supported Bun Test APIs
-- [ ] Cohort gate passes twice consecutively
-- [ ] Test count: candidate pure count equals reference pure count exactly
+- [x] Every pure candidate file passes individually and as one cohort
+- [x] Parity reports equal file, test, and assertion inventories for the cohort
+- [x] No reference assertion or test is removed or weakened
+- [x] Candidate imports use supported Bun Test APIs
+- [x] Cohort gate passes twice consecutively
+- [x] Test count: candidate pure count equals reference pure count exactly
 
 **Tests**: unit
 **Gate**: cohort

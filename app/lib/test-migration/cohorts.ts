@@ -8,7 +8,7 @@ export const COHORTS: readonly TestCohort[] = [
 ];
 
 const INTEGRATION =
-	/(?:pglite|postgres|database|from\s+["'](?:node:)?(?:fs|child_process)|spawn\(|watch\(|fetch\(|process\.env|playwright)/i;
+	/(?:pglite|postgres|database|node:(?:fs|http|net|child_process)|createServer\(|\.listen\(|spawn\(|watch\(|fetch\(|process\.env|playwright)/i;
 const MOCKS_OR_TIMERS =
 	/(?:mock\.module|vi\.mock|jest\.mock|useFakeTimers|fakeTimers|setSystemTime|jest\.useFakeTimers)/i;
 const DOM =
@@ -19,9 +19,13 @@ export function isTestCohort(value: string | undefined): value is TestCohort {
 }
 
 export function classifyTestFile(source: string): TestCohort {
-	if (INTEGRATION.test(source)) return "integration-infra";
-	if (MOCKS_OR_TIMERS.test(source)) return "mocks-timers";
-	if (DOM.test(source)) return "dom";
+	const code = source.replace(/\/\/[^\n]*|\/\*[\s\S]*?\*\//g, "").trim();
+	if (INTEGRATION.test(code)) return "integration-infra";
+	if (DOM.test(code) && !/(?:mock\.module|vi\.mock|jest\.mock)/i.test(code)) {
+		return "dom";
+	}
+	if (MOCKS_OR_TIMERS.test(code)) return "mocks-timers";
+	if (DOM.test(code)) return "dom";
 	return "pure";
 }
 
