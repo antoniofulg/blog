@@ -118,7 +118,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 
 ## Success Criteria
 
-- [ ] `main` is aligned to `origin/main` with a recoverable backup reference.
+- [x] `main` is aligned to `origin/main` at `07598d8`; the pre-alignment history remains at `backup/main-before-align-20260823-bd4490d`.
 - [x] `test:local` passes under the operationally reliable serialized profile; its measured RSS median is effectively tied with the mathematical memory winner.
 - [x] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
 - [x] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict. [Evidence: JSON](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)

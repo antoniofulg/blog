@@ -6,7 +6,7 @@ Implement these tasks with the `tlc-spec-driven` skill. Follow its per-task
 gate, atomic commit, adequacy review, and independent Verifier rules.
 
 **Design**: `.specs/features/bun-migration-follow-up/design.md`
-**Status**: Approved
+**Status**: In Progress — implementation complete; independent verification pending
 
 ## Test Coverage Matrix
 
@@ -43,7 +43,7 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 ## Task Breakdown
 
-### T1: Resolve Bun Test skip outcome accounting
+### T1: Resolve Bun Test skip outcome accounting — ✅ Complete
 
 **What**: Identify the five-count discrepancy and make outcome comparison represent equivalent leaf tests while retaining raw runner counts.
 **Where**: `app/lib/test-bench/runner.server.ts`
@@ -145,7 +145,7 @@ is reported.
 **Tests**: integration
 **Gate**: build
 
-### T5: Add the Playwright runtime benchmark
+### T5: Add the Playwright runtime benchmark — ✅ Complete
 
 **What**: Add a self-contained benchmark CLI for Node 24 and Bun 1.4 Playwright runners.
 **Where**: `scripts/bench-e2e-runtimes.ts`, `package.json`, `app/tests/bench-e2e-runtimes.test.ts`, `app/tests-bun/bench-e2e-runtimes.test.ts`
