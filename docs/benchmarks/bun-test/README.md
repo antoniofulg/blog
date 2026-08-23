@@ -49,15 +49,25 @@ evidence, not a performance winner claim.
 
 ## Shadow eligibility
 
-The CI `bun-test-shadow` job runs parity and `test:bun` with Bun 1.4.0. Its
-failure is non-blocking, but JSON and logs are uploaded for seven days. The
-`quality` matrix `test` entry remains blocking and runs Vitest through Bun.
+The CI `bun-test-shadow` job runs parity, Bun 1.4 + Vitest (reference), and
+Bun 1.4 + Bun Test (candidate). Its failure is non-blocking, but JSON and all
+three logs are uploaded for seven days. The `quality` matrix `test` entry
+remains blocking and runs Vitest through Bun.
 
 Bun Test becomes eligible for an explicit cutover decision only after a suffix
-of ten consecutive green, valid, matching-inventory shadow results. Evaluate
-results by timestamp, not filesystem order. A failed test, timeout, noisy run,
-inventory mismatch, malformed result, duplicate timestamp, or mixed commit
-resets eligibility at that point. Noise from PGLite contention never counts.
+of ten consecutive green, valid, matching-inventory shadow results from ten
+distinct commits. Each record must contain equivalent reference/candidate
+file, pass, fail, and normalized leaf-skip outcomes; raw runner skip counts
+remain in the record for audit. Evaluate results by timestamp, not filesystem
+order. A failed test, timeout, noisy run, inventory mismatch, outcome mismatch,
+malformed result, duplicate timestamp, or duplicate commit resets eligibility.
+Noise from PGLite contention never counts.
+
+CI does not commit history. The uploaded `shadow-result.json` is imported
+manually into the durable ledger at
+`docs/benchmarks/bun-test/shadow-ledger.jsonl`, one JSON record per line, before
+eligibility is evaluated. The ledger is a maintainer-owned evidence file, not a
+CI output path, and imports must preserve the raw logs and commit SHA.
 
 ## Cutover and rollback
 

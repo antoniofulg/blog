@@ -1,6 +1,6 @@
 # Bun Migration Follow-up Specification
 
-**Execution status**: T7 complete; T8–T10 pending.
+**Execution status**: T8 complete; T9–T10 pending.
 
 ## Problem Statement
 
@@ -110,7 +110,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 | BMF-01 | P1: Low-memory local testing | T2 → T3 → T4 | Complete |
 | BMF-02 | P1: Bun Test outcome parity | T1 | Complete |
 | BMF-03 | P1: Complete Playwright evidence | T5 → T6 → T7 | Complete; cross-browser evidence persisted |
-| BMF-04 | P2: Cutover readiness and evidence publication | Tasks | In Tasks |
+| BMF-04 | P2: Cutover readiness and evidence publication | T8 → T9 → T10 | In progress |
 
 **Coverage:** 4 total, 4 mapped to tasks, 0 unmapped.
 

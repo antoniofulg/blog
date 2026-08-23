@@ -23,6 +23,13 @@ describe("Bun Test CI shadow", () => {
 		expect(ci).toContain("continue-on-error: true");
 	});
 
+	test("captures Bun plus Vitest reference evidence", () => {
+		const shadow = ci.slice(ci.indexOf("bun-test-shadow:"));
+		expect(shadow).toContain("bun run test:vitest:bun");
+		expect(shadow).toContain("shadow-reference.log");
+		expect(shadow).toContain("REFERENCE_STATUS");
+	});
+
 	test("pins Bun 1.4 in the shadow job", () => {
 		const shadow = ci.slice(ci.indexOf("bun-test-shadow:"));
 		expect(shadow).toContain('bun-version: "1.4.0"');

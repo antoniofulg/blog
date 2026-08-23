@@ -9,8 +9,10 @@ import {
 
 export type WriteShadowResultArgs = {
 	parityStatus: number;
+	referenceStatus: number;
 	bunStatus: number;
 	parityLogPath: string;
+	referenceLogPath: string;
 	bunLogPath: string;
 	outputPath: string;
 	commit: string;
@@ -49,8 +51,16 @@ export function parseWriteShadowArgs(args: string[], env = process.env): WriteSh
 		values.get(name) ?? env[envName];
 	return {
 		parityStatus: status(get("parity-status", "PARITY_STATUS"), "parity-status"),
+		referenceStatus: status(
+			get("reference-status", "REFERENCE_STATUS"),
+			"reference-status",
+		),
 		bunStatus: status(get("bun-status", "BUN_STATUS"), "bun-status"),
 		parityLogPath: required(get("parity-log", "PARITY_LOG"), "parity-log"),
+		referenceLogPath: required(
+			get("reference-log", "REFERENCE_LOG"),
+			"reference-log",
+		),
 		bunLogPath: required(get("bun-log", "BUN_LOG"), "bun-log"),
 		outputPath: required(get("output", "SHADOW_OUTPUT"), "output"),
 		commit: required(get("commit", "GITHUB_SHA"), "commit"),
@@ -71,8 +81,9 @@ function parityReasons(log: string): string[] {
 export async function writeShadowResult(
 	input: WriteShadowResultArgs,
 ): Promise<ShadowRunRecord> {
-	const [parityLog, bunLog] = await Promise.all([
+	const [parityLog, referenceLog, bunLog] = await Promise.all([
 		readFile(input.parityLogPath, "utf8"),
+		readFile(input.referenceLogPath, "utf8"),
 		readFile(input.bunLogPath, "utf8"),
 	]);
 	const record = createShadowRunRecord({
@@ -80,6 +91,8 @@ export async function writeShadowResult(
 			ok: input.parityStatus === 0,
 			reasons: input.parityStatus === 0 ? [] : parityReasons(parityLog),
 		},
+		referenceStatus: input.referenceStatus,
+		referenceOutput: referenceLog,
 		bunStatus: input.bunStatus,
 		bunOutput: bunLog,
 		commit: input.commit,

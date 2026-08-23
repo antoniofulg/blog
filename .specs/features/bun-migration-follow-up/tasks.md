@@ -221,7 +221,7 @@ flaky outcomes. Evidence: [summary](../../docs/benchmarks/e2e-browsers/2026-08-2
 **Tests**: e2e
 **Gate**: full
 
-### T8: Harden Bun Test cutover readiness
+### T8: Harden Bun Test cutover readiness — ✅ Complete
 
 **What**: Make the shadow eligibility gate require distinct commits and equivalent outcomes, and document a durable evidence path.
 **Where**: `app/lib/test-bench/shadow.ts`
@@ -236,10 +236,10 @@ flaky outcomes. Evidence: [summary](../../docs/benchmarks/e2e-browsers/2026-08-2
 
 **Done when**:
 
-- [ ] Duplicate commits cannot satisfy the ten-run gate.
-- [ ] Outcome parity is required by the eligibility evidence.
-- [ ] Focused twin tests pass.
-- [ ] Vitest and Node fallbacks remain.
+- [x] Duplicate commits cannot satisfy the ten-run gate.
+- [x] Outcome parity is required by the eligibility evidence.
+- [x] Focused twin tests pass.
+- [x] Vitest and Node fallbacks remain.
 
 **Tests**: unit
 **Gate**: quick
