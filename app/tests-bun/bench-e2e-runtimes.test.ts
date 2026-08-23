@@ -67,7 +67,7 @@ function deps(
 }
 
 describe("Playwright runtime benchmark", () => {
-	test("parses args, forces one worker/zero retries, and removes CI", () => {
+	test("parses bounded repetitions and forces the shared browser configuration", () => {
 		expect(parseE2EBenchArgs([]).repetitions).toBe(DEFAULT_REPETITIONS);
 		expect(parseE2EBenchArgs(["--repetitions=3"]).repetitions).toBe(3);
 		expect(() => parseE2EBenchArgs(["--repetitions=0"])).toThrow(
@@ -90,7 +90,7 @@ describe("Playwright runtime benchmark", () => {
 		expect(commandEnvironment("/tmp/result.json").CI).toBeUndefined();
 	});
 
-	test("parses valid and malformed Playwright reports", () => {
+	test("parses Playwright outcomes and rejects malformed reports", () => {
 		expect(parsePlaywrightOutcome(report)).toEqual({
 			expected: 10,
 			skipped: 0,
@@ -104,7 +104,7 @@ describe("Playwright runtime benchmark", () => {
 		expect(parsePlaywrightOutcome("not json")).toBeNull();
 	});
 
-	test("validates before warmup, interleaves measured samples, and verifies cleanup", async () => {
+	test("validates both runtimes before warmup, interleaves samples, and cleans every group", async () => {
 		const calls: string[][] = [];
 		const validations: string[] = [];
 		const cleanups: number[] = [];
@@ -112,7 +112,7 @@ describe("Playwright runtime benchmark", () => {
 		const run = await runE2EBenchmark(
 			2,
 			deps(
-				async (argv) => {
+				async (argv, _env) => {
 					calls.push(argv);
 					invocation += 1;
 					return measured({ ms: invocation <= 2 ? 7 : 100, pgid: invocation });
@@ -138,6 +138,7 @@ describe("Playwright runtime benchmark", () => {
 			"node",
 		]);
 		expect(cleanups).toHaveLength(6);
+		expect(run.arms.map((arm) => arm.samples)).toHaveLength(2);
 		expect(run.arms.every((arm) => arm.samples.length === 2)).toBe(true);
 		expect(run.arms[0].warmupSamples[0].durationMs).toBe(7);
 		expect(run.arms[0].aggregate?.medianMs).toBe(100);
@@ -167,10 +168,12 @@ describe("Playwright runtime benchmark", () => {
 					);
 				},
 				{
-					readJson: async () =>
-						JSON.stringify({
-							stats: { expected: 9, skipped: 1, unexpected: 0, flaky: 0 },
-						}),
+					readJson: async (file) =>
+						file.includes("results")
+							? JSON.stringify({
+									stats: { expected: 9, skipped: 1, unexpected: 0, flaky: 0 },
+								})
+							: report,
 					cleanupProcessGroup: async (pgid) => pgid !== 2,
 				},
 			),
@@ -185,7 +188,7 @@ describe("Playwright runtime benchmark", () => {
 		expect(run.invalidReasons.join(" ")).toContain("orphan process group");
 	});
 
-	test("renders shared server, browser, warmups, and load fields", async () => {
+	test("renders the shared server, browser, raw warmup, and validity evidence", async () => {
 		const run = await runE2EBenchmark(
 			1,
 			deps(async () => measured()),

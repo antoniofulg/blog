@@ -1,12 +1,14 @@
 import { describe, expect, test } from "bun:test";
-import { mkdtemp } from "node:fs/promises";
+import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import type { MeasuredRun } from "#/lib/bench/runner.server";
 import {
 	commandForProfile,
+	DEFAULT_REPETITIONS,
 	LOAD_GATE_TIMEOUT_MS,
 	parseWorkerBenchArgs,
+	readWorkerBenchmark,
 	renderWorkerBenchmark,
 	runWorkerBenchmark,
 	WORKER_PROFILES,
@@ -14,7 +16,7 @@ import {
 	writeWorkerBenchmark,
 } from "../../scripts/bench-vitest-workers";
 
-const summary = "Test Files  2 passed (2)\nTests  10 passed (10)";
+const outcome = "Test Files  2 passed (2)\nTests  10 passed (10)";
 
 function measured(over: Partial<MeasuredRun> = {}): MeasuredRun {
 	return {
@@ -22,7 +24,7 @@ function measured(over: Partial<MeasuredRun> = {}): MeasuredRun {
 		peakRssBytes: 100,
 		exitCode: 0,
 		loadAvg1: 0.1,
-		stdout: summary,
+		stdout: outcome,
 		stderrTail: "",
 		timedOut: false,
 		pgid: 1,
@@ -58,7 +60,7 @@ function deps(
 }
 
 describe("Vitest worker benchmark", () => {
-	test("defines profiles and parses bounded selection", () => {
+	test("defines 1, 2, 4, and omitted auto worker commands", () => {
 		expect(WORKER_PROFILES.map((profile) => profile.id)).toEqual([
 			"1",
 			"2",
@@ -66,18 +68,18 @@ describe("Vitest worker benchmark", () => {
 			"auto",
 		]);
 		expect(commandForProfile(WORKER_PROFILES[3])).not.toContain("--maxWorkers");
-		expect(
-			parseWorkerBenchArgs(["--only=2,auto", "--repetitions=3"]),
-		).toMatchObject({
-			profiles: ["2", "auto"],
-			repetitions: 3,
-		});
+		expect(parseWorkerBenchArgs([]).repetitions).toBe(DEFAULT_REPETITIONS);
+		expect(parseWorkerBenchArgs(["--only=2,auto"]).profiles).toEqual([
+			"2",
+			"auto",
+		]);
+		expect(parseWorkerBenchArgs(["--repetitions=3"]).repetitions).toBe(3);
 		expect(() => parseWorkerBenchArgs(["--repetitions=0"])).toThrow(
 			"--repetitions must be a positive integer",
 		);
 	});
 
-	test("discards warmups, persists five samples, and alternates order", async () => {
+	test("discards one warmup and alternates sequential profile order", async () => {
 		const calls: string[][] = [];
 		let runs = 0;
 		const run = await runWorkerBenchmark(
@@ -87,9 +89,13 @@ describe("Vitest worker benchmark", () => {
 				calls.push(argv);
 				runs += 1;
 				return measured(runs === 1 ? { ms: 7, peakRssBytes: 999 } : {});
-			}, {}),
+			}),
 		);
 		expect(calls).toHaveLength(12);
+		expect(calls.slice(0, 2).map((argv) => argv.at(-1))).toEqual([
+			"--maxWorkers=1",
+			"--maxWorkers=2",
+		]);
 		expect(calls.slice(2).map((argv) => argv.at(-1))).toEqual([
 			"--maxWorkers=1",
 			"--maxWorkers=2",
@@ -102,6 +108,7 @@ describe("Vitest worker benchmark", () => {
 			"--maxWorkers=1",
 			"--maxWorkers=2",
 		]);
+		expect(run.profiles.every((profile) => profile.samples)).toBe(true);
 		expect(run.profiles.map((profile) => profile.samples.length)).toEqual([
 			5, 5,
 		]);
@@ -109,18 +116,25 @@ describe("Vitest worker benchmark", () => {
 		expect(run.profiles[0].warmupSamples[0].durationMs).toBe(7);
 		expect(run.profiles[0].aggregate?.medianMs).toBe(100);
 		expect(run.profiles[0].totalWallTimeMs).toBe(507);
+		expect(run.warmupsPerProfile).toBe(1);
 	});
 
-	test("selects lowest RSS profile when outcomes are equivalent", async () => {
+	test("selects lowest median RSS only when every measured outcome is valid", async () => {
+		let calls = 0;
 		const run = await runWorkerBenchmark(
 			["1", "2"],
 			2,
-			deps(async (argv) =>
-				measured({ peakRssBytes: argv.at(-1) === "--maxWorkers=2" ? 50 : 100 }),
-			),
+			deps(async (argv) => {
+				calls += 1;
+				return measured({
+					peakRssBytes: argv.at(-1) === "--maxWorkers=2" ? 50 : 100,
+					ms: calls,
+				});
+			}),
 		);
 		expect(run.validComparison).toBe(true);
 		expect(run.winner).toBe("2");
+		expect(run.profiles[1].aggregate?.medianPeakRssBytes).toBe(50);
 	});
 
 	test("excludes one failed profile while selecting among valid profiles", async () => {
@@ -161,7 +175,7 @@ describe("Vitest worker benchmark", () => {
 		expect(renderWorkerBenchmark(run)).toContain("Profile 2: memory invalid");
 	});
 
-	test("suppresses winner for failure and load-invalid samples", async () => {
+	test("invalidates failed, changed, and overloaded samples and suppresses winner", async () => {
 		let calls = 0;
 		const run = await runWorkerBenchmark(
 			["1", "2"],
@@ -169,14 +183,24 @@ describe("Vitest worker benchmark", () => {
 			deps(
 				async (argv) => {
 					calls += 1;
-					return argv.at(-1) === "--maxWorkers=2"
-						? measured({
-								exitCode: 1,
-								stdout: "Test Files  1 failed (1)\nTests  1 failed (1)",
-							})
-						: measured({ loadAvg1: calls > 2 ? 5 : 0.1 });
+					if (argv.at(-1) === "--maxWorkers=2") {
+						return measured({
+							exitCode: 1,
+							stdout: "Test Files  1 failed (1)\nTests  1 failed (1)",
+						});
+					}
+					return measured({ loadAvg1: calls > 2 ? 5 : 0.1 });
 				},
 				{
+					host: async () => ({
+						host: "test-host",
+						cpuModel: "test-cpu",
+						cores: 4,
+						totalMemBytes: 100,
+						loadAvg1: 0.1,
+						powerSource: "ac",
+						startedAt: "2026-08-23T00:00:00.000Z",
+					}),
 					loadAvg: () => (calls > 1 ? 5 : 0.1),
 				},
 			),
@@ -266,24 +290,40 @@ describe("Vitest worker benchmark", () => {
 		expect(run.timingInvalidReasons.join(" ")).toContain("ambient load 5.00");
 	});
 
-	test("writes immutable JSON and metadata-rich Markdown", async () => {
+	test("renders required metadata and keeps same-timestamp artifacts immutable", async () => {
 		const run = await runWorkerBenchmark(
 			["1"],
 			1,
 			deps(async () => measured()),
 		);
+		const markdown = renderWorkerBenchmark(run);
+		expect(markdown).toContain("warmup discarded + 1 measured");
+		expect(markdown).toContain("Warmups (excluded from aggregate)");
+		expect(markdown).toContain("total wall time 200.00 ms including warmup");
+		expect(markdown).toContain("test:vitest:bun -- --maxWorkers=1");
+		expect(markdown).toContain("10 passed / 0 failed / 0 skipped");
 		const dir = await mkdtemp(join(tmpdir(), "vitest-workers-"));
 		const first = await writeWorkerBenchmark(run, dir);
 		const second = await writeWorkerBenchmark(run, dir);
 		expect(second.jsonPath).not.toBe(first.jsonPath);
-		expect(renderWorkerBenchmark(run)).toContain(
-			"warmup discarded + 1 measured",
+		expect(second.markdownPath).not.toBe(first.markdownPath);
+		expect(
+			(await readWorkerBenchmark(first.jsonPath)).profiles[0].samples,
+		).toHaveLength(1);
+		expect(await readFile(first.markdownPath, "utf8")).toContain(
+			"# Bun + Vitest worker benchmark",
 		);
-		expect(renderWorkerBenchmark(run)).toContain(
-			"Warmups (excluded from aggregate)",
+	});
+
+	test("omits winner language from invalid reports", async () => {
+		const run = await runWorkerBenchmark(
+			["1"],
+			1,
+			deps(async () => measured({ exitCode: 1 })),
 		);
-		expect(renderWorkerBenchmark(run)).toContain(
-			"total wall time 200.00 ms including warmup",
-		);
+		const markdown = renderWorkerBenchmark(run);
+		expect(markdown).toContain("Comparison invalid");
+		expect(markdown).toContain("No overall winner is reported.");
+		expect(markdown).not.toContain("Winner: **");
 	});
 });
