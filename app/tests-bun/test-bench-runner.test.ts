@@ -107,6 +107,21 @@ describe("test comparison result parsing", () => {
 		expect(result?.testsFailed).toBe(1);
 	});
 
+	test("parses indented ANSI-colored Vitest summaries", () => {
+		const result = parseVitestSummary(
+			"\u001b[32m  Test Files  2 passed | 1 skipped (3)\u001b[39m\n\u001b[32m    Tests  8 passed | 2 skipped (10)\u001b[39m",
+		);
+		expect(result).toEqual({
+			filesPassed: 2,
+			filesFailed: 0,
+			testsPassed: 8,
+			testsFailed: 0,
+			testsSkipped: 2,
+			leafTestsSkipped: 2,
+			testFileCount: 3,
+		});
+	});
+
 	test("rejects a Vitest output without both summary lines", () => {
 		expect(parseVitestSummary("Tests  1 passed (1)")).toBeNull();
 	});
