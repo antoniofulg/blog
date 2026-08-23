@@ -15,7 +15,17 @@ async function getState(): Promise<E2EState> {
 	return cachedState;
 }
 
-async function installClipboardCapture(page: Page): Promise<void> {
+async function installClipboardCapture(
+	page: Page,
+	browserName: string,
+): Promise<void> {
+	if (browserName === "chromium") {
+		await page
+			.context()
+			.grantPermissions(["clipboard-read", "clipboard-write"]);
+		return;
+	}
+
 	await page.addInitScript(() => {
 		Object.defineProperty(navigator, "clipboard", {
 			value: {
@@ -65,10 +75,10 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 
 	test(
 		"LinkedIn chip copies the tagged URL to the clipboard (no intent open)",
-		async ({ authedPage }) => {
+		async ({ authedPage, browserName }) => {
 			const state = await getState();
 
-			await installClipboardCapture(authedPage);
+			await installClipboardCapture(authedPage, browserName);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
@@ -101,10 +111,10 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 
 	test(
 		"Twitter chip copies the tagged URL to the clipboard (no intent open)",
-		async ({ authedPage }) => {
+		async ({ authedPage, browserName }) => {
 			const state = await getState();
 
-			await installClipboardCapture(authedPage);
+			await installClipboardCapture(authedPage, browserName);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
@@ -134,10 +144,10 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 
 	test(
 		"Copy Link writes canonical URL (no UTM) to clipboard",
-		async ({ authedPage }) => {
+		async ({ authedPage, browserName }) => {
 			const state = await getState();
 
-			await installClipboardCapture(authedPage);
+			await installClipboardCapture(authedPage, browserName);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
