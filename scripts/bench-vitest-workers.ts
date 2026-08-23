@@ -3,6 +3,7 @@ import { mkdir, open, readFile, writeFile } from "node:fs/promises";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { fileURLToPath } from "node:url";
+import { loadavg } from "node:os";
 import { collectHostMeta } from "#/lib/bench/host.server";
 import { spawnMeasured, WORKLOAD_TIMEOUT_MS } from "#/lib/bench/runner.server";
 import { aggregate } from "#/lib/bench/stats";
@@ -18,6 +19,7 @@ export const WARMUP_COUNT = 1;
 export const LOAD_PER_CORE_LIMIT = 1;
 export const LOAD_GATE_POLL_INTERVAL_MS = 1_000;
 export const LOAD_GATE_TIMEOUT_MS = 5 * 60_000;
+export const AMBIENT_LOAD_POLL_INTERVAL_MS = 1_000;
 export const WORKER_BENCHMARK_DIR = resolve(
 	process.cwd(),
 	"docs/benchmarks/vitest-workers",
@@ -48,6 +50,9 @@ export type WorkerSample = {
 	exitCode: number | null;
 	timedOut: boolean;
 	loadGateTimedOut: boolean;
+	ambientLoadStart: number;
+	ambientLoadMax: number;
+	ambientLoadEnd: number;
 	command: string[];
 	runtimeVersion: string;
 	runnerVersion: string;
@@ -82,7 +87,12 @@ export type WorkerBenchRun = {
 	};
 	profiles: WorkerProfileResult[];
 	validComparison: boolean;
+	validMemoryComparison: boolean;
+	validTimingComparison: boolean;
 	invalidReasons: string[];
+	memoryInvalidReasons: string[];
+	timingInvalidReasons: string[];
+	memoryWinner: WorkerProfileId | null;
 	winner: WorkerProfileId | null;
 };
 
@@ -95,6 +105,8 @@ export type WorkerBenchDeps = {
 	cwd: string;
 	sleep: (milliseconds: number) => Promise<void>;
 	nowMs: () => number;
+	loadAvg: () => number;
+	ambientLoadPollIntervalMs: number;
 };
 
 function parsePositiveInt(value: string, option: string): number {
@@ -249,13 +261,36 @@ function winnerFor(profiles: WorkerProfileResult[]): WorkerProfileId | null {
 	);
 }
 
-function validity(
+function memoryValidity(profiles: WorkerProfileResult[]): {
+	valid: boolean;
+	reasons: string[];
+} {
+	const reasons: string[] = [];
+	const reference = profiles[0]?.samples[0]?.outcome ?? null;
+	for (const profile of profiles) {
+		for (const [index, sample] of profile.samples.entries()) {
+			if (sample.timedOut) reasons.push(`${profile.profile} sample ${index + 1}: timed out`);
+			if (sample.exitCode !== 0)
+				reasons.push(`${profile.profile} sample ${index + 1}: exit code ${sample.exitCode}`);
+			if (!sample.outcome)
+				reasons.push(`${profile.profile} sample ${index + 1}: Vitest outcome summary missing`);
+			if (reference && sample.outcome && !outcomeEqual(reference, sample.outcome)) {
+				reasons.push(`${profile.profile} sample ${index + 1}: Vitest outcome changed`);
+			}
+		}
+	}
+	if (!reference) reasons.push("reference Vitest outcome summary missing");
+	return { valid: reasons.length === 0, reasons: [...new Set(reasons)] };
+}
+
+function timingValidity(
 	profiles: WorkerProfileResult[],
 	host: HostMeta,
+	memoryValid: boolean,
 ): { valid: boolean; reasons: string[] } {
 	const reasons: string[] = [];
 	const limit = LOAD_PER_CORE_LIMIT * Math.max(host.cores, 1);
-	const reference = profiles[0]?.samples[0]?.outcome ?? null;
+	if (!memoryValid) reasons.push("memory comparison invalid");
 	for (const profile of profiles) {
 		for (const [index, sample] of profile.warmupSamples.entries()) {
 			if (sample.loadGateTimedOut)
@@ -264,22 +299,13 @@ function validity(
 		for (const [index, sample] of profile.samples.entries()) {
 			if (sample.loadGateTimedOut)
 				reasons.push(`${profile.profile} sample ${index + 1}: load gate timed out`);
-			if (sample.timedOut) reasons.push(`${profile.profile} sample ${index + 1}: timed out`);
-			if (sample.exitCode !== 0)
-				reasons.push(`${profile.profile} sample ${index + 1}: exit code ${sample.exitCode}`);
-			if (!sample.outcome)
-				reasons.push(`${profile.profile} sample ${index + 1}: Vitest outcome summary missing`);
-			if (sample.loadAvg1 > limit) {
+			if (sample.ambientLoadMax > limit) {
 				reasons.push(
-					`${profile.profile} sample ${index + 1}: load ${sample.loadAvg1.toFixed(2)} exceeds ${limit.toFixed(2)}`,
+					`${profile.profile} sample ${index + 1}: ambient load ${sample.ambientLoadMax.toFixed(2)} exceeds ${limit.toFixed(2)}`,
 				);
-			}
-			if (reference && sample.outcome && !outcomeEqual(reference, sample.outcome)) {
-				reasons.push(`${profile.profile} sample ${index + 1}: Vitest outcome changed`);
 			}
 		}
 	}
-	if (!reference) reasons.push("reference Vitest outcome summary missing");
 	return { valid: reasons.length === 0, reasons: [...new Set(reasons)] };
 }
 
@@ -303,10 +329,18 @@ export async function runWorkerBenchmark(
 	const runOne = async (profile: WorkerProfile, target: WorkerSample[]) => {
 		const command = commandForProfile(profile);
 		const loadGateTimedOut = await waitForLoad(deps);
+		const ambientLoadStart = deps.loadAvg();
+		let ambientLoadMax = ambientLoadStart;
+		const ambientSampler = setInterval(() => {
+			ambientLoadMax = Math.max(ambientLoadMax, deps.loadAvg());
+		}, deps.ambientLoadPollIntervalMs);
 		const run = await deps.spawn(command, process.env, {
 			timeoutMs: WORKLOAD_TIMEOUT_MS,
 			cwd: deps.cwd,
 		});
+		clearInterval(ambientSampler);
+		const ambientLoadEnd = deps.loadAvg();
+		ambientLoadMax = Math.max(ambientLoadMax, ambientLoadEnd);
 		target.push({
 			durationMs: run.ms,
 			peakRssBytes: run.peakRssBytes,
@@ -314,6 +348,9 @@ export async function runWorkerBenchmark(
 			exitCode: run.timedOut ? null : run.exitCode,
 			timedOut: run.timedOut,
 			loadGateTimedOut,
+			ambientLoadStart,
+			ambientLoadMax,
+			ambientLoadEnd,
 			command,
 			runtimeVersion: process.versions.bun ?? "unknown",
 			runnerVersion: deps.runnerVersion,
@@ -336,7 +373,9 @@ export async function runWorkerBenchmark(
 			samples.get(profile.id)!,
 		),
 	);
-	const checked = validity(results, host);
+	const memory = memoryValidity(results);
+	const timing = timingValidity(results, host, memory.valid);
+	const memoryWinner = memory.valid ? winnerFor(results) : null;
 	return {
 		schemaVersion: 1,
 		commit: await deps.commit(),
@@ -353,9 +392,14 @@ export async function runWorkerBenchmark(
 			absoluteLimit: LOAD_PER_CORE_LIMIT * Math.max(host.cores, 1),
 		},
 		profiles: results,
-		validComparison: checked.valid,
-		invalidReasons: checked.reasons,
-		winner: checked.valid ? winnerFor(results) : null,
+		validComparison: memory.valid && timing.valid,
+		validMemoryComparison: memory.valid,
+		validTimingComparison: timing.valid,
+		invalidReasons: [...memory.reasons, ...timing.reasons],
+		memoryInvalidReasons: memory.reasons,
+		timingInvalidReasons: timing.reasons,
+		memoryWinner,
+		winner: memory.valid && timing.valid ? memoryWinner : null,
 	};
 }
 
@@ -376,19 +420,31 @@ export function renderWorkerBenchmark(run: WorkerBenchRun): string {
 		"",
 	];
 	if (!run.validComparison) {
-		lines.push("## Comparison invalid", "", ...run.invalidReasons.map((reason) => `- ${reason}`), "", "No winner is reported.", "");
-	} else {
-		lines.push("## Measurements", "");
-		for (const profile of run.profiles) {
-			const aggregateResult = profile.aggregate;
-			lines.push(
-				aggregateResult
-					? `- ${profile.profile}: median ${aggregateResult.medianMs.toFixed(2)} ms, median peak RSS ${bytes(aggregateResult.medianPeakRssBytes)}, max load ${aggregateResult.maxLoadAvg1.toFixed(2)}, total wall time ${profile.totalWallTimeMs.toFixed(2)} ms including warmup`
-					: `- ${profile.profile}: no samples`,
-			);
-		}
-		lines.push("", `Winner: **${run.winner ?? "none"}**`, "");
+		lines.push(
+			"## Comparison invalid",
+			"",
+			`- Memory comparison: ${run.validMemoryComparison ? "valid" : "invalid"}`,
+			`- Timing comparison: ${run.validTimingComparison ? "valid" : "invalid"}`,
+			...run.invalidReasons.map((reason) => `- ${reason}`),
+			"",
+			"No overall winner is reported.",
+			"",
+		);
 	}
+	lines.push("## Measurements", "");
+	if (!run.validTimingComparison) {
+		lines.push("Timing and duration values are diagnostic only because timing validity failed.", "");
+	}
+	for (const profile of run.profiles) {
+		const aggregateResult = profile.aggregate;
+		lines.push(
+			aggregateResult
+				? `- ${profile.profile}: median ${aggregateResult.medianMs.toFixed(2)} ms, median peak RSS ${bytes(aggregateResult.medianPeakRssBytes)}, max measured load ${aggregateResult.maxLoadAvg1.toFixed(2)}, total wall time ${profile.totalWallTimeMs.toFixed(2)} ms including warmup`
+				: `- ${profile.profile}: no samples`,
+		);
+	}
+	if (run.validComparison) lines.push("", `Winner: **${run.winner ?? "none"}**`, "");
+	else if (run.memoryWinner) lines.push("", `Memory winner (timing diagnostic): **${run.memoryWinner}**`, "");
 	lines.push("## Warmups (excluded from aggregate)", "", "| Profile | Duration (ms) | Peak RSS | Load | Exit | Outcome | Command |", "| --- | ---: | ---: | ---: | ---: | --- | --- |");
 	for (const profile of run.profiles) {
 		for (const sample of profile.warmupSamples) {
@@ -460,6 +516,8 @@ export const defaultWorkerBenchDeps: WorkerBenchDeps = {
 	cwd: process.cwd(),
 	sleep: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
 	nowMs: () => Date.now(),
+	loadAvg: () => loadavg()[0],
+	ambientLoadPollIntervalMs: AMBIENT_LOAD_POLL_INTERVAL_MS,
 };
 
 function usage(): string {

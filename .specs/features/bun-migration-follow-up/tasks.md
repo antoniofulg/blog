@@ -129,6 +129,7 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 - [ ] All four profiles have one warmup and five measured runs.
 - [ ] Outcome counts match and all failures/timeouts are visible.
+- [ ] Memory and timing validity are recorded separately; ambient-load timing failures suppress only the overall winner and retain a valid memory winner.
 - [ ] `test:local` passes under the selected profile.
 
 **Tests**: integration

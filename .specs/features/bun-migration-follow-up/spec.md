@@ -49,7 +49,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 
 1. WHEN the worker benchmark runs THEN the system SHALL execute Bun 1.4 plus Vitest with `1`, `2`, `4`, and omitted `--maxWorkers` profiles.
 2. WHEN each worker profile is measured THEN the system SHALL discard one warmup and persist five measured samples with duration, process-group peak RSS, load, command, versions, and outcome counts.
-3. IF any measured profile fails, times out, changes the test outcome, or exceeds the documented host-load validity bound THEN the system SHALL mark the comparison invalid and SHALL publish no winner.
+3. IF any measured profile fails, times out, changes the test outcome, or has a missing summary THEN the system SHALL mark memory comparison invalid; IF ambient load exceeds the documented host-load validity bound THEN the system SHALL mark timing comparison invalid; the system SHALL publish an overall winner only when both dimensions are valid, while retaining a memory winner when memory comparison alone is valid.
 4. WHEN the benchmark has valid results THEN the system SHALL map `test:local` to the passing profile with the lowest median peak RSS and SHALL leave `test` unchanged.
 
 **Independent Test**: Run the worker benchmark, inspect its JSON/Markdown, then run `bun run test:local` and the default test command.

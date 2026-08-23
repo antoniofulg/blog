@@ -51,6 +51,8 @@ function deps(
 		cwd: "/repo",
 		sleep: async () => {},
 		nowMs: () => 0,
+		loadAvg: () => 0.1,
+		ambientLoadPollIntervalMs: 1,
 		...override,
 	};
 }
@@ -81,11 +83,14 @@ describe("Vitest worker benchmark", () => {
 		const run = await runWorkerBenchmark(
 			["1", "2"],
 			5,
-			deps(async (argv) => {
-				calls.push(argv);
-				runs += 1;
-				return measured(runs === 1 ? { ms: 7, peakRssBytes: 999 } : {});
-			}),
+			deps(
+				async (argv) => {
+					calls.push(argv);
+					runs += 1;
+					return measured(runs === 1 ? { ms: 7, peakRssBytes: 999 } : {});
+				},
+				{ loadAvg: () => (calls > 1 ? 5 : 0.1) },
+			),
 		);
 		expect(calls).toHaveLength(12);
 		expect(calls.slice(2).map((argv) => argv.at(-1))).toEqual([
@@ -126,21 +131,26 @@ describe("Vitest worker benchmark", () => {
 		const run = await runWorkerBenchmark(
 			["1", "2"],
 			1,
-			deps(async (argv) => {
-				calls += 1;
-				return argv.at(-1) === "--maxWorkers=2"
-					? measured({
-							exitCode: 1,
-							stdout: "Test Files  1 failed (1)\nTests  1 failed (1)",
-						})
-					: measured({ loadAvg1: calls > 2 ? 5 : 0.1 });
-			}),
+			deps(
+				async (argv) => {
+					calls += 1;
+					return argv.at(-1) === "--maxWorkers=2"
+						? measured({
+								exitCode: 1,
+								stdout: "Test Files  1 failed (1)\nTests  1 failed (1)",
+							})
+						: measured({ loadAvg1: calls > 2 ? 5 : 0.1 });
+				},
+				{
+					loadAvg: () => (calls > 1 ? 5 : 0.1),
+				},
+			),
 		);
 		expect(run.validComparison).toBe(false);
 		expect(run.winner).toBeNull();
 		expect(run.invalidReasons.join(" ")).toContain("exit code 1");
 		expect(run.invalidReasons.join(" ")).toContain("Vitest outcome changed");
-		expect(run.invalidReasons.join(" ")).toContain("load 5.00");
+		expect(run.invalidReasons.join(" ")).toContain("ambient load 5.00");
 	});
 
 	test("waits for load cooldown before starting each run", async () => {
@@ -193,6 +203,32 @@ describe("Vitest worker benchmark", () => {
 		expect(run.profiles[0].samples[0].loadGateTimedOut).toBe(true);
 		expect(run.validComparison).toBe(false);
 		expect(run.invalidReasons.join(" ")).toContain("load gate timed out");
+	});
+
+	test("keeps the memory winner when ambient load invalidates timing", async () => {
+		let runs = 0;
+		let activeLoad = 0.1;
+		const run = await runWorkerBenchmark(
+			["1"],
+			1,
+			deps(
+				async () => {
+					runs += 1;
+					activeLoad = runs === 2 ? 5 : 0.1;
+					await new Promise((resolve) => setTimeout(resolve, 10));
+					return measured({ peakRssBytes: 50 });
+				},
+				{
+					loadAvg: () => activeLoad,
+					ambientLoadPollIntervalMs: 1,
+				},
+			),
+		);
+		expect(run.validMemoryComparison).toBe(true);
+		expect(run.validTimingComparison).toBe(false);
+		expect(run.memoryWinner).toBe("1");
+		expect(run.winner).toBeNull();
+		expect(run.timingInvalidReasons.join(" ")).toContain("ambient load 5.00");
 	});
 
 	test("writes immutable JSON and metadata-rich Markdown", async () => {

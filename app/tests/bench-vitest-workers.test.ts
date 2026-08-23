@@ -53,6 +53,8 @@ function deps(
 		cwd: "/repo",
 		sleep: async () => {},
 		nowMs: () => 0,
+		loadAvg: () => 0.1,
+		ambientLoadPollIntervalMs: 1,
 		...override,
 	};
 }
@@ -161,6 +163,7 @@ describe("Vitest worker benchmark", () => {
 						powerSource: "ac",
 						startedAt: "2026-08-23T00:00:00.000Z",
 					}),
+					loadAvg: () => (calls > 1 ? 5 : 0.1),
 				},
 			),
 		);
@@ -168,7 +171,7 @@ describe("Vitest worker benchmark", () => {
 		expect(run.winner).toBeNull();
 		expect(run.invalidReasons.join(" ")).toContain("exit code 1");
 		expect(run.invalidReasons.join(" ")).toContain("Vitest outcome changed");
-		expect(run.invalidReasons.join(" ")).toContain("load 5.00");
+		expect(run.invalidReasons.join(" ")).toContain("ambient load 5.00");
 	});
 
 	it("waits for load cooldown before starting each run", async () => {
@@ -223,6 +226,32 @@ describe("Vitest worker benchmark", () => {
 		expect(run.invalidReasons.join(" ")).toContain("load gate timed out");
 	});
 
+	it("keeps the memory winner when ambient load invalidates timing", async () => {
+		let runs = 0;
+		let activeLoad = 0.1;
+		const run = await runWorkerBenchmark(
+			["1"],
+			1,
+			deps(
+				async () => {
+					runs += 1;
+					activeLoad = runs === 2 ? 5 : 0.1;
+					await new Promise((resolve) => setTimeout(resolve, 10));
+					return measured({ peakRssBytes: 50 });
+				},
+				{
+					loadAvg: () => activeLoad,
+					ambientLoadPollIntervalMs: 1,
+				},
+			),
+		);
+		expect(run.validMemoryComparison).toBe(true);
+		expect(run.validTimingComparison).toBe(false);
+		expect(run.memoryWinner).toBe("1");
+		expect(run.winner).toBeNull();
+		expect(run.timingInvalidReasons.join(" ")).toContain("ambient load 5.00");
+	});
+
 	it("renders required metadata and keeps same-timestamp artifacts immutable", async () => {
 		const run = await runWorkerBenchmark(
 			["1"],
@@ -256,7 +285,7 @@ describe("Vitest worker benchmark", () => {
 		);
 		const markdown = renderWorkerBenchmark(run);
 		expect(markdown).toContain("Comparison invalid");
-		expect(markdown).toContain("No winner is reported.");
+		expect(markdown).toContain("No overall winner is reported.");
 		expect(markdown).not.toContain("Winner: **");
 	});
 });
