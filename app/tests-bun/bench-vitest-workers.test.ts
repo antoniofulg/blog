@@ -83,14 +83,11 @@ describe("Vitest worker benchmark", () => {
 		const run = await runWorkerBenchmark(
 			["1", "2"],
 			5,
-			deps(
-				async (argv) => {
-					calls.push(argv);
-					runs += 1;
-					return measured(runs === 1 ? { ms: 7, peakRssBytes: 999 } : {});
-				},
-				{ loadAvg: () => (calls > 1 ? 5 : 0.1) },
-			),
+			deps(async (argv) => {
+				calls.push(argv);
+				runs += 1;
+				return measured(runs === 1 ? { ms: 7, peakRssBytes: 999 } : {});
+			}, {}),
 		);
 		expect(calls).toHaveLength(12);
 		expect(calls.slice(2).map((argv) => argv.at(-1))).toEqual([
