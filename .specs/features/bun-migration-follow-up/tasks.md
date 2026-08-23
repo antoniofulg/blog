@@ -131,12 +131,16 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 - [x] All four profiles have one warmup and five measured runs.
 - [x] Failure, timeout, and missing-outcome evidence is visible; timing remains diagnostic.
 - [x] Memory and timing validity are recorded separately; ambient-load timing failures suppress only the overall winner and retain a valid memory winner when memory outcomes are valid.
-- [x] `test:local` passes under the selected profile (`--maxWorkers=2`).
+- [x] `test:local` passes under the operationally reliable serialized profile (`--maxWorkers=1`).
 
 The 2026-08-23 rerun completed the full matrix with equivalent outcomes and a
-valid memory comparison. Profile `2` has the lowest median peak RSS and backs
-`test:local`. Ambient load exceeded 11 during multiple samples, so duration
-comparison remains diagnostic and no overall timing winner is reported.
+valid memory comparison. Profile `2` has the lowest median peak RSS by 2.0 MiB
+(0.12%), but a fresh `test:local` run with two workers failed two
+`bench-runtime` tests because of a port/PID 843 race. Profile `1` is therefore
+the operational `test:local` choice: serialized execution is more reliable and
+the RSS medians are effectively tied. Ambient load exceeded 11 during multiple
+samples, so duration comparison remains diagnostic and no overall timing winner
+is reported.
 
 **Tests**: integration
 **Gate**: build

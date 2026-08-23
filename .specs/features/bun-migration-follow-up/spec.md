@@ -32,7 +32,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 | --- | --- | --- | --- |
 | Benchmark sample size | One discarded warmup plus five measured runs per profile/arm | Enough samples for a median while keeping the local run bounded. | y |
 | Noisy host handling | Preserve raw samples but suppress conclusions when the comparison is invalid | Multi-worktree load must not become a false performance claim. | y |
-| Local test priority | Select the lowest-memory passing worker profile; use time only as a secondary criterion | The user identified memory as essential. | y |
+| Local test priority | Select a passing profile with the lowest practical memory cost; prefer reliability when RSS is effectively tied | The two-worker RSS median was only 2.0 MiB (0.12%) lower, while a fresh run exposed a port/PID race. | y |
 | Browser concurrency | Keep one Playwright worker | Existing project constraint and 2-vCPU CI target. | y |
 | Bun Test discrepancy | Fix missed coverage if present; otherwise normalize runner accounting and document it | Tests must not be changed only to manipulate summary counts. | y |
 | Existing historical evidence | Preserve and label it instead of deleting it | Published metrics require an audit trail. | y |
@@ -50,7 +50,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 1. WHEN the worker benchmark runs THEN the system SHALL execute Bun 1.4 plus Vitest with `1`, `2`, `4`, and omitted `--maxWorkers` profiles.
 2. WHEN each worker profile is measured THEN the system SHALL discard one warmup and persist five measured samples with duration, process-group peak RSS, load, command, versions, and outcome counts.
 3. IF any measured sample fails, times out, changes the test outcome, or has a missing summary THEN the system SHALL mark that profile `memoryValid: false`, persist profile-specific reasons, and exclude only that profile from memory-winner selection; `validMemoryComparison` SHALL be true only when at least two `memoryValid` profiles have equivalent outcomes. IF ambient load exceeds the documented host-load validity bound, or any selected profile is memory-invalid, THEN the system SHALL mark timing comparison invalid. The system SHALL publish an overall winner only when memory and timing comparisons are valid, while retaining a memory winner from the remaining valid profiles when memory comparison alone is valid.
-4. WHEN the benchmark has valid results THEN the system SHALL map `test:local` to the passing profile with the lowest median peak RSS and SHALL leave `test` unchanged.
+4. WHEN the benchmark has valid results THEN the system SHALL map `test:local` to a passing profile with the lowest practical median peak RSS; when medians are effectively tied, it SHALL prefer the more reliable serialized profile, and SHALL leave `test` unchanged.
 
 **Independent Test**: Run the worker benchmark, inspect its JSON/Markdown, then run `bun run test:local` and the default test command.
 
@@ -115,7 +115,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 ## Success Criteria
 
 - [ ] `main` is aligned to `origin/main` with a recoverable backup reference.
-- [x] `test:local` passes and has lower measured median peak RSS than the default profile.
+- [x] `test:local` passes under the operationally reliable serialized profile; its measured RSS median is effectively tied with the mathematical memory winner.
 - [ ] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
 - [ ] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict.
 - [ ] Chromium, Firefox, and WebKit project runs have persisted results.

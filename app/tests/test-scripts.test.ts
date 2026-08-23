@@ -28,10 +28,10 @@ const vitestConfig = readFileSync(
 );
 
 describe("A/B/C test scripts", () => {
-	it("maps test to Bun 1.4 with Vitest", () => {
+	it("maps local tests to the reliable serialized Bun+Vitest profile", () => {
 		expect(scripts.test).toBe("bun run test:vitest:bun");
 		expect(scripts["test:local"]).toBe(
-			"bun run test:vitest:bun -- --maxWorkers=2",
+			"bun run test:vitest:bun -- --maxWorkers=1",
 		);
 	});
 
