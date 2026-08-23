@@ -1,8 +1,9 @@
 # Bun Migration Follow-up Specification
 
-**Execution status (2026-08-23)**: T8, T9, and T10 complete. T9
-consolidated committed worker, Playwright, browser, skip-accounting, branch,
-and Vitest-inventory evidence. The ten-run Bun Test gate remains unmet.
+**Execution status (2026-08-23)**: independently verified PASS (17/17
+acceptance criteria). T9 consolidated committed worker, Playwright, browser,
+skip-accounting, branch, and Vitest-inventory evidence. The ten-run Bun Test
+gate remains unmet.
 
 ## Problem Statement
 
@@ -109,10 +110,10 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| BMF-01 | P1: Low-memory local testing | T2 → T3 → T4 | Complete |
-| BMF-02 | P1: Bun Test outcome parity | T1 | Complete |
-| BMF-03 | P1: Complete Playwright evidence | T5 → T6 → T7 | Complete; cross-browser evidence persisted |
-| BMF-04 | P2: Cutover readiness and evidence publication | T8 → T9 → T10 | Complete |
+| BMF-01 | P1: Low-memory local testing | T2 → T3 → T4 | Verified |
+| BMF-02 | P1: Bun Test outcome parity | T1 | Verified |
+| BMF-03 | P1: Complete Playwright evidence | T5 → T6 → T7 | Verified; cross-browser evidence persisted |
+| BMF-04 | P2: Cutover readiness and evidence publication | T8 → T9 → T10 | Verified |
 
 **Coverage:** 4 total, 4 mapped to tasks, 0 unmapped.
 

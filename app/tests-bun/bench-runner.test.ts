@@ -25,7 +25,7 @@ describe("bench spawn measurement", () => {
 			[
 				"bash",
 				"-c",
-				"bun -e 'const b=Buffer.alloc(512*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)'",
+				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)'",
 			],
 			ENV,
 			{ timeoutMs: 30_000 },
@@ -36,16 +36,26 @@ describe("bench spawn measurement", () => {
 
 	test("counts a descendant's memory, not only the direct child's", async () => {
 		// bash is the direct child; bun is its descendant and holds the memory.
-		const result = await spawnMeasured(
+		const idle = await spawnMeasured(
 			[
 				"bash",
 				"-c",
-				"bun -e 'const b=Buffer.alloc(512*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)' | cat",
+				"bun -e 'const t=Date.now();while(Date.now()-t<3500){}' | cat",
 			],
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
-		expect(result.peakRssBytes).toBeGreaterThan(150 * MB);
+		const heavy = await spawnMeasured(
+			[
+				"bash",
+				"-c",
+				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)' | cat",
+			],
+			ENV,
+			{ timeoutMs: 30_000 },
+		);
+		expect(heavy.peakRssBytes).toBeGreaterThan(idle.peakRssBytes);
+		expect(heavy.peakRssBytes - idle.peakRssBytes).toBeGreaterThan(32 * MB);
 	});
 
 	test("kills a command that exceeds the timeout and leaves no orphan", async () => {

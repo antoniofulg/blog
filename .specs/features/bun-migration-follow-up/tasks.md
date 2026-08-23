@@ -6,7 +6,7 @@ Implement these tasks with the `tlc-spec-driven` skill. Follow its per-task
 gate, atomic commit, adequacy review, and independent Verifier rules.
 
 **Design**: `.specs/features/bun-migration-follow-up/design.md`
-**Status**: In Progress — implementation complete; independent verification pending
+**Status**: Done — independently verified PASS (17/17 acceptance criteria)
 
 ## Test Coverage Matrix
 
