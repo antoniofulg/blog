@@ -90,9 +90,9 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 **Tests**: unit
 **Gate**: quick
 
-### T3: Add the low-memory local profile
+### T3: Add the worker benchmark script alias — ✅ Complete
 
-**What**: Add `test:local` and benchmark script aliases without changing the default or CI command.
+**What**: Add the `bench:vitest:workers` alias without changing the default or CI command. The `test:local` decision remains deferred until T4 produces valid benchmark evidence.
 **Where**: `package.json`
 **Depends on**: T2
 **Reuses**: current Bun runtime guard and Vitest invocation.
@@ -105,17 +105,17 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 **Done when**:
 
-- [ ] `test:local` uses the lowest-memory valid profile selected by evidence.
-- [ ] `test` remains `test:vitest:bun`.
-- [ ] Script-contract twin tests pass.
+- [x] `bench:vitest:workers` invokes the worker benchmark CLI.
+- [x] `test` remains `test:vitest:bun` and CI remains unchanged.
+- [x] Script-contract twin tests pass.
 
 **Tests**: unit
 **Gate**: quick
 
 ### T4: Run and persist the worker benchmark
 
-**What**: Execute the complete worker matrix and commit raw JSON plus Markdown with a valid or explicit invalid verdict.
-**Where**: `docs/benchmarks/vitest-workers/`
+**What**: Execute the complete worker matrix and commit raw JSON plus Markdown with a valid or explicit invalid verdict. After valid evidence selects a passing lowest-memory profile, add `test:local` for that profile.
+**Where**: `docs/benchmarks/vitest-workers/` and `package.json`
 **Depends on**: T3
 **Reuses**: T2 benchmark CLI.
 **Requirement**: BMF-01
@@ -289,7 +289,7 @@ Phase 3:                         T8 → T9 → T10
 | --- | --- | --- |
 | T1 | Outcome comparison rule | Complete |
 | T2 | One benchmark CLI | Complete |
-| T3 | Script aliases | Granular |
+| T3 | Worker benchmark script alias | Complete |
 | T4 | One persisted benchmark run | Granular |
 | T5 | One benchmark CLI | Granular |
 | T6 | One persisted benchmark run | Granular |
