@@ -94,6 +94,7 @@ describe("test comparison result parsing", () => {
 			testsPassed: 8,
 			testsFailed: 0,
 			testsSkipped: 2,
+			leafTestsSkipped: 2,
 			testFileCount: 3,
 		});
 	});
@@ -120,6 +121,7 @@ describe("test comparison result parsing", () => {
 			testsPassed: 1,
 			testsFailed: 2,
 			testsSkipped: 3,
+			leafTestsSkipped: 3,
 			testFileCount: 4,
 		});
 	});
@@ -134,6 +136,18 @@ describe("test comparison result parsing", () => {
 		);
 		expect(result?.filesPassed).toBe(1);
 		expect(result?.testsPassed).toBe(2);
+	});
+
+	it("normalizes Bun synthetic skipped hooks while retaining raw skips", () => {
+		const unnamedHooks = Array.from(
+			{ length: 5 },
+			() => "(skip) integration suite > (unnamed)",
+		).join("\n");
+		const result = parseBunTestSummary(
+			`${unnamedHooks}\n56 pass\n26 skip\nRan 82 tests across 3 files.`,
+		);
+		expect(result?.testsSkipped).toBe(26);
+		expect(result?.leafTestsSkipped).toBe(21);
 	});
 });
 
@@ -231,7 +245,7 @@ describe("test arm orchestration", () => {
 		expect(result.invalidReasons).toContain("missing twin");
 	});
 
-	it("invalidates unequal A/C file, pass, fail, and skip outcomes", async () => {
+	it("invalidates unequal A/C file, pass, fail, and leaf-skip outcomes", async () => {
 		const reference: TestOutcome = {
 			filesPassed: 2,
 			filesFailed: 1,
@@ -273,7 +287,7 @@ describe("test arm orchestration", () => {
 			"A/C outcome testsFailed mismatch: A=2, C=1",
 		);
 		expect(result.invalidReasons).toContain(
-			"A/C outcome testsSkipped mismatch: A=3, C=4",
+			"A/C outcome leafTestsSkipped mismatch: A=3, C=4",
 		);
 	});
 

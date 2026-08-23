@@ -58,10 +58,10 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 **Done when**:
 
-- [ ] Evidence names the five runner-only or unexecuted outcomes.
-- [ ] No test is removed, weakened, or skipped to change the count.
-- [ ] A/C comparison accepts only equivalent leaf outcomes and retains raw skip values.
-- [ ] Focused twin tests pass with no reduced test count.
+- [x] Evidence names the five runner-only outcomes: two synthetic `(unnamed)` hooks in `lang-slug-route`, two in `og-slug-route`, and one in `docker-compose`.
+- [x] No test is removed, weakened, or skipped to change the count.
+- [x] A/C comparison accepts only equivalent leaf outcomes and retains raw skip values.
+- [x] Focused twin tests pass with no reduced test count.
 
 **Tests**: unit
 **Gate**: quick
@@ -287,7 +287,7 @@ Phase 3:                         T8 → T9 → T10
 
 | Task | Scope | Status |
 | --- | --- | --- |
-| T1 | Outcome comparison rule | Granular |
+| T1 | Outcome comparison rule | Complete |
 | T2 | One benchmark CLI | Granular |
 | T3 | Script aliases | Granular |
 | T4 | One persisted benchmark run | Granular |

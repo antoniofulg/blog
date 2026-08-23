@@ -106,7 +106,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | BMF-01 | P1: Low-memory local testing | Tasks | In Tasks |
-| BMF-02 | P1: Bun Test outcome parity | Tasks | In Tasks |
+| BMF-02 | P1: Bun Test outcome parity | T1 | Complete |
 | BMF-03 | P1: Complete Playwright evidence | Tasks | In Tasks |
 | BMF-04 | P2: Cutover readiness and evidence publication | Tasks | In Tasks |
 

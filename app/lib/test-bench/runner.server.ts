@@ -90,6 +90,7 @@ function parseVitestSummaryLine(line: string): TestOutcome | null {
 		testsPassed: 0,
 		testsFailed: 0,
 		testsSkipped: 0,
+		leafTestsSkipped: 0,
 		testFileCount: files,
 	};
 }
@@ -106,7 +107,14 @@ export function parseVitestSummary(stdout: string): TestOutcome | null {
 		testsPassed: counts(testsLine, "passed"),
 		testsFailed: counts(testsLine, "failed"),
 		testsSkipped: counts(testsLine, "skipped"),
+		leafTestsSkipped: counts(testsLine, "skipped"),
 	};
+}
+
+function countSyntheticBunSkips(stdout: string): number {
+	return stdout
+		.split("\n")
+		.filter((line) => /^\s*\(skip\).* > \(unnamed\)\s*$/.test(line)).length;
 }
 
 export function parseBunTestSummary(stdout: string): TestOutcome | null {
@@ -116,6 +124,7 @@ export function parseBunTestSummary(stdout: string): TestOutcome | null {
 	const testsPassed = counts(lines, "pass");
 	const testsFailed = counts(lines, "fail");
 	const testsSkipped = counts(lines, "skip");
+	const syntheticSkips = countSyntheticBunSkips(stdout);
 	const testFileCount = Number.parseInt(ran[2], 10);
 	return {
 		filesPassed: testsFailed === 0 ? testFileCount : 0,
@@ -123,6 +132,7 @@ export function parseBunTestSummary(stdout: string): TestOutcome | null {
 		testsPassed,
 		testsFailed,
 		testsSkipped,
+		leafTestsSkipped: Math.max(0, testsSkipped - syntheticSkips),
 		testFileCount,
 	};
 }
@@ -224,7 +234,6 @@ function outcomeMismatches(samples: TestArmSample[]): string[] {
 		"filesFailed",
 		"testsPassed",
 		"testsFailed",
-		"testsSkipped",
 	];
 	const reasons: string[] = [];
 	for (
@@ -241,6 +250,15 @@ function outcomeMismatches(samples: TestArmSample[]): string[] {
 					`A/C outcome ${field} mismatch: A=${referenceOutcome[field]}, C=${candidateOutcome[field]}`,
 				);
 			}
+		}
+		const referenceSkipped =
+			referenceOutcome.leafTestsSkipped ?? referenceOutcome.testsSkipped;
+		const candidateSkipped =
+			candidateOutcome.leafTestsSkipped ?? candidateOutcome.testsSkipped;
+		if (referenceSkipped !== candidateSkipped) {
+			reasons.push(
+				`A/C outcome leafTestsSkipped mismatch: A=${referenceSkipped}, C=${candidateSkipped}`,
+			);
 		}
 	}
 	return reasons;
