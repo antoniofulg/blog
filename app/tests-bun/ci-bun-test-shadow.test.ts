@@ -8,12 +8,14 @@ const playwright = readFileSync(join(root, "playwright.config.ts"), "utf8");
 
 describe("Bun Test CI shadow", () => {
 	test("keeps the test matrix entry", () => {
-		expect(ci).toContain("matrix.check == 'test'");
+		expect(ci).toContain(
+			"check: [test, lint, check, build-js, e2e, lint-tests]",
+		);
 	});
 
-	test("installs Node 24 for the blocking reference", () => {
-		expect(ci).toContain("uses: actions/setup-node@v4");
-		expect(ci).toContain('node-version: "24"');
+	test("uses the shared Bun runtime for the blocking test", () => {
+		expect(ci).toContain('bun-version: "1.4.0"');
+		expect(ci).not.toContain("uses: actions/setup-node@v4");
 	});
 
 	test("keeps Bun Test shadow non-blocking", () => {

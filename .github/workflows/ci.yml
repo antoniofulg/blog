@@ -29,11 +29,6 @@ jobs:
       - name: Install Playwright Chromium
         if: matrix.check == 'e2e'
         run: bunx playwright install --with-deps chromium
-      - name: Setup Node 24 reference
-        if: matrix.check == 'test'
-        uses: actions/setup-node@v4
-        with:
-          node-version: "24"
       - name: Build app for e2e
         if: matrix.check == 'e2e'
         run: bun run build

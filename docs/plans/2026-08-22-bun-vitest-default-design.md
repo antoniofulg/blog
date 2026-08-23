@@ -29,11 +29,11 @@ commit conventions, and the production Docker target.
 
 ## Compatibility and rollback
 
-No test is removed. The Node-specific runtime provenance test remains in the
-Node reference inventory and stays excluded from the Bun + Vitest inventory.
-If Bun + Vitest regresses, remap `test` to `test:vitest:node` and restore the
-Node 24 setup in the CI test job. Benchmark history and migrated infrastructure
-remain intact.
+No test is removed. The runtime provenance test adapts its expectations to the
+active Vitest runtime, so Bun and Node keep the same blocking inventory. If Bun
++ Vitest regresses, remap `test` to `test:vitest:node` and restore the Node 24
+setup in the CI test job. Benchmark history and migrated infrastructure remain
+intact.
 
 ## Documentation
 

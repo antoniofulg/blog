@@ -1,5 +1,10 @@
 # Bun Native Test Runner Migration Tasks
 
+> Runtime cutover amendment (2026-08-22): completed historical tasks below
+> retain their original Node-blocking wording. The approved follow-up maps
+> `test` to Bun 1.4 + Vitest, keeps Node 24 + Vitest as fallback, and leaves Bun
+> Test in shadow mode.
+
 ## Execution Protocol (MANDATORY -- do not skip)
 
 Implement these tasks with the `tlc-spec-driven` skill: **activate it by name

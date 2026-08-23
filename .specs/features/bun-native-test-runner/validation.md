@@ -1,5 +1,10 @@
 # Bun Native Test Runner Migration Validation
 
+> Historical evidence notice: this report validates the original Node-blocking
+> shadow state. On 2026-08-22, the blocking alias moved to Bun 1.4 + Vitest due
+> to its 452 MB lower median peak RSS. Node 24 + Vitest remains available as the
+> reference and rollback route; Bun Test remains shadow-only.
+
 **Verdict**: PASS
 **Iteration**: 2
 **Date**: 2026-08-22

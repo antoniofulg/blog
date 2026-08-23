@@ -8,6 +8,12 @@
 
 ## Feature Boundary
 
+> Runtime cutover amendment (2026-08-22): Bun 1.4 + Vitest is now the blocking
+> default because it used 452 MB less median peak RSS than Node 24 + Vitest in
+> the valid same-suite comparison. Node 24 + Vitest remains the explicit
+> reference and rollback route. The Bun Test eligibility rules below are
+> unchanged.
+
 Maintain Node 24/Vitest as a trustworthy reference while repairing and
 validating Bun 1.4/Bun Test in cohorts. Produce attributable A/B/C measurements,
 exercise Bun Test in CI shadow mode, and preserve a reversible cutover. Keep

@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Design
 
+> Runtime cutover amendment (2026-08-22): Bun 1.4 + Vitest replaced Node 24 +
+> Vitest as the blocking default after a same-suite benchmark tied on time and
+> reduced median peak RSS by 452 MB. Node remains the explicit fallback; Bun
+> Test remains the non-blocking candidate. See
+> `docs/plans/2026-08-22-bun-vitest-default-design.md`.
+
 > Historical design note: the Playwright-on-Node boundary was superseded on
 > 2026-08-22 by `docs/plans/2026-08-22-bun-playwright-webview-design.md`.
 > Playwright now runs through Bun with a Node fallback; the WebView experiment

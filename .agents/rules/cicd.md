@@ -35,15 +35,17 @@ All eight checks must be green before a PR can merge.
 
 ### Bun Test shadow mode
 
-The `quality` matrix `test` job remains blocking and installs Node 24 before
-running the Vitest reference. Separate `bun-test-shadow` runs parity and the
-Bun Test candidate under Bun 1.4.0 with `continue-on-error: true`. It always
-uploads candidate JSON and logs for seven days. Shadow failures expose
-compatibility evidence without replacing the reference gate.
+The `quality` matrix `test` job remains blocking and runs Vitest through Bun
+1.4.0. `test:vitest:node` remains the explicit Node 24 reference and rollback
+route. Separate `bun-test-shadow` runs parity and the Bun Test candidate under
+Bun 1.4.0 with `continue-on-error: true`. It always uploads candidate JSON and
+logs for seven days. Shadow failures expose compatibility evidence without
+replacing the Vitest gate.
 
 Cutover is manual after ten consecutive green, matching-inventory results. A
 failure, timeout, noisy run, or inventory mismatch resets the suffix. Rollback
-maps `test` to `test:vitest:node`; migrated tests and benchmark history remain.
+maps `test` to `test:vitest:node` and restores Node 24 in the quality test job;
+migrated tests and benchmark history remain.
 The canonical Playwright command is forced through Bun while its web server also
 runs through Bun. `test:e2e:node` remains the explicit local fallback. The
 retired Bun.WebView experiment is preserved as documentation and does not run

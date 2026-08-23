@@ -28,8 +28,8 @@ const vitestConfig = readFileSync(
 );
 
 describe("A/B/C test scripts", () => {
-	test("keeps test mapped to the Node 24 Vitest reference", () => {
-		expect(scripts.test).toBe("bun run test:vitest:node");
+	test("maps test to Bun 1.4 with Vitest", () => {
+		expect(scripts.test).toBe("bun run test:vitest:bun");
 	});
 
 	test("pins Node 24 before starting Vitest", () => {
@@ -42,6 +42,7 @@ describe("A/B/C test scripts", () => {
 		expect(scripts["test:vitest:bun"]).toContain(
 			"bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest",
 		);
+		expect(scripts["test:vitest:bun"]).not.toContain("--exclude");
 	});
 
 	test("runs only the Bun Test candidate tree", () => {

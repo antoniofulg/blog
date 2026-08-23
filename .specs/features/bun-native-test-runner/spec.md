@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Specification
 
+> Runtime cutover amendment (2026-08-22): the approved intermediate state uses
+> Bun 1.4 + Vitest as the blocking `test` command. Node 24 + Vitest remains an
+> explicit comparison and rollback route. Requirements that keep Node blocking
+> describe the original shadow baseline; the ten-run gate still applies only
+> to replacing Vitest with Bun Test.
+
 **Status**: Verified (independent validation iteration 2, 2026-08-22)
 
 Implementation is verified in shadow mode. Cutover remains a separate explicit

@@ -1,15 +1,15 @@
 # Bun Test migration playbook
 
-This migration keeps Node 24/Vitest as the blocking reference while Bun Test
-runs in CI shadow mode. It does not remap `test` yet and it does not remove
-Vitest.
+This migration uses Bun 1.4/Vitest as the blocking default while Bun Test runs
+in CI shadow mode. Node 24/Vitest remains the explicit reference and rollback
+route. Vitest is not being removed.
 
 ## Commands
 
 Run commands from the repository root with Bun 1.4.0 and Node 24 available:
 
 ```sh
-bun run test                         # blocking Node 24/Vitest reference
+bun run test                         # blocking Bun 1.4/Vitest default
 bun run test:vitest:node             # A: explicit Node 24 + Vitest 4.1.5
 bun run test:vitest:bun              # B: Bun 1.4.0 + Vitest 4.1.5
 bun run test:bun                     # C: Bun 1.4.0 + Bun Test
@@ -18,7 +18,7 @@ bun run bench:tests                  # one sequential A/B/C repetition
 bun run bench:tests --only=A,C --repetitions=3
 ```
 
-`test:vitest:bun` excludes the Node-specific runtime probe. The probe and the
+The Vitest runtime probe adapts its assertions to Node or Bun. It and the
 candidate preflight print executable and version provenance. A mismatched
 runtime fails before tests run.
 
@@ -51,8 +51,7 @@ evidence, not a performance winner claim.
 
 The CI `bun-test-shadow` job runs parity and `test:bun` with Bun 1.4.0. Its
 failure is non-blocking, but JSON and logs are uploaded for seven days. The
-`quality` matrix `test` entry remains blocking and installs Node 24 before the
-Vitest reference.
+`quality` matrix `test` entry remains blocking and runs Vitest through Bun.
 
 Bun Test becomes eligible for an explicit cutover decision only after a suffix
 of ten consecutive green, valid, matching-inventory shadow results. Evaluate
@@ -66,14 +65,14 @@ Cutover is a deliberate change, not an automatic CI action. After the ten-run
 threshold and review:
 
 1. Change `test` to delegate to `test:bun`.
-2. Keep `test:vitest:node` as the explicit blocking fallback.
+2. Keep `test:vitest:node` as the explicit fallback.
 3. Keep parity and the twin tree in CI.
-4. If Bun Test regresses, map `test` back to `test:vitest:node`, retain all
+4. If Bun Test regresses, map `test` back to `test:vitest:bun`, retain all
    migrated tests and reports, and investigate the recorded evidence.
 
 Vitest can be removed only when the Vitest-only inventory is empty and a
-separate removal decision is recorded. This checkout remains before cutover:
-`test` still points to the Node 24 reference.
+separate removal decision is recorded. The runtime-only cutover from Node to
+Bun + Vitest is complete; the runner cutover to Bun Test is not.
 
 ## Playwright boundary
 

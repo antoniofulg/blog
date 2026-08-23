@@ -16,13 +16,14 @@ The retired Bun.WebView experiment is preserved only as benchmark evidence in
 
 ## Bun Test migration boundary
 
-During shadow mode, `test` and the blocking CI quality entry use the explicit
-Node 24/Vitest reference. `test:vitest:bun` is the Bun control arm and
+During shadow mode, `test` and the blocking CI quality entry use Bun 1.4 with
+Vitest. This runtime cutover was selected for lower measured peak memory;
+`test:vitest:node` remains the explicit Node 24 reference and rollback route.
 `test:bun` is the Bun Test candidate. Run `test:parity` before interpreting
 candidate results. Bun Test does not become the default until ten consecutive
 green, matching-inventory shadow results are recorded. Any failure, timeout,
-noise, or mismatch resets that suffix. Keep `test:vitest:node` as rollback and
-do not remove Vitest while the Vitest-only inventory is non-empty.
+noise, or mismatch resets that suffix. Do not remove Vitest while the
+Vitest-only inventory is non-empty.
 
 Benchmark reports under `docs/benchmarks/bun-test/` are compatibility evidence;
 timing from shared CI runners is not a performance claim.
