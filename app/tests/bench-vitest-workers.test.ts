@@ -137,6 +137,44 @@ describe("Vitest worker benchmark", () => {
 		expect(run.profiles[1].aggregate?.medianPeakRssBytes).toBe(50);
 	});
 
+	it("excludes one failed profile while selecting among valid profiles", async () => {
+		const profileRuns = new Map<string, number>();
+		const run = await runWorkerBenchmark(
+			["1", "2", "4", "auto"],
+			5,
+			deps(async (argv) => {
+				const id =
+					argv.find((arg) => arg.startsWith("--maxWorkers="))?.slice(13) ??
+					"auto";
+				const count = (profileRuns.get(id) ?? 0) + 1;
+				profileRuns.set(id, count);
+				if (id === "2" && count > 1) {
+					return measured({
+						exitCode: 1,
+						peakRssBytes: 1,
+						stdout: "Test Files  1 failed (1)\nTests  1 failed (1)",
+					});
+				}
+				return measured({
+					peakRssBytes: id === "1" ? 100 : id === "4" ? 150 : 200,
+				});
+			}),
+		);
+		const profile2 = run.profiles.find((profile) => profile.profile === "2");
+		expect(profile2?.memoryValid).toBe(false);
+		expect(profile2?.memoryInvalidReasons.join(" ")).toContain("exit code 1");
+		expect(
+			run.profiles
+				.filter((profile) => profile.profile !== "2")
+				.every((profile) => profile.memoryValid),
+		).toBe(true);
+		expect(run.validMemoryComparison).toBe(true);
+		expect(run.memoryWinner).toBe("1");
+		expect(run.validTimingComparison).toBe(false);
+		expect(run.winner).toBeNull();
+		expect(renderWorkerBenchmark(run)).toContain("Profile 2: memory invalid");
+	});
+
 	it("invalidates failed, changed, and overloaded samples and suppresses winner", async () => {
 		let calls = 0;
 		const run = await runWorkerBenchmark(
@@ -245,7 +283,7 @@ describe("Vitest worker benchmark", () => {
 				},
 			),
 		);
-		expect(run.validMemoryComparison).toBe(true);
+		expect(run.validMemoryComparison).toBe(false);
 		expect(run.validTimingComparison).toBe(false);
 		expect(run.memoryWinner).toBe("1");
 		expect(run.winner).toBeNull();

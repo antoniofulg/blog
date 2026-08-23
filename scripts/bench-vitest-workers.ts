@@ -68,6 +68,8 @@ export type WorkerProfileResult = {
 	samples: WorkerSample[];
 	totalWallTimeMs: number;
 	aggregate: Aggregate | null;
+	memoryValid: boolean;
+	memoryInvalidReasons: string[];
 };
 
 export type WorkerBenchRun = {
@@ -235,6 +237,8 @@ function profileResult(
 			0,
 		),
 		aggregate: aggregate(timedSamples),
+		memoryValid: false,
+		memoryInvalidReasons: [],
 	};
 }
 
@@ -261,36 +265,107 @@ function winnerFor(profiles: WorkerProfileResult[]): WorkerProfileId | null {
 	);
 }
 
-function memoryValidity(profiles: WorkerProfileResult[]): {
+type ProfileMemoryValidity = {
 	valid: boolean;
 	reasons: string[];
-} {
+};
+
+function profileMemoryValidity(
+	profile: WorkerProfileResult,
+	expectedSamples: number,
+): ProfileMemoryValidity {
 	const reasons: string[] = [];
-	const reference = profiles[0]?.samples[0]?.outcome ?? null;
-	for (const profile of profiles) {
-		for (const [index, sample] of profile.samples.entries()) {
-			if (sample.timedOut) reasons.push(`${profile.profile} sample ${index + 1}: timed out`);
-			if (sample.exitCode !== 0)
-				reasons.push(`${profile.profile} sample ${index + 1}: exit code ${sample.exitCode}`);
-			if (!sample.outcome)
-				reasons.push(`${profile.profile} sample ${index + 1}: Vitest outcome summary missing`);
-			if (reference && sample.outcome && !outcomeEqual(reference, sample.outcome)) {
-				reasons.push(`${profile.profile} sample ${index + 1}: Vitest outcome changed`);
-			}
+	if (profile.samples.length !== expectedSamples) {
+		reasons.push(
+			`expected ${expectedSamples} measured samples, got ${profile.samples.length}`,
+		);
+	}
+	const reference = profile.samples[0]?.outcome ?? null;
+	for (const [index, sample] of profile.samples.entries()) {
+		if (sample.timedOut) reasons.push(`sample ${index + 1}: timed out`);
+		if (sample.exitCode !== 0)
+			reasons.push(`sample ${index + 1}: exit code ${sample.exitCode}`);
+		if (!sample.outcome) reasons.push(`sample ${index + 1}: Vitest outcome summary missing`);
+		if (reference && sample.outcome && !outcomeEqual(reference, sample.outcome)) {
+			reasons.push(`sample ${index + 1}: Vitest outcome changed`);
 		}
 	}
 	if (!reference) reasons.push("reference Vitest outcome summary missing");
 	return { valid: reasons.length === 0, reasons: [...new Set(reasons)] };
 }
 
+function memoryValidity(
+	profiles: WorkerProfileResult[],
+	expectedSamples: number,
+): {
+	valid: boolean;
+	reasons: string[];
+	validProfiles: WorkerProfileResult[];
+} {
+	const statuses = profiles.map((profile) => ({
+		profile,
+		...profileMemoryValidity(profile, expectedSamples),
+	}));
+	const groups: Array<typeof statuses> = [];
+	for (const status of statuses.filter((candidate) => candidate.valid)) {
+		const outcome = status.profile.samples[0]?.outcome ?? null;
+		const group = groups.find((candidateGroup) =>
+			outcomeEqual(candidateGroup[0].profile.samples[0]?.outcome ?? null, outcome),
+		);
+		if (group) group.push(status);
+		else groups.push([status]);
+	}
+	const selectedGroup =
+		[...groups].sort((a, b) => b.length - a.length)[0] ?? [];
+	const selectedOutcome = selectedGroup[0]?.profile.samples[0]?.outcome ?? null;
+	for (const status of statuses) {
+		if (status.valid && !selectedGroup.includes(status)) {
+			status.valid = false;
+			status.reasons.push(
+				`Vitest outcome differs from selected profile ${selectedGroup[0]?.profile.profile ?? "none"}`,
+			);
+		}
+		if (selectedOutcome && !selectedGroup.includes(status)) {
+			for (const [index, sample] of status.profile.samples.entries()) {
+				if (sample.outcome && !outcomeEqual(selectedOutcome, sample.outcome)) {
+					status.reasons.push(`sample ${index + 1}: Vitest outcome changed`);
+				}
+			}
+		}
+	}
+	for (const status of statuses) {
+		status.profile.memoryValid = status.valid;
+		status.profile.memoryInvalidReasons = [...new Set(status.reasons)];
+	}
+	const validProfiles = statuses
+		.filter((status) => status.valid)
+		.map((status) => status.profile);
+	const reasons = statuses.flatMap((status) =>
+		status.valid
+			? []
+			: status.reasons.map((reason) => `${status.profile.profile}: ${reason}`),
+	);
+	if (validProfiles.length < 2) {
+		reasons.push(
+			"memory comparison requires at least 2 profiles with equivalent valid outcomes",
+		);
+	}
+	return {
+		valid: validProfiles.length >= 2,
+		reasons: [...new Set(reasons)],
+		validProfiles,
+	};
+}
+
 function timingValidity(
 	profiles: WorkerProfileResult[],
 	host: HostMeta,
-	memoryValid: boolean,
+	allProfilesMemoryValid: boolean,
 ): { valid: boolean; reasons: string[] } {
 	const reasons: string[] = [];
 	const limit = LOAD_PER_CORE_LIMIT * Math.max(host.cores, 1);
-	if (!memoryValid) reasons.push("memory comparison invalid");
+	if (!allProfilesMemoryValid)
+		reasons.push("timing comparison requires every profile to have valid memory samples");
 	for (const profile of profiles) {
 		for (const [index, sample] of profile.warmupSamples.entries()) {
 			if (sample.loadGateTimedOut)
@@ -373,9 +448,14 @@ export async function runWorkerBenchmark(
 			samples.get(profile.id)!,
 		),
 	);
-	const memory = memoryValidity(results);
-	const timing = timingValidity(results, host, memory.valid);
-	const memoryWinner = memory.valid ? winnerFor(results) : null;
+	const memory = memoryValidity(results, repetitions);
+	const timing = timingValidity(
+		results,
+		host,
+		results.every((profile) => profile.memoryValid),
+	);
+	const memoryWinner = winnerFor(memory.validProfiles);
+	const invalidReasons = [...new Set([...memory.reasons, ...timing.reasons])];
 	return {
 		schemaVersion: 1,
 		commit: await deps.commit(),
@@ -395,7 +475,7 @@ export async function runWorkerBenchmark(
 		validComparison: memory.valid && timing.valid,
 		validMemoryComparison: memory.valid,
 		validTimingComparison: timing.valid,
-		invalidReasons: [...memory.reasons, ...timing.reasons],
+		invalidReasons,
 		memoryInvalidReasons: memory.reasons,
 		timingInvalidReasons: timing.reasons,
 		memoryWinner,
@@ -442,6 +522,13 @@ export function renderWorkerBenchmark(run: WorkerBenchRun): string {
 				? `- ${profile.profile}: median ${aggregateResult.medianMs.toFixed(2)} ms, median peak RSS ${bytes(aggregateResult.medianPeakRssBytes)}, max measured load ${aggregateResult.maxLoadAvg1.toFixed(2)}, total wall time ${profile.totalWallTimeMs.toFixed(2)} ms including warmup`
 				: `- ${profile.profile}: no samples`,
 		);
+	}
+	for (const profile of run.profiles) {
+		if (!profile.memoryValid) {
+			lines.push(
+				`- Profile ${profile.profile}: memory invalid${profile.memoryInvalidReasons.length > 0 ? ` — ${profile.memoryInvalidReasons.join("; ")}` : ""}`,
+			);
+		}
 	}
 	if (run.validComparison) lines.push("", `Winner: **${run.winner ?? "none"}**`, "");
 	else if (run.memoryWinner) lines.push("", `Memory winner (timing diagnostic): **${run.memoryWinner}**`, "");

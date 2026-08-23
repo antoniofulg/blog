@@ -83,7 +83,8 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 - [x] One warmup per profile is retained as warmup evidence and excluded from five measured samples.
 - [x] Profiles run sequentially with alternating order.
-- [x] Invalid samples suppress a winner.
+- [x] Each profile records `memoryValid` and profile-specific invalid reasons; failed profiles are excluded from memory selection without invalidating other profiles.
+- [x] Memory comparison requires at least two valid profiles with equivalent outcomes; timing comparison requires every selected profile to remain memory-valid.
 - [x] JSON and Markdown include all spec-required metadata.
 - [x] Focused twin tests pass.
 
@@ -134,8 +135,10 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 The 2026-08-23 run completed the full matrix but remained invalid: Vitest output
 summaries were missing for measured samples and one profile-2 sample exited 1;
-ambient load also exceeded 11 during multiple samples. No profile was selected
-for `test:local`, so T4 remains partial pending a clean rerun.
+ambient load also exceeded 11 during multiple samples. Profile 2 is excluded
+from memory selection, while timing still requires every profile to be valid;
+no profile was selected for `test:local`, so T4 remains partial pending a clean
+rerun.
 
 **Tests**: integration
 **Gate**: build
