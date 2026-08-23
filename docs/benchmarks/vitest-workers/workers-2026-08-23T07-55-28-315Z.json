@@ -1,0 +1,879 @@
+{
+  "schemaVersion": 1,
+  "commit": "ba9e28c6b51655fe76e50871d50ee5ce7bb8d94f",
+  "timestamp": "2026-08-23T07:55:28.315Z",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 9.98486328125,
+    "powerSource": "ac",
+    "startedAt": "2026-08-23T07:55:28.304Z"
+  },
+  "runtime": "bun",
+  "runtimeVersion": "1.4.0",
+  "runner": "vitest",
+  "runnerVersion": "4.1.5",
+  "repetitions": 5,
+  "warmupsPerProfile": 1,
+  "loadValidity": {
+    "perCoreLimit": 1,
+    "absoluteLimit": 11
+  },
+  "profiles": [
+    {
+      "profile": "1",
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun",
+        "--",
+        "--maxWorkers=1"
+      ],
+      "warmups": 1,
+      "warmupSamples": [
+        {
+          "durationMs": 145357.07195800002,
+          "peakRssBytes": 1727070208,
+          "loadAvg1": 6.13134765625,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 6.13134765625,
+          "ambientLoadMax": 7.79248046875,
+          "ambientLoadEnd": 7.62158203125,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=1"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:12:34\n   Duration  145.01s (transform 3.39s, setup 0ms, import 12.76s, tests 117.77s, environment 7.43s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=1\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-d9yEJ2/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "samples": [
+        {
+          "durationMs": 135812.810833,
+          "peakRssBytes": 1769619456,
+          "loadAvg1": 10.99462890625,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.99462890625,
+          "ambientLoadMax": 10.99462890625,
+          "ambientLoadEnd": 7.369140625,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=1"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:21:28\n   Duration  135.52s (transform 2.49s, setup 0ms, import 10.51s, tests 111.96s, environment 6.38s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=1\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-o41OHs/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 153194.803541,
+          "peakRssBytes": 1586331648,
+          "loadAvg1": 10.77294921875,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.77294921875,
+          "ambientLoadMax": 10.77294921875,
+          "ambientLoadEnd": 9.8115234375,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=1"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:34:38\n   Duration  152.87s (transform 3.13s, setup 0ms, import 13.84s, tests 123.05s, environment 7.86s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=1\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-WYSbBD/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 185311.15087500005,
+          "peakRssBytes": 1761951744,
+          "loadAvg1": 9.8115234375,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 9.8115234375,
+          "ambientLoadMax": 22.646484375,
+          "ambientLoadEnd": 19.044921875,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=1"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:37:12\n   Duration  184.85s (transform 6.00s, setup 0ms, import 19.88s, tests 145.97s, environment 9.77s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=1\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-7FT2Um/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 127664.64608400036,
+          "peakRssBytes": 1816723456,
+          "loadAvg1": 10.5283203125,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.5283203125,
+          "ambientLoadMax": 10.5283203125,
+          "ambientLoadEnd": 6.166015625,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=1"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:48:35\n   Duration  127.44s (transform 2.14s, setup 0ms, import 9.18s, tests 106.52s, environment 5.54s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=1\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-v72uy4/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 125748.75199999986,
+          "peakRssBytes": 2159329280,
+          "loadAvg1": 6.166015625,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 6.166015625,
+          "ambientLoadMax": 10.2509765625,
+          "ambientLoadEnd": 5.91015625,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=1"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:50:42\n   Duration  125.42s (transform 2.14s, setup 0ms, import 8.67s, tests 105.80s, environment 5.38s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=1\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UIxmeV/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "totalWallTimeMs": 873089.2352910002,
+      "aggregate": {
+        "medianMs": 135812.810833,
+        "minMs": 125748.75199999986,
+        "maxMs": 185311.15087500005,
+        "medianPeakRssBytes": 1769619456,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.5283203125,
+        "maxLoadAvg1": 10.99462890625
+      },
+      "memoryValid": true,
+      "memoryInvalidReasons": []
+    },
+    {
+      "profile": "2",
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun",
+        "--",
+        "--maxWorkers=2"
+      ],
+      "warmups": 1,
+      "warmupSamples": [
+        {
+          "durationMs": 92545.96529200001,
+          "peakRssBytes": 1604190208,
+          "loadAvg1": 7.62158203125,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 7.62158203125,
+          "ambientLoadMax": 17.59521484375,
+          "ambientLoadEnd": 17.59521484375,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=2"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:14:59\n   Duration  92.22s (transform 5.86s, setup 0ms, import 23.37s, tests 134.92s, environment 13.51s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=2\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Pb7FQ6/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "samples": [
+        {
+          "durationMs": 74506.400333,
+          "peakRssBytes": 1980186624,
+          "loadAvg1": 7.369140625,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 7.369140625,
+          "ambientLoadMax": 10.98388671875,
+          "ambientLoadEnd": 10.98388671875,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=2"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:23:43\n   Duration  74.17s (transform 3.43s, setup 0ms, import 15.23s, tests 114.59s, environment 9.50s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=2\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-IqeyE2/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 89584.3094589999,
+          "peakRssBytes": 1659355136,
+          "loadAvg1": 10.9345703125,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.9345703125,
+          "ambientLoadMax": 16.42236328125,
+          "ambientLoadEnd": 16.42236328125,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=2"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:30:28\n   Duration  89.31s (transform 5.16s, setup 0ms, import 21.66s, tests 134.92s, environment 11.12s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=2\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Ya04uO/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 74389.510458,
+          "peakRssBytes": 1638137856,
+          "loadAvg1": 10.48388671875,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.48388671875,
+          "ambientLoadMax": 10.73583984375,
+          "ambientLoadEnd": 9.26806640625,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=2"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:41:13\n   Duration  74.01s (transform 3.46s, setup 0ms, import 14.23s, tests 117.17s, environment 8.61s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=2\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BGGpdi/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 73028.66991600022,
+          "peakRssBytes": 1767440384,
+          "loadAvg1": 10.63623046875,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.63623046875,
+          "ambientLoadMax": 11.65625,
+          "ambientLoadEnd": 10.5283203125,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=2"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:47:22\n   Duration  72.78s (transform 3.54s, setup 0ms, import 15.07s, tests 113.16s, environment 7.94s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=2\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-yzi7Sg/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 63445.9259589999,
+          "peakRssBytes": 2058190848,
+          "loadAvg1": 5.91015625,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 5.91015625,
+          "ambientLoadMax": 6.42236328125,
+          "ambientLoadEnd": 6.18798828125,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=2"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:52:48\n   Duration  63.23s (transform 2.24s, setup 0ms, import 8.87s, tests 106.25s, environment 5.55s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=2\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nplaRQ/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "totalWallTimeMs": 467500.781417,
+      "aggregate": {
+        "medianMs": 74389.510458,
+        "minMs": 63445.9259589999,
+        "maxMs": 89584.3094589999,
+        "medianPeakRssBytes": 1767440384,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.48388671875,
+        "maxLoadAvg1": 10.9345703125
+      },
+      "memoryValid": true,
+      "memoryInvalidReasons": []
+    },
+    {
+      "profile": "4",
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun",
+        "--",
+        "--maxWorkers=4"
+      ],
+      "warmups": 1,
+      "warmupSamples": [
+        {
+          "durationMs": 49998.71675000002,
+          "peakRssBytes": 2075738112,
+          "loadAvg1": 10.99609375,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.99609375,
+          "ambientLoadMax": 20.4931640625,
+          "ambientLoadEnd": 20.21337890625,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=4"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:18:23\n   Duration  49.52s (transform 5.17s, setup 0ms, import 19.57s, tests 156.64s, environment 9.95s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=4\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-Odb4zh/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "samples": [
+        {
+          "durationMs": 49443.05054199998,
+          "peakRssBytes": 2019655680,
+          "loadAvg1": 10.98388671875,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.98388671875,
+          "ambientLoadMax": 13.35888671875,
+          "ambientLoadEnd": 13.25,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=4"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:24:58\n   Duration  49.03s (transform 4.47s, setup 0ms, import 14.99s, tests 131.93s, environment 7.69s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=4\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-OiCbVG/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 48263.99487499986,
+          "peakRssBytes": 2616557568,
+          "loadAvg1": 10.49169921875,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.49169921875,
+          "ambientLoadMax": 13.2421875,
+          "ambientLoadEnd": 11.27880859375,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=4"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:29:33\n   Duration  48.04s (transform 3.96s, setup 0ms, import 14.82s, tests 121.63s, environment 8.41s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=4\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-UoTZ0n/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 49629.537207999965,
+          "peakRssBytes": 2147008512,
+          "loadAvg1": 9.26806640625,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 9.26806640625,
+          "ambientLoadMax": 13.072265625,
+          "ambientLoadEnd": 12.666015625,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=4"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:42:27\n   Duration  49.32s (transform 5.79s, setup 0ms, import 20.17s, tests 156.12s, environment 10.79s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=4\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-nMAEn0/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 48804.68295800011,
+          "peakRssBytes": 2703294464,
+          "loadAvg1": 10.51416015625,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.51416015625,
+          "ambientLoadMax": 11.58154296875,
+          "ambientLoadEnd": 10.63623046875,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=4"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:46:33\n   Duration  48.48s (transform 4.50s, setup 0ms, import 18.24s, tests 132.62s, environment 10.67s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=4\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-bv9F2E/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 47529.04516700003,
+          "peakRssBytes": 2605088768,
+          "loadAvg1": 6.18798828125,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 6.18798828125,
+          "ambientLoadMax": 6.18798828125,
+          "ambientLoadEnd": 4.609375,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--",
+            "--maxWorkers=4"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:53:51\n   Duration  47.35s (transform 2.43s, setup 0ms, import 10.08s, tests 111.04s, environment 5.94s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run \"--maxWorkers=4\"\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-BO4T9m/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "totalWallTimeMs": 293669.02749999997,
+      "aggregate": {
+        "medianMs": 48804.68295800011,
+        "minMs": 47529.04516700003,
+        "maxMs": 49629.537207999965,
+        "medianPeakRssBytes": 2605088768,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.49169921875,
+        "maxLoadAvg1": 10.98388671875
+      },
+      "memoryValid": true,
+      "memoryInvalidReasons": []
+    },
+    {
+      "profile": "auto",
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun",
+        "--"
+      ],
+      "warmups": 1,
+      "warmupSamples": [
+        {
+          "durationMs": 51647.82625000004,
+          "peakRssBytes": 2973974528,
+          "loadAvg1": 10.46435546875,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.46435546875,
+          "ambientLoadMax": 16.3642578125,
+          "ambientLoadEnd": 12.87451171875,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:20:23\n   Duration  51.37s (transform 13.89s, setup 0ms, import 42.25s, tests 258.65s, environment 16.10s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-mSUti8/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "samples": [
+        {
+          "durationMs": 54505.398958000005,
+          "peakRssBytes": 2556755968,
+          "loadAvg1": 10.958984375,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.958984375,
+          "ambientLoadMax": 26.23388671875,
+          "ambientLoadEnd": 26.134765625,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:26:03\n   Duration  54.22s (transform 26.07s, setup 0ms, import 81.33s, tests 390.26s, environment 37.78s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-GaxVd5/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 50792.83125000005,
+          "peakRssBytes": 3522019328,
+          "loadAvg1": 10.28662109375,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.28662109375,
+          "ambientLoadMax": 16.10986328125,
+          "ambientLoadEnd": 11.76611328125,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:28:33\n   Duration  50.55s (transform 14.74s, setup 0ms, import 39.75s, tests 227.74s, environment 16.87s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-21J73P/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 51511.10979100014,
+          "peakRssBytes": 2802368512,
+          "loadAvg1": 10.66064453125,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.66064453125,
+          "ambientLoadMax": 18.80859375,
+          "ambientLoadEnd": 14.6142578125,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:43:38\n   Duration  51.10s (transform 17.04s, setup 0ms, import 47.58s, tests 259.47s, environment 18.89s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-HFSctC/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 50975.08258399996,
+          "peakRssBytes": 2722299904,
+          "loadAvg1": 10.41845703125,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 10.41845703125,
+          "ambientLoadMax": 17.154296875,
+          "ambientLoadEnd": 13.3623046875,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:45:03\n   Duration  50.71s (transform 12.24s, setup 0ms, import 41.62s, tests 243.81s, environment 18.09s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-m2kREY/app/content/posts/en/no-title.mdx"
+        },
+        {
+          "durationMs": 48933.078416999895,
+          "peakRssBytes": 3256614912,
+          "loadAvg1": 4.609375,
+          "exitCode": 0,
+          "timedOut": false,
+          "loadGateTimedOut": false,
+          "ambientLoadStart": 4.609375,
+          "ambientLoadMax": 10.59326171875,
+          "ambientLoadEnd": 9.98486328125,
+          "command": [
+            "bun",
+            "run",
+            "test:vitest:bun",
+            "--"
+          ],
+          "runtimeVersion": "1.4.0",
+          "runnerVersion": "4.1.5",
+          "outcome": {
+            "filesPassed": 140,
+            "filesFailed": 0,
+            "testsPassed": 2366,
+            "testsFailed": 0,
+            "testsSkipped": 52,
+            "leafTestsSkipped": 52,
+            "testFileCount": 140
+          },
+          "failureExcerpt": "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}\n\n RUN  v4.1.5 /Users/antoniofulg/Projects/blog\n\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n\n Test Files  140 passed (140)\n      Tests  2366 passed | 52 skipped (2418)\n   Start at  04:54:39\n   Duration  48.75s (transform 9.67s, setup 0ms, import 30.66s, tests 164.57s, environment 10.34s)\n$ bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx: Unsupported locale directory \"fr\" in path /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/fr/french.mdx. Expected one of: en, pt-br\n[site-model] skipping malformed file: /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx: Missing required frontmatter 'title' in /var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/site-model-edge-INVnIz/app/content/posts/en/no-title.mdx"
+        }
+      ],
+      "totalWallTimeMs": 308365.3272500001,
+      "aggregate": {
+        "medianMs": 50975.08258399996,
+        "minMs": 48933.078416999895,
+        "maxMs": 54505.398958000005,
+        "medianPeakRssBytes": 2802368512,
+        "sampleCount": 5,
+        "medianLoadAvg1": 10.41845703125,
+        "maxLoadAvg1": 10.958984375
+      },
+      "memoryValid": true,
+      "memoryInvalidReasons": []
+    }
+  ],
+  "validComparison": false,
+  "validMemoryComparison": true,
+  "validTimingComparison": false,
+  "invalidReasons": [
+    "1 sample 3: ambient load 22.65 exceeds 11.00",
+    "2 sample 2: ambient load 16.42 exceeds 11.00",
+    "2 sample 4: ambient load 11.66 exceeds 11.00",
+    "4 sample 1: ambient load 13.36 exceeds 11.00",
+    "4 sample 2: ambient load 13.24 exceeds 11.00",
+    "4 sample 3: ambient load 13.07 exceeds 11.00",
+    "4 sample 4: ambient load 11.58 exceeds 11.00",
+    "auto sample 1: ambient load 26.23 exceeds 11.00",
+    "auto sample 2: ambient load 16.11 exceeds 11.00",
+    "auto sample 3: ambient load 18.81 exceeds 11.00",
+    "auto sample 4: ambient load 17.15 exceeds 11.00"
+  ],
+  "memoryInvalidReasons": [],
+  "timingInvalidReasons": [
+    "1 sample 3: ambient load 22.65 exceeds 11.00",
+    "2 sample 2: ambient load 16.42 exceeds 11.00",
+    "2 sample 4: ambient load 11.66 exceeds 11.00",
+    "4 sample 1: ambient load 13.36 exceeds 11.00",
+    "4 sample 2: ambient load 13.24 exceeds 11.00",
+    "4 sample 3: ambient load 13.07 exceeds 11.00",
+    "4 sample 4: ambient load 11.58 exceeds 11.00",
+    "auto sample 1: ambient load 26.23 exceeds 11.00",
+    "auto sample 2: ambient load 16.11 exceeds 11.00",
+    "auto sample 3: ambient load 18.81 exceeds 11.00",
+    "auto sample 4: ambient load 17.15 exceeds 11.00"
+  ],
+  "memoryWinner": "2",
+  "winner": null
+}

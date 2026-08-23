@@ -113,7 +113,7 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 **Tests**: unit
 **Gate**: quick
 
-### T4: Run and persist the worker benchmark — ⚠️ Partial (invalid evidence; no winner)
+### T4: Run and persist the worker benchmark — ✅ Complete (timing diagnostic)
 
 **What**: Execute the complete worker matrix and commit raw JSON plus Markdown with a valid or explicit invalid verdict. After valid evidence selects a passing lowest-memory profile, add `test:local` for that profile.
 **Where**: `docs/benchmarks/vitest-workers/` and `package.json`
@@ -129,16 +129,14 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 **Done when**:
 
 - [x] All four profiles have one warmup and five measured runs.
-- [x] Failure, timeout, and missing-outcome evidence is visible; the comparison is explicitly invalid.
+- [x] Failure, timeout, and missing-outcome evidence is visible; timing remains diagnostic.
 - [x] Memory and timing validity are recorded separately; ambient-load timing failures suppress only the overall winner and retain a valid memory winner when memory outcomes are valid.
-- [ ] `test:local` passes under the selected profile.
+- [x] `test:local` passes under the selected profile (`--maxWorkers=2`).
 
-The 2026-08-23 run completed the full matrix but remained invalid: Vitest output
-summaries were missing for measured samples and one profile-2 sample exited 1;
-ambient load also exceeded 11 during multiple samples. Profile 2 is excluded
-from memory selection, while timing still requires every profile to be valid;
-no profile was selected for `test:local`, so T4 remains partial pending a clean
-rerun.
+The 2026-08-23 rerun completed the full matrix with equivalent outcomes and a
+valid memory comparison. Profile `2` has the lowest median peak RSS and backs
+`test:local`. Ambient load exceeded 11 during multiple samples, so duration
+comparison remains diagnostic and no overall timing winner is reported.
 
 **Tests**: integration
 **Gate**: build
