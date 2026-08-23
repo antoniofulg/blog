@@ -50,6 +50,8 @@ export function LocaleProvider({ children }: { children: React.ReactNode }) {
 	const setLocale = useCallback((l: Locale) => {
 		setLocaleState(l);
 		localStorage.setItem("locale", l);
+		// Keep this synchronous: callers navigate immediately after setLocale,
+		// so the async Cookie Store API would race the next SSR request.
 		document.cookie = `locale=${l}; path=/; max-age=${60 * 60 * 24 * 365}; SameSite=Lax`;
 	}, []);
 

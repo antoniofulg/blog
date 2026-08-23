@@ -84,7 +84,8 @@ function assertReciprocity(entries: SitemapEntry[]): void {
 				locSet.has(alt.href),
 				`${alt.href} referenced in alternates but not in urlset`,
 			).toBe(true);
-			const refAlts = locSet.get(alt.href)!;
+			const refAlts = locSet.get(alt.href);
+			if (!refAlts) throw new Error(`Missing sitemap entry for ${alt.href}`);
 			const hasReciprocal = refAlts.some((a) => a.href === entry.loc);
 			expect(
 				hasReciprocal,
@@ -136,7 +137,8 @@ describe("unit: getSitemapEntriesFn — structural homepage entries", () => {
 		const entries = await getSitemapEntriesFn();
 		const enHome = entries.find(
 			(e) => e.loc.endsWith("/") && !e.loc.includes("/pt-br/"),
-		)!;
+		);
+		if (!enHome) throw new Error("English homepage is missing from sitemap");
 		const hreflangs = enHome.alternates.map((a) => a.hreflang);
 		expect(hreflangs).toContain("en");
 		expect(hreflangs).toContain("pt-BR");
@@ -609,7 +611,8 @@ describe.skipIf(port3000Free)("integration: GET /sitemap.xml", () => {
 			for (const alt of p.alts) {
 				if (alt.hreflang === "x-default") continue;
 				expect(locSet.has(alt.href)).toBe(true);
-				const refAlts = locSet.get(alt.href)!;
+				const refAlts = locSet.get(alt.href);
+				if (!refAlts) throw new Error(`Missing sitemap entry for ${alt.href}`);
 				expect(refAlts.some((a) => a.href === p.loc)).toBe(true);
 			}
 		}

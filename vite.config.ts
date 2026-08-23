@@ -5,7 +5,7 @@ import { tanstackStart } from "@tanstack/react-start/plugin/vite";
 
 import viteReact from "@vitejs/plugin-react";
 import { nitro } from "nitro/vite";
-import { defineConfig, type Plugin } from "vitest/config";
+import { defineConfig, type Plugin } from "vite";
 
 // Server-only module IDs that must never reach the client bundle.
 // Instead of erroring (like vite-env-only), we return no-op stubs so
@@ -121,21 +121,6 @@ const config = defineConfig({
 		viteReact(),
 		serverOnlyStubPlugin(),
 	],
-	test: {
-		environment: "node",
-		include: ["app/tests/**/*.test.ts", "app/tests/**/*.test.tsx"],
-		// The integration tests boot PGLite, a Postgres compiled to WASM, inside
-		// a `beforeAll` hook. A single boot measured 1.5-4.3 s on an 11-core M3
-		// Pro at a load average around 20, and vitest runs one worker per core,
-		// so several of those boots compete at once. Vitest's 10 s hook default
-		// was never chosen for that work: it is tight enough that the suite
-		// fails on a busy machine and passes on an idle one, which reads as
-		// flakiness and, inside a version benchmark, as a compat finding
-		// against whichever runtime happened to be measured under load.
-		server: { deps: { inline: [/react/, /react-dom/, /zod/] } },
-		hookTimeout: 60_000,
-		testTimeout: 30_000,
-	},
 });
 
 export default config;

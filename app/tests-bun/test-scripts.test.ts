@@ -22,6 +22,10 @@ const viteConfig = readFileSync(
 	new URL("../../vite.config.ts", import.meta.url),
 	"utf8",
 );
+const vitestConfig = readFileSync(
+	new URL("../../vitest.config.ts", import.meta.url),
+	"utf8",
+);
 
 describe("A/B/C test scripts", () => {
 	test("keeps test mapped to the Node 24 Vitest reference", () => {
@@ -48,8 +52,14 @@ describe("A/B/C test scripts", () => {
 	});
 
 	test("includes both TypeScript reference test extensions", () => {
-		expect(viteConfig).toContain('"app/tests/**/*.test.ts"');
-		expect(viteConfig).toContain('"app/tests/**/*.test.tsx"');
+		expect(vitestConfig).toContain('"app/tests/**/*.test.ts"');
+		expect(vitestConfig).toContain('"app/tests/**/*.test.tsx"');
+	});
+
+	test("isolates Bun-only dependency transforms from the Vite app config", () => {
+		expect(vitestConfig).toContain("process.versions.bun");
+		expect(vitestConfig).toContain("deps: { inline:");
+		expect(viteConfig).not.toContain("deps: { inline:");
 	});
 
 	test("pins Bun 1.4 provenance for the candidate", () => {

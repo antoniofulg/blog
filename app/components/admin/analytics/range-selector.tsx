@@ -131,7 +131,6 @@ export function RangeSelector({ value, locale, onSelect }: Props) {
 				className="flex items-center gap-1.5 rounded-md border border-border bg-card px-3 py-1.5 text-sm text-foreground transition-colors hover:border-border-strong focus:outline-none focus-visible:ring-2 focus-visible:ring-accent"
 			>
 				{t[value]}
-				{/* biome-ignore lint/a11y/noAriaHiddenOnFocusable: decorative chevron */}
 				<span aria-hidden="true" className="text-foreground-muted">
 					▾
 				</span>

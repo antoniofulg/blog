@@ -40,7 +40,7 @@ describe("bench workspace setup", () => {
 describe("port conflicts with other projects", () => {
 	test("lets the Postgres host port be moved without editing the compose file", async () => {
 		const compose = await read("docker-compose.yml");
-		expect(compose).toContain('"${POSTGRES_PORT:-5432}:5432"');
+		expect(compose).toContain(`"\${POSTGRES_PORT:-5432}:5432"`);
 	});
 
 	test("documents the movable port alongside the connection string", async () => {

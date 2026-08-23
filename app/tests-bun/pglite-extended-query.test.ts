@@ -125,8 +125,8 @@ function buildParse(query: string, paramOids: number[] = []): Buffer {
 	const numParams = Buffer.alloc(2);
 	numParams.writeInt16BE(paramOids.length, 0);
 	const oids = Buffer.alloc(paramOids.length * 4);
-	for (let i = 0; i < paramOids.length; i++)
-		oids.writeInt32BE(paramOids[i]!, i * 4);
+	for (const [index, oid] of paramOids.entries())
+		oids.writeInt32BE(oid, index * 4);
 	const body = Buffer.concat([stmtName, queryBuf, numParams, oids]);
 	const msgLen = Buffer.alloc(4);
 	msgLen.writeInt32BE(4 + body.length, 0);

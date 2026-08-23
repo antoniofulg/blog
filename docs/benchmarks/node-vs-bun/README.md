@@ -55,12 +55,13 @@ ReferenceError: module is not defined
 
 ### It was a vitest configuration gap, not a Bun incompatibility
 
-One line in `vite.config.ts` makes the whole suite run:
+The Bun-only branch in `vitest.config.ts` makes the whole suite run without
+forcing Node to evaluate React's CommonJS entry point as ESM:
 
 ```ts
-test: {
-  server: { deps: { inline: [/react/, /react-dom/, /zod/] } },
-}
+...(process.versions.bun
+  ? { server: { deps: { inline: [/react/, /react-dom/, /zod/] } } }
+  : {})
 ```
 
 With it: **124/124 files, 2231 tests pass** — under Bun 1.4.0 *and* under Bun

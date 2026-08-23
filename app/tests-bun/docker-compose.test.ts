@@ -124,8 +124,8 @@ describe("unit: docker-compose.yml", () => {
 		);
 	}, 15_000);
 
-	test("health check command is pg_isready -U ${POSTGRES_USER}", () => {
-		expect(content).toContain("pg_isready -U ${POSTGRES_USER}");
+	test(`health check command is pg_isready -U \${POSTGRES_USER}`, () => {
+		expect(content).toContain(`pg_isready -U \${POSTGRES_USER}`);
 	});
 
 	test("postgres_data volume declared in top-level volumes key", () => {

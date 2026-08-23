@@ -18,10 +18,10 @@ async function getRssResponse() {
 	const feedUrl = `${siteUrl}/rss.xml`;
 
 	const items = posts
-		.filter((p) => p.publishedAt != null)
+		.filter((p): p is typeof p & { publishedAt: Date } => p.publishedAt != null)
 		.map((p) => {
 			const url = `${siteUrl}/${p.slug}/`;
-			const pubDate = new Date(p.publishedAt!).toUTCString();
+			const pubDate = new Date(p.publishedAt).toUTCString();
 			const description = p.description
 				? `<description>${escapeXml(p.description)}</description>`
 				: "";
