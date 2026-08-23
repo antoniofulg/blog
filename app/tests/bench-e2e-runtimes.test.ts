@@ -154,6 +154,32 @@ describe("Playwright runtime benchmark", () => {
 		expect(run.validComparison).toBe(true);
 	});
 
+	it("cleans failed sample output and propagates spawn errors", async () => {
+		const removed: string[] = [];
+		const spawnError = new Error("spawn failed");
+
+		await expect(
+			runE2EBenchmark(
+				1,
+				deps(
+					async () => {
+						throw spawnError;
+					},
+					{
+						makeJsonOutputFile: async () => ({
+							directory: "/tmp/e2e-failed",
+							file: "/tmp/e2e-failed/results.json",
+						}),
+						removeJsonOutput: async (directory) => {
+							removed.push(directory);
+						},
+					},
+				),
+			),
+		).rejects.toThrow("spawn failed");
+		expect(removed).toEqual(["/tmp/e2e-failed"]);
+	});
+
 	it("invalidates failed, skipped, and orphaned samples without a winner", async () => {
 		let invocation = 0;
 		const run = await runE2EBenchmark(

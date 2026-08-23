@@ -441,44 +441,41 @@ export async function runE2EBenchmark(
 		const sampler = setInterval(() => {
 			loadMax = Math.max(loadMax, deps.loadAvg());
 		}, deps.ambientLoadPollIntervalMs);
-		const { directory, file } = await deps.makeJsonOutputFile();
-		let run: MeasuredRun;
-		let outcome: E2EOutcome | null = null;
+		let outputDirectory: string | undefined;
 		try {
-			run = await deps.spawn(command, commandEnvironment(file), {
+			const output = await deps.makeJsonOutputFile();
+			outputDirectory = output.directory;
+			const run = await deps.spawn(command, commandEnvironment(output.file), {
 				timeoutMs: WORKLOAD_TIMEOUT_MS,
 				cwd: deps.cwd,
 			});
+			let outcome: E2EOutcome | null = null;
 			try {
-				outcome = parsePlaywrightOutcome(await deps.readJson(file));
+				outcome = parsePlaywrightOutcome(await deps.readJson(output.file));
 			} catch {
 				outcome = null;
 			}
+			const cleanupVerified = await deps.cleanupProcessGroup(run.pgid);
+			const loadEnd = deps.loadAvg();
+			loadMax = Math.max(loadMax, loadEnd);
+			target.push(
+				measuredSample(
+					{ ...run, loadAvg1: loadStart },
+					{ ...arm, version: versions.get(arm.id) ?? arm.version },
+					deps.runnerVersion,
+					command,
+					loadMax,
+					loadEnd,
+					loadGateTimedOut,
+					cleanupVerified,
+					outcome,
+				),
+			);
 		} finally {
 			clearInterval(sampler);
 			loadMax = Math.max(loadMax, deps.loadAvg());
-			if (!run) {
-				await deps.removeJsonOutput(directory);
-				throw new Error(`${arm.id} Playwright process did not produce a result`);
-			}
+			if (outputDirectory !== undefined) await deps.removeJsonOutput(outputDirectory);
 		}
-		const cleanupVerified = await deps.cleanupProcessGroup(run.pgid);
-		const loadEnd = deps.loadAvg();
-		loadMax = Math.max(loadMax, loadEnd);
-		await deps.removeJsonOutput(directory);
-		target.push(
-			measuredSample(
-				{ ...run, loadAvg1: loadStart },
-				{ ...arm, version: versions.get(arm.id) ?? arm.version },
-				deps.runnerVersion,
-				command,
-				loadMax,
-				loadEnd,
-				loadGateTimedOut,
-				cleanupVerified,
-				outcome,
-			),
-		);
 	};
 
 	for (const arm of RUNTIME_ARMS) await runOne(arm, warmups.get(arm.id)!);
