@@ -103,7 +103,14 @@ function startPgProxy(
 	// During that window, other connections' Parse pipelines queue up.
 	// For the common case (Parse+Bind in one pipeline), the lock is held only
 	// for the duration of that single execProtocolRaw call.
-	const LOCK_ACQUIRE_TIMEOUT_MS = Number(
+	// The timeout belongs on the holder, not on the waiter. Measured hold time is
+	// p99 11 ms / max 64 ms even at 3x CPU oversubscription, so a connection still
+	// holding after this budget is stuck — typically a Parse("") whose Bind("")
+	// never arrived because the client went away. Timing out a *waiter* instead
+	// would let it advance the queue while the real holder is still mid-operation,
+	// interleaving two connections on the shared slot (08P01 / "unnamed prepared
+	// statement does not exist").
+	const LOCK_HOLD_TIMEOUT_MS = Number(
 		process.env.PGLITE_LOCK_TIMEOUT_MS ?? "5000",
 	);
 	let unnamedSlotLock: Promise<void> = Promise.resolve();
@@ -119,11 +126,20 @@ function startPgProxy(
 
 		// Whether this connection currently holds the unnamed-statement lock.
 		// Acquired after a Parse('') pipeline; released after the Bind('') pipeline.
-		let lockRelease: (() => void) | null = null;
+		let isHolder = false;
+		// Resolver for this connection's queue slot. Set while queued or holding,
+		// and called exactly once so the chain always drains.
+		let releaseSlot: (() => void) | null = null;
+		let holdWatchdog: ReturnType<typeof setTimeout> | null = null;
 		const releaseUnnamedSlotLock = () => {
-			if (lockRelease) {
-				lockRelease();
-				lockRelease = null;
+			if (holdWatchdog) {
+				clearTimeout(holdWatchdog);
+				holdWatchdog = null;
+			}
+			isHolder = false;
+			if (releaseSlot) {
+				releaseSlot();
+				releaseSlot = null;
 			}
 		};
 
@@ -144,42 +160,33 @@ function startPgProxy(
 		});
 
 		// Acquire the unnamed-slot lock if not already held.
-		// Returns a Promise that resolves when it is this connection's turn,
-		// or rejects after LOCK_ACQUIRE_TIMEOUT_MS if the current holder stalls.
+		// Resolves when it is this connection's turn. Waiters are never timed out:
+		// the holder-side watchdog below bounds how long any turn can last.
 		const acquireUnnamedSlotLock = (): Promise<void> => {
-			if (lockRelease !== null) return Promise.resolve();
-			let resolve!: () => void;
-			const mySlot = new Promise<void>((r) => {
-				resolve = r;
-			});
+			if (isHolder) return Promise.resolve();
 			const prev = unnamedSlotLock;
-			unnamedSlotLock = mySlot;
-			lockRelease = resolve;
-			return new Promise<void>((resolve, reject) => {
-				let settled = false;
-				const timer = setTimeout(() => {
-					if (settled) return;
-					settled = true;
-					reject(
-						new Error(
-							`[pg-proxy] unnamed-slot lock held >${LOCK_ACQUIRE_TIMEOUT_MS}ms; acquire timeout`,
-						),
+			const done = new Promise<void>((r) => {
+				releaseSlot = r;
+			});
+			// This connection's slot opens only once the previous holder has
+			// finished AND this connection is done with it. Chaining both ways is
+			// what stops a connection that gives up — socket closed mid-queue —
+			// from handing the slot to the next waiter while the real holder is
+			// still mid-operation.
+			unnamedSlotLock = Promise.all([prev, done]).then(() => undefined);
+			return prev.then(() => {
+				// Socket closed while queued: the slot was already passed on.
+				if (releaseSlot === null) return;
+				isHolder = true;
+				holdWatchdog = setTimeout(() => {
+					console.error(
+						`[pg-proxy] unnamed slot held >${LOCK_HOLD_TIMEOUT_MS}ms; destroying stuck connection`,
 					);
-				}, LOCK_ACQUIRE_TIMEOUT_MS);
-				prev.then(
-					() => {
-						if (settled) return;
-						settled = true;
-						clearTimeout(timer);
-						resolve();
-					},
-					(err: unknown) => {
-						if (settled) return;
-						settled = true;
-						clearTimeout(timer);
-						reject(err);
-					},
-				);
+					// 'close' fires releaseUnnamedSlotLock, draining the queue.
+					socket.destroy();
+				}, LOCK_HOLD_TIMEOUT_MS);
+				// A watchdog must never be the reason the process stays alive.
+				holdWatchdog.unref?.();
 			});
 		};
 

@@ -117,6 +117,57 @@ describe("PGLite proxy: lock acquire timeout", () => {
 	}, 5_000);
 });
 
+// ---- stalled-holder eviction ----
+// A connection that Parses "" and never Binds holds the shared unnamed slot.
+// The watchdog must evict that holder so the queue drains. The waiter must then
+// run against its OWN parsed statement — timing out the waiter instead would let
+// it bind against the stalled holder's statement (08P01).
+// Uses PGLITE_LOCK_TIMEOUT_MS=500 so the watchdog fires quickly.
+describe("PGLite proxy: stalled holder eviction", () => {
+	let testDb: TestDb;
+
+	beforeAll(async () => {
+		process.env.PGLITE_LOCK_TIMEOUT_MS = "500";
+		testDb = await createTestDb();
+	});
+
+	afterAll(async () => {
+		delete process.env.PGLITE_LOCK_TIMEOUT_MS;
+		await testDb.close();
+	});
+
+	test("stalled holder is evicted and the queued connection binds its own statement", async () => {
+		const port = Number(new URL(testDb.connectionString).port);
+		const sockA = await pgConnect(port);
+		const sockB = await pgConnect(port);
+
+		try {
+			// A: Parse("") + Sync — takes the unnamed slot, deliberately never Binds.
+			sockA.write(Buffer.concat([buildParse("SELECT $1::text"), SYNC]));
+			await readUntilReady(sockA, 3_000);
+
+			// B: full pipeline on the same unnamed slot.
+			sockB.write(
+				Buffer.concat([
+					buildParse("SELECT $1::text"),
+					buildBind(["from-b"]),
+					buildExecute(),
+					SYNC,
+				]),
+			);
+			const bResult = await readUntilReady(sockB, 4_000);
+
+			// 08P01 is the corruption signature: B bound against A's slot.
+			expect(bResult.hasError).toBe(false);
+			// B must receive its own row back, not an error response.
+			expect(bResult.raw.includes(Buffer.from("from-b"))).toBe(true);
+		} finally {
+			sockA.destroy();
+			sockB.destroy();
+		}
+	}, 15_000);
+});
+
 // ---- wire protocol helpers ----
 
 function buildParse(query: string, paramOids: number[] = []): Buffer {
