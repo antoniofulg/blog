@@ -1,6 +1,6 @@
 # Bun Migration Follow-up Specification
 
-**Execution status (2026-08-23)**: T8 and T9 complete; T10 pending. T9
+**Execution status (2026-08-23)**: T8, T9, and T10 complete. T9
 consolidated committed worker, Playwright, browser, skip-accounting, branch,
 and Vitest-inventory evidence. The ten-run Bun Test gate remains unmet.
 
@@ -17,7 +17,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 - [x] Provide a low-memory local test profile for multi-worktree development.
 - [x] Explain and normalize the five-result Bun Test skip discrepancy without losing coverage.
 - [x] Validate the full Playwright suite in Chromium, Firefox, and WebKit.
-- [ ] Publish a bilingual engineering post backed by committed evidence.
+- [x] Publish a bilingual engineering post backed by committed evidence.
 - [x] Leave explicit, testable criteria for the eventual Vitest removal.
 
 ## Out of Scope
@@ -112,7 +112,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 | BMF-01 | P1: Low-memory local testing | T2 → T3 → T4 | Complete |
 | BMF-02 | P1: Bun Test outcome parity | T1 | Complete |
 | BMF-03 | P1: Complete Playwright evidence | T5 → T6 → T7 | Complete; cross-browser evidence persisted |
-| BMF-04 | P2: Cutover readiness and evidence publication | T8 → T9 → T10 | In progress |
+| BMF-04 | P2: Cutover readiness and evidence publication | T8 → T9 → T10 | Complete |
 
 **Coverage:** 4 total, 4 mapped to tasks, 0 unmapped.
 
@@ -123,4 +123,4 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 - [x] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
 - [x] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict. [Evidence: JSON](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
 - [x] Chromium, Firefox, and WebKit project runs have persisted results. [Evidence](../../../docs/benchmarks/e2e-browsers/2026-08-23-summary.md)
-- [x] Migration docs and cutover criteria pass project gates; bilingual post remains T10.
+- [x] Migration docs and cutover criteria pass project gates; bilingual post is published in both locales.

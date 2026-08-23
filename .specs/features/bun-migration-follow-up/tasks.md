@@ -277,7 +277,7 @@ retired and its raw reports remain archived.
 **Tests**: integration
 **Gate**: build
 
-### T10: Publish the bilingual migration post
+### T10: Publish the bilingual migration post — ✅ Complete (2026-08-23)
 
 **What**: Add English and Brazilian Portuguese posts backed by committed benchmark evidence.
 **Where**: `app/content/posts/`
@@ -292,10 +292,15 @@ retired and its raw reports remain archived.
 
 **Done when**:
 
-- [ ] Both locales contain matching claims and limitations.
-- [ ] Warmup and sample methodology are explicit.
-- [ ] All numeric claims link to committed evidence.
-- [ ] Content audit passes with zero blockers.
+- [x] Both locales contain matching claims and limitations.
+- [x] Warmup and sample methodology are explicit.
+- [x] All numeric claims link to committed evidence.
+- [x] Content audit passes with zero blockers.
+
+Evidence: `app/content/posts/en/migrating-tests-to-bun-1-4.mdx` and
+`app/content/posts/pt-br/migrating-tests-to-bun-1-4.mdx`; lint-post is clean for
+both files and `bun run audit:content -- --trigger="T10 bilingual post"`
+reported 0 blocker, 0 major, and 0 minor findings.
 
 **Tests**: integration
 **Gate**: build
@@ -325,7 +330,7 @@ Phase 3:                         T8 → T9 → T10
 | T7 | Browser project matrix | Granular |
 | T8 | Shadow eligibility rule | Granular |
 | T9 | Migration evidence index | Granular |
-| T10 | One bilingual publication | Granular |
+| T10 | One bilingual publication | Complete |
 
 ## Diagram-Definition Cross-Check
 

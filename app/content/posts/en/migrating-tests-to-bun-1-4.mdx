@@ -1,0 +1,107 @@
+---
+title: "Migrating this blog's test toolchain to Bun 1.4: what changed"
+slug: migrating-tests-to-bun-1-4
+description: "A small, noisy-machine migration from Node-backed tooling to Bun 1.4, with the wins, invalid runs, rollback paths, and evidence that kept Bun Test out of the default stack."
+publishedAt: 2026-08-23
+category: tooling
+archetype: architecture-migration
+absorbedArchetype: performance-case-study
+audience: peer-engineer-deep
+depthPlan: "R2 -> R3/R4 -> R2; anchor-and-dive"
+---
+
+This blog already had a test setup that worked. Node, Vitest, and Playwright were familiar, their failure modes were known, and the suite was part of the delivery habit. The old setup was not a mistake to erase. It was a reasonable default for a small TanStack Start application.
+
+The reason to move was narrower: Bun 1.4 was already the runtime used for installs and production, while several test commands still crossed back to Node through package shebangs. I wanted the tools that run the tests to match the runtime we ship, and I wanted to know whether the change helped when several worktrees competed for the same laptop.
+
+The short version is mixed. Bun made dependency installation much lighter, and Bun plus Vitest used less peak memory than Node plus Vitest. Test time was effectively tied. Playwright through Bun was faster and used less memory in one persisted five-sample comparison, but that result is scoped to one machine. Bun Test remains a shadow candidate, not the default runner.
+
+## Why now
+
+The migration had three separate questions, and combining them would have made the result hard to trust:
+
+1. Does Bun 1.4 improve the install that developers repeat most often?
+2. Does the same Vitest suite behave differently when its runtime changes from Node 24 to Bun 1.4?
+3. Can Playwright run the existing browser suite through Bun without changing what the suite proves?
+
+I kept the questions separate because a faster command is not useful evidence if it ran fewer tests. I also kept Node 24 plus Vitest, Node 24 plus Playwright, and the old runner paths available as explicit fallbacks.
+
+## The migration had phases
+
+### 1. Install dependencies with Bun
+
+I compared `npm ci` on Node 24 with `bun install --frozen-lockfile` on Bun 1.4. I deleted `node_modules` before each measured run and discarded the first run as cache warm-up. Only two steady-state samples remained, so this is a small local observation, not a general package-manager benchmark.
+
+| Steady-state median | npm / Node 24 | Bun 1.4 |
+| --- | ---: | ---: |
+| Time | 8.7 s | 1.9 s |
+| Peak RSS | 1,095 MB | 57 MB |
+
+On this laptop, Bun used roughly 4.6 times less time and 19 times less peak memory. The memory difference is the practical reason to care: multiple worktrees can turn an install into a resource event before any application code runs. The [committed install report](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/node-vs-bun/README.md) contains the two retained samples and the excluded warm-up.
+
+### 2. Keep Vitest, change its runtime
+
+The suite is still Vitest. The variable here was the process that hosted it: Node 24 in the reference arm and Bun 1.4 in the candidate arm. Three interleaved rounds ran the same 124 files and 2,283 tests.
+
+| Median across three samples | Node 24 + Vitest | Bun 1.4 + Vitest |
+| --- | ---: | ---: |
+| Time | 63.7 s | 62.2 s |
+| Peak RSS | 3,379 MB | 2,927 MB |
+
+The 1.5-second time difference is a tie at this sample size and on this host. Bun's median peak RSS was 452 MB lower, or 13.4%. That is enough to choose Bun for the blocking Vitest command in this repository, but not enough to claim that Bun makes every Vitest suite faster. The [raw Node-versus-Bun report](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/node-vs-bun/README.md) preserves all three rounds and their machine load.
+
+There was an earlier result that looked much better for Bun. It was invalid: the Bun arm failed to load 32 of 124 files because React's CommonJS entry point was not inlined for that runtime. Fewer files made the candidate appear faster and lighter. After fixing the configuration boundary, both runtimes executed the same inventory. The fix was a compatibility correction, not a Bun 1.4 performance gain.
+
+Vitest's [parallelism documentation](https://vitest.dev/guide/parallelism.html) describes the trade-off we measured: more workers can run more files at once, but they consume more memory and CPU. That trade-off matters more here than a small wall-clock delta because several worktrees are normal for this project.
+
+### 3. Treat worker count as an operational choice
+
+The worker matrix used Bun 1.4 plus Vitest with profiles for one, two, four, and the default worker count. Each profile had one warm-up and five measured samples. The timing comparison is invalid because ambient load crossed the validity bound during multiple samples. The [worker report](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/vitest-workers/workers-2026-08-23T07-55-28-315Z.md) keeps those samples as diagnostic evidence instead of turning them into a speed claim.
+
+Profile two had the lowest median peak RSS: 1,685.6 MiB versus 1,687.6 MiB for profile one, a difference of 2.0 MiB, or 0.12%. A fresh two-worker run then failed two `bench-runtime` tests because of a port/PID 843 race. Profile one is the operational choice for `test:local`: serialization costs time, but it leaves the suite reliable. The tiny memory edge was not worth making a shared port race part of the daily command.
+
+### 4. Run Playwright through Bun
+
+The browser migration kept Playwright, the same application server, Chromium, one worker, zero retries, and the full 49-outcome inventory. I retained one warm-up per arm and compared five interleaved measured samples. The [committed runtime report](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md) includes the raw durations, RSS, load, versions, and outcome counts.
+
+| Median across five measured samples | Node 24 + Playwright | Bun 1.4 + Playwright |
+| --- | ---: | ---: |
+| Duration | 12.998 s | 11.356 s |
+| Peak RSS | 796.6 MiB | 361.5 MiB |
+| Outcomes | 49 / 49 | 49 / 49 |
+
+The measured delta was -12.63% for duration and -54.62% for peak RSS. Including the retained warm-up in total wall time, Bun was -17.39%. Every sample passed 49 of 49 outcomes with zero skipped, unexpected, or flaky results. This is the cleanest runtime comparison in the migration, but it is still a scoped result from an Apple M3 Pro laptop under recorded load, not a promise about another machine or CI runner.
+
+I also ran the full 49-outcome suite in all configured browsers through Bun. Chromium took 10.892 s, Firefox 23.611 s, and WebKit 24.591 s in Playwright-reported duration. Each browser ran 49 of 49 with no skips, unexpected outcomes, or flakiness. The [cross-browser summary](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/e2e-browsers/2026-08-23-summary.md) links the per-browser JSON files. Playwright's [browser documentation](https://playwright.dev/docs/browsers) explains why these are separate projects with browser-specific binaries, rather than interchangeable labels for one run.
+
+## The experiments I did not promote
+
+### Bun Test is not the default
+
+Bun's built-in runner is useful, and the repository has a mirrored candidate tree for it. The five extra skip counts found in historical comparisons were runner-only synthetic `(unnamed)` hook entries: two in `lang-slug-route`, two in `og-slug-route`, and one in `docker-compose`. They were not lost leaf tests. Static file and assertion parity, plus normalized leaf outcomes, remain separate gates.
+
+The cutover rule is stricter than “it passed locally”: ten consecutive valid shadow records from ten distinct CI commits, with matching inventory and outcomes. The current ledger has 0/10 distinct CI commits. Vitest stays in the blocking path, and Node 24 remains a rollback route. Bun's [test runner documentation](https://bun.com/docs/test) is useful context for the candidate, but this post does not turn compatibility evidence into a speed claim.
+
+### Bun.WebView is archived
+
+I also compared five public smoke scenarios in Bun.WebView and Bun plus Playwright using the same Chromium executable and server. The cold WebView median was 70.84% slower and used 24.41% more browser RSS. In a warm session, it was 187.38% slower and used 14.30% more RSS. Those numbers are not a full-suite comparison: WebView covered five scenarios, while Playwright owns the 49-outcome suite, fixtures, auth state, locators, traces, reporters, permissions, and request inspection. The [cold](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/e2e-webview/comparison-cold-2026-08-22T20-24-33-426Z.md) and [warm](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/e2e-webview/comparison-warm-session-2026-08-22T20-24-33-426Z.md) reports remain archived evidence, not a replacement proposal.
+
+## Cutover discipline and rollback
+
+The live stack now uses Bun 1.4 for dependency installation, Bun 1.4 plus Vitest for unit, component, and integration tests, and Bun 1.4 plus Playwright for E2E. The current local profile is serialized Vitest through `test:local`. Bun Test is shadow-only. Node 24 plus Vitest is still available through `test:vitest:node`; Node plus Playwright remains available through `test:e2e:node`.
+
+The rollback is intentionally boring. If Bun plus Vitest regresses, map the blocking `test` command back to `test:vitest:node` or the Bun-hosted Vitest route while investigating the evidence. If Playwright through Bun regresses, use `test:e2e:node`. Do not remove Vitest or Node while the shadow gate is empty. The [Bun Test playbook](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/bun-test/README.md) records those routes and the removal checklist.
+
+## What I would do differently
+
+I would pin the outcome inventory before the first comparison and make the compatibility preflight fail before timing starts. The first Bun test run taught us why: a runtime-specific module-resolution gap can masquerade as a performance win.
+
+I would also schedule the worker matrix on a quiet machine. The harness recorded load and correctly invalidated timing, but the resulting wall-clock rows still took most of a morning to explain. For this migration, the low-memory decision survived because the RSS comparison was valid and the two-worker edge was tiny. A quieter rerun would have made the timing story shorter, not necessarily different.
+
+Finally, I would have persisted the Node-versus-Bun Playwright comparison before changing the default command. The later five-sample report is good evidence; making the runtime choice first and measuring the browser boundary second left an avoidable gap in the migration record.
+
+## Status on 2026-08-23
+
+The runtime migration is complete. The evidence supports Bun 1.4 for installs, Vitest hosting, and Playwright execution in this repository. It does not support a universal speed claim, a Bun Test cutover, or a WebView replacement. The old stack remains available where it is the useful reference.
+
+Next work has two concrete parts. First, collect ten valid Bun Test shadow records from distinct CI commits without weakening parity or skip accounting. Second, rerun the Playwright runtime comparison on a quieter, controlled machine if the project needs a CI-specific decision. Until then, the current stack is the smallest change that matches production while keeping a reversible path.
