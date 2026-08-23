@@ -16,6 +16,8 @@ export const DEFAULT_REPETITIONS = 5;
 export const MAX_REPETITIONS = 20;
 export const WARMUP_COUNT = 1;
 export const LOAD_PER_CORE_LIMIT = 1;
+export const LOAD_GATE_POLL_INTERVAL_MS = 1_000;
+export const LOAD_GATE_TIMEOUT_MS = 5 * 60_000;
 export const WORKER_BENCHMARK_DIR = resolve(
 	process.cwd(),
 	"docs/benchmarks/vitest-workers",
@@ -45,6 +47,7 @@ export type WorkerSample = {
 	loadAvg1: number;
 	exitCode: number | null;
 	timedOut: boolean;
+	loadGateTimedOut: boolean;
 	command: string[];
 	runtimeVersion: string;
 	runnerVersion: string;
@@ -90,6 +93,8 @@ export type WorkerBenchDeps = {
 	now: () => string;
 	runnerVersion: string;
 	cwd: string;
+	sleep: (milliseconds: number) => Promise<void>;
+	nowMs: () => number;
 };
 
 function parsePositiveInt(value: string, option: string): number {
@@ -221,6 +226,17 @@ function profileResult(
 	};
 }
 
+async function waitForLoad(deps: WorkerBenchDeps): Promise<boolean> {
+	const startedAt = deps.nowMs();
+	while (true) {
+		const host = await deps.host();
+		const limit = LOAD_PER_CORE_LIMIT * Math.max(host.cores, 1);
+		if (host.loadAvg1 <= limit) return false;
+		if (deps.nowMs() - startedAt >= LOAD_GATE_TIMEOUT_MS) return true;
+		await deps.sleep(LOAD_GATE_POLL_INTERVAL_MS);
+	}
+}
+
 function winnerFor(profiles: WorkerProfileResult[]): WorkerProfileId | null {
 	return (
 		[...profiles]
@@ -241,7 +257,13 @@ function validity(
 	const limit = LOAD_PER_CORE_LIMIT * Math.max(host.cores, 1);
 	const reference = profiles[0]?.samples[0]?.outcome ?? null;
 	for (const profile of profiles) {
+		for (const [index, sample] of profile.warmupSamples.entries()) {
+			if (sample.loadGateTimedOut)
+				reasons.push(`${profile.profile} warmup ${index + 1}: load gate timed out`);
+		}
 		for (const [index, sample] of profile.samples.entries()) {
+			if (sample.loadGateTimedOut)
+				reasons.push(`${profile.profile} sample ${index + 1}: load gate timed out`);
 			if (sample.timedOut) reasons.push(`${profile.profile} sample ${index + 1}: timed out`);
 			if (sample.exitCode !== 0)
 				reasons.push(`${profile.profile} sample ${index + 1}: exit code ${sample.exitCode}`);
@@ -280,6 +302,7 @@ export async function runWorkerBenchmark(
 	}
 	const runOne = async (profile: WorkerProfile, target: WorkerSample[]) => {
 		const command = commandForProfile(profile);
+		const loadGateTimedOut = await waitForLoad(deps);
 		const run = await deps.spawn(command, process.env, {
 			timeoutMs: WORKLOAD_TIMEOUT_MS,
 			cwd: deps.cwd,
@@ -290,6 +313,7 @@ export async function runWorkerBenchmark(
 			loadAvg1: run.loadAvg1,
 			exitCode: run.timedOut ? null : run.exitCode,
 			timedOut: run.timedOut,
+			loadGateTimedOut,
 			command,
 			runtimeVersion: process.versions.bun ?? "unknown",
 			runnerVersion: deps.runnerVersion,
@@ -434,6 +458,8 @@ export const defaultWorkerBenchDeps: WorkerBenchDeps = {
 	now: () => new Date().toISOString(),
 	runnerVersion: installedVitestVersion(),
 	cwd: process.cwd(),
+	sleep: (milliseconds) => new Promise((resolve) => setTimeout(resolve, milliseconds)),
+	nowMs: () => Date.now(),
 };
 
 function usage(): string {

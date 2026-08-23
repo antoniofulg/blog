@@ -5,6 +5,7 @@ import { join } from "node:path";
 import type { MeasuredRun } from "#/lib/bench/runner.server";
 import {
 	commandForProfile,
+	LOAD_GATE_TIMEOUT_MS,
 	parseWorkerBenchArgs,
 	renderWorkerBenchmark,
 	runWorkerBenchmark,
@@ -48,6 +49,8 @@ function deps(
 		now: () => "2026-08-23T00:00:00.000Z",
 		runnerVersion: "4.1.5",
 		cwd: "/repo",
+		sleep: async () => {},
+		nowMs: () => 0,
 		...override,
 	};
 }
@@ -138,6 +141,58 @@ describe("Vitest worker benchmark", () => {
 		expect(run.invalidReasons.join(" ")).toContain("exit code 1");
 		expect(run.invalidReasons.join(" ")).toContain("Vitest outcome changed");
 		expect(run.invalidReasons.join(" ")).toContain("load 5.00");
+	});
+
+	test("waits for load cooldown before starting each run", async () => {
+		let hostCalls = 0;
+		let sleepCalls = 0;
+		const run = await runWorkerBenchmark(
+			["1"],
+			1,
+			deps(async () => measured(), {
+				host: async () => ({
+					host: "test-host",
+					cpuModel: "test-cpu",
+					cores: 4,
+					totalMemBytes: 100,
+					loadAvg1: hostCalls++ === 0 ? 5 : 0.1,
+					powerSource: "ac",
+					startedAt: "2026-08-23T00:00:00.000Z",
+				}),
+				sleep: async () => {
+					sleepCalls += 1;
+				},
+			}),
+		);
+		expect(sleepCalls).toBe(1);
+		expect(run.profiles[0].warmupSamples[0].loadGateTimedOut).toBe(false);
+	});
+
+	test("executes and invalidates runs when load never cools down", async () => {
+		let nowMs = 0;
+		const run = await runWorkerBenchmark(
+			["1"],
+			1,
+			deps(async () => measured(), {
+				host: async () => ({
+					host: "test-host",
+					cpuModel: "test-cpu",
+					cores: 4,
+					totalMemBytes: 100,
+					loadAvg1: 5,
+					powerSource: "ac",
+					startedAt: "2026-08-23T00:00:00.000Z",
+				}),
+				sleep: async () => {
+					nowMs += LOAD_GATE_TIMEOUT_MS;
+				},
+				nowMs: () => nowMs,
+			}),
+		);
+		expect(run.profiles[0].warmupSamples[0].loadGateTimedOut).toBe(true);
+		expect(run.profiles[0].samples[0].loadGateTimedOut).toBe(true);
+		expect(run.validComparison).toBe(false);
+		expect(run.invalidReasons.join(" ")).toContain("load gate timed out");
 	});
 
 	test("writes immutable JSON and metadata-rich Markdown", async () => {
