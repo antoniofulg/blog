@@ -56,7 +56,9 @@ export type WorkerProfileResult = {
 	profile: WorkerProfileId;
 	command: string[];
 	warmups: number;
+	warmupSamples: WorkerSample[];
 	samples: WorkerSample[];
+	totalWallTimeMs: number;
 	aggregate: Aggregate | null;
 };
 
@@ -194,7 +196,11 @@ function outcomeEqual(a: TestOutcome | null, b: TestOutcome | null): boolean {
 	);
 }
 
-function profileResult(profile: WorkerProfile, samples: WorkerSample[]): WorkerProfileResult {
+function profileResult(
+	profile: WorkerProfile,
+	warmupSamples: WorkerSample[],
+	samples: WorkerSample[],
+): WorkerProfileResult {
 	const timedSamples: Sample[] = samples.map((sample) => ({
 		ms: sample.durationMs,
 		peakRssBytes: sample.peakRssBytes,
@@ -205,7 +211,12 @@ function profileResult(profile: WorkerProfile, samples: WorkerSample[]): WorkerP
 		profile: profile.id,
 		command: commandForProfile(profile),
 		warmups: WARMUP_COUNT,
+		warmupSamples,
 		samples,
+		totalWallTimeMs: [...warmupSamples, ...samples].reduce(
+			(total, sample) => total + sample.durationMs,
+			0,
+		),
 		aggregate: aggregate(timedSamples),
 	};
 }
@@ -261,17 +272,19 @@ export async function runWorkerBenchmark(
 	const profiles = profileIds.map((id) => WORKER_PROFILES.find((profile) => profile.id === id));
 	if (profiles.some((profile) => !profile)) throw new Error("unknown worker profile");
 	const selected = profiles as WorkerProfile[];
+	const warmupSamples = new Map<WorkerProfileId, WorkerSample[]>();
 	const samples = new Map<WorkerProfileId, WorkerSample[]>();
-	for (const profile of selected) samples.set(profile.id, []);
-	const runOne = async (profile: WorkerProfile, persist: boolean) => {
+	for (const profile of selected) {
+		warmupSamples.set(profile.id, []);
+		samples.set(profile.id, []);
+	}
+	const runOne = async (profile: WorkerProfile, target: WorkerSample[]) => {
 		const command = commandForProfile(profile);
 		const run = await deps.spawn(command, process.env, {
 			timeoutMs: WORKLOAD_TIMEOUT_MS,
 			cwd: deps.cwd,
 		});
-		if (!persist) return;
-		const profileSamples = samples.get(profile.id)!;
-		profileSamples.push({
+		target.push({
 			durationMs: run.ms,
 			peakRssBytes: run.peakRssBytes,
 			loadAvg1: run.loadAvg1,
@@ -284,13 +297,21 @@ export async function runWorkerBenchmark(
 			failureExcerpt: failureExcerpt(run.stdout, run.stderrTail),
 		});
 	};
-	for (const profile of selected) await runOne(profile, false);
+	for (const profile of selected) {
+		await runOne(profile, warmupSamples.get(profile.id)!);
+	}
 	for (let repetition = 0; repetition < repetitions; repetition += 1) {
 		const order = repetition % 2 === 0 ? selected : [...selected].reverse();
-		for (const profile of order) await runOne(profile, true);
+		for (const profile of order) await runOne(profile, samples.get(profile.id)!);
 	}
 	const host = await deps.host();
-	const results = selected.map((profile) => profileResult(profile, samples.get(profile.id)!));
+	const results = selected.map((profile) =>
+		profileResult(
+			profile,
+			warmupSamples.get(profile.id)!,
+			samples.get(profile.id)!,
+		),
+	);
 	const checked = validity(results, host);
 	return {
 		schemaVersion: 1,
@@ -338,13 +359,22 @@ export function renderWorkerBenchmark(run: WorkerBenchRun): string {
 			const aggregateResult = profile.aggregate;
 			lines.push(
 				aggregateResult
-					? `- ${profile.profile}: median ${aggregateResult.medianMs.toFixed(2)} ms, median peak RSS ${bytes(aggregateResult.medianPeakRssBytes)}, max load ${aggregateResult.maxLoadAvg1.toFixed(2)}`
+					? `- ${profile.profile}: median ${aggregateResult.medianMs.toFixed(2)} ms, median peak RSS ${bytes(aggregateResult.medianPeakRssBytes)}, max load ${aggregateResult.maxLoadAvg1.toFixed(2)}, total wall time ${profile.totalWallTimeMs.toFixed(2)} ms including warmup`
 					: `- ${profile.profile}: no samples`,
 			);
 		}
 		lines.push("", `Winner: **${run.winner ?? "none"}**`, "");
 	}
-	lines.push("## Raw samples", "", "| Profile | Run | Duration (ms) | Peak RSS | Load | Exit | Outcome | Command |", "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |");
+	lines.push("## Warmups (excluded from aggregate)", "", "| Profile | Duration (ms) | Peak RSS | Load | Exit | Outcome | Command |", "| --- | ---: | ---: | ---: | ---: | --- | --- |");
+	for (const profile of run.profiles) {
+		for (const sample of profile.warmupSamples) {
+			const outcome = sample.outcome
+				? `${sample.outcome.testsPassed} passed / ${sample.outcome.testsFailed} failed / ${sample.outcome.testsSkipped} skipped`
+				: "missing";
+			lines.push(`| ${profile.profile} | ${sample.durationMs.toFixed(2)} | ${bytes(sample.peakRssBytes)} | ${sample.loadAvg1.toFixed(2)} | ${sample.exitCode ?? "timeout"} | ${outcome} | \`${sample.command.join(" ")}\` |`);
+		}
+	}
+	lines.push("", "## Raw measured samples", "", "| Profile | Run | Duration (ms) | Peak RSS | Load | Exit | Outcome | Command |", "| --- | ---: | ---: | ---: | ---: | ---: | --- | --- |");
 	for (const profile of run.profiles) {
 		for (const [index, sample] of profile.samples.entries()) {
 			const outcome = sample.outcome

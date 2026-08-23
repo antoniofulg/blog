@@ -74,12 +74,14 @@ describe("Vitest worker benchmark", () => {
 
 	test("discards warmups, persists five samples, and alternates order", async () => {
 		const calls: string[][] = [];
+		let runs = 0;
 		const run = await runWorkerBenchmark(
 			["1", "2"],
 			5,
 			deps(async (argv) => {
 				calls.push(argv);
-				return measured();
+				runs += 1;
+				return measured(runs === 1 ? { ms: 7, peakRssBytes: 999 } : {});
 			}),
 		);
 		expect(calls).toHaveLength(12);
@@ -98,6 +100,10 @@ describe("Vitest worker benchmark", () => {
 		expect(run.profiles.map((profile) => profile.samples.length)).toEqual([
 			5, 5,
 		]);
+		expect(run.profiles[0].warmupSamples).toHaveLength(1);
+		expect(run.profiles[0].warmupSamples[0].durationMs).toBe(7);
+		expect(run.profiles[0].aggregate?.medianMs).toBe(100);
+		expect(run.profiles[0].totalWallTimeMs).toBe(507);
 	});
 
 	test("selects lowest RSS profile when outcomes are equivalent", async () => {
@@ -146,6 +152,12 @@ describe("Vitest worker benchmark", () => {
 		expect(second.jsonPath).not.toBe(first.jsonPath);
 		expect(renderWorkerBenchmark(run)).toContain(
 			"warmup discarded + 1 measured",
+		);
+		expect(renderWorkerBenchmark(run)).toContain(
+			"Warmups (excluded from aggregate)",
+		);
+		expect(renderWorkerBenchmark(run)).toContain(
+			"total wall time 200.00 ms including warmup",
 		);
 	});
 });

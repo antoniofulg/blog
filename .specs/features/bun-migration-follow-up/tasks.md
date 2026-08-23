@@ -81,7 +81,7 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 **Done when**:
 
-- [x] One warmup per profile is excluded from five persisted samples.
+- [x] One warmup per profile is retained as warmup evidence and excluded from five measured samples.
 - [x] Profiles run sequentially with alternating order.
 - [x] Invalid samples suppress a winner.
 - [x] JSON and Markdown include all spec-required metadata.
