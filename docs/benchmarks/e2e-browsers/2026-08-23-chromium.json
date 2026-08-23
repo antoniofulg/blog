@@ -3,13 +3,13 @@
   "browserVersion": "Chrome for Testing 148.0.7778.96 (Playwright chromium v1223)",
   "playwrightVersion": "1.60.0",
   "runtime": "Bun 1.4.0",
-  "commit": "ae776d8",
+  "commit": "5dd41a7",
   "configCommit": "022b3e9",
   "command": "bun run test:e2e:bun -- --workers=1",
   "project": "chromium",
   "workers": 1,
-  "durationMs": 13265.318,
-  "wallDurationSeconds": 13.57,
+  "durationMs": 10891.957,
+  "wallDurationSeconds": 11.10,
   "counts": {
     "expected": 49,
     "skipped": 0,
@@ -17,5 +17,5 @@
     "flaky": 0
   },
   "status": "passed",
-  "startedAt": "2026-08-23T08:34:24.027Z"
+  "startedAt": "2026-08-23T08:38:47.007Z"
 }
