@@ -1,6 +1,6 @@
 # Bun Migration Follow-up Specification
 
-**Execution status**: T6 complete; T7–T10 pending.
+**Execution status**: T7 complete; T8–T10 pending.
 
 ## Problem Statement
 
@@ -14,7 +14,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 - [x] Produce reproducible, persisted runtime and worker benchmarks.
 - [ ] Provide a low-memory local test profile for multi-worktree development.
 - [ ] Explain and remove the five-result Bun Test skip discrepancy without losing coverage.
-- [ ] Validate the full Playwright suite in Chromium, Firefox, and WebKit.
+- [x] Validate the full Playwright suite in Chromium, Firefox, and WebKit.
 - [ ] Publish a bilingual engineering post backed by committed evidence.
 - [ ] Leave explicit, testable criteria for the eventual Vitest removal.
 
@@ -109,7 +109,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 | --- | --- | --- | --- |
 | BMF-01 | P1: Low-memory local testing | T2 → T3 → T4 | Complete |
 | BMF-02 | P1: Bun Test outcome parity | T1 | Complete |
-| BMF-03 | P1: Complete Playwright evidence | T5 → T6 → T7 | T6 complete; T7 pending |
+| BMF-03 | P1: Complete Playwright evidence | T5 → T6 → T7 | Complete; cross-browser evidence persisted |
 | BMF-04 | P2: Cutover readiness and evidence publication | Tasks | In Tasks |
 
 **Coverage:** 4 total, 4 mapped to tasks, 0 unmapped.
@@ -120,5 +120,5 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 - [x] `test:local` passes under the operationally reliable serialized profile; its measured RSS median is effectively tied with the mathematical memory winner.
 - [ ] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
 - [x] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict. [Evidence: JSON](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
-- [ ] Chromium, Firefox, and WebKit project runs have persisted results.
+- [x] Chromium, Firefox, and WebKit project runs have persisted results. [Evidence](../../docs/benchmarks/e2e-browsers/2026-08-23-summary.md)
 - [ ] Migration docs, cutover criteria, and bilingual post pass project gates.

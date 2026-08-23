@@ -193,7 +193,7 @@ is reported.
 **Tests**: integration
 **Gate**: full
 
-### T7: Add and validate Firefox and WebKit projects
+### T7: Add and validate Firefox and WebKit projects — ✅ Complete
 
 **What**: Add Firefox and WebKit Playwright projects and run every configured browser locally.
 **Where**: `playwright.config.ts`
@@ -208,9 +208,15 @@ is reported.
 
 **Done when**:
 
-- [ ] Chromium, Firefox, and WebKit share authenticated setup and one worker.
-- [ ] Each project completes its full applicable suite with zero unexpected failures.
-- [ ] Browser result evidence is committed.
+- [x] Chromium, Firefox, and WebKit share authenticated setup and one worker.
+- [x] Each project completes its full applicable suite with zero unexpected failures.
+- [x] Browser result evidence is committed.
+
+The final Bun runs each executed 49 tests with zero skipped, unexpected, or
+flaky outcomes. Evidence: [summary](../../docs/benchmarks/e2e-browsers/2026-08-23-summary.md),
+[Chromium](../../docs/benchmarks/e2e-browsers/2026-08-23-chromium.json),
+[Firefox](../../docs/benchmarks/e2e-browsers/2026-08-23-firefox.json),
+[WebKit](../../docs/benchmarks/e2e-browsers/2026-08-23-webkit.json).
 
 **Tests**: e2e
 **Gate**: full
