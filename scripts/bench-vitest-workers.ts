@@ -15,7 +15,7 @@ export type WorkerProfileId = (typeof WORKER_PROFILE_IDS)[number];
 export const DEFAULT_REPETITIONS = 5;
 export const MAX_REPETITIONS = 20;
 export const WARMUP_COUNT = 1;
-export const LOAD_PER_CORE_LIMIT = 0.25;
+export const LOAD_PER_CORE_LIMIT = 1;
 export const WORKER_BENCHMARK_DIR = resolve(
 	process.cwd(),
 	"docs/benchmarks/vitest-workers",

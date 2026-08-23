@@ -146,7 +146,7 @@ describe("Vitest worker benchmark", () => {
 							stdout: "Test Files  1 failed (1)\nTests  1 failed (1)",
 						});
 					}
-					return measured({ loadAvg1: calls > 2 ? 2 : 0.1 });
+					return measured({ loadAvg1: calls > 2 ? 5 : 0.1 });
 				},
 				{
 					host: async () => ({
@@ -165,7 +165,7 @@ describe("Vitest worker benchmark", () => {
 		expect(run.winner).toBeNull();
 		expect(run.invalidReasons.join(" ")).toContain("exit code 1");
 		expect(run.invalidReasons.join(" ")).toContain("Vitest outcome changed");
-		expect(run.invalidReasons.join(" ")).toContain("load 2.00");
+		expect(run.invalidReasons.join(" ")).toContain("load 5.00");
 	});
 
 	it("renders required metadata and keeps same-timestamp artifacts immutable", async () => {

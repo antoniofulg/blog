@@ -130,14 +130,14 @@ describe("Vitest worker benchmark", () => {
 							exitCode: 1,
 							stdout: "Test Files  1 failed (1)\nTests  1 failed (1)",
 						})
-					: measured({ loadAvg1: calls > 2 ? 2 : 0.1 });
+					: measured({ loadAvg1: calls > 2 ? 5 : 0.1 });
 			}),
 		);
 		expect(run.validComparison).toBe(false);
 		expect(run.winner).toBeNull();
 		expect(run.invalidReasons.join(" ")).toContain("exit code 1");
 		expect(run.invalidReasons.join(" ")).toContain("Vitest outcome changed");
-		expect(run.invalidReasons.join(" ")).toContain("load 2.00");
+		expect(run.invalidReasons.join(" ")).toContain("load 5.00");
 	});
 
 	test("writes immutable JSON and metadata-rich Markdown", async () => {
