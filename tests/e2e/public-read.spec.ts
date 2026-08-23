@@ -138,11 +138,7 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 			await page.goto(`/${EN_ONLY_SLUG}`);
 			await page.waitForLoadState("load");
 
-			// Unavailable chip still carries aria-disabled="true"; bypass
-			// Playwright's enabled-check so the modal seam (ADR-003) fires.
-			await page
-				.getByRole("button", { name: /Português/ })
-				.click({ force: true });
+			await page.getByRole("button", { name: /Português/ }).click();
 
 			await expect(page.getByRole("dialog")).toBeVisible();
 			await expect(page.getByText("Content not available")).toBeVisible();
@@ -163,9 +159,7 @@ test.describe("public read", { tag: ["@public", "@smoke"] }, () => {
 			const initialUrl = page.url();
 
 			const ptBrChip = page.getByRole("button", { name: /Português/ });
-			// Unavailable chip carries aria-disabled="true"; force the click
-			// past Playwright's enabled-check so the modal seam fires.
-			await ptBrChip.click({ force: true });
+			await ptBrChip.click();
 
 			await expect(page.getByRole("dialog")).toBeVisible();
 

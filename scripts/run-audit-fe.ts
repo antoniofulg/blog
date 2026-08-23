@@ -2,7 +2,7 @@
 // One-shot orchestrator for `make audit-fe`.
 //
 // Spawns the Nitro preview server (.output/server/index.mjs) on PORT=4173,
-// polls until it responds, runs the app audit, then reaps the server on
+// waits for that child to announce readiness, runs the app audit, then reaps it on
 // success / failure / signal. Replaces the prior manual two-terminal pattern
 // (run `bun preview` separately, then `make audit-fe`) which was racy and
 // also pointed operators at the wrong command — `vite preview` does not
@@ -11,17 +11,17 @@
 // Honors:
 //   - AUDIT_PREVIEW_PORT (default "4173")
 //   - DATABASE_URL (passed through to the spawned server; required)
+//   - SITE_URL is forced to the audit preview origin so SSR and hydration agree.
 //   - All `audit:fe` CLI flags forwarded after orchestration setup.
 import { spawn, type ChildProcess } from "node:child_process";
 import { access, rm } from "node:fs/promises";
 import { join } from "node:path";
-import { runAppAuditCli } from "./audit-fe";
+import { parseBaseUrl, runAppAuditCli } from "./audit-fe";
 
 const PORT = process.env.AUDIT_PREVIEW_PORT ?? "4173";
 const BASE_URL = `http://localhost:${PORT}`;
 const NITRO_BUNDLE = join(process.cwd(), ".output/server/index.mjs");
 const READY_TIMEOUT_MS = 30_000;
-const POLL_INTERVAL_MS = 500;
 const SHUTDOWN_GRACE_MS = 5_000;
 
 async function nitroBundleExists(): Promise<boolean> {
@@ -33,18 +33,30 @@ async function nitroBundleExists(): Promise<boolean> {
 	}
 }
 
-function spawnPreview(): ChildProcess {
+export function buildPreviewEnv(
+	env: NodeJS.ProcessEnv = process.env,
+	siteUrl = BASE_URL,
+): NodeJS.ProcessEnv {
+	return {
+		...env,
+		PORT,
+		SITE_URL: siteUrl,
+	};
+}
+
+export function resolveAuditBaseUrl(
+	args: string[],
+	env: NodeJS.ProcessEnv = process.env,
+): string {
+	return parseBaseUrl(args) ?? env.AUDIT_BASE_URL ?? BASE_URL;
+}
+
+function spawnPreview(siteUrl: string): ChildProcess {
 	const child = spawn("bun", ["run", NITRO_BUNDLE], {
-		env: {
-			...process.env,
-			PORT,
-			// Without an explicit SITE_URL the SSR-rendered canonical and
-			// hreflang links emit relative hrefs, which Lighthouse SEO scores
-			// as `0` ("Relative href value"). Mirror the preview origin so
-			// `getSiteOrigin()` returns the URL the audit is actually probing.
-			SITE_URL: process.env.SITE_URL ?? BASE_URL,
-		},
-		stdio: ["ignore", "inherit", "inherit"],
+		// Never inherit SITE_URL from .env: a different SSR origin makes
+		// hydration duplicate canonical and Open Graph tags in the browser.
+		env: buildPreviewEnv(process.env, siteUrl),
+		stdio: ["ignore", "pipe", "inherit"],
 	});
 	child.on("error", (err) => {
 		process.stderr.write(
@@ -54,41 +66,72 @@ function spawnPreview(): ChildProcess {
 	return child;
 }
 
-async function waitForReady(child: ChildProcess): Promise<void> {
-	let spawnErr: Error | undefined;
-	const onError = (err: Error) => {
-		spawnErr = new Error(
-			`[audit-fe] failed to spawn preview server: ${err.message}`,
+export async function waitForReady(
+	child: ChildProcess,
+	options: {
+		baseUrl?: string;
+		fetchImpl?: (input: string, init?: RequestInit) => Promise<Response>;
+		output?: NodeJS.WritableStream;
+		timeoutMs?: number;
+	} = {},
+): Promise<void> {
+	const baseUrl = options.baseUrl ?? BASE_URL;
+	const fetchImpl = options.fetchImpl ?? fetch;
+	const timeoutMs = options.timeoutMs ?? READY_TIMEOUT_MS;
+	const stdout = child.stdout;
+	if (!stdout) {
+		throw new Error("preview server stdout is not piped");
+	}
+
+	await new Promise<void>((resolve, reject) => {
+		let output = "";
+		let settled = false;
+		const finish = (error?: Error) => {
+			if (settled) return;
+			settled = true;
+			clearTimeout(timer);
+			stdout.removeListener("data", onData);
+			child.removeListener("error", onError);
+			child.removeListener("exit", onExit);
+			if (error) reject(error);
+			else resolve();
+		};
+		const onData = (chunk: Buffer | string) => {
+			options.output?.write(chunk);
+			output = `${output}${chunk.toString()}`.slice(-1_024);
+			if (output.includes("Listening on:")) finish();
+		};
+		const onError = (error: Error) =>
+			finish(
+				new Error(`[audit-fe] failed to spawn preview server: ${error.message}`),
+			);
+		const onExit = (code: number | null, signal: NodeJS.Signals | null) =>
+			finish(
+				new Error(
+					`preview server exited before becoming ready (code=${code ?? signal ?? "unknown"})`,
+				),
+			);
+		const timer = setTimeout(
+			() =>
+				finish(
+					new Error(
+						`preview server did not become ready on ${baseUrl} within ${timeoutMs}ms`,
+					),
+				),
+			timeoutMs,
 		);
-	};
-	child.once("error", onError);
+
+		stdout.on("data", onData);
+		child.once("error", onError);
+		child.once("exit", onExit);
+	});
 
 	try {
-		const deadline = Date.now() + READY_TIMEOUT_MS;
-		while (Date.now() < deadline) {
-			if (spawnErr) throw spawnErr;
-			if (child.exitCode !== null) {
-				throw new Error(
-					`preview server exited before becoming ready (code=${child.exitCode})`,
-				);
-			}
-			try {
-				// Any HTTP response (200, 302, 401) proves the server bound the port
-				// and is processing requests — that's all we need for the preflight
-				// fetch in runAppAudit to succeed.
-				await fetch(BASE_URL, { signal: AbortSignal.timeout(2000) });
-				return;
-			} catch {
-				// not ready yet — retry until deadline
-			}
-			await new Promise((r) => setTimeout(r, POLL_INTERVAL_MS));
-		}
-		if (spawnErr) throw spawnErr;
+		await fetchImpl(baseUrl, { signal: AbortSignal.timeout(2_000) });
+	} catch (error) {
 		throw new Error(
-			`preview server did not become ready on ${BASE_URL} within ${READY_TIMEOUT_MS}ms`,
+			`preview server announced readiness but ${baseUrl} is unreachable: ${error instanceof Error ? error.message : String(error)}`,
 		);
-	} finally {
-		child.removeListener("error", onError);
 	}
 }
 
@@ -147,6 +190,7 @@ export async function runAuditWithPreview(
 	args: string[],
 ): Promise<OrchestratorResult> {
 	applyDebugFlags(args);
+	const auditBaseUrl = resolveAuditBaseUrl(args);
 
 	if (!(await nitroBundleExists())) {
 		process.stderr.write(
@@ -155,7 +199,7 @@ export async function runAuditWithPreview(
 		process.exit(1);
 	}
 
-	const child = spawnPreview();
+	const child = spawnPreview(auditBaseUrl);
 
 	const cleanup = async () => {
 		await reap(child);
@@ -171,7 +215,8 @@ export async function runAuditWithPreview(
 	});
 
 	try {
-		await waitForReady(child);
+		await waitForReady(child, { output: process.stdout });
+		child.stdout?.pipe(process.stdout);
 	} catch (err) {
 		await cleanup();
 		throw err;
@@ -181,7 +226,7 @@ export async function runAuditWithPreview(
 	// or alt-port runs override).
 	const forwarded = args.some((a) => a.startsWith("--baseUrl="))
 		? args
-		: [...args, `--baseUrl=${BASE_URL}`];
+		: [...args, `--baseUrl=${auditBaseUrl}`];
 
 	try {
 		const result = await runAppAuditCli(forwarded);

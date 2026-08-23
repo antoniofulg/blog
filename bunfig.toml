@@ -1,0 +1,9 @@
+# Bun test runner configuration.
+#
+# `root` keeps `bun test` from walking app/tests/, which holds the vitest twin
+# of every suite. Both trees are kept on purpose so the two runners can be
+# compared on identical work; without this, `bun test` would try to execute the
+# vitest files and fail on `vi`.
+# DOM tests import ./happydom explicitly. Server-side tests stay Bun-native.
+[test]
+root = "app/tests-bun"

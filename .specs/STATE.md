@@ -10,13 +10,21 @@
 - **Date**: 2026-08-20
 - **Status**: active
 
+### AD-002
+- **Decision**: Run the canonical Playwright E2E command through Bun, retain an explicit Node fallback, and retire the Bun.WebView harness after preserving its benchmark evidence.
+- **Reason**: Bun-driven Playwright preserves the full 49-test coverage while WebView lacks the fixtures, locators, auth storage, traces, and reporters required to replace it.
+- **Trade-off**: The raw WebView reports remain versioned, but their executable harness is removed; repeating the experiment would require restoring it from Git history.
+- **Scope**: E2E runtime commands and local browser automation benchmarks.
+- **Date**: 2026-08-22
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: bun-1-4-benchmark (`.specs/features/bun-1-4-benchmark/`)
-- **Phase / Task**: Phases 1-4 and 6 complete (T1-T16, T19-T25). Phase 5 (T17, T18) blocked on the operator's benchmark run.
-- **Completed**: T1-T16, T19-T25 — one atomic commit each. Full suite green: 121 files, 2176 tests, 0 failures.
-- **In-progress** (file:line): none
-- **Next step**: Operator sets POSTGRES_PORT in `.env` to a free port (5432 is taken by another project on this machine), mirrors it in DATABASE_URL, then runs `docker compose up db -d && make bench` on a quiet machine. When a result JSON exists with no unresolved compat finding under 1.4.0, unblock T17 (version pins), then T18 (the post).
-- **Blockers**: T17 and T18 need real measurements, deferred by user decision.
-- **Uncommitted files**: none
-- **Branch**: feat/bun-1-4-benchmark (27 commits ahead of origin/main, not pushed)
+- **Feature**: Bun Playwright and WebView evaluation (`docs/plans/2026-08-22-bun-playwright-webview-design.md`)
+- **Phase / Task**: Evaluation complete; WebView experiment retired.
+- **Completed**: `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Cold measured WebView 70.84% slower with 24.41% higher browser RSS; warm-session measured WebView 187.38% slower with 14.30% higher browser RSS. Including warm-ups, WebView consumed 42.69% more total cold time and 221.55% more total warm-pass time. Full Bun Playwright passed 49/49; Node/Vitest and Bun Test each passed 2,355 tests.
+- **In-progress** (file:line): none.
+- **Next step**: Bun 1.4 + Vitest is the blocking unit/integration command because its measured median peak RSS was 452 MB lower than Node 24 + Vitest. Continue collecting ten real consecutive green Bun Test shadow runs before deciding whether to replace Vitest itself.
+- **Blockers**: none. One Node fallback E2E run hit the known PGLite lock timeout; the required subsequent full retry passed 49/49.
+- **Uncommitted files**: none after the benchmark results commit.
+- **Branch**: ci/bun-vitest-default

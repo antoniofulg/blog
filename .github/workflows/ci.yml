@@ -53,6 +53,42 @@ jobs:
             test-results/
           retention-days: 7
 
+  bun-test-shadow:
+    runs-on: ubuntu-latest
+    continue-on-error: true
+    steps:
+      - uses: actions/checkout@v4
+      - uses: oven-sh/setup-bun@v2
+        with:
+          bun-version: "1.4.0"
+      - run: bun install --frozen-lockfile
+      - run: cp .env.example .env
+      - name: Run Bun Test shadow
+        shell: bash
+        env:
+          E2E_ADMIN_EMAIL: ${{ secrets.E2E_ADMIN_EMAIL }}
+          E2E_ADMIN_PASSWORD: ${{ secrets.E2E_ADMIN_PASSWORD }}
+        run: |
+          mkdir -p docs/benchmarks/bun-test
+          set +e
+          bun run test:parity > docs/benchmarks/bun-test/shadow-parity.log 2>&1
+          parity_status=$?
+          bun run test:bun > docs/benchmarks/bun-test/shadow-bun-test.log 2>&1
+          bun_status=$?
+          PARITY_STATUS=$parity_status BUN_STATUS=$bun_status bun run scripts/write-shadow-result.ts \
+            --parity-log docs/benchmarks/bun-test/shadow-parity.log \
+            --bun-log docs/benchmarks/bun-test/shadow-bun-test.log \
+            --output docs/benchmarks/bun-test/shadow-result.json \
+            --commit "$GITHUB_SHA"
+          exit 0
+      - name: Upload Bun Test shadow evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: bun-test-shadow-${{ github.run_id }}
+          path: docs/benchmarks/bun-test/
+          retention-days: 7
+
   docker-build:
     runs-on: ubuntu-latest
     steps:

@@ -6,11 +6,27 @@
 |---------|------|----------|
 | Unit logic, pure functions | Vitest | `app/tests/` |
 | Component rendering, route loading | Vitest | `app/tests/` |
-| Full browser flows, auth round-trips | Playwright | `tests/e2e/` |
+| Full browser flows, auth round-trips | Playwright through Bun | `tests/e2e/` |
 | CI infra validation, file assertions | Vitest | `app/tests/` |
 
 Rule: if the test requires a real browser, it belongs in `tests/e2e/`. If it
 can run in Node with JSDOM or just file reads, it belongs in `app/tests/`.
+The retired Bun.WebView experiment is preserved only as benchmark evidence in
+`docs/benchmarks/e2e-webview/`; it is not an executable test route.
+
+## Bun Test migration boundary
+
+During shadow mode, `test` and the blocking CI quality entry use Bun 1.4 with
+Vitest. This runtime cutover was selected for lower measured peak memory;
+`test:vitest:node` remains the explicit Node 24 reference and rollback route.
+`test:bun` is the Bun Test candidate. Run `test:parity` before interpreting
+candidate results. Bun Test does not become the default until ten consecutive
+green, matching-inventory shadow results are recorded. Any failure, timeout,
+noise, or mismatch resets that suffix. Do not remove Vitest while the
+Vitest-only inventory is non-empty.
+
+Benchmark reports under `docs/benchmarks/bun-test/` are compatibility evidence;
+timing from shared CI runners is not a performance claim.
 
 ## Layout
 
@@ -23,6 +39,14 @@ tests/e2e/      — Playwright E2E specs
   *.setup.ts    — Playwright setup projects (auth.setup.ts)
   global-setup.ts, global-teardown.ts — PGLite harness lifecycle
 ```
+
+## E2E runtime routes
+
+- `bun run test:e2e` and `bun run test:e2e:bun` run the full Playwright suite
+  through Bun.
+- `bun run test:e2e:node` preserves the direct Node fallback.
+- Bun.WebView has no package script or CI route. Its completed experiment is
+  archived under `docs/benchmarks/e2e-webview/`.
 
 ## Selector Hierarchy
 

@@ -12,6 +12,7 @@
 			"**/.vscode/**/*",
 			"**/index.html",
 			"**/vite.config.ts",
+			"**/vitest.config.ts",
 			"**/tailwind.config.ts",
 			"!**/app/routeTree.gen.ts",
 			"!**/app/styles",
@@ -33,6 +34,18 @@
 			"recommended": true
 		}
 	},
+	"overrides": [
+		{
+			"includes": ["app/lib/locale.tsx"],
+			"linter": {
+				"rules": {
+					"suspicious": {
+						"noDocumentCookie": "off"
+					}
+				}
+			}
+		}
+	],
 	"javascript": {
 		"formatter": {
 			"quoteStyle": "double"

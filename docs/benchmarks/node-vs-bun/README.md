@@ -55,12 +55,13 @@ ReferenceError: module is not defined
 
 ### It was a vitest configuration gap, not a Bun incompatibility
 
-One line in `vite.config.ts` makes the whole suite run:
+The Bun-only branch in `vitest.config.ts` makes the whole suite run without
+forcing Node to evaluate React's CommonJS entry point as ESM:
 
 ```ts
-test: {
-  server: { deps: { inline: [/react/, /react-dom/, /zod/] } },
-}
+...(process.versions.bun
+  ? { server: { deps: { inline: [/react/, /react-dom/, /zod/] } } }
+  : {})
 ```
 
 With it: **124/124 files, 2231 tests pass** — under Bun 1.4.0 *and* under Bun
@@ -110,7 +111,7 @@ ReferenceError: Bun is not defined
 `NITRO_PRESET=node-server` did not change the emitted output. A fair comparison
 needs two builds, one per preset; that was not resolved.
 
-## What actually runs under which runtime today
+## What ran under which runtime before the cutover
 
 Measured with a probe test reporting `typeof Bun` and `process.execPath`.
 
@@ -131,6 +132,9 @@ This is why `test`, `build`, `check`, `lint` and `audit-fe` all read `within
 noise` when comparing Bun 1.3.14 against 1.4.0: both arms ran the same Node.
 That was not an absence of gain, it was an absence of Bun.
 
+The later runtime cutover maps `test` to Bun 1.4 + Vitest and forces Playwright
+through Bun. Node 24 routes remain explicit fallbacks.
+
 ## What the numbers support
 
 | Front | Node 24 | Bun 1.4 | Verdict |
@@ -140,10 +144,9 @@ That was not an absence of gain, it was an absence of Bun.
 | Test suite, memory | 3379 MB | 2927 MB | ~10% lower, consistent |
 | Production runtime | cannot run the current bundle | runs it | not comparable |
 
-Install is the only decisive gain, and it needs no runtime migration: `bun
-install` works with Node running everything else.
+Install is the decisive time and memory gain. Test time is tied, but the 452 MB
+lower median peak RSS is operationally valuable when several worktrees run in
+parallel, so Bun + Vitest is now the default.
 
-The case for putting tests on Bun is not performance. Today production runs on
-Bun and the suite runs on Node 22, so the tests never exercise the runtime that
-serves the site. The React CJS failure had been latent the whole time and only
-surfaced when Bun was forced.
+The cutover also makes the test runtime match production more closely. The
+React CJS failure had been latent and only surfaced when Bun was forced.

@@ -1,0 +1,81 @@
+{
+  "schema": 1,
+  "promote_threshold": 2,
+  "window_days": 45,
+  "quarantine_threshold": 2,
+  "next_id": 5,
+  "lessons": [
+    {
+      "id": "L-001",
+      "key": "ac_gap::test ci artifact producers by parsing their emitted json with the production evaluator",
+      "text": "Test CI artifact producers by parsing their emitted JSON with the production evaluator.",
+      "signal": "ac_gap",
+      "scope": "ci",
+      "status": "candidate",
+      "features": [
+        "bun-native-test-runner"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md:Ranked Gap 1 (ci)"
+      ],
+      "created": "2026-08-22T09:15:51Z",
+      "last_seen": "2026-08-22T09:15:51Z"
+    },
+    {
+      "id": "L-002",
+      "key": "surviving_mutant::test each comparison invalidation reason in isolation so another invalid reason cannot mask it",
+      "text": "Test each comparison invalidation reason in isolation so another invalid reason cannot mask it.",
+      "signal": "surviving_mutant",
+      "scope": "test-bench",
+      "status": "candidate",
+      "features": [
+        "bun-native-test-runner"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md:M2 (test-bench)"
+      ],
+      "created": "2026-08-22T09:15:51Z",
+      "last_seen": "2026-08-22T09:15:51Z"
+    },
+    {
+      "id": "L-003",
+      "key": "ac_gap::require exact twin test and assertion inventories unless a difference has an explicit disposition",
+      "text": "Require exact twin test and assertion inventories unless a difference has an explicit disposition.",
+      "signal": "ac_gap",
+      "scope": "tests",
+      "status": "candidate",
+      "features": [
+        "bun-native-test-runner"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md:Cohort-1 (tests)"
+      ],
+      "created": "2026-08-22T09:15:51Z",
+      "last_seen": "2026-08-22T09:15:51Z"
+    },
+    {
+      "id": "L-004",
+      "key": "gate_fail::a focused retry does not clear an e2e gate require a subsequent full suite pass",
+      "text": "A focused retry does not clear an E2E gate; require a subsequent full-suite pass.",
+      "signal": "gate_fail",
+      "scope": "e2e",
+      "status": "candidate",
+      "features": [
+        "bun-native-test-runner"
+      ],
+      "recurrence": 1,
+      "harmful": 0,
+      "evidence": [
+        "validation.md:Gate Check E2E (e2e)"
+      ],
+      "created": "2026-08-22T09:15:51Z",
+      "last_seen": "2026-08-22T09:15:51Z"
+    }
+  ]
+}
