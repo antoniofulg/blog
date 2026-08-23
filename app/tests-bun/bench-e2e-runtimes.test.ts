@@ -10,6 +10,7 @@ import {
 	RUNTIME_ARMS,
 	renderE2EBenchmark,
 	runE2EBenchmark,
+	runtimeDeltas,
 } from "../../scripts/bench-e2e-runtimes";
 
 const report = JSON.stringify({
@@ -140,6 +141,7 @@ describe("Playwright runtime benchmark", () => {
 		expect(run.arms.every((arm) => arm.samples.length === 2)).toBe(true);
 		expect(run.arms[0].warmupSamples[0].durationMs).toBe(7);
 		expect(run.arms[0].aggregate?.medianMs).toBe(100);
+		expect(run.arms[0].totalWallTimeMs).toBe(207);
 		expect(run.arms[0].samples[0]).toMatchObject({
 			loadStart: 0.1,
 			loadMax: 0.1,
@@ -184,15 +186,23 @@ describe("Playwright runtime benchmark", () => {
 	});
 
 	test("renders shared server, browser, warmups, and load fields", async () => {
-		const markdown = renderE2EBenchmark(
-			await runE2EBenchmark(
-				1,
-				deps(async () => measured()),
-			),
+		const run = await runE2EBenchmark(
+			1,
+			deps(async () => measured()),
 		);
+		const markdown = renderE2EBenchmark(run);
 		expect(markdown).toContain("same Bun application server");
 		expect(markdown).toContain("warmup retained but excluded");
+		expect(markdown).toContain(
+			"Derived deltas (Bun − Node; calculated from raw samples)",
+		);
+		expect(markdown).toContain("Total wall time including warmup: 0.00 ms");
 		expect(markdown).toContain("Load start");
 		expect(markdown).toContain("chromium");
+		expect(runtimeDeltas(run)).toMatchObject({
+			medianDurationMs: 0,
+			medianPeakRssBytes: 0,
+			totalWallTimeMs: 0,
+		});
 	});
 });

@@ -77,9 +77,19 @@ export type E2EArmResult = {
 	warmups: number;
 	warmupSamples: E2ESample[];
 	samples: E2ESample[];
+	totalWallTimeMs: number;
 	aggregate: Aggregate | null;
 	memoryValid: boolean;
 	memoryInvalidReasons: string[];
+};
+
+export type E2ERuntimeDeltas = {
+	medianDurationMs: number;
+	medianDurationPct: number;
+	medianPeakRssBytes: number;
+	medianPeakRssPct: number;
+	totalWallTimeMs: number;
+	totalWallTimePct: number;
 };
 
 export type E2EBenchRun = {
@@ -300,9 +310,46 @@ function armResult(
 		warmups: WARMUP_COUNT,
 		warmupSamples,
 		samples,
+		totalWallTimeMs: [...warmupSamples, ...samples].reduce(
+			(total, sample) => total + sample.durationMs,
+			0,
+		),
 		aggregate: aggregate(timedSamples),
 		memoryValid: false,
 		memoryInvalidReasons: [],
+	};
+}
+
+function percentDelta(before: number, after: number): number {
+	return before === 0 ? 0 : ((after - before) / before) * 100;
+}
+
+function totalWallTimeForArm(arm: E2EArmResult): number {
+	if (typeof arm.totalWallTimeMs === "number") return arm.totalWallTimeMs;
+	return [...arm.warmupSamples, ...arm.samples].reduce(
+		(total, sample) => total + sample.durationMs,
+		0,
+	);
+}
+
+export function runtimeDeltas(run: E2EBenchRun): E2ERuntimeDeltas | null {
+	const node = run.arms.find((arm) => arm.runtime === "node");
+	const bun = run.arms.find((arm) => arm.runtime === "bun");
+	if (!node?.aggregate || !bun?.aggregate) return null;
+	return {
+		medianDurationMs: bun.aggregate.medianMs - node.aggregate.medianMs,
+		medianDurationPct: percentDelta(node.aggregate.medianMs, bun.aggregate.medianMs),
+		medianPeakRssBytes:
+			bun.aggregate.medianPeakRssBytes - node.aggregate.medianPeakRssBytes,
+		medianPeakRssPct: percentDelta(
+			node.aggregate.medianPeakRssBytes,
+			bun.aggregate.medianPeakRssBytes,
+		),
+		totalWallTimeMs: totalWallTimeForArm(bun) - totalWallTimeForArm(node),
+		totalWallTimePct: percentDelta(
+			totalWallTimeForArm(node),
+			totalWallTimeForArm(bun),
+		),
 	};
 }
 
@@ -526,8 +573,19 @@ export function renderE2EBenchmark(run: E2EBenchRun): string {
 		const result = arm.aggregate;
 		lines.push(
 			result
-				? `- ${arm.runtime}: median ${result.medianMs.toFixed(2)} ms, median peak RSS ${bytes(result.medianPeakRssBytes)}, max load ${result.maxLoadAvg1.toFixed(2)}`
+				? `- ${arm.runtime}: median ${result.medianMs.toFixed(2)} ms, median peak RSS ${bytes(result.medianPeakRssBytes)}, total wall time ${totalWallTimeForArm(arm).toFixed(2)} ms including warmup, max load ${result.maxLoadAvg1.toFixed(2)}`
 				: `- ${arm.runtime}: no samples`,
+		);
+	}
+	const deltas = runtimeDeltas(run);
+	if (deltas) {
+		lines.push(
+			"",
+			"## Derived deltas (Bun − Node; calculated from raw samples)",
+			"",
+			`- Median duration: ${deltas.medianDurationMs.toFixed(2)} ms (${deltas.medianDurationPct.toFixed(2)}%)`,
+			`- Median peak RSS: ${bytes(deltas.medianPeakRssBytes)} (${deltas.medianPeakRssPct.toFixed(2)}%)`,
+			`- Total wall time including warmup: ${deltas.totalWallTimeMs.toFixed(2)} ms (${deltas.totalWallTimePct.toFixed(2)}%)`,
 		);
 	}
 	if (run.winner) lines.push("", `Winner: **${run.winner}**`, "");
