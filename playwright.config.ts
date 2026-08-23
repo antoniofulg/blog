@@ -28,6 +28,22 @@ export default defineConfig({
 			},
 			dependencies: ["setup"],
 		},
+		{
+			name: "firefox",
+			use: {
+				...devices["Desktop Firefox"],
+				storageState: "tests/e2e/.auth/admin.json",
+			},
+			dependencies: ["setup"],
+		},
+		{
+			name: "webkit",
+			use: {
+				...devices["Desktop Safari"],
+				storageState: "tests/e2e/.auth/admin.json",
+			},
+			dependencies: ["setup"],
+		},
 	],
 	// scripts/e2e-server.ts creates the PGLite proxy and starts the Nitro server.
 	// Playwright starts webServer BEFORE globalSetup, so the server owns the proxy.

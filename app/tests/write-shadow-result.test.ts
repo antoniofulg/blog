@@ -10,17 +10,24 @@ describe("CI shadow artifact writer", () => {
 		const root = await mkdtemp(join(tmpdir(), "btr-shadow-writer-"));
 		try {
 			const parityLog = join(root, "parity.log");
+			const referenceLog = join(root, "reference.log");
 			const bunLog = join(root, "bun.log");
 			const output = join(root, "nested", "shadow-result.json");
 			await writeFile(
 				parityLog,
 				"Parity passed: reference and candidate inventories match.\n",
 			);
-			await writeFile(bunLog, "2 pass\nRan 2 tests across 1 file.\n");
+			await writeFile(
+				referenceLog,
+				"Test Files  1 passed (1)\nTests  2 passed | 1 skipped (3)\n",
+			);
+			await writeFile(bunLog, "2 pass\n1 skip\nRan 3 tests across 1 file.\n");
 			const record = await writeShadowResult({
 				parityStatus: 0,
+				referenceStatus: 0,
 				bunStatus: 0,
 				parityLogPath: parityLog,
+				referenceLogPath: referenceLog,
 				bunLogPath: bunLog,
 				outputPath: output,
 				commit: "ci-commit",
@@ -29,6 +36,7 @@ describe("CI shadow artifact writer", () => {
 			});
 			const parsed = JSON.parse(await readFile(output, "utf8")) as unknown;
 			expect(record.validComparison).toBe(true);
+			expect(record.reference?.outcome?.testsPassed).toBe(2);
 			expect(parsed).toMatchObject({
 				commit: "ci-commit",
 				validComparison: true,

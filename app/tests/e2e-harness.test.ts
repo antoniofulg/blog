@@ -189,6 +189,7 @@ describe("seedAdminUser()", () => {
 
 describe("integration: full lifecycle", () => {
 	it("createTestDb → seed → signIn via Better Auth API succeeds", async () => {
+		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
 		const testDb = await createTestDb();
 
 		const env = {
@@ -222,7 +223,7 @@ describe("integration: full lifecycle", () => {
 		expect(signInResult?.token).toBeTruthy();
 
 		await testDb.close();
-	}, 20_000);
+	}, 60_000);
 });
 
 // ── Integration: global-setup/teardown channel ────────────────────────────
@@ -242,6 +243,7 @@ describe("integration: global-setup/teardown channel", () => {
 		);
 
 		// Simulate what scripts/e2e-server.ts does: create PGLite + write initial state
+		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
 		const testDb = await createTestDb();
 		const { join } = await import("node:path");
 		const { tmpdir } = await import("node:os");
@@ -284,7 +286,7 @@ describe("integration: global-setup/teardown channel", () => {
 			await unlink(E2E_STATE_FILE).catch(() => {});
 			process.env.E2E_ADMIN_USER_ID = savedUserId;
 		}
-	}, 25_000);
+	}, 60_000);
 
 	it("globalTeardown() is always a no-op (idempotent)", async () => {
 		const { default: globalTeardown } = await import(

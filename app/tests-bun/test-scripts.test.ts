@@ -28,8 +28,11 @@ const vitestConfig = readFileSync(
 );
 
 describe("A/B/C test scripts", () => {
-	test("maps test to Bun 1.4 with Vitest", () => {
+	test("maps local tests to the reliable serialized Bun+Vitest profile", () => {
 		expect(scripts.test).toBe("bun run test:vitest:bun");
+		expect(scripts["test:local"]).toBe(
+			"bun run test:vitest:bun -- --maxWorkers=1",
+		);
 	});
 
 	test("pins Node 24 before starting Vitest", () => {
@@ -69,12 +72,27 @@ describe("A/B/C test scripts", () => {
 		);
 	});
 
+	test("exposes the Vitest worker benchmark alias", () => {
+		expect(scripts["bench:vitest:workers"]).toBe(
+			"bun run scripts/bench-vitest-workers.ts",
+		);
+	});
+
+	test("exposes the Playwright runtime benchmark alias", () => {
+		expect(scripts["bench:e2e:runtimes"]).toBe(
+			"bun run scripts/bench-e2e-runtimes.ts",
+		);
+	});
+
 	test("keeps Bun and Node Playwright routes", () => {
 		expect(scripts["test:e2e"]).toBe("bun run test:e2e:bun");
-		expect(scripts["test:e2e:bun"]).toBe("bunx --bun playwright test");
-		expect(scripts["test:e2e:node"]).toBe(
-			"node node_modules/@playwright/test/cli.js test",
+		expect(scripts["test:e2e:bun"]).toBe(
+			"bunx --bun playwright test --project=chromium",
 		);
+		expect(scripts["test:e2e:node"]).toBe(
+			"node node_modules/@playwright/test/cli.js test --project=chromium",
+		);
+		expect(scripts["test:e2e:all"]).toBe("bunx --bun playwright test");
 		expect(scripts["test:e2e:webview"]).toBeUndefined();
 		expect(scripts["bench:e2e:webview"]).toBeUndefined();
 	});

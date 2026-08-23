@@ -49,15 +49,25 @@ evidence, not a performance winner claim.
 
 ## Shadow eligibility
 
-The CI `bun-test-shadow` job runs parity and `test:bun` with Bun 1.4.0. Its
-failure is non-blocking, but JSON and logs are uploaded for seven days. The
-`quality` matrix `test` entry remains blocking and runs Vitest through Bun.
+The CI `bun-test-shadow` job runs parity, Bun 1.4 + Vitest (reference), and
+Bun 1.4 + Bun Test (candidate). Its failure is non-blocking, but JSON and all
+three logs are uploaded for seven days. The `quality` matrix `test` entry
+remains blocking and runs Vitest through Bun.
 
 Bun Test becomes eligible for an explicit cutover decision only after a suffix
-of ten consecutive green, valid, matching-inventory shadow results. Evaluate
-results by timestamp, not filesystem order. A failed test, timeout, noisy run,
-inventory mismatch, malformed result, duplicate timestamp, or mixed commit
-resets eligibility at that point. Noise from PGLite contention never counts.
+of ten consecutive green, valid, matching-inventory shadow results from ten
+distinct commits. Each record must contain equivalent reference/candidate
+file, pass, fail, and normalized leaf-skip outcomes; raw runner skip counts
+remain in the record for audit. Evaluate results by timestamp, not filesystem
+order. A failed test, timeout, noisy run, inventory mismatch, outcome mismatch,
+malformed result, duplicate timestamp, or duplicate commit resets eligibility.
+Noise from PGLite contention never counts.
+
+CI does not commit history. The uploaded `shadow-result.json` is imported
+manually into the durable ledger at
+`docs/benchmarks/bun-test/shadow-ledger.jsonl`, one JSON record per line, before
+eligibility is evaluated. The ledger is a maintainer-owned evidence file, not a
+CI output path, and imports must preserve the raw logs and commit SHA.
 
 ## Cutover and rollback
 
@@ -78,8 +88,42 @@ Bun + Vitest is complete; the runner cutover to Bun Test is not.
 
 Playwright remains the primary E2E suite, now forced through Bun by
 `test:e2e:bun`. Its configured web server starts the Blog through
-`bun run scripts/e2e-server.ts`. The project keeps one worker, Chromium,
-fixtures, traces, reporters, retries, and screenshots. `test:e2e:node` remains
-the explicit fallback. The retired Bun.WebView experiment is historical
-evidence only and is not part of the Bun Test cutover. Firefox and WebKit remain
-deferred.
+`bun run scripts/e2e-server.ts`. The project keeps one worker, fixtures,
+traces, reporters, retries, and screenshots. `test:e2e` pins Chromium for CI,
+`test:e2e:all` runs Chromium, Firefox, and WebKit locally, and
+`test:e2e:node` remains the explicit Chromium fallback. The retired Bun.WebView
+experiment is historical evidence only and is not part of the Bun Test cutover.
+
+## T9 evidence snapshot (2026-08-23)
+
+The current parity scan is 141 reference files to 141 Bun Test files, with no
+candidate residual Vitest API and no production `partial mock skipped` marker.
+The five historical extra Bun Test skips are synthetic runner `(unnamed)`
+entries (two `lang-slug-route`, two `og-slug-route`, one `docker-compose`).
+Comparison uses equivalent leaf skips and preserves raw runner skip counts.
+See the [consolidated evidence pack](../testing-runtimes/2026-08-22-summary.md).
+
+T8 now requires ten valid runs from ten distinct commits plus equivalent
+file/pass/fail/leaf-skip outcomes. The rule and duplicate-commit reset are
+covered by mirrored tests in commit `83bac33`; no real CI records have been
+imported into a durable ledger, so eligibility remains 0/10. Synthetic test
+fixtures are not shadow evidence.
+
+### Vitest removal checklist
+
+Vitest remains required. Current direct/runtime surfaces are:
+
+- `package.json` and `bun.lock` (`vitest` 4.1.5);
+- `vitest.config.ts` and the `VITEST` guard in `vite.config.ts`;
+- `test:vitest:node`, `test:vitest:bun`, `test:local`, and
+  `bench:vitest:workers` scripts;
+- `scripts/check-test-runtime.ts`, `scripts/bench-tests.ts`, and
+  `scripts/bench-vitest-workers.ts`;
+- `.github/workflows/ci.yml` reference/shadow arm and `app/tests/**` reference
+  tree.
+
+Before removing Vitest, obtain ten valid distinct-commit shadow records, rerun
+parity plus the full Bun Test suite, record a separate removal decision, then
+remove only obsolete package/config/CI surfaces and regenerate the lockfile.
+Keep Node/Vitest fallback until rollback ownership is explicitly closed. Keep
+historical reports and specs; never rewrite or delete raw evidence.

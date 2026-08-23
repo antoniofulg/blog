@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Validation
 
+> Historical status amendment (2026-08-23): implementation and validation are
+> complete for the shadow-migration scope. Current worker, Playwright, browser,
+> skip-accounting, and cutover-readiness evidence is consolidated in
+> `docs/benchmarks/testing-runtimes/2026-08-22-summary.md`; raw historical
+> measurements below are not rewritten.
+
 > Historical evidence notice: this report validates the original Node-blocking
 > shadow state. On 2026-08-22, the blocking alias moved to Bun 1.4 + Vitest due
 > to its 452 MB lower median peak RSS. Node 24 + Vitest remains available as the

@@ -36,7 +36,16 @@ describe("bench spawn measurement", () => {
 
 	it("counts a descendant's memory, not only the direct child's", async () => {
 		// bash is the direct child; bun is its descendant and holds the memory.
-		const result = await spawnMeasured(
+		const idle = await spawnMeasured(
+			[
+				"bash",
+				"-c",
+				"bun -e 'const t=Date.now();while(Date.now()-t<3500){}' | cat",
+			],
+			ENV,
+			{ timeoutMs: 30_000 },
+		);
+		const heavy = await spawnMeasured(
 			[
 				"bash",
 				"-c",
@@ -45,7 +54,8 @@ describe("bench spawn measurement", () => {
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
-		expect(result.peakRssBytes).toBeGreaterThan(150 * MB);
+		expect(heavy.peakRssBytes).toBeGreaterThan(idle.peakRssBytes);
+		expect(heavy.peakRssBytes - idle.peakRssBytes).toBeGreaterThan(32 * MB);
 	});
 
 	it("kills a command that exceeds the timeout and leaves no orphan", async () => {

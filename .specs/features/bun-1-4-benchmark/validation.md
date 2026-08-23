@@ -1,5 +1,10 @@
 # Bun 1.4 Benchmark — Validation Report
 
+> Status amendment (2026-08-23): validation confirms the harness and delivered
+> implementation scope, not a real Bun 1.3.14-versus-1.4.0 measurement. The
+> measurement and post remain pending; historical validation text below is
+> preserved.
+
 **Result**: PASS for the delivered scope (P1 stories plus the P2 report). The harness is
 built, tested and committed. Two P2 stories — the version pins and the post —
 remain deliberately unstarted because both depend on measurements that have not

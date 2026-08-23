@@ -12,3 +12,5 @@
 | 2026-05-26 | manual           | 0       | 0     | 0     | no findings                                  |
 | 2026-06-03 | manual           | 0       | 0     | 0     | no findings                                  |
 | 2026-06-03 | app     | manual           | 0       | 0     | 0     | no findings                                  |
+| 2026-08-23 | T10 bilingual post | 0       | 0     | 0     | no findings                                  |
+| 2026-08-23 | T10 bilingual post final | 0       | 0     | 0     | no findings                                  |

@@ -99,6 +99,15 @@ publicTest.describe("post share row", { tag: ["@public", "@smoke"] }, () => {
 		async ({ page }) => {
 			const state = await getState();
 
+			// Desktop Safari exposes Web Share API, but this scenario verifies the
+			// desktop inline chip contract rather than the native-share path.
+			await page.addInitScript(() => {
+				Object.defineProperty(navigator, "share", {
+					value: undefined,
+					configurable: true,
+				});
+			});
+
 			// Mock navigator.clipboard.writeText to capture writes without requiring
 			// the clipboard-read permission (headless Chromium may deny real grants).
 			await page.addInitScript(() => {

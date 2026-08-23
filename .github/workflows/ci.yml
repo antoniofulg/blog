@@ -73,10 +73,13 @@ jobs:
           set +e
           bun run test:parity > docs/benchmarks/bun-test/shadow-parity.log 2>&1
           parity_status=$?
+          bun run test:vitest:bun > docs/benchmarks/bun-test/shadow-reference.log 2>&1
+          reference_status=$?
           bun run test:bun > docs/benchmarks/bun-test/shadow-bun-test.log 2>&1
           bun_status=$?
-          PARITY_STATUS=$parity_status BUN_STATUS=$bun_status bun run scripts/write-shadow-result.ts \
+          PARITY_STATUS=$parity_status REFERENCE_STATUS=$reference_status BUN_STATUS=$bun_status bun run scripts/write-shadow-result.ts \
             --parity-log docs/benchmarks/bun-test/shadow-parity.log \
+            --reference-log docs/benchmarks/bun-test/shadow-reference.log \
             --bun-log docs/benchmarks/bun-test/shadow-bun-test.log \
             --output docs/benchmarks/bun-test/shadow-result.json \
             --commit "$GITHUB_SHA"

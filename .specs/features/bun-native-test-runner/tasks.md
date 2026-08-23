@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Tasks
 
+> Historical status amendment (2026-08-23): task implementation and validation
+> are complete for the shadow-migration scope. Do not use the original
+> Node-blocking wording below as current operational guidance; use the dated
+> runtime amendments and the T9 evidence pack. Original task wording and
+> checks remain preserved for traceability.
+
 > Runtime cutover amendment (2026-08-22): completed historical tasks below
 > retain their original Node-blocking wording. The approved follow-up maps
 > `test` to Bun 1.4 + Vitest, keeps Node 24 + Vitest as fallback, and leaves Bun

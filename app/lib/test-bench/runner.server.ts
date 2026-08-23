@@ -81,32 +81,56 @@ function fileCount(line: string): number {
 	return Number.parseInt(line.match(/\((\d+)\)/)?.[1] ?? "0", 10);
 }
 
+// biome-ignore lint/complexity/useRegexLiterals: escaped control codes stay readable in a string pattern.
+const ANSI_ESCAPE = new RegExp(
+	"\\u001B(?:\\[[0-?]*[ -/]*[@-~]|\\][^\\u0007]*(?:\\u0007|\\u001B\\\\))",
+	"g",
+);
+
+function normalizeVitestLine(line: string): string {
+	return line.replace(ANSI_ESCAPE, "").trim();
+}
+
 function parseVitestSummaryLine(line: string): TestOutcome | null {
-	if (!/^Test Files\s+/m.test(line)) return null;
-	const files = fileCount(line);
+	const normalized = normalizeVitestLine(line);
+	if (!/^Test Files\s+/.test(normalized)) return null;
+	const files = fileCount(normalized);
 	return {
-		filesPassed: counts(line, "passed"),
-		filesFailed: counts(line, "failed"),
+		filesPassed: counts(normalized, "passed"),
+		filesFailed: counts(normalized, "failed"),
 		testsPassed: 0,
 		testsFailed: 0,
 		testsSkipped: 0,
+		leafTestsSkipped: 0,
 		testFileCount: files,
 	};
 }
 
 export function parseVitestSummary(stdout: string): TestOutcome | null {
 	const lines = stdout.split("\n");
-	const filesLine = lines.find((line) => /^Test Files\s+/.test(line));
-	const testsLine = lines.find((line) => /^Tests\s+/.test(line));
+	const filesLine = lines.find((line) =>
+		/^Test Files\s+/.test(normalizeVitestLine(line)),
+	);
+	const testsLine = lines.find((line) =>
+		/^Tests\s+/.test(normalizeVitestLine(line)),
+	);
 	if (!filesLine || !testsLine) return null;
 	const files = parseVitestSummaryLine(filesLine);
 	if (!files) return null;
+	const normalizedTestsLine = normalizeVitestLine(testsLine);
 	return {
 		...files,
-		testsPassed: counts(testsLine, "passed"),
-		testsFailed: counts(testsLine, "failed"),
-		testsSkipped: counts(testsLine, "skipped"),
+		testsPassed: counts(normalizedTestsLine, "passed"),
+		testsFailed: counts(normalizedTestsLine, "failed"),
+		testsSkipped: counts(normalizedTestsLine, "skipped"),
+		leafTestsSkipped: counts(normalizedTestsLine, "skipped"),
 	};
+}
+
+function countSyntheticBunSkips(stdout: string): number {
+	return stdout
+		.split("\n")
+		.filter((line) => /^\s*\(skip\).* > \(unnamed\)\s*$/.test(line)).length;
 }
 
 export function parseBunTestSummary(stdout: string): TestOutcome | null {
@@ -116,6 +140,7 @@ export function parseBunTestSummary(stdout: string): TestOutcome | null {
 	const testsPassed = counts(lines, "pass");
 	const testsFailed = counts(lines, "fail");
 	const testsSkipped = counts(lines, "skip");
+	const syntheticSkips = countSyntheticBunSkips(stdout);
 	const testFileCount = Number.parseInt(ran[2], 10);
 	return {
 		filesPassed: testsFailed === 0 ? testFileCount : 0,
@@ -123,6 +148,7 @@ export function parseBunTestSummary(stdout: string): TestOutcome | null {
 		testsPassed,
 		testsFailed,
 		testsSkipped,
+		leafTestsSkipped: Math.max(0, testsSkipped - syntheticSkips),
 		testFileCount,
 	};
 }
@@ -224,7 +250,6 @@ function outcomeMismatches(samples: TestArmSample[]): string[] {
 		"filesFailed",
 		"testsPassed",
 		"testsFailed",
-		"testsSkipped",
 	];
 	const reasons: string[] = [];
 	for (
@@ -241,6 +266,15 @@ function outcomeMismatches(samples: TestArmSample[]): string[] {
 					`A/C outcome ${field} mismatch: A=${referenceOutcome[field]}, C=${candidateOutcome[field]}`,
 				);
 			}
+		}
+		const referenceSkipped =
+			referenceOutcome.leafTestsSkipped ?? referenceOutcome.testsSkipped;
+		const candidateSkipped =
+			candidateOutcome.leafTestsSkipped ?? candidateOutcome.testsSkipped;
+		if (referenceSkipped !== candidateSkipped) {
+			reasons.push(
+				`A/C outcome leafTestsSkipped mismatch: A=${referenceSkipped}, C=${candidateSkipped}`,
+			);
 		}
 	}
 	return reasons;

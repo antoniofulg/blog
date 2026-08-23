@@ -204,6 +204,7 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 
 	it("IT3: zero events → getAnalyticsDashboard returns empty arrays and zero counts", async () => {
 		// Use a fresh DB with no events (no shared test data).
+		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
 		const freshDb = await createTestDb();
 		const originalDb = dbHolder.get();
 		dbHolder.set(freshDb.db);
@@ -237,10 +238,11 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 			dbHolder.set(originalDb);
 			await freshDb.close();
 		}
-	}, 30_000);
+	}, 60_000);
 
 	it("IT4: previousPeriodTotal matches count from preceding 7d window (AC-3)", async () => {
 		// Use a fresh DB for precise control over timestamps.
+		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
 		const freshDb = await createTestDb();
 		const originalDb = dbHolder.get();
 		dbHolder.set(freshDb.db);
@@ -305,7 +307,7 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 			dbHolder.set(originalDb);
 			await freshDb.close();
 		}
-	}, 30_000);
+	}, 60_000);
 
 	it("topPosts are limited to ≤10 and sorted descending by event count (AC-4)", async () => {
 		const result = await getAnalyticsDashboard({ range: "7d" });

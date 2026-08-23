@@ -12,9 +12,35 @@ function result(
 ): ShadowRunRecord {
 	return {
 		timestamp: `2026-08-22T00:${String(index).padStart(2, "0")}:00.000Z`,
-		commit: "abc",
+		commit: `commit-${index}`,
 		validComparison: true,
 		inventory: { ok: true, reasons: [] },
+		reference: {
+			exitCode: 0,
+			timedOut: false,
+			outcome: {
+				filesPassed: 1,
+				filesFailed: 0,
+				testsPassed: 1,
+				testsFailed: 0,
+				testsSkipped: 0,
+				leafTestsSkipped: 0,
+				testFileCount: 1,
+			},
+		},
+		candidate: {
+			exitCode: 0,
+			timedOut: false,
+			outcome: {
+				filesPassed: 1,
+				filesFailed: 0,
+				testsPassed: 1,
+				testsFailed: 0,
+				testsSkipped: 0,
+				leafTestsSkipped: 0,
+				testFileCount: 1,
+			},
+		},
 		samples: [
 			{
 				exitCode: 0,
@@ -25,6 +51,7 @@ function result(
 					testsPassed: 1,
 					testsFailed: 0,
 					testsSkipped: 0,
+					leafTestsSkipped: 0,
 					testFileCount: 1,
 				},
 			},
@@ -117,6 +144,9 @@ describe("Bun Test shadow eligibility", () => {
 		const record = createShadowRunRecord({
 			parity: { ok: true, reasons: [] },
 			bunStatus: 0,
+			referenceStatus: 0,
+			referenceOutput:
+				"Test Files  1 passed (1)\nTests  2 passed | 1 skipped (3)",
 			bunOutput: "2 pass\n1 skip\nRan 3 tests across 1 file.",
 			commit: "abc",
 			timestamp: "2026-08-22T00:00:00.000Z",
@@ -125,6 +155,8 @@ describe("Bun Test shadow eligibility", () => {
 		expect(record.validComparison).toBe(true);
 		expect(record.samples[0].exitCode).toBe(0);
 		expect(record.samples[0].outcome?.testsPassed).toBe(2);
+		expect(record.reference?.outcome?.leafTestsSkipped).toBe(1);
+		expect(record.candidate?.outcome?.leafTestsSkipped).toBe(1);
 		expect(record.loadAvg1).toBe(0.5);
 		expect(evaluateShadowEligibility([record]).consecutiveGreen).toBe(1);
 	});
@@ -139,6 +171,8 @@ describe("Bun Test shadow eligibility", () => {
 			createShadowRunRecord({
 				parity: { ok: true, reasons: [] },
 				bunStatus: 1,
+				referenceStatus: 1,
+				referenceOutput: noisy,
 				bunOutput: noisy,
 				commit: "abc",
 				timestamp: "2026-08-22T00:00:00.000Z",
@@ -147,11 +181,32 @@ describe("Bun Test shadow eligibility", () => {
 		const successful = createShadowRunRecord({
 			parity: { ok: true, reasons: [] },
 			bunStatus: 0,
+			referenceStatus: 0,
+			referenceOutput: `Test Files  1 passed (1)\nTests  1 passed (1)\n${noisy}`,
 			bunOutput: `${noisy}\n1 pass\nRan 1 test across 1 file.`,
 			commit: "abc",
 			timestamp: "2026-08-22T00:00:00.000Z",
 		});
 		expect(successful.noisy).toBe(false);
 		expect(successful.samples[0].timedOut).toBe(false);
+	});
+
+	it("rejects duplicate commits and outcome mismatches", () => {
+		const duplicate = Array.from({ length: 10 }, (_, index) =>
+			result(index, { commit: index === 9 ? "commit-8" : `commit-${index}` }),
+		);
+		expect(evaluateShadowEligibility(duplicate).eligible).toBe(false);
+		expect(evaluateShadowEligibility(duplicate).reasons).toContain(
+			"duplicate shadow commits",
+		);
+		const mismatch = Array.from({ length: 10 }, (_, index) => result(index));
+		const candidate = mismatch[9].candidate;
+		if (!candidate?.outcome) throw new Error("candidate outcome missing");
+		candidate.outcome.testsPassed = 2;
+		const evaluation = evaluateShadowEligibility(mismatch);
+		expect(evaluation.consecutiveGreen).toBe(0);
+		expect(evaluation.reasons).toContain(
+			"latest suffix reset by outcome mismatch",
+		);
 	});
 });

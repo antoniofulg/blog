@@ -1,7 +1,12 @@
 # Bun 1.4 Benchmark & Migration Design
 
+> Status amendment (2026-08-23): implementation design is complete and
+> validated. The real two-version measurement run remains intentionally
+> pending; no result in this feature should be inferred beyond committed
+> evidence. Original design text below is retained.
+
 **Spec**: `.specs/features/bun-1-4-benchmark/spec.md`
-**Status**: Draft
+**Status**: Implemented; measurement pending
 
 ---
 

@@ -1,5 +1,11 @@
+import {
+	parseBunTestSummary,
+	parseVitestSummary,
+} from "#/lib/test-bench/runner.server";
 import type { TestArmSample, TestOutcome } from "#/lib/test-bench/types";
 import type { ParityResult } from "#/lib/test-migration/parity";
+
+type ShadowSample = Pick<TestArmSample, "exitCode" | "timedOut" | "outcome">;
 
 export type ShadowRunRecord = {
 	timestamp: string;
@@ -9,11 +15,18 @@ export type ShadowRunRecord = {
 	noiseEvidence?: string;
 	loadAvg1?: number;
 	inventory: { ok: boolean; reasons: string[] };
-	samples: Pick<TestArmSample, "exitCode" | "timedOut" | "outcome">[];
+	/** Bun + Vitest, the reference runner for this shadow comparison. */
+	reference?: ShadowSample;
+	/** Bun Test, the candidate runner. */
+	candidate?: ShadowSample;
+	/** Kept for compatibility with the benchmark result shape. */
+	samples: ShadowSample[];
 };
 
 export type ShadowRunInput = {
 	parity: Pick<ParityResult, "ok" | "reasons">;
+	referenceStatus?: number;
+	referenceOutput?: string;
 	bunStatus: number;
 	bunOutput: string;
 	commit: string;
@@ -29,27 +42,6 @@ export type ShadowEligibility = {
 
 const GREEN_THRESHOLD = 10;
 
-function count(output: string, word: string): number {
-	return Number.parseInt(
-		output.match(new RegExp(`(\\d+)\\s+${word}\\b`, "i"))?.[1] ?? "0",
-		10,
-	);
-}
-
-function parseBunOutcome(output: string): TestOutcome | null {
-	const ran = output.match(/Ran\s+(\d+)\s+tests?\s+across\s+(\d+)\s+files?/i);
-	if (!ran) return null;
-	const testsFailed = count(output, "fail");
-	return {
-		filesPassed: testsFailed === 0 ? Number.parseInt(ran[2], 10) : 0,
-		filesFailed: testsFailed > 0 ? Number.parseInt(ran[2], 10) : 0,
-		testsPassed: count(output, "pass"),
-		testsFailed,
-		testsSkipped: count(output, "skip"),
-		testFileCount: Number.parseInt(ran[2], 10),
-	};
-}
-
 export function isPgliteHookTimeout(output: string): boolean {
 	return (
 		/pg[_ -]?lite/i.test(output) &&
@@ -60,26 +52,83 @@ export function isPgliteHookTimeout(output: string): boolean {
 }
 
 export function createShadowRunRecord(input: ShadowRunInput): ShadowRunRecord {
-	const outcome = parseBunOutcome(input.bunOutput);
-	const failed = input.bunStatus !== 0;
-	const noisy = failed && isPgliteHookTimeout(input.bunOutput);
+	const referenceFailed =
+		input.referenceStatus === undefined || input.referenceStatus !== 0;
+	const candidateFailed = input.bunStatus !== 0;
+	const referenceOutput = input.referenceOutput ?? "";
+	const referenceOutcome = input.referenceOutput
+		? parseVitestSummary(input.referenceOutput)
+		: null;
+	const candidateOutcome = parseBunTestSummary(input.bunOutput);
+	const noisy =
+		(referenceFailed && isPgliteHookTimeout(referenceOutput)) ||
+		(candidateFailed && isPgliteHookTimeout(input.bunOutput));
+	const reference: ShadowSample = {
+		exitCode: input.referenceStatus ?? null,
+		timedOut: referenceFailed && /timed?\s*out|timeout/i.test(referenceOutput),
+		outcome: referenceOutcome,
+	};
+	const candidate: ShadowSample = {
+		exitCode: candidateFailed ? input.bunStatus : 0,
+		timedOut: candidateFailed && /timed?\s*out|timeout/i.test(input.bunOutput),
+		outcome: candidateOutcome,
+	};
+	const outcomeReasons = outcomeMismatches(referenceOutcome, candidateOutcome);
+	const failedOutcome = [referenceOutcome, candidateOutcome].some(
+		(outcome) =>
+			outcome !== null && (outcome.filesFailed > 0 || outcome.testsFailed > 0),
+	);
 	return {
 		timestamp: input.timestamp,
 		commit: input.commit,
 		validComparison:
-			input.parity.ok && input.bunStatus === 0 && outcome !== null,
+			input.parity.ok &&
+			!referenceFailed &&
+			!candidateFailed &&
+			referenceOutcome !== null &&
+			candidateOutcome !== null &&
+			!failedOutcome &&
+			!noisy &&
+			outcomeReasons.length === 0,
 		noisy,
 		...(noisy ? { noiseEvidence: "PGLite hook timeout" } : {}),
 		...(input.loadAvg1 === undefined ? {} : { loadAvg1: input.loadAvg1 }),
 		inventory: { ok: input.parity.ok, reasons: [...input.parity.reasons] },
-		samples: [
-			{
-				exitCode: input.bunStatus === 0 ? 0 : input.bunStatus,
-				timedOut: failed && /timed?\s*out|timeout/i.test(input.bunOutput),
-				outcome,
-			},
-		],
+		reference,
+		candidate,
+		samples: [candidate],
 	};
+}
+
+const OUTCOME_FIELDS: Array<keyof TestOutcome> = [
+	"testFileCount",
+	"filesPassed",
+	"filesFailed",
+	"testsPassed",
+	"testsFailed",
+];
+
+function outcomeMismatches(
+	reference: TestOutcome | null,
+	candidate: TestOutcome | null,
+): string[] {
+	if (!reference || !candidate) return ["reference/candidate outcome missing"];
+	const reasons: string[] = [];
+	for (const field of OUTCOME_FIELDS) {
+		if (reference[field] !== candidate[field]) {
+			reasons.push(
+				`reference/candidate outcome ${field} mismatch: reference=${reference[field]}, candidate=${candidate[field]}`,
+			);
+		}
+	}
+	const referenceSkipped = reference.leafTestsSkipped ?? reference.testsSkipped;
+	const candidateSkipped = candidate.leafTestsSkipped ?? candidate.testsSkipped;
+	if (referenceSkipped !== candidateSkipped) {
+		reasons.push(
+			`reference/candidate outcome leafTestsSkipped mismatch: reference=${referenceSkipped}, candidate=${candidateSkipped}`,
+		);
+	}
+	return reasons;
 }
 
 function isRecord(value: unknown): value is Record<string, unknown> {
@@ -90,6 +139,8 @@ function parseShadowRun(value: unknown): ShadowRunRecord | undefined {
 	if (!isRecord(value)) return undefined;
 	const inventory = value.inventory;
 	const samples = value.samples;
+	const reference = parseShadowSample(value.reference);
+	const candidate = parseShadowSample(value.candidate);
 	if (
 		typeof value.timestamp !== "string" ||
 		Number.isNaN(Date.parse(value.timestamp)) ||
@@ -98,7 +149,9 @@ function parseShadowRun(value: unknown): ShadowRunRecord | undefined {
 		!isRecord(inventory) ||
 		typeof inventory.ok !== "boolean" ||
 		!Array.isArray(inventory.reasons) ||
-		!Array.isArray(samples)
+		!Array.isArray(samples) ||
+		!reference ||
+		!candidate
 	)
 		return undefined;
 	return {
@@ -116,13 +169,43 @@ function parseShadowRun(value: unknown): ShadowRunRecord | undefined {
 				(reason): reason is string => typeof reason === "string",
 			),
 		},
-		samples: samples.filter(isRecord).map((sample) => ({
-			exitCode: typeof sample.exitCode === "number" ? sample.exitCode : null,
-			timedOut: sample.timedOut === true,
-			outcome: isRecord(sample.outcome)
-				? (sample.outcome as TestArmSample["outcome"])
-				: null,
-		})),
+		reference,
+		candidate,
+		samples: samples
+			.filter(isRecord)
+			.map(parseShadowSample)
+			.filter((sample): sample is ShadowSample => sample !== undefined),
+	};
+}
+
+function parseOutcome(value: unknown): TestOutcome | null {
+	if (!isRecord(value)) return null;
+	const fields = [
+		"filesPassed",
+		"filesFailed",
+		"testsPassed",
+		"testsFailed",
+		"testsSkipped",
+		"leafTestsSkipped",
+		"testFileCount",
+	] as const;
+	if (!fields.every((field) => typeof value[field] === "number")) return null;
+	return value as unknown as TestOutcome;
+}
+
+function parseShadowSample(value: unknown): ShadowSample | undefined {
+	if (!isRecord(value)) return undefined;
+	if (
+		(value.exitCode !== null && typeof value.exitCode !== "number") ||
+		typeof value.timedOut !== "boolean"
+	)
+		return undefined;
+	const outcome = parseOutcome(value.outcome);
+	if (!outcome) return undefined;
+	return {
+		exitCode: value.exitCode as number | null,
+		timedOut: value.timedOut,
+		outcome,
 	};
 }
 
@@ -133,6 +216,20 @@ function green(run: ShadowRunRecord): boolean {
 		run.inventory.ok &&
 		run.inventory.reasons.length === 0 &&
 		run.samples.length > 0 &&
+		run.reference !== undefined &&
+		run.candidate !== undefined &&
+		run.reference.exitCode === 0 &&
+		run.candidate.exitCode === 0 &&
+		!run.reference.timedOut &&
+		!run.candidate.timedOut &&
+		outcomeMismatches(run.reference.outcome, run.candidate.outcome).length ===
+			0 &&
+		run.reference.outcome !== null &&
+		run.candidate.outcome !== null &&
+		run.reference.outcome.filesFailed === 0 &&
+		run.reference.outcome.testsFailed === 0 &&
+		run.candidate.outcome.filesFailed === 0 &&
+		run.candidate.outcome.testsFailed === 0 &&
 		run.samples.every(
 			(sample) =>
 				sample.exitCode === 0 && !sample.timedOut && sample.outcome !== null,
@@ -160,6 +257,8 @@ export function evaluateShadowEligibility(
 	const timestamps = new Set(runs.map((run) => run.timestamp));
 	if (timestamps.size !== runs.length)
 		reasons.push("duplicate shadow timestamps");
+	const commits = new Set(runs.map((run) => run.commit));
+	if (commits.size !== runs.length) reasons.push("duplicate shadow commits");
 	if (reasons.length > 0 && runs.length !== results.length) {
 		return {
 			eligible: false,
@@ -172,11 +271,20 @@ export function evaluateShadowEligibility(
 	);
 	let consecutiveGreen = 0;
 	for (let index = ordered.length - 1; index >= 0; index -= 1) {
-		if (!green(ordered[index])) {
-			if (ordered[index].noisy)
-				reasons.push("latest suffix reset by noisy run");
-			else if (!ordered[index].inventory.ok)
+		const run = ordered[index];
+		if (!green(run)) {
+			if (run.noisy) reasons.push("latest suffix reset by noisy run");
+			else if (!run.inventory.ok)
 				reasons.push("latest suffix reset by inventory mismatch");
+			else if (
+				run.reference &&
+				run.candidate &&
+				outcomeMismatches(run.reference.outcome, run.candidate.outcome).length >
+					0
+			)
+				reasons.push("latest suffix reset by outcome mismatch");
+			else if (run.reference?.timedOut || run.candidate?.timedOut)
+				reasons.push("latest suffix reset by timeout");
 			else reasons.push("latest suffix reset by failed shadow run");
 			break;
 		}

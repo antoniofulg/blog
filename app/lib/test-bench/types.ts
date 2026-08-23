@@ -29,7 +29,10 @@ export type TestOutcome = {
 	filesFailed: number;
 	testsPassed: number;
 	testsFailed: number;
+	/** Raw runner skip count, including Bun's synthetic skipped hooks. */
 	testsSkipped: number;
+	/** Equivalent skipped leaf-test count used for cross-runner comparison. */
+	leafTestsSkipped?: number;
 	testFileCount: number;
 };
 

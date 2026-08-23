@@ -13,6 +13,7 @@
     "build": "vite build",
     "preview": "vite preview",
     "test": "bun run test:vitest:bun",
+    "test:local": "bun run test:vitest:bun -- --maxWorkers=1",
     "test:vitest:node": "node scripts/check-test-runtime.ts --runtime=node --version=24 --runner=vitest --runner-version=4.1.5 && node node_modules/vitest/vitest.mjs run",
     "test:vitest:bun": "bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && bun --bun node_modules/vitest/vitest.mjs run",
     "test:bun": "bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && bun test --timeout 60000 app/tests-bun --isolate",
@@ -30,14 +31,17 @@
     "sync:og": "SITE_URL=https://antoniofulg.tech bun run scripts/sync.ts",
     "lint:tests": "bun run scripts/lint-test-annotations.ts",
     "test:e2e": "bun run test:e2e:bun",
-    "test:e2e:bun": "bunx --bun playwright test",
-    "test:e2e:node": "node node_modules/@playwright/test/cli.js test",
+    "test:e2e:bun": "bunx --bun playwright test --project=chromium",
+    "test:e2e:node": "node node_modules/@playwright/test/cli.js test --project=chromium",
+    "test:e2e:all": "bunx --bun playwright test",
     "audit:content": "bun run scripts/audit-content.ts",
     "audit:fe": "bun run scripts/audit-fe.ts",
     "audit": "bun run audit:content && bun run audit:fe",
     "favicons": "bun run scripts/generate-favicons.ts",
     "bench": "bun run scripts/bench.ts",
-    "bench:tests": "bun run scripts/bench-tests.ts"
+    "bench:tests": "bun run scripts/bench-tests.ts",
+    "bench:vitest:workers": "bun run scripts/bench-vitest-workers.ts",
+    "bench:e2e:runtimes": "bun run scripts/bench-e2e-runtimes.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

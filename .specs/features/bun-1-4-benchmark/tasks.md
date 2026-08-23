@@ -1,5 +1,9 @@
 # Bun 1.4 Benchmark & Migration Tasks
 
+> Status amendment (2026-08-23): implementation tasks through T26 are
+> complete and validated. T17/T18 remain intentionally pending because no real
+> two-version matrix has been run; preserve original task wording below.
+
 ## Execution Protocol (MANDATORY -- do not skip)
 
 Implement these tasks with the `tlc-spec-driven` skill: **activate it by name and follow its Execute flow and Critical Rules.** Do not search for skill files by filesystem path.
@@ -9,7 +13,7 @@ Implement these tasks with the `tlc-spec-driven` skill: **activate it by name an
 ---
 
 **Design**: `.specs/features/bun-1-4-benchmark/design.md`
-**Status**: Draft
+**Status**: Implementation complete; measurement pending
 
 ---
 

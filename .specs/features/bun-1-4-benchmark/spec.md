@@ -1,5 +1,12 @@
 # Bun 1.4 Benchmark & Migration Specification
 
+> Status amendment (2026-08-23): harness implementation and validation are
+> complete; the real dual-version matrix and publication remain pending by
+> design. Do not treat this feature as containing a completed performance
+> result. Original requirements below are retained.
+
+**Status**: Implemented; measurement and publication pending
+
 ## Problem Statement
 
 The blog's toolchain and runtime are pinned to Bun 1.3.x in CI (`ci.yml` → 1.3.14, `app-audit.yml` and `content-audit.yml` → 1.3.13) while the local machine already runs 1.4.0, and the `Dockerfile` tracks the floating `oven/bun:1` tag — so production silently drifts to whichever major-1 image is current. Bun 1.4.0 advertises large gains (install 30× on warm cache, 7× on CI, 2× faster Linux startup, HTTP server memory −13–48%), but none of those claims have been measured against this repository's actual workloads. We need reproducible before/after numbers to justify the version bump, and those numbers become the evidence base for a performance case study post.

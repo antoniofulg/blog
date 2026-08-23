@@ -8,6 +8,9 @@ import { removePost, syncAll, upsertPost } from "#/db/indexer";
 
 const DB_URL =
 	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
+// Shared across Vitest/Bun indexer/sync suites and worktrees. Hold one
+// PostgreSQL session lock for each suite because syncAll cleans the full table.
+const INTEGRATION_ADVISORY_LOCK_KEY = 748_231_409;
 
 function isPortFree(port: number): Promise<boolean> {
 	return new Promise((resolve) => {
@@ -24,10 +27,13 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 	let sql!: import("postgres").Sql;
 	let tmpDir!: string;
 	let prevOgDir: string | undefined;
+	let lockHeld = false;
 
 	beforeAll(async () => {
 		const pg = await import("postgres");
-		sql = pg.default(DB_URL);
+		sql = pg.default(DB_URL, { max: 1 });
+		await sql`SELECT pg_advisory_lock(${INTEGRATION_ADVISORY_LOCK_KEY})`;
+		lockHeld = true;
 		tmpDir = await mkdtemp(join(tmpdir(), "indexer-integ-"));
 		// Redirect every OG write/unlink to a throwaway dir for the duration of
 		// this suite. syncAll runs a full-table cleanup that calls removePost for
@@ -44,9 +50,19 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 	afterAll(async () => {
 		if (prevOgDir === undefined) delete process.env.OG_OUTPUT_DIR;
 		else process.env.OG_OUTPUT_DIR = prevOgDir;
-		if (tmpDir) {
-			await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpDir}/%`}`;
-			await sql.end();
+		try {
+			if (sql && tmpDir) {
+				await sql`DELETE FROM posts WHERE file_path LIKE ${`${tmpDir}/%`}`;
+			}
+		} finally {
+			try {
+				if (lockHeld) {
+					await sql`SELECT pg_advisory_unlock(${INTEGRATION_ADVISORY_LOCK_KEY})`;
+					lockHeld = false;
+				}
+			} finally {
+				if (sql) await sql.end();
+			}
 		}
 		if (tmpDir) await rm(tmpDir, { recursive: true, force: true });
 	});
