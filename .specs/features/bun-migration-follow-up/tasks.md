@@ -112,7 +112,7 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 **Tests**: unit
 **Gate**: quick
 
-### T4: Run and persist the worker benchmark
+### T4: Run and persist the worker benchmark — ⚠️ Partial (invalid evidence; no winner)
 
 **What**: Execute the complete worker matrix and commit raw JSON plus Markdown with a valid or explicit invalid verdict. After valid evidence selects a passing lowest-memory profile, add `test:local` for that profile.
 **Where**: `docs/benchmarks/vitest-workers/` and `package.json`
@@ -127,10 +127,15 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 **Done when**:
 
-- [ ] All four profiles have one warmup and five measured runs.
-- [ ] Outcome counts match and all failures/timeouts are visible.
-- [ ] Memory and timing validity are recorded separately; ambient-load timing failures suppress only the overall winner and retain a valid memory winner.
+- [x] All four profiles have one warmup and five measured runs.
+- [x] Failure, timeout, and missing-outcome evidence is visible; the comparison is explicitly invalid.
+- [x] Memory and timing validity are recorded separately; ambient-load timing failures suppress only the overall winner and retain a valid memory winner when memory outcomes are valid.
 - [ ] `test:local` passes under the selected profile.
+
+The 2026-08-23 run completed the full matrix but remained invalid: Vitest output
+summaries were missing for measured samples and one profile-2 sample exited 1;
+ambient load also exceeded 11 during multiple samples. No profile was selected
+for `test:local`, so T4 remains partial pending a clean rerun.
 
 **Tests**: integration
 **Gate**: build
