@@ -30,10 +30,10 @@
 ## Handoff
 
 - **Feature**: Bun migration follow-up (`.specs/features/bun-migration-follow-up/`)
-- **Phase / Task**: T9 complete; T10 bilingual post remains.
-- **Completed**: `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Current persisted Chromium runtime evidence covers 49/49 with five measured samples per Node/Bun arm; Chromium, Firefox, and WebKit each pass 49/49. Current parity is 141/141 files, and the five synthetic Bun Test skips are normalized at leaf-outcome level while raw counts remain preserved.
+- **Phase / Task**: T1-T10 and implementation complete; independent verification follow-up.
+- **Completed**: `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Current persisted Chromium runtime evidence covers 49/49 with five measured samples per Node/Bun arm; Chromium, Firefox, and WebKit each pass 49/49. Current parity is 141/141 files, and the five synthetic Bun Test skips are normalized at leaf-outcome level while raw counts remain preserved. Previous independent verification failed only on a nondiscriminating changed-inventory test; both verifier twins now cover individually valid, zero-failure arms with different Playwright inventories and assert the exact invalidation reason and forced Bun command.
 - **In-progress** (file:line): none.
-- **Next step**: Keep Bun 1.4 + Vitest blocking and continue collecting ten real consecutive green Bun Test shadow runs from distinct commits before deciding whether to replace Vitest itself. Use serialized `test:local` profile `1` for reliability.
+- **Next step**: Independent reverification of the focused Vitest/Bun verifier tests, parity, and current-state handoff. Bun Test status remains 0/10 valid consecutive shadow runs; after reverification, continue collecting ten real consecutive green runs from distinct commits before deciding whether to replace Vitest itself. Use serialized `test:local` profile `1` for reliability.
 - **Blockers**: none. One Node fallback E2E run hit the known PGLite lock timeout; the required subsequent full retry passed 49/49.
-- **Uncommitted files**: none after the benchmark results commit.
+- **Uncommitted files**: verifier-gap twin tests and this handoff; pre-existing `validation.md` remains untouched.
 - **Branch**: test/bun-migration-follow-up

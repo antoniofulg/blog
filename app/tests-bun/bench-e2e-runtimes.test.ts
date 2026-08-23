@@ -83,7 +83,17 @@ describe("Playwright runtime benchmark", () => {
 			"--retries=0",
 			"--reporter=json",
 		]);
-		expect(commandForRuntime(RUNTIME_ARMS[1])[0]).toBe("bunx");
+		expect(commandForRuntime(RUNTIME_ARMS[1])).toEqual([
+			"bunx",
+			"--bun",
+			"playwright",
+			"test",
+			"--config=playwright.config.ts",
+			"--project=chromium",
+			"--workers=1",
+			"--retries=0",
+			"--reporter=json",
+		]);
 		expect(commandEnvironment("/tmp/result.json")).toMatchObject({
 			PLAYWRIGHT_JSON_OUTPUT_FILE: "/tmp/result.json",
 		});
@@ -102,6 +112,51 @@ describe("Playwright runtime benchmark", () => {
 			parsePlaywrightOutcome(JSON.stringify({ stats: { expected: 10 } })),
 		).toBeNull();
 		expect(parsePlaywrightOutcome("not json")).toBeNull();
+	});
+
+	test("invalidates individually valid arms when Playwright inventories differ", async () => {
+		let runtime: string | undefined;
+		const run = await runE2EBenchmark(
+			1,
+			deps(
+				async (argv) => {
+					runtime = argv[0];
+					return measured();
+				},
+				{
+					readJson: async () =>
+						JSON.stringify({
+							stats: {
+								expected: runtime === "bunx" ? 9 : 10,
+								skipped: 0,
+								unexpected: 0,
+								flaky: 0,
+							},
+						}),
+				},
+			),
+		);
+		expect(run.arms.map((arm) => arm.samples[0]?.outcome?.inventory)).toEqual([
+			10, 9,
+		]);
+		expect(
+			run.arms.every((arm) =>
+				arm.samples.every(
+					(sample) =>
+						sample.exitCode === 0 &&
+						sample.outcome?.skipped === 0 &&
+						sample.outcome?.unexpected === 0 &&
+						sample.outcome?.flaky === 0,
+				),
+			),
+		).toBe(true);
+		expect(run.validMemoryComparison).toBe(false);
+		expect(run.validComparison).toBe(false);
+		expect(run.memoryWinner).toBeNull();
+		expect(run.winner).toBeNull();
+		expect(run.arms[1].memoryInvalidReasons).toContain(
+			"Playwright inventory differs from the reference arm",
+		);
 	});
 
 	test("validates both runtimes before warmup, interleaves samples, and cleans every group", async () => {
