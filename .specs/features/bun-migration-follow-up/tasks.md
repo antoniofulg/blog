@@ -169,7 +169,7 @@ is reported.
 **Tests**: unit
 **Gate**: quick
 
-### T6: Run and persist the Playwright runtime benchmark
+### T6: Run and persist the Playwright runtime benchmark — ✅ Complete
 
 **What**: Execute both runtime arms and commit raw JSON plus Markdown with a valid or explicit invalid verdict.
 **Where**: `docs/benchmarks/e2e-runtimes/`
@@ -184,9 +184,11 @@ is reported.
 
 **Done when**:
 
-- [ ] Both arms have one warmup and five measured runs.
-- [ ] Same Chromium inventory completes with zero skipped/flaky/unexpected results.
-- [ ] Report states that both arms use the same Bun application server.
+- [x] Both arms have one warmup and five measured runs.
+- [x] Same Chromium inventory completes with zero skipped/flaky/unexpected results.
+- [x] Report states that both arms use the same Bun application server.
+
+**Evidence**: [raw JSON](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
 
 **Tests**: integration
 **Gate**: full

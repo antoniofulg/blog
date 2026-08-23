@@ -1,5 +1,7 @@
 # Bun Migration Follow-up Specification
 
+**Execution status**: T6 complete; T7–T10 pending.
+
 ## Problem Statement
 
 The Bun runtime cutover is merged, but local memory tuning, Bun Test skip
@@ -9,7 +11,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 
 ## Goals
 
-- [ ] Produce reproducible, persisted runtime and worker benchmarks.
+- [x] Produce reproducible, persisted runtime and worker benchmarks.
 - [ ] Provide a low-memory local test profile for multi-worktree development.
 - [ ] Explain and remove the five-result Bun Test skip discrepancy without losing coverage.
 - [ ] Validate the full Playwright suite in Chromium, Firefox, and WebKit.
@@ -107,7 +109,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 | --- | --- | --- | --- |
 | BMF-01 | P1: Low-memory local testing | T2 → T3 → T4 | Complete |
 | BMF-02 | P1: Bun Test outcome parity | T1 | Complete |
-| BMF-03 | P1: Complete Playwright evidence | Tasks | In Tasks |
+| BMF-03 | P1: Complete Playwright evidence | T5 → T6 → T7 | T6 complete; T7 pending |
 | BMF-04 | P2: Cutover readiness and evidence publication | Tasks | In Tasks |
 
 **Coverage:** 4 total, 4 mapped to tasks, 0 unmapped.
@@ -117,6 +119,6 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 - [ ] `main` is aligned to `origin/main` with a recoverable backup reference.
 - [x] `test:local` passes under the operationally reliable serialized profile; its measured RSS median is effectively tied with the mathematical memory winner.
 - [ ] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
-- [ ] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict.
+- [x] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict. [Evidence: JSON](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
 - [ ] Chromium, Firefox, and WebKit project runs have persisted results.
 - [ ] Migration docs, cutover criteria, and bilingual post pass project gates.
