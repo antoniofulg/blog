@@ -78,6 +78,12 @@ describe("A/B/C test scripts", () => {
 		);
 	});
 
+	it("exposes the Playwright runtime benchmark alias", () => {
+		expect(scripts["bench:e2e:runtimes"]).toBe(
+			"bun run scripts/bench-e2e-runtimes.ts",
+		);
+	});
+
 	it("keeps Bun and Node Playwright routes", () => {
 		expect(scripts["test:e2e"]).toBe("bun run test:e2e:bun");
 		expect(scripts["test:e2e:bun"]).toBe("bunx --bun playwright test");

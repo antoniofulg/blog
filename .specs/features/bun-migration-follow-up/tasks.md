@@ -148,7 +148,7 @@ is reported.
 ### T5: Add the Playwright runtime benchmark
 
 **What**: Add a self-contained benchmark CLI for Node 24 and Bun 1.4 Playwright runners.
-**Where**: `scripts/bench-e2e-runtimes.ts`
+**Where**: `scripts/bench-e2e-runtimes.ts`, `package.json`, `app/tests/bench-e2e-runtimes.test.ts`, `app/tests-bun/bench-e2e-runtimes.test.ts`
 **Depends on**: T4
 **Reuses**: Playwright JSON output, current Bun web server, and existing benchmark helpers.
 **Requirement**: BMF-03
@@ -160,11 +160,11 @@ is reported.
 
 **Done when**:
 
-- [ ] Both runtimes are validated before warmup.
-- [ ] One warmup per arm is excluded from five interleaved samples.
-- [ ] One worker and zero retries are forced.
-- [ ] Invalid outcomes suppress a winner and leave no orphan server.
-- [ ] Focused twin tests pass.
+- [x] Both runtimes are validated before warmup; Node requires major 24 and Bun requires 1.4.x.
+- [x] One warmup per arm is retained in raw output but excluded from five interleaved samples by default.
+- [x] One worker, zero retries, Chromium, and the shared `playwright.config.ts`/Bun application server are forced; `CI` is removed from the child environment.
+- [x] Failed, skipped, flaky, unexpected, changed-inventory, timed-out, and orphaned-process samples invalidate the arm/comparison and suppress a winner; memory and timing validity remain separate.
+- [x] Focused Vitest and Bun Test twins pass, including per-sample temporary JSON output cleanup and persisted duration/RSS/load/version/browser/outcome fields.
 
 **Tests**: unit
 **Gate**: quick

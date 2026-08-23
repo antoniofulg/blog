@@ -39,7 +39,8 @@
     "favicons": "bun run scripts/generate-favicons.ts",
     "bench": "bun run scripts/bench.ts",
     "bench:tests": "bun run scripts/bench-tests.ts",
-    "bench:vitest:workers": "bun run scripts/bench-vitest-workers.ts"
+    "bench:vitest:workers": "bun run scripts/bench-vitest-workers.ts",
+    "bench:e2e:runtimes": "bun run scripts/bench-e2e-runtimes.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",
