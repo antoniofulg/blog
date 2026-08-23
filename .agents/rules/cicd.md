@@ -37,15 +37,17 @@ All eight checks must be green before a PR can merge.
 
 The `quality` matrix `test` job remains blocking and runs Vitest through Bun
 1.4.0. `test:vitest:node` remains the explicit Node 24 reference and rollback
-route. Separate `bun-test-shadow` runs parity and the Bun Test candidate under
-Bun 1.4.0 with `continue-on-error: true`. It always uploads candidate JSON and
-logs for seven days. Shadow failures expose compatibility evidence without
-replacing the Vitest gate.
+route. Separate `bun-test-shadow` runs parity, captures Bun + Vitest reference
+outcomes, and runs the Bun Test candidate under Bun 1.4.0 with
+`continue-on-error: true`. It uploads comparison JSON and logs for seven days.
+Shadow failures expose compatibility evidence without replacing the Vitest
+gate.
 
-Cutover is manual after ten consecutive green, matching-inventory results. A
-failure, timeout, noisy run, or inventory mismatch resets the suffix. Rollback
-maps `test` to `test:vitest:node` and restores Node 24 in the quality test job;
-migrated tests and benchmark history remain.
+Cutover is manual after ten consecutive green results from distinct commits,
+with matching inventory and normalized leaf outcomes. A failure, timeout,
+noisy run, duplicate commit, inventory mismatch, or outcome mismatch resets the
+suffix. Rollback maps `test` to `test:vitest:node` and restores Node 24 in the
+quality test job; migrated tests and benchmark history remain.
 The canonical Playwright command is forced through Bun while its web server also
 runs through Bun. `test:e2e:node` remains the explicit local fallback. The
 retired Bun.WebView experiment is preserved as documentation and does not run
@@ -57,7 +59,8 @@ The `e2e` matrix entry:
 - Restores Chromium from cache (key: `playwright-<os>-<bun.lock-hash>`); on the first run it installs and populates the cache, subsequent runs skip the download.
 - Runs `bun run build` (required by `playwright.config.ts` which starts a `vite preview` server).
 - Runs `bunx --bun playwright test` via `make test-e2e` and the `test:e2e`
-  package alias.
+  package alias, which pins the Chromium project. Firefox and WebKit remain
+  available through the local `test:e2e:all` route and are not CI gates yet.
 - Uploads `playwright-report/` and `test-results/` as a GHA artifact (7-day retention) regardless of pass/fail.
 
 ## Image publication and deployment workflow (cd.yml)

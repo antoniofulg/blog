@@ -88,11 +88,11 @@ Bun + Vitest is complete; the runner cutover to Bun Test is not.
 
 Playwright remains the primary E2E suite, now forced through Bun by
 `test:e2e:bun`. Its configured web server starts the Blog through
-`bun run scripts/e2e-server.ts`. The project keeps one worker, Chromium,
-fixtures, traces, reporters, retries, and screenshots. `test:e2e:node` remains
-the explicit fallback. The retired Bun.WebView experiment is historical
-evidence only and is not part of the Bun Test cutover. Firefox and WebKit remain
-deferred.
+`bun run scripts/e2e-server.ts`. The project keeps one worker, fixtures,
+traces, reporters, retries, and screenshots. `test:e2e` pins Chromium for CI,
+`test:e2e:all` runs Chromium, Firefox, and WebKit locally, and
+`test:e2e:node` remains the explicit Chromium fallback. The retired Bun.WebView
+experiment is historical evidence only and is not part of the Bun Test cutover.
 
 ## T9 evidence snapshot (2026-08-23)
 

@@ -42,9 +42,10 @@ tests/e2e/      — Playwright E2E specs
 
 ## E2E runtime routes
 
-- `bun run test:e2e` and `bun run test:e2e:bun` run the full Playwright suite
-  through Bun.
-- `bun run test:e2e:node` preserves the direct Node fallback.
+- `bun run test:e2e` and `bun run test:e2e:bun` run the full Chromium suite
+  through Bun; this remains the CI gate.
+- `bun run test:e2e:all` runs Chromium, Firefox, and WebKit locally through Bun.
+- `bun run test:e2e:node` preserves the direct Node Chromium fallback.
 - Bun.WebView has no package script or CI route. Its completed experiment is
   archived under `docs/benchmarks/e2e-webview/`.
 
