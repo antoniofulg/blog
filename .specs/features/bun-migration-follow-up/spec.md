@@ -1,6 +1,8 @@
 # Bun Migration Follow-up Specification
 
-**Execution status**: T8 complete; T9–T10 pending.
+**Execution status (2026-08-23)**: T8 and T9 complete; T10 pending. T9
+consolidated committed worker, Playwright, browser, skip-accounting, branch,
+and Vitest-inventory evidence. The ten-run Bun Test gate remains unmet.
 
 ## Problem Statement
 
@@ -12,11 +14,11 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 ## Goals
 
 - [x] Produce reproducible, persisted runtime and worker benchmarks.
-- [ ] Provide a low-memory local test profile for multi-worktree development.
-- [ ] Explain and remove the five-result Bun Test skip discrepancy without losing coverage.
+- [x] Provide a low-memory local test profile for multi-worktree development.
+- [x] Explain and normalize the five-result Bun Test skip discrepancy without losing coverage.
 - [x] Validate the full Playwright suite in Chromium, Firefox, and WebKit.
 - [ ] Publish a bilingual engineering post backed by committed evidence.
-- [ ] Leave explicit, testable criteria for the eventual Vitest removal.
+- [x] Leave explicit, testable criteria for the eventual Vitest removal.
 
 ## Out of Scope
 
@@ -118,7 +120,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 
 - [ ] `main` is aligned to `origin/main` with a recoverable backup reference.
 - [x] `test:local` passes under the operationally reliable serialized profile; its measured RSS median is effectively tied with the mathematical memory winner.
-- [ ] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
-- [x] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict. [Evidence: JSON](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
-- [x] Chromium, Firefox, and WebKit project runs have persisted results. [Evidence](../../docs/benchmarks/e2e-browsers/2026-08-23-summary.md)
-- [ ] Migration docs, cutover criteria, and bilingual post pass project gates.
+- [x] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
+- [x] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict. [Evidence: JSON](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
+- [x] Chromium, Firefox, and WebKit project runs have persisted results. [Evidence](../../../docs/benchmarks/e2e-browsers/2026-08-23-summary.md)
+- [x] Migration docs and cutover criteria pass project gates; bilingual post remains T10.

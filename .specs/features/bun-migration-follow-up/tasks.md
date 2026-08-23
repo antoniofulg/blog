@@ -188,7 +188,7 @@ is reported.
 - [x] Same Chromium inventory completes with zero skipped/flaky/unexpected results.
 - [x] Report states that both arms use the same Bun application server.
 
-**Evidence**: [raw JSON](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
+**Evidence**: [raw JSON](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.json) · [report](../../../docs/benchmarks/e2e-runtimes/runtimes-2026-08-23T08-20-02-241Z.md)
 
 **Tests**: integration
 **Gate**: full
@@ -213,10 +213,10 @@ is reported.
 - [x] Browser result evidence is committed.
 
 The final Bun runs each executed 49 tests with zero skipped, unexpected, or
-flaky outcomes. Evidence: [summary](../../docs/benchmarks/e2e-browsers/2026-08-23-summary.md),
-[Chromium](../../docs/benchmarks/e2e-browsers/2026-08-23-chromium.json),
-[Firefox](../../docs/benchmarks/e2e-browsers/2026-08-23-firefox.json),
-[WebKit](../../docs/benchmarks/e2e-browsers/2026-08-23-webkit.json).
+flaky outcomes. Evidence: [summary](../../../docs/benchmarks/e2e-browsers/2026-08-23-summary.md),
+[Chromium](../../../docs/benchmarks/e2e-browsers/2026-08-23-chromium.json),
+[Firefox](../../../docs/benchmarks/e2e-browsers/2026-08-23-firefox.json),
+[WebKit](../../../docs/benchmarks/e2e-browsers/2026-08-23-webkit.json).
 
 **Tests**: e2e
 **Gate**: full
@@ -244,7 +244,7 @@ flaky outcomes. Evidence: [summary](../../docs/benchmarks/e2e-browsers/2026-08-2
 **Tests**: unit
 **Gate**: quick
 
-### T9: Audit and reconcile migration artifacts
+### T9: Audit and reconcile migration artifacts — ✅ Complete (2026-08-23)
 
 **What**: Mark current/historical states accurately, inventory obsolete branches safely, and consolidate cutover/benchmark evidence.
 **Where**: `docs/benchmarks/testing-runtimes/2026-08-22-summary.md`
@@ -259,10 +259,20 @@ flaky outcomes. Evidence: [summary](../../docs/benchmarks/e2e-browsers/2026-08-2
 
 **Done when**:
 
-- [ ] Historical measurements are preserved and labeled.
-- [ ] Current stack and rollback paths are unambiguous.
-- [ ] Branches used by worktrees are not removed.
-- [ ] Removal checklist names every remaining Vitest dependency and gate.
+- [x] Historical measurements are preserved and labeled.
+- [x] Current stack and rollback paths are unambiguous.
+- [x] Branches used by worktrees are not removed.
+- [x] Removal checklist names every remaining Vitest dependency and gate.
+
+**Evidence**: [consolidated runtime pack](../../../docs/benchmarks/testing-runtimes/2026-08-22-summary.md),
+[Bun Test playbook](../../../docs/benchmarks/bun-test/README.md), and the current
+141/141 parity scan. Worker profile `1` remains the operational serialized
+choice after profile `2`'s 0.12% median RSS edge failed a fresh run with a
+port/PID race. Playwright's persisted Node/Bun benchmark and all three 49/49
+browser runs are linked from the evidence pack. T8's distinct-commit and
+equivalent-outcome rule is covered by commit `83bac33`; no real ledger records
+exist yet, so cutover eligibility remains 0/10. The Bun.WebView harness is
+retired and its raw reports remain archived.
 
 **Tests**: integration
 **Gate**: build

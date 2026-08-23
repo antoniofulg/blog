@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Specification
 
+> Historical status amendment (2026-08-23): implementation and independent
+> validation are complete for the shadow-migration scope. The current runtime
+> cutover is Bun 1.4 + Vitest; replacing Vitest with Bun Test remains pending
+> ten valid distinct-commit CI runs. Original requirements below are retained
+> verbatim as the historical baseline.
+
 > Runtime cutover amendment (2026-08-22): the approved intermediate state uses
 > Bun 1.4 + Vitest as the blocking `test` command. Node 24 + Vitest remains an
 > explicit comparison and rollback route. Requirements that keep Node blocking

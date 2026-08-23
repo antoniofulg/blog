@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Design
 
+> Historical status amendment (2026-08-23): implementation and validation are
+> complete as a shadow migration. Current default is Bun 1.4 + Vitest, with
+> Node 24 + Vitest fallback; Bun Test remains behind the ten-run evidence gate.
+> This design is retained as historical context. See
+> `docs/benchmarks/testing-runtimes/2026-08-22-summary.md` for current evidence.
+
 > Runtime cutover amendment (2026-08-22): Bun 1.4 + Vitest replaced Node 24 +
 > Vitest as the blocking default after a same-suite benchmark tied on time and
 > reduced median peak RSS by 452 MB. Node remains the explicit fallback; Bun

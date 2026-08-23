@@ -18,13 +18,22 @@
 - **Date**: 2026-08-22
 - **Status**: active
 
+### AD-003
+- **Decision**: Keep `test:local` serialized at one Vitest worker.
+- **Reason**: Profile `2` won memory by only 0.12% (2.0 MiB), while a fresh
+  two-worker run failed two `bench-runtime` tests in a port/PID race. Profile
+  `1` is the reliable operational choice; worker timing evidence is noisy.
+- **Scope**: Local multi-worktree test command.
+- **Date**: 2026-08-23
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: Bun Playwright and WebView evaluation (`docs/plans/2026-08-22-bun-playwright-webview-design.md`)
-- **Phase / Task**: Evaluation complete; WebView experiment retired.
-- **Completed**: `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Cold measured WebView 70.84% slower with 24.41% higher browser RSS; warm-session measured WebView 187.38% slower with 14.30% higher browser RSS. Including warm-ups, WebView consumed 42.69% more total cold time and 221.55% more total warm-pass time. Full Bun Playwright passed 49/49; Node/Vitest and Bun Test each passed 2,355 tests.
+- **Feature**: Bun migration follow-up (`.specs/features/bun-migration-follow-up/`)
+- **Phase / Task**: T9 complete; T10 bilingual post remains.
+- **Completed**: `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Current persisted Chromium runtime evidence covers 49/49 with five measured samples per Node/Bun arm; Chromium, Firefox, and WebKit each pass 49/49. Current parity is 141/141 files, and the five synthetic Bun Test skips are normalized at leaf-outcome level while raw counts remain preserved.
 - **In-progress** (file:line): none.
-- **Next step**: Bun 1.4 + Vitest is the blocking unit/integration command because its measured median peak RSS was 452 MB lower than Node 24 + Vitest. Continue collecting ten real consecutive green Bun Test shadow runs before deciding whether to replace Vitest itself.
+- **Next step**: Keep Bun 1.4 + Vitest blocking and continue collecting ten real consecutive green Bun Test shadow runs from distinct commits before deciding whether to replace Vitest itself. Use serialized `test:local` profile `1` for reliability.
 - **Blockers**: none. One Node fallback E2E run hit the known PGLite lock timeout; the required subsequent full retry passed 49/49.
 - **Uncommitted files**: none after the benchmark results commit.
-- **Branch**: ci/bun-vitest-default
+- **Branch**: test/bun-migration-follow-up

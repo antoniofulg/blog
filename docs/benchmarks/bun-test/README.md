@@ -93,3 +93,37 @@ fixtures, traces, reporters, retries, and screenshots. `test:e2e:node` remains
 the explicit fallback. The retired Bun.WebView experiment is historical
 evidence only and is not part of the Bun Test cutover. Firefox and WebKit remain
 deferred.
+
+## T9 evidence snapshot (2026-08-23)
+
+The current parity scan is 141 reference files to 141 Bun Test files, with no
+candidate residual Vitest API and no production `partial mock skipped` marker.
+The five historical extra Bun Test skips are synthetic runner `(unnamed)`
+entries (two `lang-slug-route`, two `og-slug-route`, one `docker-compose`).
+Comparison uses equivalent leaf skips and preserves raw runner skip counts.
+See the [consolidated evidence pack](../testing-runtimes/2026-08-22-summary.md).
+
+T8 now requires ten valid runs from ten distinct commits plus equivalent
+file/pass/fail/leaf-skip outcomes. The rule and duplicate-commit reset are
+covered by mirrored tests in commit `83bac33`; no real CI records have been
+imported into a durable ledger, so eligibility remains 0/10. Synthetic test
+fixtures are not shadow evidence.
+
+### Vitest removal checklist
+
+Vitest remains required. Current direct/runtime surfaces are:
+
+- `package.json` and `bun.lock` (`vitest` 4.1.5);
+- `vitest.config.ts` and the `VITEST` guard in `vite.config.ts`;
+- `test:vitest:node`, `test:vitest:bun`, `test:local`, and
+  `bench:vitest:workers` scripts;
+- `scripts/check-test-runtime.ts`, `scripts/bench-tests.ts`, and
+  `scripts/bench-vitest-workers.ts`;
+- `.github/workflows/ci.yml` reference/shadow arm and `app/tests/**` reference
+  tree.
+
+Before removing Vitest, obtain ten valid distinct-commit shadow records, rerun
+parity plus the full Bun Test suite, record a separate removal decision, then
+remove only obsolete package/config/CI surfaces and regenerate the lockfile.
+Keep Node/Vitest fallback until rollback ownership is explicitly closed. Keep
+historical reports and specs; never rewrite or delete raw evidence.
