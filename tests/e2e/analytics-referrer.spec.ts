@@ -117,6 +117,20 @@ publicTest.describe(
 				const { db, close } = await openTestDb(state.connectionString);
 
 				try {
+					await page.addInitScript((expectedReferrer: string) => {
+						const descriptor = Object.getOwnPropertyDescriptor(
+							Document.prototype,
+							"referrer",
+						);
+						if (!descriptor?.get) return;
+						Object.defineProperty(Document.prototype, "referrer", {
+							configurable: true,
+							get() {
+								return descriptor.get?.call(this) || expectedReferrer;
+							},
+						});
+					}, scenario.referer);
+
 					const before = await countEventsBySource(
 						db,
 						state.fixturePostId,
@@ -291,10 +305,14 @@ publicTest.describe(
 					// We don't assert on this post's row — it only exists to leave
 					// `document.referrer` pointing at our own origin for the second
 					// navigation.
+					const firstIncrementResponse = page.waitForResponse(
+						(res) => res.request().method() === "POST" && res.status() < 400,
+					);
 					await page.goto(`/${state.enOnlyPostSlug}`, {
 						referer: "https://www.linkedin.com/feed/",
 					});
 					await page.waitForLoadState("load");
+					await firstIncrementResponse;
 
 					const lastIdBefore =
 						(await latestEventForPost(db, state.fixturePostId))?.id ?? 0;

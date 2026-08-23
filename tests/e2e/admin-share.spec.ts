@@ -15,6 +15,24 @@ async function getState(): Promise<E2EState> {
 	return cachedState;
 }
 
+async function installClipboardCapture(page: Page): Promise<void> {
+	await page.addInitScript(() => {
+		Object.defineProperty(navigator, "clipboard", {
+			value: {
+				writeText: async (text: string) => {
+					(window as unknown as Record<string, unknown>).__clipboardCapture =
+						text;
+				},
+				readText: async () =>
+					(
+						window as unknown as Record<string, unknown>
+					).__clipboardCapture ?? "",
+			},
+			configurable: true,
+		});
+	});
+}
+
 /**
  * Opens the share dropdown for the fixture post row and waits for it to be
  * visible. Returns the row locator for further assertions if needed.
@@ -50,9 +68,7 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 		async ({ authedPage }) => {
 			const state = await getState();
 
-			await authedPage
-				.context()
-				.grantPermissions(["clipboard-read", "clipboard-write"]);
+			await installClipboardCapture(authedPage);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
@@ -88,9 +104,7 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 		async ({ authedPage }) => {
 			const state = await getState();
 
-			await authedPage
-				.context()
-				.grantPermissions(["clipboard-read", "clipboard-write"]);
+			await installClipboardCapture(authedPage);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
@@ -123,12 +137,7 @@ test.describe("admin share dropdown", { tag: ["@admin", "@smoke"] }, () => {
 		async ({ authedPage }) => {
 			const state = await getState();
 
-			// Grant clipboard permissions before navigation so they apply to the full
-			// context. clipboard-write is needed for navigator.clipboard.writeText()
-			// in Playwright's Chromium headless environment; clipboard-read for readText().
-			await authedPage
-				.context()
-				.grantPermissions(["clipboard-read", "clipboard-write"]);
+			await installClipboardCapture(authedPage);
 
 			await authedPage.goto("/admin");
 			await authedPage.waitForLoadState("load");
