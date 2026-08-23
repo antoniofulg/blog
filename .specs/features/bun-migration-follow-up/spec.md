@@ -115,7 +115,7 @@ gaps without removing the Node 24 and Vitest rollback paths prematurely.
 ## Success Criteria
 
 - [ ] `main` is aligned to `origin/main` with a recoverable backup reference.
-- [ ] `test:local` passes and has lower measured median peak RSS than the default profile.
+- [x] `test:local` passes and has lower measured median peak RSS than the default profile.
 - [ ] Bun Test skip discrepancy has outcome-level evidence and no lost test coverage.
 - [ ] Node/Bun Playwright comparison has five valid samples per arm or an explicit invalid verdict.
 - [ ] Chromium, Firefox, and WebKit project runs have persisted results.
