@@ -179,6 +179,7 @@ export function commandForRuntime(arm: RuntimeArm): string[] {
 		`--project=${BROWSER}`,
 		"--workers=1",
 		"--retries=0",
+		"--reporter=json",
 	];
 }
 

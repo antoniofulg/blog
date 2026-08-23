@@ -80,6 +80,7 @@ describe("Playwright runtime benchmark", () => {
 			"--project=chromium",
 			"--workers=1",
 			"--retries=0",
+			"--reporter=json",
 		]);
 		expect(commandForRuntime(RUNTIME_ARMS[1])[0]).toBe("bunx");
 		expect(commandEnvironment("/tmp/result.json")).toMatchObject({
