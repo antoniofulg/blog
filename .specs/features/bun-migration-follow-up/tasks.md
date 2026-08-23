@@ -66,7 +66,7 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 **Tests**: unit
 **Gate**: quick
 
-### T2: Add the Vitest worker benchmark
+### T2: Add the Vitest worker benchmark — ✅ Complete
 
 **What**: Add a self-contained benchmark CLI for `1`, `2`, `4`, and default Bun+Vitest worker profiles.
 **Where**: `scripts/bench-vitest-workers.ts`
@@ -81,11 +81,11 @@ gate, atomic commit, adequacy review, and independent Verifier rules.
 
 **Done when**:
 
-- [ ] One warmup per profile is excluded from five persisted samples.
-- [ ] Profiles run sequentially with alternating order.
-- [ ] Invalid samples suppress a winner.
-- [ ] JSON and Markdown include all spec-required metadata.
-- [ ] Focused twin tests pass.
+- [x] One warmup per profile is excluded from five persisted samples.
+- [x] Profiles run sequentially with alternating order.
+- [x] Invalid samples suppress a winner.
+- [x] JSON and Markdown include all spec-required metadata.
+- [x] Focused twin tests pass.
 
 **Tests**: unit
 **Gate**: quick
@@ -288,7 +288,7 @@ Phase 3:                         T8 → T9 → T10
 | Task | Scope | Status |
 | --- | --- | --- |
 | T1 | Outcome comparison rule | Complete |
-| T2 | One benchmark CLI | Granular |
+| T2 | One benchmark CLI | Complete |
 | T3 | Script aliases | Granular |
 | T4 | One persisted benchmark run | Granular |
 | T5 | One benchmark CLI | Granular |
