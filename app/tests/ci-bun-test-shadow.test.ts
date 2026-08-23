@@ -56,10 +56,16 @@ describe("Bun Test CI shadow", () => {
 		expect(shadow).toContain("retention-days: 7");
 	});
 
-	it("keeps Playwright on one Chromium worker", () => {
+	it("keeps Playwright on one worker across browser projects", () => {
 		expect(playwright).toContain("workers: 1");
 		expect(playwright).toContain('name: "chromium"');
-		expect(playwright).not.toContain('name: "firefox"');
+		expect(playwright).toContain('name: "firefox"');
+		expect(playwright).toContain('name: "webkit"');
+		expect(playwright).toContain('...devices["Desktop Firefox"]');
+		expect(playwright).toContain('...devices["Desktop Safari"]');
+		expect(playwright).toMatch(
+			/name: "chromium"[\s\S]*?dependencies: \["setup"\][\s\S]*?name: "firefox"[\s\S]*?dependencies: \["setup"\][\s\S]*?name: "webkit"[\s\S]*?dependencies: \["setup"\]/,
+		);
 	});
 
 	it("keeps the Bun web server boundary", () => {

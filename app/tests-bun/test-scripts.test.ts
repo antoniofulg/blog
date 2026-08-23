@@ -86,10 +86,13 @@ describe("A/B/C test scripts", () => {
 
 	test("keeps Bun and Node Playwright routes", () => {
 		expect(scripts["test:e2e"]).toBe("bun run test:e2e:bun");
-		expect(scripts["test:e2e:bun"]).toBe("bunx --bun playwright test");
-		expect(scripts["test:e2e:node"]).toBe(
-			"node node_modules/@playwright/test/cli.js test",
+		expect(scripts["test:e2e:bun"]).toBe(
+			"bunx --bun playwright test --project=chromium",
 		);
+		expect(scripts["test:e2e:node"]).toBe(
+			"node node_modules/@playwright/test/cli.js test --project=chromium",
+		);
+		expect(scripts["test:e2e:all"]).toBe("bunx --bun playwright test");
 		expect(scripts["test:e2e:webview"]).toBeUndefined();
 		expect(scripts["bench:e2e:webview"]).toBeUndefined();
 	});
