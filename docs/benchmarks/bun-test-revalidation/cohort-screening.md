@@ -106,3 +106,13 @@ compatibility and contamination. No winner is inferred.
 - **Not yet decided:** full-suite speed or memory. That requires a quiet host,
   one discarded warm-up, and at least five interleaved measured samples per
   finalist in T8.
+
+## T8 completion
+
+The required finalist matrix is complete in
+[`matrix-2026-08-24.md`](./matrix-2026-08-24.md). It measures matched Vitest
+and Bun isolated workers 1/2/4 plus Bun `--smol` matched to worker 2. All four
+pairs preserve the 113-file product inventory and equivalent 2,057-pass/84-skip
+outcome; the three local-PostgreSQL files are intentionally skipped in both
+arms. The matrix, rather than the screening signals above, supplies the final
+time and process-tree memory evidence.
