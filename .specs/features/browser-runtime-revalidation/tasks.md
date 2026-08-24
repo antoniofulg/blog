@@ -80,6 +80,7 @@ T4 → T5 → T6
 **Tests**: unit/integration
 **Gate**: browser
 **Commit**: `test(browser): add browser finalist benchmark`
+**Status**: ✅ Complete
 
 ### T5: Record controlled browser evidence
 **What**: Execute screening/finalists and preserve raw reports.
