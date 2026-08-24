@@ -189,12 +189,11 @@ function parseBunOutcome(stdout: string): RevalidationOutcome | null {
 		)
 		.map((section) => section.file)
 		.sort();
-	const failedFiles = sections.filter((section) =>
-		section.lines.some((line) => /\(fail\)/i.test(line)),
-	).length;
-	const activeFiles = sections.filter((section) =>
-		section.lines.some((line) => /\((?:pass|fail)\)/i.test(line)),
-	).length;
+	const failedFiles = new Set(
+		sections
+			.filter((section) => section.lines.some((line) => /\(fail\)/i.test(line)))
+			.map((section) => section.file),
+	).size;
 	// Bun repeats every skipped leaf after the summary line. Count wrapper
 	// entries only in the detailed section, otherwise the duplicate report
 	// makes a valid leaf count look smaller than Vitest's count.
@@ -206,7 +205,12 @@ function parseBunOutcome(stdout: string): RevalidationOutcome | null {
 	return {
 		filesPassed:
 			sections.length > 0
-				? Math.max(0, activeFiles - failedFiles)
+				? Math.max(
+						0,
+						Number.parseInt(ran[2], 10) -
+							fullySkippedFiles.length -
+							failedFiles,
+					)
 				: numberAfter(flat, "pass") === 0
 					? 0
 					: Number.parseInt(ran[2], 10),

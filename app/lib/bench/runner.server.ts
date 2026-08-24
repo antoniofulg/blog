@@ -45,12 +45,32 @@ export function tailLines(text: string, lines = STDERR_TAIL_LINES): string {
  */
 export async function groupRssBytes(pgid: number): Promise<number> {
 	try {
-		const { stdout } = await run("ps", ["-o", "rss=", "-g", String(pgid)]);
-		return stdout
+		const { stdout } = await run("ps", ["-axo", "pid=,ppid=,rss="]);
+		const processes = stdout
 			.split("\n")
-			.map((line) => Number.parseInt(line.trim(), 10))
-			.filter((kb) => Number.isFinite(kb))
-			.reduce((total, kb) => total + kb * 1024, 0);
+			.map((line) => line.trim().split(/\s+/).map(Number))
+			.filter(
+				(parts): parts is [number, number, number] =>
+					parts.length === 3 && parts.every(Number.isFinite),
+			);
+		const children = new Map<number, Array<[number, number, number]>>();
+		for (const process of processes) {
+			const siblings = children.get(process[1]) ?? [];
+			siblings.push(process);
+			children.set(process[1], siblings);
+		}
+		const queue = [pgid];
+		const seen = new Set<number>();
+		let total = 0;
+		while (queue.length > 0) {
+			const pid = queue.shift();
+			if (pid === undefined || seen.has(pid)) continue;
+			seen.add(pid);
+			const process = processes.find((candidate) => candidate[0] === pid);
+			if (process) total += process[2] * 1024;
+			for (const child of children.get(pid) ?? []) queue.push(child[0]);
+		}
+		return total;
 	} catch {
 		return 0;
 	}
