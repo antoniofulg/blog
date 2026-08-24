@@ -62,7 +62,9 @@ describe("test scripts", () => {
 			"bun test app/tests-bun --isolate",
 		);
 		expect(scripts["test:bun:parallel:2"]).toContain("--parallel=2");
+		expect(scripts["test:bun:parallel:2"]).toContain("--isolate");
 		expect(scripts["test:bun:parallel:4"]).toContain("--parallel=4");
+		expect(scripts["test:bun:parallel:4"]).toContain("--isolate");
 	});
 
 	it("keeps shared-state and smol profiles opt-in", () => {
@@ -71,6 +73,7 @@ describe("test scripts", () => {
 		expect(scripts["test:bun:smol:2"]).toContain(
 			"bun --smol test app/tests-bun",
 		);
+		expect(scripts["test:bun:smol:2"]).toContain("--isolate");
 		expect(scripts.test).toBe("bun run test:vitest:bun");
 		for (const name of [
 			"test:vitest:bun:1",

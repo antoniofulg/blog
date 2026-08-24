@@ -1,21 +1,13 @@
 import { afterAll, beforeAll, describe, expect, test } from "bun:test";
-import { createServer } from "node:net";
+import { isPostgresAvailable } from "#/lib/test-bench/database";
 
 // ─── DB availability check ─────────────────────────────────────────────────────
 
-function isPortFree(port: number): Promise<boolean> {
-	return new Promise((resolve) => {
-		const server = createServer();
-		server.listen(port, () => server.close(() => resolve(true)));
-		server.on("error", () => resolve(false));
-	});
-}
-
-const port5432Free = await isPortFree(5432);
+const databaseUnavailable = !(await isPostgresAvailable());
 
 // ─── Integration: auth round trip via auth.handler ────────────────────────────
 
-describe.skipIf(port5432Free)("integration: auth round trip", () => {
+describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 	let sql!: import("postgres").Sql;
 	const ADMIN_EMAIL = process.env.ADMIN_EMAIL ?? "admin@example.com";
 	const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD ?? "changeme";

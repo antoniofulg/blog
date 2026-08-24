@@ -1,10 +1,10 @@
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { removePost, syncAll, upsertPost } from "#/db/indexer";
+import { isPostgresAvailable } from "#/lib/test-bench/database";
 
 const DB_URL =
 	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
@@ -12,17 +12,9 @@ const DB_URL =
 // PostgreSQL session lock for each suite because syncAll cleans the full table.
 const INTEGRATION_ADVISORY_LOCK_KEY = 748_231_409;
 
-function isPortFree(port: number): Promise<boolean> {
-	return new Promise((resolve) => {
-		const server = createServer();
-		server.listen(port, () => server.close(() => resolve(true)));
-		server.on("error", () => resolve(false));
-	});
-}
+const databaseUnavailable = !(await isPostgresAvailable(DB_URL));
 
-const port5432Free = await isPortFree(5432);
-
-describe.skipIf(port5432Free)("integration: indexer", () => {
+describe.skipIf(databaseUnavailable)("integration: indexer", () => {
 	// definite assignment assertion — assigned in beforeAll
 	let sql!: import("postgres").Sql;
 	let tmpDir!: string;

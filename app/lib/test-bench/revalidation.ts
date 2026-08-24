@@ -6,6 +6,7 @@ import { collectHostMeta } from "#/lib/bench/host.server";
 import { type MeasuredRun, spawnMeasured } from "#/lib/bench/runner.server";
 import { aggregate } from "#/lib/bench/stats";
 import type { Aggregate, HostMeta, Sample } from "#/lib/bench/types";
+import { sanitizedBenchmarkEnv } from "#/lib/test-bench/database";
 import {
 	compareRuntimeOutcomes,
 	compareTestTrees,
@@ -169,6 +170,31 @@ function parseBunOutcome(stdout: string): RevalidationOutcome | null {
 	const ran = stdout.match(/Ran\s+(\d+)\s+tests?\s+across\s+(\d+)\s+files?/i);
 	if (!ran) return null;
 	const flat = stdout.split("\n").join(" ");
+	const sections = stdout.split("\n").reduce(
+		(current, line) => {
+			if (/^app\/tests(?:-bun)?\/\S+\.(?:test|spec)\.tsx?:\s*$/.test(line)) {
+				current.push({ file: line.trim().slice(0, -1), lines: [] });
+			} else if (current.length > 0) {
+				current[current.length - 1].lines.push(line);
+			}
+			return current;
+		},
+		[] as Array<{ file: string; lines: string[] }>,
+	);
+	const fullySkippedFiles = sections
+		.filter(
+			(section) =>
+				section.lines.some((line) => /\(skip\)/i.test(line)) &&
+				!section.lines.some((line) => /\((?:pass|fail)\)/i.test(line)),
+		)
+		.map((section) => section.file)
+		.sort();
+	const failedFiles = sections.filter((section) =>
+		section.lines.some((line) => /\(fail\)/i.test(line)),
+	).length;
+	const activeFiles = sections.filter((section) =>
+		section.lines.some((line) => /\((?:pass|fail)\)/i.test(line)),
+	).length;
 	// Bun repeats every skipped leaf after the summary line. Count wrapper
 	// entries only in the detailed section, otherwise the duplicate report
 	// makes a valid leaf count look smaller than Vitest's count.
@@ -179,14 +205,18 @@ function parseBunOutcome(stdout: string): RevalidationOutcome | null {
 		.filter((line) => /\(skip\).*?>\s+\(unnamed\)/i.test(line)).length;
 	return {
 		filesPassed:
-			numberAfter(flat, "pass") === 0 ? 0 : Number.parseInt(ran[2], 10),
-		filesFailed:
-			numberAfter(flat, "fail") === 0 ? 0 : Number.parseInt(ran[2], 10),
+			sections.length > 0
+				? Math.max(0, activeFiles - failedFiles)
+				: numberAfter(flat, "pass") === 0
+					? 0
+					: Number.parseInt(ran[2], 10),
+		filesFailed: sections.length > 0 ? failedFiles : numberAfter(flat, "fail"),
 		testsPassed: numberAfter(flat, "pass"),
 		testsFailed: numberAfter(flat, "fail"),
 		testsSkipped: Math.max(0, numberAfter(flat, "skip") - unnamedSkippedTests),
 		testsTodo: numberAfter(flat, "todo"),
 		testFileCount: Number.parseInt(ran[2], 10),
+		fullySkippedFiles,
 	};
 }
 
@@ -301,7 +331,7 @@ export const defaultRevalidationDeps: RevalidationDeps = {
 	commit: defaultCommit,
 	inventory: defaultInventory,
 	cwd: process.cwd(),
-	env: { ...process.env, TZ: "UTC" },
+	env: sanitizedBenchmarkEnv(),
 };
 
 function sampleToStat(sample: RevalidationSample): Sample {

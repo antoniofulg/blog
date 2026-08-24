@@ -1,11 +1,10 @@
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
-
+import { isPostgresAvailable } from "#/lib/test-bench/database";
 import { runSync } from "../../scripts/sync";
 
 const execFileAsync = promisify(execFile);
@@ -15,17 +14,9 @@ const DB_URL =
 // PostgreSQL session lock for each suite because syncAll cleans the full table.
 const INTEGRATION_ADVISORY_LOCK_KEY = 748_231_409;
 
-function isPortFree(port: number): Promise<boolean> {
-	return new Promise((res) => {
-		const server = createServer();
-		server.listen(port, () => server.close(() => res(true)));
-		server.on("error", () => res(false));
-	});
-}
+const databaseUnavailable = !(await isPostgresAvailable(DB_URL));
 
-const port5432Free = await isPortFree(5432);
-
-describe.skipIf(port5432Free)("integration: sync script", () => {
+describe.skipIf(databaseUnavailable)("integration: sync script", () => {
 	let sql!: import("postgres").Sql;
 	let tmpDir!: string;
 	let prevOgDir: string | undefined;

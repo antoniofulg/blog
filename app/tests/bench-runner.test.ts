@@ -10,6 +10,10 @@ import {
 } from "#/lib/bench/runner.server";
 import type { HostMeta } from "#/lib/bench/types";
 import {
+	LOCAL_TEST_DATABASE_URL,
+	sanitizedBenchmarkEnv,
+} from "#/lib/test-bench/database";
+import {
 	externalProcessContamination,
 	parseRunnerOutcome,
 	type RevalidationArm,
@@ -209,6 +213,22 @@ function depsFor(
 }
 
 describe("Bun Test revalidation harness", () => {
+	it("sanitizes benchmark database credentials to the local fixture", () => {
+		const env = sanitizedBenchmarkEnv({
+			DATABASE_URL: "postgres://remote.example/blog",
+			POSTGRES_DB: "secret-db",
+			POSTGRES_USER: "secret-user",
+			POSTGRES_PASSWORD: "secret-password",
+			POSTGRES_PORT: "9999",
+		});
+		expect(env.DATABASE_URL).toBe(LOCAL_TEST_DATABASE_URL);
+		expect(env.POSTGRES_DB).toBeUndefined();
+		expect(env.POSTGRES_USER).toBeUndefined();
+		expect(env.POSTGRES_PASSWORD).toBeUndefined();
+		expect(env.POSTGRES_PORT).toBeUndefined();
+		expect(env.TZ).toBe("UTC");
+	});
+
 	it("normalizes Bun's unnamed skipped describe wrappers", () => {
 		const outcome = parseRunnerOutcome(
 			'{"runner":"bun:test"}\n11 pass\n2 skip\n(skip) integration > (unnamed)\n(skip) integration > skipped leaf\nRan 11 tests across 1 files.',
@@ -217,6 +237,27 @@ describe("Bun Test revalidation harness", () => {
 		expect(outcome).toMatchObject({
 			testsPassed: 11,
 			testsSkipped: 1,
+		});
+	});
+
+	it("normalizes fully skipped Bun files as skipped files, not passed files", () => {
+		const outcome = parseRunnerOutcome(
+			[
+				"app/tests-bun/auth-integ.test.ts:",
+				"(skip) integration: auth round trip > (unnamed)",
+				"app/tests-bun/strings.test.ts:",
+				"(pass) unit: strings > parses",
+				"1 pass",
+				"1 skip",
+				"Ran 1 test across 2 files.",
+			].join("\n"),
+			"bun:test",
+		);
+		expect(outcome).toMatchObject({
+			filesPassed: 1,
+			filesFailed: 0,
+			testFileCount: 2,
+			fullySkippedFiles: ["app/tests-bun/auth-integ.test.ts"],
 		});
 	});
 

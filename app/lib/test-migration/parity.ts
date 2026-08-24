@@ -62,6 +62,7 @@ export type RuntimeOutcome = {
 	testsSkipped: number;
 	testsTodo: number;
 	testFileCount: number;
+	fullySkippedFiles?: string[];
 	leafTests?: string[];
 };
 
