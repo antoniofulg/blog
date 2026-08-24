@@ -3,7 +3,7 @@ import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
 export type RuntimeKind = "node" | "bun";
-export type TestRunner = "vitest";
+export type TestRunner = "vitest" | "bun:test";
 
 export type RuntimeExpectation = {
 	runtime: RuntimeKind;
@@ -62,8 +62,10 @@ function installedVitestVersion(): string {
 	return "unknown";
 }
 
-function detectRunner(): { runner: TestRunner; runnerVersion: string } {
-	return { runner: "vitest", runnerVersion: installedVitestVersion() };
+function detectRunner(expected: TestRunner): { runner: TestRunner; runnerVersion: string } {
+	return expected === "bun:test"
+		? { runner: "bun:test", runnerVersion: bunVersion() ?? "unknown" }
+		: { runner: "vitest", runnerVersion: installedVitestVersion() };
 }
 
 function parseExpectation(input: unknown): RuntimeExpectation {
@@ -81,8 +83,11 @@ function parseExpectation(input: unknown): RuntimeExpectation {
 	if (typeof version !== "string" || version.length === 0) {
 		throw new Error("Invalid runtime expectation: version must be non-empty");
 	}
-	if (runner !== "vitest") {
-		throw new Error("Invalid runtime expectation: runner must be vitest");
+	if (runner !== "vitest" && runner !== "bun:test") {
+		throw new Error("Invalid runtime expectation: runner must be vitest or bun:test");
+	}
+	if (runner === "bun:test" && runtime !== "bun") {
+		throw new Error("Invalid runtime expectation: bun:test requires the Bun runtime");
 	}
 	if (runnerVersion !== undefined && typeof runnerVersion !== "string") {
 		throw new Error("Invalid runtime expectation: runnerVersion must be a string");
@@ -112,7 +117,7 @@ function expectedVersionMatches(expectation: RuntimeExpectation, detectedVersion
 export function inspectRuntime(input: RuntimeExpectation): RuntimeProvenance {
 	parseExpectation(input);
 	const detected = detectRuntime();
-	const runner = detectRunner();
+	const runner = detectRunner(input.runner);
 	return {
 		command: process.argv.join(" "),
 		execPath: process.execPath,

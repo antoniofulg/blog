@@ -167,15 +167,19 @@ covers file/test/pass/fail/skip/todo counts and optional leaf identities.
 
 **Done when**:
 
-- [ ] `test` remains Bun-hosted Vitest
-- [ ] One-worker and bounded isolated profiles have explicit stable meanings
-- [ ] `--no-isolate` and `--smol` are opt-in experiment routes
-- [ ] All controlled routes fix `TZ=UTC` and prove runtime provenance
-- [ ] Static package-script tests and smoke commands pass
+- [x] `test` remains Bun-hosted Vitest
+- [x] One-worker and bounded isolated profiles have explicit stable meanings
+- [x] `--no-isolate` and `--smol` are opt-in experiment routes
+- [x] All controlled routes fix `TZ=UTC` and prove runtime provenance
+- [x] Static package-script tests and smoke commands pass
 
 **Tests**: integration
 **Gate**: full
 **Commit**: `test(bun): add controlled runner profiles`
+
+**Status**: ✅ Complete. Added matched Vitest worker profiles, isolated and
+shared Bun Test probes, a separate `--smol` route, deterministic UTC setup and
+runner provenance checks. The default `test` script remains unchanged.
 
 ### T6: Implement the revalidation benchmark harness
 

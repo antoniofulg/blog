@@ -48,6 +48,45 @@ describe("test scripts", () => {
 		expect(scripts["test:vitest:bun"]).not.toContain("--exclude");
 	});
 
+	it("exposes bounded matched Vitest and Bun Test profiles", () => {
+		expect(scripts["test:parity"]).toBe(
+			"TZ=UTC bun run scripts/check-test-parity.ts",
+		);
+		expect(scripts["test:vitest:bun:1"]).toContain("--maxWorkers=1");
+		expect(scripts["test:vitest:bun:2"]).toContain("--maxWorkers=2");
+		expect(scripts["test:vitest:bun:4"]).toContain("--maxWorkers=4");
+		expect(scripts["test:bun:parity"]).toContain(
+			"--runner=bun:test --runner-version=1.4.0",
+		);
+		expect(scripts["test:bun:parity"]).toContain(
+			"bun test app/tests-bun --isolate",
+		);
+		expect(scripts["test:bun:parallel:2"]).toContain("--parallel=2");
+		expect(scripts["test:bun:parallel:4"]).toContain("--parallel=4");
+	});
+
+	it("keeps shared-state and smol profiles opt-in", () => {
+		expect(scripts["test:bun:shared:2"]).toContain("--parallel=2 --no-isolate");
+		expect(scripts["test:bun:shared:4"]).toContain("--parallel=4 --no-isolate");
+		expect(scripts["test:bun:smol:2"]).toContain(
+			"bun --smol test app/tests-bun",
+		);
+		expect(scripts.test).toBe("bun run test:vitest:bun");
+		for (const name of [
+			"test:vitest:bun:1",
+			"test:vitest:bun:2",
+			"test:vitest:bun:4",
+			"test:bun:parity",
+			"test:bun:parallel:2",
+			"test:bun:parallel:4",
+			"test:bun:shared:2",
+			"test:bun:shared:4",
+			"test:bun:smol:2",
+		]) {
+			expect(scripts[name]).toMatch(/^TZ=UTC /);
+		}
+	});
+
 	it("includes both TypeScript reference test extensions", () => {
 		expect(vitestConfig).toContain('"app/tests/**/*.test.ts"');
 		expect(vitestConfig).toContain('"app/tests/**/*.test.tsx"');

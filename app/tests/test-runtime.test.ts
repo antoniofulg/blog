@@ -33,6 +33,18 @@ describe("test runtime provenance", () => {
 		expect(provenance.runnerVersion).toBe("4.1.5");
 	});
 
+	it("records native Bun Test provenance when requested", () => {
+		if (!isBun) return;
+		const provenance = inspectRuntime({
+			runtime: "bun",
+			version: "1.4.0",
+			runner: "bun:test",
+			runnerVersion: "1.4.0",
+		});
+		expect(provenance.runner).toBe("bun:test");
+		expect(provenance.runnerVersion).toBe("1.4.0");
+	});
+
 	it("accepts the active runtime expectation", () => {
 		expect(assertRuntime(expected).runtime).toBe(expected.runtime);
 	});
@@ -63,6 +75,19 @@ describe("test runtime provenance", () => {
 
 	it("rejects an unsupported runner", () => {
 		const malformed: unknown = { ...expected, runner: "jest" };
-		expect(() => assertRuntime(malformed)).toThrow(/runner must be vitest/);
+		expect(() => assertRuntime(malformed)).toThrow(
+			/runner must be vitest or bun:test/,
+		);
+	});
+
+	it("rejects native Bun Test when the runtime is not Bun", () => {
+		expect(() =>
+			assertRuntime({
+				runtime: "node",
+				version: "24",
+				runner: "bun:test",
+				runnerVersion: "1.4.0",
+			}),
+		).toThrow(/bun:test requires the Bun runtime/);
 	});
 });
