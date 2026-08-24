@@ -218,16 +218,24 @@ profile selection and repetition count without changing the default test route.
 
 **Done when**:
 
-- [ ] Pure, DOM, mocks/timers and integration/infra cohorts are reproducible
-- [ ] Representative light/medium/heavy files are identified from timings
-- [ ] Matched 1/2/4-worker isolated profiles are screened
-- [ ] No-isolate runs only for cohorts that pass repeated/reversed/randomized probes
-- [ ] `--smol` receives a memory-oriented screen
-- [ ] Invalid/dominated profiles and finalist rationale are recorded
+- [x] Pure, DOM, mocks/timers and integration/infra cohorts are reproducible
+- [x] Representative light/medium/heavy files are identified from timings
+- [x] Matched 1/2/4-worker isolated profiles are screened
+- [x] No-isolate runs only for cohorts that pass repeated/reversed/randomized probes
+- [x] `--smol` receives a memory-oriented screen
+- [x] Invalid/dominated profiles and finalist rationale are recorded
 
 **Tests**: integration/benchmark evidence
 **Gate**: full
 **Commit**: `docs(test): record bun cohort screening`
+
+**Status**: ✅ Complete. All 113 candidate files were timed successfully and
+classified into four reproducible cohorts. Representative 1/2/4-worker
+isolated screens and a separate `--smol` screen are recorded. Repeated,
+reversed and seeded-random `--no-isolate` probes promoted only the pure cohort;
+DOM, mocks/timers and integration/infra were rejected for state/resource
+leaks. The first full-suite screen is retained as contaminated/failed evidence
+and is not used as a winner.
 
 ### T8: Run the full finalist benchmark
 

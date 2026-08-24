@@ -1,0 +1,1595 @@
+{
+  "timestamp": "2026-08-24T14:43:56.842Z",
+  "bun": "1.4.0",
+  "groups": {
+    "pure": [
+      {
+        "file": "app/tests-bun/strings.test.ts",
+        "cohort": "pure",
+        "ms": 63.3226250000007,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: value contracts > strings[\"pt-br\"].localeSwitcher.label === \"Português\" [0.01ms]",
+          "(pass) integration: module load does not throw > importing strings module succeeds without throwing [0.17ms]",
+          " 8 pass",
+          " 0 fail",
+          "Ran 8 tests across 1 file. [53.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/og-resolve.test.ts",
+        "cohort": "pure",
+        "ms": 53.69104199999856,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'http://...' as an absolute URL",
+          "(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'https://...' as an absolute URL",
+          " 25 pass",
+          " 0 fail",
+          "Ran 25 tests across 1 file. [36.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/i18n-strings.test.ts",
+        "cohort": "pure",
+        "ms": 39.2622080000001,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) uiStringsSchema — admin namespace > admin.dashboard — AC-5: module-load parse succeeds > locale en: uiStringsSchema.parse(strings[locale]) does not throw [0.03ms]",
+          "(pass) uiStringsSchema — admin namespace > admin.dashboard — AC-5: module-load parse succeeds > locale pt-br: uiStringsSchema.parse(strings[locale]) does not throw [0.02ms]",
+          " 93 pass",
+          " 0 fail",
+          "Ran 93 tests across 1 file. [31.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/code-blocks.test.ts",
+        "cohort": "pure",
+        "ms": 38.621083,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) findFirstCodeBlock > returns null for frontmatter-only MDX [0.64ms]",
+          "(pass) findFirstCodeBlock > code value preserves internal indentation [0.21ms]",
+          " 9 pass",
+          " 0 fail",
+          "Ran 9 tests across 1 file. [33.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lib-date.test.ts",
+        "cohort": "pure",
+        "ms": 19.10175000000163,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) formatMonth > returns empty string for invalid Date",
+          "(pass) formatMonth > returns empty string for invalid Date",
+          " 20 pass",
+          " 0 fail",
+          "Ran 20 tests across 1 file. [14.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lang-route.test.ts",
+        "cohort": "pure",
+        "ms": 18.688459000004514,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: {-$locale} layout beforeLoad actions > 'es' → notFound",
+          "(pass) unit: {-$locale} layout beforeLoad actions > 'invalid-locale' → notFound",
+          " 15 pass",
+          " 0 fail",
+          "Ran 15 tests across 1 file. [13.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-bot-filter.test.ts",
+        "cohort": "pure",
+        "ms": 9.626874999999927,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) isBotUserAgent > returns false for undefined",
+          "(pass) isBotUserAgent > returns false for empty string",
+          " 13 pass",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [4.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-device-detector.test.ts",
+        "cohort": "pure",
+        "ms": 8.575459000000137,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) detectDevice > returns desktop for undefined",
+          "(pass) detectDevice > returns desktop for empty string",
+          " 12 pass",
+          " 0 fail",
+          "Ran 12 tests across 1 file. [4.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-referrer-bucketer.test.ts",
+        "cohort": "pure",
+        "ms": 8.40587499999856,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) bucketEvent — self-host referer is internal → direct > utm_source still wins over an internal referer",
+          "(pass) bucketEvent — self-host referer is internal → direct > falls back to 'other' for an external unknown host (no selfHost match)",
+          " 56 pass",
+          " 0 fail",
+          "Ran 56 tests across 1 file. [4.00ms]"
+        ]
+      }
+    ],
+    "dom": [
+      {
+        "file": "app/tests-bun/embeds.test.ts",
+        "cohort": "dom",
+        "ms": 635.981584000001,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) Embed placeholder > excludes name from data-props and keeps arbitrary extra props [12.32ms]",
+          "(pass) Embed placeholder > renders a non-empty static fallback string visible without JS [7.55ms]",
+          " 6 pass",
+          " 0 fail",
+          "Ran 6 tests across 1 file. [622.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/missing-twin-dialog.test.ts",
+        "cohort": "dom",
+        "ms": 619.5929170000018,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: cancel button calls onCancel exactly once > onCancel invoked once; onConfirm not invoked [23.64ms]",
+          "(pass) integration: Escape key closes dialog and fires onCancel > onCancel fires on Escape keydown [16.79ms]",
+          " 13 pass",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [608.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/post-enhancements.test.ts",
+        "cohort": "dom",
+        "ms": 469.14158399999724,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) mountEmbeds > degrades to empty props and warns when data-props is malformed JSON [4.90ms]",
+          "(pass) initPostEnhancements > wires copy buttons and mounts embeds, and the combined cleanup undoes both [5.38ms]",
+          " 13 pass",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [455.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/dialog.test.ts",
+        "cohort": "dom",
+        "ms": 450.77945799999725,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: DialogContent visible when Dialog mounts with open=true > content is in DOM on first render when open=true (no null first-frame) [18.18ms]",
+          "(pass) integration: SSR guard — closed dialog emits no portal markup (IS_BROWSER gate) > DialogContent emits no portal markup when dialog is closed [2.30ms]",
+          " 13 pass",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [438.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/static-page-about.test.ts",
+        "cohort": "dom",
+        "ms": 365.9083329999994,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) StaticPageProfile — no avatar + populated links > renders no img element [0.41ms]",
+          "(pass) StaticPageProfile — AC-4: only populated entries render > removing github from links hides github icon, linkedin remains [0.87ms]",
+          " 24 pass",
+          " 0 fail",
+          "Ran 24 tests across 1 file. [355.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/tic-tac-toe.test.ts",
+        "cohort": "dom",
+        "ms": 358.7799159999995,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) TicTacToe > reset clears the board back to X's turn [11.95ms]",
+          "(pass) TicTacToe > renders pt-br copy [3.61ms]",
+          " 7 pass",
+          " 0 fail",
+          "Ran 7 tests across 1 file. [348.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/locale.test.ts",
+        "cohort": "dom",
+        "ms": 298.2126250000001,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: buildLocaleHead > homepage descriptor → x-default href points to EN root '/' [0.17ms]",
+          "(pass) unit: buildLocaleHead > homepage descriptor → pt-br locale href is '/pt-br/' [0.03ms]",
+          " 49 pass",
+          " 0 fail",
+          "Ran 49 tests across 1 file. [289.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/language-menu.test.ts",
+        "cohort": "dom",
+        "ms": 236.1258749999979,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: tabIndex and aria-current on active chip > active chip carries aria-current and tabIndex=-1 [10.28ms]",
+          "(pass) unit: tabIndex and aria-current on active chip > alternate chip is in the tab order [2.13ms]",
+          " 7 pass",
+          " 0 fail",
+          "Ran 7 tests across 1 file. [227.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/social-link.test.ts",
+        "cohort": "dom",
+        "ms": 213.99587499999325,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: SocialLink — anchor attributes > mailto URL does NOT get target=_blank [2.41ms]",
+          "(pass) unit: SocialLink — anchor attributes > exposes the label via aria-label + title (icon-only ghost variant) [3.55ms]",
+          " 10 pass",
+          " 0 fail",
+          "Ran 10 tests across 1 file. [203.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-skeleton.test.ts",
+        "cohort": "dom",
+        "ms": 146.7615420000002,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) AnalyticsDashboardSkeleton — loading state > renders skeleton boxes (animate-pulse elements) [1.04ms]",
+          "(pass) AnalyticsDashboardSkeleton — loading state > renders 4 summary card skeletons [1.22ms]",
+          " 5 pass",
+          " 0 fail",
+          "Ran 5 tests across 1 file. [140.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/dom-setup.test.ts",
+        "cohort": "dom",
+        "ms": 144.20566600000166,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) DOM test setup > clears DOM nodes after each test [0.26ms]",
+          "(pass) DOM test setup > starts each test with an empty body [0.01ms]",
+          " 5 pass",
+          " 0 fail",
+          "Ran 5 tests across 1 file. [137.00ms]"
+        ]
+      }
+    ],
+    "mocks-timers": [
+      {
+        "file": "app/tests-bun/theme-toggle.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 875.896332999997,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 sets documentElement class to 'cs16' [22.82ms]",
+          "(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 calls recordThemeEvent with source:'keyboard' [62.70ms]",
+          " 26 pass",
+          " 0 fail",
+          "Ran 26 tests across 1 file. [865.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/footer.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 462.1916249999995,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: Footer Privacy link (locale=pt-br) > renders a Privacy link pointing at /pt-br/privacy [0.58ms]",
+          "(pass) unit: Footer Privacy link (locale=pt-br) > Privacy link label is 'Privacidade' [0.66ms]",
+          " 20 pass",
+          " 0 fail",
+          "Ran 20 tests across 1 file. [451.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/post-share.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 433.3741250000021,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: AbortError from navigator.share is silent (AC-8) > AbortError rejection does NOT call console.error (user dismissed sheet) [1.67ms]",
+          "(pass) unit: AbortError from navigator.share is silent (AC-8) > non-AbortError rejection calls console.error once [1.12ms]",
+          " 36 pass",
+          " 0 fail",
+          "Ran 36 tests across 1 file. [407.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/admin-analytics-route.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 429.14166700000004,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) beforeLoad auth guard > redirects to /login when context.auth.user is null [0.11ms]",
+          "(pass) beforeLoad auth guard > does not redirect when context.auth.user is set [0.07ms]",
+          " 34 pass",
+          " 0 fail",
+          "Ran 34 tests across 1 file. [420.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lang-slug-post-enhancements.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 413.64895799999795,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) PostView: initializer cleanup (AC-3) > tears down and re-initializes exactly once on post change (no stale double-mount) [14.74ms]",
+          "(pass) PostView: enhancements work end-to-end (integration) > mounts the embed island and wires a working copy button over the body [7.38ms]",
+          " 7 pass",
+          " 0 fail",
+          "Ran 7 tests across 1 file. [406.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/audit-fe-cli.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 412.49945800000023,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) runAppAuditCli — baseUrl forwarding > passes baseUrl when --baseUrl flag present [0.02ms]",
+          "(pass) runAppAuditCli — baseUrl forwarding > passes baseUrl: undefined when flag absent [0.02ms]",
+          " 50 pass",
+          " 0 fail",
+          "Ran 50 tests across 1 file. [405.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-a11y.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 401.232667,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) Chart container aria-labels > DeviceSplitDonut container has aria-label [0.52ms]",
+          "(pass) Chart container aria-labels > TopPostsTable container has aria-label [0.57ms]",
+          " 26 pass",
+          " 0 fail",
+          "Ran 26 tests across 1 file. [392.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/admin-share.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 386.33666700000003,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) component: admin share column — PostShare dropdown trigger per row > renders 1 trigger for a single post (table of 1 row) [8.63ms]",
+          "(pass) component: admin share column — PostShare dropdown trigger per row > renders 0 triggers when posts array is empty (no JS error) [2.45ms]",
+          " 8 pass",
+          " 0 fail",
+          "Ran 8 tests across 1 file. [377.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/header.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 379.4884999999995,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: Header removed nav entries > locale switcher button still renders on non-admin routes [5.36ms]",
+          "(pass) unit: Header removed nav entries > theme toggle button still renders [6.84ms]",
+          " 27 pass",
+          " 0 fail",
+          "Ran 27 tests across 1 file. [370.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-daily-trend-chart.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 363.27787499999977,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) DailyTrendChart — widget title > renders widget title from pt-br strings [0.46ms]",
+          "(pass) DailyTrendChart — widget title > widget title differs between en and pt-br [0.01ms]",
+          " 25 pass",
+          " 0 fail",
+          "Ran 25 tests across 1 file. [355.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/theme-context.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 317.0007089999999,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: ThemeProvider — cs16 activation path > integration: setTheme('cs16') flips documentElement.classList to cs16 AND appends font <link> [2.10ms]",
+          "(pass) integration: ThemeProvider — cs16 activation path > AC-5: hydration useEffect calls ensureCs16Font for returning cs16 visitor (no user click) [1.70ms]",
+          " 13 pass",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [310.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/admin-sidebar.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 303.492667,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: AdminSidebar — switcher removed > does NOT render the language switcher (moved to Header) [1.31ms]",
+          "(pass) unit: AdminSidebar — switcher removed > renders only the two nav-item links — no extra buttons [1.91ms]",
+          " 17 pass",
+          " 0 fail",
+          "Ran 17 tests across 1 file. [289.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-language-split-pie.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 281.8314169999994,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) LanguageSplitPie — empty state > renders the awaiting-data empty state when total is 0 (no postId) [1.91ms]",
+          "(pass) LanguageSplitPie — empty state > renders the no-data-for-post empty state when filtered to a postId [0.65ms]",
+          " 11 pass",
+          " 0 fail",
+          "Ran 11 tests across 1 file. [274.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/admin-routes.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 260.89816699999994,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: admin beforeLoad auth guard > redirects to /login?redirect=/admin when context.auth.user is null [35.48ms]",
+          "(pass) unit: admin beforeLoad auth guard > does not redirect when context.auth.user is set [0.02ms]",
+          " 14 pass",
+          " 0 fail",
+          "Ran 14 tests across 1 file. [254.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-referrer-sources-bar.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 257.4123749999999,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) ReferrerSourcesBar — widget title > renders widget title from pt-br strings [2.17ms]",
+          "(pass) ReferrerSourcesBar — widget title > widget title differs between en and pt-br [0.12ms]",
+          " 24 pass",
+          " 0 fail",
+          "Ran 24 tests across 1 file. [249.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-device-split-donut.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 244.35137499999973,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) DeviceSplitDonut — zero-sum > does not show empty state when data is non-zero [0.96ms]",
+          "(pass) DeviceSplitDonut — zero-sum > no NaN displayed — computePercent(0, 0) returns 0 [0.03ms]",
+          " 31 pass",
+          " 0 fail",
+          "Ran 31 tests across 1 file. [237.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-top-posts-table.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 197.7302920000002,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) TopPostsTable — functional updater preserves range (ADR-006) > spread updater replaces an existing postId with a new one [0.04ms]",
+          "(pass) TopPostsTable — functional updater preserves range (ADR-006) > spread updater keeps postId undefined when not set [0.05ms]",
+          " 29 pass",
+          " 0 fail",
+          "Ran 29 tests across 1 file. [190.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-range-selector.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 183.13162499999999,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) RangeSelector — ARIA attributes > each option has a stable id matching range-opt-<range> [0.86ms]",
+          "(pass) RangeSelector — ARIA attributes > listbox has aria-activedescendant pointing to the focused option id [1.14ms]",
+          " 29 pass",
+          " 0 fail",
+          "Ran 29 tests across 1 file. [177.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-summary-cards.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 179.35329099999944,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) SummaryCards — no hardcoded label strings (AC-6) > en and pt-br card labels differ (proving strings are locale-driven) [1.33ms]",
+          "(pass) SummaryCards — both topReferrer and topLanguage null > renders two em-dashes when both are null [4.91ms]",
+          " 25 pass",
+          " 0 fail",
+          "Ran 25 tests across 1 file. [172.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-filter-chip.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 177.79029200000014,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) FilterChip > X button has accessible aria-label from strings [0.88ms]",
+          "(pass) FilterChip > X button has tabIndex=0 (Tab-reachable) [0.80ms]",
+          " 14 pass",
+          " 0 fail",
+          "Ran 14 tests across 1 file. [170.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/share-platforms.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 121.37254199999734,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: href builders — sanity checks > whatsapp href starts with wa.me [0.05ms]",
+          "(pass) unit: href builders — sanity checks > email href starts with mailto: [0.15ms]",
+          " 35 pass",
+          " 0 fail",
+          "Ran 35 tests across 1 file. [112.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/not-found-page.test.ts",
+        "cohort": "mocks-timers",
+        "ms": 120.33762500000012,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: NotFoundPage does not contain old hardcoded strings > en 404 title is sourced from UIStrings module, not inline literal [0.60ms]",
+          "(pass) unit: NotFoundPage does not contain old hardcoded strings > pt-br 404 title is sourced from UIStrings module, not inline literal [0.19ms]",
+          " 8 pass",
+          " 0 fail",
+          "Ran 8 tests across 1 file. [111.00ms]"
+        ]
+      }
+    ],
+    "integration-infra": [
+      {
+        "file": "app/tests-bun/pglite-extended-query.test.ts",
+        "cohort": "integration-infra",
+        "ms": 9624.103874999993,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) PGLite proxy: unnamed prepared statement isolation across connections > high concurrency: 4 connections with separate Parse/Bind pipelines do not produce 08P01 [2.97ms]",
+          "(pass) PGLite proxy: unnamed prepared statement isolation across connections > error response includes ErrorResponse (0x45) before ReadyForQuery (0x5a) on Bind param mismatch [7.82ms]",
+          " 6 pass",
+          " 0 fail",
+          "Ran 6 tests across 1 file. [9.57s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/og-generate.test.ts",
+        "cohort": "integration-infra",
+        "ms": 9245.185209000003,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) generateOgImage - integration > fixture: generates PNG from sample.mdx TypeScript code block [1362.15ms]",
+          "(pass) generateOgImage - integration > falls back gracefully for an unsupported language [1052.82ms]",
+          " 35 pass",
+          " 0 fail",
+          "Ran 35 tests across 1 file. [9.20s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/deploy-sh.test.ts",
+        "cohort": "integration-infra",
+        "ms": 6874.848750000001,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: make deploy > make deploy with deploy script present does not print 'No deploy script found' [45.98ms]",
+          "(pass) integration: make deploy > bash scripts/deploy.sh without env vars exits non-zero with clear error [4.47ms]",
+          " 22 pass",
+          " 0 fail",
+          "Ran 22 tests across 1 file. [6.87s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/e2e-harness.test.ts",
+        "cohort": "integration-infra",
+        "ms": 6786.12125,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: global-setup/teardown channel > globalSetup seeds data from existing state file; globalTeardown is no-op [1562.89ms]",
+          "(pass) integration: global-setup/teardown channel > globalTeardown() is always a no-op (idempotent) [0.35ms]",
+          " 18 pass",
+          " 0 fail",
+          "Ran 18 tests across 1 file. [6.73s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/makefile.test.ts",
+        "cohort": "integration-infra",
+        "ms": 4682.222625000002,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: Makefile > test-e2e and lint-tests targets delegate to expected bun scripts [259.19ms]",
+          "(pass) unit: Makefile > make deploy runs scripts/deploy.sh when present [25.14ms]",
+          " 15 pass",
+          " 0 fail",
+          "Ran 15 tests across 1 file. [4.67s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/tz-migration-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 3774.271332999997,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: TZ migration SQL against old schema (PGLite) > indexed_at column type is now timestamptz after migration (AC-1) [6.45ms]",
+          "(pass) integration: TZ migration SQL against old schema (PGLite) > existing UTC values preserved after migration (AC-3) [2.69ms]",
+          " 8 pass",
+          " 0 fail",
+          "Ran 8 tests across 1 file. [3.73s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 3728.3063330000004,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) getAnalyticsDashboard integration: PGLite > dailyTrend has ≤8 entries for range=7d (7-day window spans 8 calendar days inclusive after gap-fill) [3.19ms]",
+          "(pass) getAnalyticsDashboard integration: PGLite > deviceSplit sums match totalVisits [3.17ms]",
+          " 9 pass",
+          " 0 fail",
+          "Ran 9 tests across 1 file. [3.69s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/indexer-og-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 3036.4643340000002,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: upsertPost OG generation > writes a PNG to public/og/en/<slug>.png AND upserts the DB row [2799.89ms]",
+          " 1 pass",
+          " 0 fail",
+          "Ran 1 test across 1 file. [3.01s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/spec-driven-embed-render.test.ts",
+        "cohort": "integration-infra",
+        "ms": 2620.3003339999996,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) rendered pt-br post localizes the SSR enhancement UI > bakes the locale's copy-button aria-label into the static markup [0.03ms]",
+          "(pass) bilingual parity (AC-4) > keeps the bridge copy that introduces the demo in both locales [0.10ms]",
+          " 11 pass",
+          " 0 fail",
+          "Ran 11 tests across 1 file. [2.61s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lang-slug-increment-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 2206.399541999999,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) incrementViewCountFn integration: PGLite via recordPostView > Googlebot UA: view_count stays 0 and no event row is inserted (AC-2) [3.72ms]",
+          "(pass) incrementViewCountFn integration: PGLite via recordPostView > unknown post id: returns without error and no event row inserted [1.30ms]",
+          " 3 pass",
+          " 0 fail",
+          "Ran 3 tests across 1 file. [2.18s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/record-theme-event-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1745.7025830000057,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) recordThemeEventHandler integration: PGLite INSERT > keyboard source: inserts with source='keyboard' and lang='pt-br' [1.98ms]",
+          "(pass) recordThemeEventHandler integration: PGLite INSERT > bot UA: does not insert a row and returns { recorded: false } (AC-2) [1.42ms]",
+          " 3 pass",
+          " 0 fail",
+          "Ran 3 tests across 1 file. [1.71s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/mdx-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1741.5842909999992,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: renderMdx > renders **bold** as <strong> (remark-gfm active) [8.31ms]",
+          "(pass) integration: renderMdx > mdx modules are protected from client bundle in vite.config.ts [1.08ms]",
+          " 3 pass",
+          " 0 fail",
+          "Ran 3 tests across 1 file. [1.73s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/drizzle-schema.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1560.8585409999978,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: db:migrate and constraints > (unnamed)",
+          " 21 pass",
+          " 6 skip",
+          " 0 fail",
+          "Ran 27 tests across 1 file. [1.53s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/mdx.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1549.5818750000035,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) lint: frontmatter conventions > throws when seriesPart is set without series [0.27ms]",
+          "(pass) lint: frontmatter conventions > passes when category field is absent [0.04ms]",
+          " 15 pass",
+          " 0 fail",
+          "Ran 15 tests across 1 file. [1.53s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/post-enhancements-render.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1534.2076670000097,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: renderMdx embed placeholder > <Embed name='tic-tac-toe' /> renders a data-embed placeholder [3.47ms]",
+          "(pass) integration: renderMdx existing post body > renders a code-bearing post body with shiki markup and no throw [285.12ms]",
+          " 5 pass",
+          " 0 fail",
+          "Ran 5 tests across 1 file. [1.52s]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/db-theme-events-shape.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1417.3207500000008,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: themeEvents (PGLite) > id auto-increments across consecutive inserts [1.20ms]",
+          "(pass) integration: themeEvents (PGLite) > createdAt defaults to now() — within 5 seconds of test execution [0.47ms]",
+          " 17 pass",
+          " 0 fail",
+          "Ran 17 tests across 1 file. [1392.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-record-event-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1407.4102080000002,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) recordPostView integration: PGLite dual-write > human UA: seeds post, records view, asserts one event row and view_count = 1 (AC-1, AC-5) [10.05ms]",
+          "(pass) recordPostView integration: PGLite dual-write > bot UA: no event row inserted and view_count stays 0 (AC-2) [1.42ms]",
+          " 2 pass",
+          " 0 fail",
+          "Ran 2 tests across 1 file. [1386.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/copy-button-transformer.test.ts",
+        "cohort": "integration-infra",
+        "ms": 1141.807084,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) copyButtonTransformer > wraps the <pre> and keeps its <code> (button added as sibling) [0.21ms]",
+          "(pass) copy button touch-device visibility (issue 001) > global.css pins .code-copy-button visible on no-hover pointers [0.26ms]",
+          " 12 pass",
+          " 0 fail",
+          "Ran 12 tests across 1 file. [1136.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/seed.test.ts",
+        "cohort": "integration-infra",
+        "ms": 879.8144579999935,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: seed script > (unnamed)",
+          " 7 pass",
+          " 7 skip",
+          " 0 fail",
+          "Ran 14 tests across 1 file. [772.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/biome.test.ts",
+        "cohort": "integration-infra",
+        "ms": 682.4612079999988,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) vscode configuration > .vscode/settings.json sets BiomeJS as default formatter [0.05ms]",
+          "(pass) vscode configuration > .vscode/settings.json enables formatOnSave [0.03ms]",
+          " 17 pass",
+          " 0 fail",
+          "Ran 17 tests across 1 file. [675.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/watcher-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 628.4672500000015,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) mechanism: real fs.watch > editing an existing .mdx file calls upsertPost again within 2s [211.92ms]",
+          "(pass) mechanism: real fs.watch > deleting an .mdx file calls removePost within 2s [211.70ms]",
+          " 5 pass",
+          " 0 fail",
+          "Ran 5 tests across 1 file. [614.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/run-audit-fe.test.ts",
+        "cohort": "integration-infra",
+        "ms": 594.4697499999893,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) app-audit preview readiness > rejects when the spawned child exits before listening [16.42ms]",
+          "(pass) app-audit preview readiness > rejects when the preview process cannot spawn [1.79ms]",
+          " 5 pass",
+          " 0 fail",
+          "Ran 5 tests across 1 file. [581.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/link-parser.test.ts",
+        "cohort": "integration-infra",
+        "ms": 498.8344159999979,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) link-parser: integration — whole tree parse > walks app/content/posts/** without throwing and returns arrays [222.78ms]",
+          "(pass) link-parser: integration — whole tree parse > whole-tree parse completes without a pathological slowdown [213.11ms]",
+          " 19 pass",
+          " 0 fail",
+          "Ran 19 tests across 1 file. [486.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lint-test-annotations.test.ts",
+        "cohort": "integration-infra",
+        "ms": 468.35437499999534,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) fixtures > string-literal-flaky.ts → no offenses (AST ignores comments and strings) [0.57ms]",
+          "(pass) real e2e dir > tests/e2e/ tree with no annotations → scanDir exits clean [78.44ms]",
+          " 22 pass",
+          " 0 fail",
+          "Ran 22 tests across 1 file. [451.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/app-audit-checks.test.ts",
+        "cohort": "integration-infra",
+        "ms": 422.6785,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) buildLocalePath > idempotent for /pt-br/ prefix — no double-prefix /pt-br/pt-br/",
+          "(pass) buildLocalePath > idempotent for /en/ prefix when locale is pt-br — no /pt-br/en/ produced",
+          " 39 pass",
+          " 0 fail",
+          "Ran 39 tests across 1 file. [414.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/docker-compose.test.ts",
+        "cohort": "integration-infra",
+        "ms": 381.7810839999984,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: docker compose lifecycle > (unnamed)",
+          " 8 pass",
+          " 5 skip",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [377.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/generate-favicons.test.ts",
+        "cohort": "integration-infra",
+        "ms": 354.7976669999989,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) og-image.jpg > exists and is under 300 KB [0.05ms]",
+          "(pass) og-image.jpg > has JPEG magic bytes (FFD8FF) [0.31ms]",
+          " 29 pass",
+          " 0 fail",
+          "Ran 29 tests across 1 file. [349.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/audit-content-cli.test.ts",
+        "cohort": "integration-infra",
+        "ms": 284.6381250000013,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: subprocess > (unnamed)",
+          " 23 pass",
+          " 4 skip",
+          " 0 fail",
+          "Ran 27 tests across 1 file. [276.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/sitemap.test.ts",
+        "cohort": "integration-infra",
+        "ms": 234.57695899999817,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: GET /sitemap.xml > reciprocity invariant holds on live fixture set",
+          " 36 pass",
+          " 4 skip",
+          " 0 fail",
+          "Ran 40 tests across 1 file. [226.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/og-slug-route.test.ts",
+        "cohort": "integration-infra",
+        "ms": 206.36195799999405,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) HTTP integration: og:image meta in rendered post page > (unnamed)",
+          " 11 pass",
+          " 5 skip",
+          " 0 fail",
+          "Ran 16 tests across 1 file. [200.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lighthouse.test.ts",
+        "cohort": "integration-infra",
+        "ms": 195.53758299999754,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) runLighthouse — timeout > respects APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS env var [0.05ms]",
+          "(pass) runLighthouse — timeout > resolves normally when runner completes before timeout [0.03ms]",
+          " 20 pass",
+          " 0 fail",
+          "Ran 20 tests across 1 file. [189.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/content-audit.test.ts",
+        "cohort": "integration-infra",
+        "ms": 191.06920799999898,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) runContentAudit integration > returns an array even with no posts [2.42ms]",
+          "(pass) runContentAudit integration > full runContentAudit + writeReport produces readable markdown [1.76ms]",
+          " 39 pass",
+          " 0 fail",
+          "Ran 39 tests across 1 file. [185.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/indexer.test.ts",
+        "cohort": "integration-infra",
+        "ms": 187.6227080000026,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: upsertPost — OG integration > AC-5b: generateOgImage throwing does not interrupt DB upsert [0.07ms]",
+          "(pass) unit: upsertPost — OG integration > calls findFirstCodeBlock with the MDX source string [0.78ms]",
+          " 27 pass",
+          " 0 fail",
+          "Ran 27 tests across 1 file. [173.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/indexer-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 184.73141699999906,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: indexer > (unnamed)",
+          " 0 pass",
+          " 7 skip",
+          " 0 fail",
+          "Ran 7 tests across 1 file. [177.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/spec-driven-embed-mount.test.ts",
+        "cohort": "integration-infra",
+        "ms": 182.94170899999153,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) spec-driven post embed mounts and is playable (en, AC-3) > replaces the placeholder with the interactive TicTacToe [20.30ms]",
+          "(pass) spec-driven post embed mounts and is playable (pt-br, AC-3) > replaces the placeholder with the interactive TicTacToe [4.32ms]",
+          " 2 pass",
+          " 0 fail",
+          "Ran 2 tests across 1 file. [174.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/sync-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 158.61733300000196,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: sync script > (unnamed)",
+          " 0 pass",
+          " 7 skip",
+          " 0 fail",
+          "Ran 7 tests across 1 file. [145.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/site-model.test.ts",
+        "cohort": "integration-infra",
+        "ms": 148.7803750000021,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: getPostInventory — edge cases > non-.mdx files in content dir are ignored [4.11ms]",
+          "(pass) integration: getPostInventory — real content dir > returns an array (empty when no MDX files present) [20.78ms]",
+          " 34 pass",
+          " 0 fail",
+          "Ran 34 tests across 1 file. [138.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/pages-frontmatter.test.ts",
+        "cohort": "integration-infra",
+        "ms": 145.66112499999872,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: loadStaticPage with real about.mdx > AC-4 full: avatar and links are defined and correct in loaded entry [2.22ms]",
+          "(pass) integration: loadStaticPage with real about.mdx > AC-3 full: tagline and nowUpdatedAt flow through passthrough [2.98ms]",
+          " 19 pass",
+          " 0 fail",
+          "Ran 19 tests across 1 file. [136.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/schema-migration.test.ts",
+        "cohort": "integration-infra",
+        "ms": 139.96762500000477,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: migration round-trip (requires local postgres) > (unnamed)",
+          " 15 pass",
+          " 4 skip",
+          " 0 fail",
+          "Ran 19 tests across 1 file. [113.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lang-slug-route.test.ts",
+        "cohort": "integration-infra",
+        "ms": 125.3204590000023,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: static page routes (about) > GET /__nonexistent_page__ returns 404",
+          " 37 pass",
+          " 16 skip",
+          " 0 fail",
+          "Ran 53 tests across 1 file. [117.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/pages.test.ts",
+        "cohort": "integration-infra",
+        "ms": 99.11945900000137,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: exported types are structurally correct > PageEntry shape satisfies expected fields [0.02ms]",
+          "(pass) unit: exported types are structurally correct > PageFrontmatter allows optional description",
+          " 27 pass",
+          " 0 fail",
+          "Ran 27 tests across 1 file. [88.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/a11y-adapter.test.ts",
+        "cohort": "integration-infra",
+        "ms": 94.69537499999998,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) analyzeA11y > page.url() throws (page closed) AND analyze() throws → sweep-error with filePath 'unknown' [0.11ms]",
+          "(pass) analyzeA11y > page.url() throws before analyze succeeds → violations use filePath 'unknown' [0.05ms]",
+          " 14 pass",
+          " 0 fail",
+          "Ran 14 tests across 1 file. [82.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/auth.test.ts",
+        "cohort": "integration-infra",
+        "ms": 87.30745799999931,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: client bundle exclusion > auth module is in the server-only stub list",
+          "(pass) unit: authClient export > auth.client.ts exports authClient [4.43ms]",
+          " 14 pass",
+          " 0 fail",
+          "Ran 14 tests across 1 file. [80.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/content-audit-checks.test.ts",
+        "cohort": "integration-infra",
+        "ms": 63.65654100000029,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) integration: runContentAudit with pages > calls enumerateStaticPages once per locale [0.05ms]",
+          "(pass) integration: runContentAudit with pages > emits frontmatter-invalid when a page MDX file is missing title (issue 006) [1.28ms]",
+          " 21 pass",
+          " 0 fail",
+          "Ran 21 tests across 1 file. [57.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/public-routes.test.ts",
+        "cohort": "integration-infra",
+        "ms": 50.49491699998907,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: deleted routes return 404 > GET /search returns 404",
+          " 17 pass",
+          " 11 skip",
+          " 0 fail",
+          "Ran 28 tests across 1 file. [45.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/app-audit-reporter.test.ts",
+        "cohort": "integration-infra",
+        "ms": 46.97408399999949,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) initSummary > atomic write: no .tmp file left after migration completes [1.50ms]",
+          "(pass) SUMMARY migration round-trip > pre-migration fixture → initSummary → 3 backfilled rows → app row appended [3.42ms]",
+          " 19 pass",
+          " 0 fail",
+          "Ran 19 tests across 1 file. [41.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/lang-blog-route.test.ts",
+        "cohort": "integration-infra",
+        "ms": 45.34887500000332,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: locale blog routes > GET / hreflang hrefs contain no /en/ prefix",
+          " 12 pass",
+          " 7 skip",
+          " 0 fail",
+          "Ran 19 tests across 1 file. [39.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-queries.test.ts",
+        "cohort": "integration-infra",
+        "ms": 44.90466599999945,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) fillReferrerDayGaps > gap sentinel is not a real ReferrerSource — does not pollute activeSources [0.03ms]",
+          "(pass) fillReferrerDayGaps > output is sorted by date [0.02ms]",
+          " 36 pass",
+          " 0 fail",
+          "Ran 36 tests across 1 file. [39.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/ssr-redirect.test.ts",
+        "cohort": "integration-infra",
+        "ms": 44.73804199999722,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: SSR redirect on / > 302 redirect response includes Vary: Cookie, Accept-Language",
+          " 6 pass",
+          " 6 skip",
+          " 0 fail",
+          "Ran 12 tests across 1 file. [36.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/dev-boot.test.ts",
+        "cohort": "integration-infra",
+        "ms": 32.37933300000077,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: runDevBoot — watcher lifecycle (leak guard) > does not SIGTERM when no pidfile exists [0.03ms]",
+          "(pass) unit: runDevBoot — watcher lifecycle (leak guard) > skips SIGTERM when the recorded PID is already dead [0.13ms]",
+          " 15 pass",
+          " 0 fail",
+          "Ran 15 tests across 1 file. [25.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/e2e-skill.test.ts",
+        "cohort": "integration-infra",
+        "ms": 27.45129200000156,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) AGENTS.md updates > has e2e-coverage in Skill Map [0.02ms]",
+          "(pass) AGENTS.md updates > links to .agents/rules/testing.md in Rules list [0.18ms]",
+          " 13 pass",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [20.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/app-audit-workflow.test.ts",
+        "cohort": "integration-infra",
+        "ms": 22.429291999998895,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: .github/workflows/app-audit.yml > has postgres service for database [0.02ms]",
+          "(pass) unit: .github/workflows/app-audit.yml > lighthouse flag derived from workflow_dispatch input",
+          " 31 pass",
+          " 0 fail",
+          "Ran 31 tests across 1 file. [15.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/record-theme-event.test.ts",
+        "cohort": "integration-infra",
+        "ms": 22.363125000003492,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) recordThemeEventHandler — exported types (AC-1) > RecordThemeEventInput accepts all valid combinations (compile-time check) [0.01ms]",
+          "(pass) recordThemeEventHandler — exported types (AC-1) > RecordThemeEventResult has boolean 'recorded' (compile-time check)",
+          " 19 pass",
+          " 0 fail",
+          "Ran 19 tests across 1 file. [16.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/app-audit-skill.test.ts",
+        "cohort": "integration-infra",
+        "ms": 20.233500000000276,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) .agents/rules/fe-audit.md configuration section > documents AUDIT_BASE_URL env var [0.02ms]",
+          "(pass) .agents/rules/fe-audit.md configuration section > documents Lighthouse orphaned-process risk [0.02ms]",
+          " 24 pass",
+          " 0 fail",
+          "Ran 24 tests across 1 file. [14.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/robots-txt.test.ts",
+        "cohort": "integration-infra",
+        "ms": 19.982124999994994,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: GET /robots.txt > body matches V1 baseline end-to-end",
+          " 10 pass",
+          " 3 skip",
+          " 0 fail",
+          "Ran 13 tests across 1 file. [15.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/analytics-record-event.test.ts",
+        "cohort": "integration-infra",
+        "ms": 18.83904099999927,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) recordPostView — bucketEvent composes utmSource + Referer > forwards the request Host header as selfHost so internal hops bucket direct [0.06ms]",
+          "(pass) recordPostView — bucketEvent composes utmSource + Referer > explicit referrer argument overrides the Referer header [0.04ms]",
+          " 23 pass",
+          " 0 fail",
+          "Ran 23 tests across 1 file. [13.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/watcher.test.ts",
+        "cohort": "integration-infra",
+        "ms": 17.945166999998037,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: startup warning > emits watcher_no_events warning after 5s with no events [0.10ms]",
+          "(pass) unit: startup warning > does NOT emit warning if a .mdx event fired before 5s [0.04ms]",
+          " 12 pass",
+          " 0 fail",
+          "Ran 12 tests across 1 file. [10.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/auth-integ.test.ts",
+        "cohort": "integration-infra",
+        "ms": 16.13945799999965,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(skip) integration: auth round trip > (unnamed)",
+          " 0 pass",
+          " 9 skip",
+          " 0 fail",
+          "Ran 9 tests across 1 file. [10.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/audit-fingerprint.test.ts",
+        "cohort": "integration-infra",
+        "ms": 16.1143749999992,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: escapeMarkdownCell export > replaces newlines with spaces",
+          "(pass) unit: escapeMarkdownCell export > trims whitespace",
+          " 20 pass",
+          " 0 fail",
+          "Ran 20 tests across 1 file. [11.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/cs16-asset-config.test.ts",
+        "cohort": "integration-infra",
+        "ms": 14.878958000001148,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) cs16 vendored-font build output > cs16-font.css lands at .output/public/fonts/cs16/cs16-font.css",
+          "(pass) cs16 vendored-font build output > copied cs16-font.css is non-empty and still references the vendored woff2 [0.20ms]",
+          " 11 pass",
+          " 0 fail",
+          "Ran 11 tests across 1 file. [9.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/components-rules-cs16-policy.test.ts",
+        "cohort": "integration-infra",
+        "ms": 13.700000000000728,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) components.md cs16 forward boundary rule > regression: prior last bullet (Barrel index.ts) still present and unmodified",
+          "(pass) components.md cs16 forward boundary rule > new rule appears after the barrel-index bullet [0.02ms]",
+          " 4 pass",
+          " 0 fail",
+          "Ran 4 tests across 1 file. [8.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/ci-workflow.test.ts",
+        "cohort": "integration-infra",
+        "ms": 13.377042000000074,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: .github/workflows/cd.yml > requests a Coolify deployment after the image is published [0.02ms]",
+          "(pass) unit: production Dockerfile > runs migrations and content sync before starting the server",
+          " 17 pass",
+          " 0 fail",
+          "Ran 17 tests across 1 file. [9.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/content-audit-skill.test.ts",
+        "cohort": "integration-infra",
+        "ms": 13.224459000000934,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) AGENTS.md content-audit updates > has content-audit in Skill Map [0.02ms]",
+          "(pass) AGENTS.md content-audit updates > links to .agents/rules/audit.md in Rules list [0.02ms]",
+          " 24 pass",
+          " 0 fail",
+          "Ran 24 tests across 1 file. [8.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/sync.test.ts",
+        "cohort": "integration-infra",
+        "ms": 13.182207999998354,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) fixture isolation: lorem-ipsum.mdx > lorem-ipsum.mdx exists at app/tests/fixtures/lorem-ipsum.mdx [0.01ms]",
+          "(pass) fixture isolation: lorem-ipsum.mdx > content/ contains no lorem-ipsum slug (sync would not create that row) [0.04ms]",
+          " 10 pass",
+          " 0 fail",
+          "Ran 10 tests across 1 file. [8.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/privacy-pages.test.ts",
+        "cohort": "integration-infra",
+        "ms": 13.070332999996026,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: privacy.mdx translation parity > both files exist (en and pt-br) [0.08ms]",
+          "(pass) unit: privacy.mdx translation parity > both files have a non-empty title [0.06ms]",
+          " 22 pass",
+          " 0 fail",
+          "Ran 22 tests across 1 file. [8.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/content-doc-links.test.ts",
+        "cohort": "integration-infra",
+        "ms": 12.618207999999868,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) content-doc-links: CONTENT.md ADR cross-references > ADR-005 is cross-referenced (slug collision policy)",
+          "(pass) content-doc-links: CONTENT.md ADR cross-references > no CONTENT.md link points at .compozy/ (gitignored) [0.02ms]",
+          " 5 pass",
+          " 0 fail",
+          "Ran 5 tests across 1 file. [7.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/content-audit-workflow.test.ts",
+        "cohort": "integration-infra",
+        "ms": 11.418374999999287,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: .github/workflows/content-audit.yml > artifact upload runs on always() so report is saved even on failure",
+          "(pass) unit: .github/workflows/content-audit.yml > trigger arg uses ci-pr prefix for PR runs",
+          " 19 pass",
+          " 0 fail",
+          "Ran 19 tests across 1 file. [6.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/browser-sweep.test.ts",
+        "cohort": "integration-infra",
+        "ms": 11.000458000000435,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) sweepRoute: slow-response > no slow-response finding when first-paint <= 1500ms [0.02ms]",
+          "(pass) sweepRoute: slow-response > no slow-response finding at exactly 1500ms [0.03ms]",
+          " 37 pass",
+          " 0 fail",
+          "Ran 37 tests across 1 file. [6.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/global-css-no-static-cs16-font.test.ts",
+        "cohort": "integration-infra",
+        "ms": 10.936000000001513,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) global.css — cs16 font-family rules still present > contains the .cs16 color-variable block [0.01ms]",
+          "(pass) global.css — cs16 font-family rules still present > retains the Inter and JetBrains Mono @imports (unrelated fonts unchanged) [0.01ms]",
+          " 6 pass",
+          " 0 fail",
+          "Ran 6 tests across 1 file. [6.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/privacy-referrer-buckets.test.ts",
+        "cohort": "integration-infra",
+        "ms": 10.870417000012822,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) privacy policy referrer-bucket disclosure > app/content/pages/pt-br/privacy.mdx > discloses the `direct` bucket",
+          "(pass) privacy policy referrer-bucket disclosure > app/content/pages/pt-br/privacy.mdx > discloses the `other` bucket",
+          " 28 pass",
+          " 0 fail",
+          "Ran 28 tests across 1 file. [6.00ms]"
+        ]
+      },
+      {
+        "file": "app/tests-bun/dockerignore.test.ts",
+        "cohort": "integration-infra",
+        "ms": 10.30474999999933,
+        "exitCode": 0,
+        "timedOut": false,
+        "summary": [
+          "(pass) unit: .dockerignore > excludes .git [0.03ms]",
+          "(pass) unit: .dockerignore > negation rule !.env.example appears after .env.* exclusion [0.04ms]",
+          " 9 pass",
+          " 0 fail",
+          "Ran 9 tests across 1 file. [6.00ms]"
+        ]
+      }
+    ]
+  }
+}
