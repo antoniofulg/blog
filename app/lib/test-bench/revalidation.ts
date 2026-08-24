@@ -215,6 +215,34 @@ function runnerOutput(run: MeasuredRun): string {
 	return [run.stdout, run.stderrTail].filter(Boolean).join("\n");
 }
 
+export function externalProcessContamination(
+	psOutput: string,
+	cwd = process.cwd(),
+): string | undefined {
+	const external = psOutput.split("\n").filter((line) => {
+		if (!line || line.includes(cwd)) return false;
+		if (line.includes("machine-lock.py playwright test")) return false;
+		if (line.includes("lockf ") && line.includes("vitest")) return false;
+		if (line.includes("media-validation")) return true;
+		if (
+			line.includes("playwright test") &&
+			(/\b(node|bun)\b/.test(line) || line.includes("/playwright/"))
+		)
+			return true;
+		if (
+			line.includes("vitest") &&
+			(/\b(node|bun)\b/.test(line) ||
+				line.includes("/vitest/dist/") ||
+				line.includes("/.bin/vitest"))
+		)
+			return true;
+		return (
+			line.includes("tsc --noEmit") && !line.trimStart().startsWith("bash ")
+		);
+	});
+	return external.length ? external.join(" | ") : undefined;
+}
+
 function sampleReasons(
 	sample: RevalidationSample,
 	arm: RevalidationArm,

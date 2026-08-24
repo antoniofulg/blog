@@ -10,6 +10,7 @@ import {
 } from "#/lib/bench/runner.server";
 import type { HostMeta } from "#/lib/bench/types";
 import {
+	externalProcessContamination,
 	parseRunnerOutcome,
 	type RevalidationArm,
 	type RevalidationDeps,
@@ -217,6 +218,24 @@ describe("Bun Test revalidation harness", () => {
 			testsPassed: 11,
 			testsSkipped: 1,
 		});
+	});
+
+	it("ignores lock waiters but detects their actual test children", () => {
+		const ps = [
+			"python tools/machine-lock.py playwright test",
+			"lockf -ks /tmp/creatista-test.lock npx vitest run",
+			"node /other/node_modules/.bin/playwright test",
+			"node /other/node_modules/vitest/dist/workers/forks.js",
+		].join("\n");
+		expect(externalProcessContamination(ps, "/blog")).toContain(
+			"node /other/node_modules/.bin/playwright test",
+		);
+		expect(externalProcessContamination(ps, "/blog")).toContain(
+			"node /other/node_modules/vitest/dist/workers/forks.js",
+		);
+		expect(externalProcessContamination(ps, "/blog")).not.toContain(
+			"machine-lock.py",
+		);
 	});
 	it("discards one warmup, rotates measured arms, and aggregates valid samples", async () => {
 		const runs = [
