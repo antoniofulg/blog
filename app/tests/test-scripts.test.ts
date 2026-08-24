@@ -37,11 +37,17 @@ describe("test scripts", () => {
 
 	it("pins Node 24 before starting Vitest", () => {
 		expect(scripts["test:vitest:node"]).toContain(
+			"DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog",
+		);
+		expect(scripts["test:vitest:node"]).toContain(
 			"node scripts/check-test-runtime.ts --runtime=node --version=24 --runner=vitest",
 		);
 	});
 
 	it("runs Vitest through Bun for the control arm", () => {
+		expect(scripts["test:vitest:bun"]).toContain(
+			"DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog",
+		);
 		expect(scripts["test:vitest:bun"]).toContain(
 			"bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest",
 		);
@@ -86,7 +92,12 @@ describe("test scripts", () => {
 			"test:bun:shared:4",
 			"test:bun:smol:2",
 		]) {
-			expect(scripts[name]).toMatch(/^TZ=UTC /);
+			expect(scripts[name]).toMatch(
+				/^DATABASE_URL=postgres:\/\/blog:blog@127\.0\.0\.1:5432\/blog TZ=UTC /,
+			);
+			expect(scripts[name]).toContain(
+				"DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog",
+			);
 		}
 	});
 
