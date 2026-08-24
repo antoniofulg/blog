@@ -220,6 +220,26 @@ describe("Bun Test revalidation harness", () => {
 		});
 	});
 
+	it("does not double-subtract wrappers from Bun's repeated skip summary", () => {
+		const outcome = parseRunnerOutcome(
+			[
+				"1 pass",
+				"2 skip",
+				"(skip) integration > (unnamed)",
+				"(skip) integration > skipped leaf",
+				"2 tests skipped:",
+				"(skip) integration > (unnamed)",
+				"(skip) integration > skipped leaf",
+				"Ran 1 test across 1 file.",
+			].join("\n"),
+			"bun:test",
+		);
+		expect(outcome).toMatchObject({
+			testsPassed: 1,
+			testsSkipped: 1,
+		});
+	});
+
 	it("ignores lock waiters but detects their actual test children", () => {
 		const ps = [
 			"python tools/machine-lock.py playwright test",

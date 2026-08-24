@@ -169,7 +169,12 @@ function parseBunOutcome(stdout: string): RevalidationOutcome | null {
 	const ran = stdout.match(/Ran\s+(\d+)\s+tests?\s+across\s+(\d+)\s+files?/i);
 	if (!ran) return null;
 	const flat = stdout.split("\n").join(" ");
-	const unnamedSkippedTests = stdout
+	// Bun repeats every skipped leaf after the summary line. Count wrapper
+	// entries only in the detailed section, otherwise the duplicate report
+	// makes a valid leaf count look smaller than Vitest's count.
+	const detail =
+		stdout.split(/\n\s*\d+\s+tests?\s+skipped\s*:\s*/i, 1)[0] ?? stdout;
+	const unnamedSkippedTests = detail
 		.split("\n")
 		.filter((line) => /\(skip\).*?>\s+\(unnamed\)/i.test(line)).length;
 	return {
