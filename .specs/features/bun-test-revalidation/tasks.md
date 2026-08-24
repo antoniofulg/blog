@@ -95,15 +95,18 @@ run are green; outcome parity remains a T4 responsibility.
 
 **Done when**:
 
-- [ ] Only DOM-bearing files load Happy DOM
-- [ ] Bun-native `Request`, `Response`, and `Headers` remain available to server tests
-- [ ] RTL/body/global cleanup passes repeated-run tests
-- [ ] Required browser shims are minimal and tested
-- [ ] DOM cohort smoke and quick gate pass
+- [x] Only DOM-bearing files load Happy DOM
+- [x] Bun-native `Request`, `Response`, and `Headers` remain available to server tests
+- [x] RTL/body/global cleanup passes repeated-run tests
+- [x] Required browser shims are minimal and tested
+- [x] DOM cohort smoke and quick gate pass
 
 **Tests**: component/integration
 **Gate**: candidate
 **Commit**: `test(bun): scope happy dom environment`
+
+**Status**: ✅ Complete. The 30-file DOM cohort passes in isolated mode, and
+the TypeScript/Biome gates are green.
 
 ### T3: Audit candidate native semantics
 

@@ -1,9 +1,5 @@
 import "./happydom";
-import { afterEach, describe, expect, test } from "bun:test";
-
-afterEach(() => {
-	document.body.replaceChildren();
-});
+import { describe, expect, test } from "bun:test";
 
 describe("DOM test setup", () => {
 	test("provides a ResizeObserver with lifecycle methods", () => {

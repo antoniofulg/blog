@@ -1,0 +1,3 @@
+# Keep Bun Test from discovering the Vitest-first twin under app/tests/.
+[test]
+root = "app/tests-bun"
