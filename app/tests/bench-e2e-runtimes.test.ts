@@ -69,7 +69,12 @@ function deps(
 describe("Playwright runtime benchmark", () => {
 	it("parses bounded repetitions and forces the shared browser configuration", () => {
 		expect(parseE2EBenchArgs([]).repetitions).toBe(DEFAULT_REPETITIONS);
+		expect(parseE2EBenchArgs([]).workers).toBe(1);
 		expect(parseE2EBenchArgs(["--repetitions=3"]).repetitions).toBe(3);
+		expect(parseE2EBenchArgs(["--workers=2"]).workers).toBe(2);
+		expect(() => parseE2EBenchArgs(["--workers=4"])).toThrow(
+			"--workers must be 1 or 2",
+		);
 		expect(() => parseE2EBenchArgs(["--repetitions=0"])).toThrow(
 			"--repetitions must be a positive integer",
 		);
@@ -81,6 +86,8 @@ describe("Playwright runtime benchmark", () => {
 			"--project=chromium",
 			"--workers=1",
 			"--retries=0",
+			"--grep",
+			"en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
 			"--reporter=json",
 		]);
 		expect(commandForRuntime(RUNTIME_ARMS[1])).toEqual([
@@ -92,6 +99,8 @@ describe("Playwright runtime benchmark", () => {
 			"--project=chromium",
 			"--workers=1",
 			"--retries=0",
+			"--grep",
+			"en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
 			"--reporter=json",
 		]);
 		expect(commandEnvironment("/tmp/result.json")).toMatchObject({
@@ -107,6 +116,8 @@ describe("Playwright runtime benchmark", () => {
 			unexpected: 0,
 			flaky: 0,
 			inventory: 10,
+			smokeRoutes: 5,
+			setupOverhead: 5,
 		});
 		expect(
 			parsePlaywrightOutcome(JSON.stringify({ stats: { expected: 10 } })),

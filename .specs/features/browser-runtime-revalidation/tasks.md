@@ -60,6 +60,7 @@ T4 → T5 → T6
 **Tests**: unit/integration
 **Gate**: browser
 **Commit**: `test(browser): add controlled playwright profiles`
+**Status**: ✅ Complete
 
 ### T3: Restore a local WebView smoke harness
 **What**: Implement equivalent WebKit/Chrome five-route smoke with deterministic cleanup.
