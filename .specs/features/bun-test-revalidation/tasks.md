@@ -247,15 +247,23 @@ and is not used as a winner.
 
 **Done when**:
 
-- [ ] Each finalist has one discarded warm-up and at least five interleaved samples
-- [ ] Raw provenance, time, process-tree RSS, inventory and outcomes are complete
-- [ ] Contaminated/failed runs are retained and excluded explicitly
-- [ ] All compared finalists have equivalent inventories/outcomes
-- [ ] JSON and Markdown artifacts are non-overwriting and internally consistent
+- [x] Each finalist has one discarded warm-up and at least five interleaved samples
+- [x] Raw provenance, time, process-tree RSS, inventory and outcomes are complete
+- [x] Contaminated/failed runs are retained and excluded explicitly
+- [x] All compared finalists have equivalent inventories/outcomes
+- [x] JSON and Markdown artifacts are non-overwriting and internally consistent
 
 **Tests**: full benchmark evidence
 **Gate**: final
 **Commit**: `docs(test): record bun test revalidation runs`
+
+**Status**: ✅ Complete. The valid isolated-1 run is
+`run-2026-08-24T20-36-29-794Z` (five measured samples per arm, one warmup
+per arm, equivalent 110-file/2,057-pass/67-skip outcomes). Eight contaminated
+attempts are retained in the same artifact and excluded. Earlier parser,
+outcome, and contamination failures remain preserved as
+`run-2026-08-24T19-35-07-029Z` and `run-2026-08-24T20-16-29-696Z`; neither is
+used for the decision.
 
 ### T9: Record the runner decision
 
