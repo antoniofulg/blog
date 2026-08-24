@@ -118,16 +118,19 @@ the TypeScript/Biome gates are green.
 
 **Done when**:
 
-- [ ] Module mocks avoid unintended pre-mock side effects
-- [ ] Spies, mocks and fake timers restore after tests
-- [ ] Hook/test timeouts preserve canonical intent
-- [ ] Environment, database, filesystem, port and subprocess state is isolated or cleaned
-- [ ] Normal, repeated and reversed-order cohort probes pass or produce explicit dispositions
-- [ ] Full candidate compatibility run completes with stable outcomes
+- [x] Module mocks avoid unintended pre-mock side effects
+- [x] Spies, mocks and fake timers restore after tests
+- [x] Hook/test timeouts preserve canonical intent
+- [x] Environment, database, filesystem, port and subprocess state is isolated or cleaned
+- [x] Normal, repeated and reversed-order cohort probes pass or produce explicit dispositions
+- [x] Full candidate compatibility run completes with stable outcomes
 
 **Tests**: unit/integration/component
 **Gate**: full
 **Commit**: `test(bun): align candidate with bun semantics`
+
+**Status**: ✅ Complete. Normal, repeated and reverse isolated runs each pass
+2,057 tests with 101 documented environment skips and no failures.
 
 ### T4: Restore an outcome-aware parity gate
 

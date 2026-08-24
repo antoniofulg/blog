@@ -29,3 +29,20 @@ Representative smoke command:
 ```sh
 TZ=UTC bun test app/tests-bun/analytics-device-detector.test.ts --isolate
 ```
+
+## Native semantics audit
+
+The candidate uses Bun's native `mock.module`, `jest` compatibility mocks and
+spies exposed by `bun:test`. The current inventory contains 51 module-mock
+files, 13 spy-bearing files and 4 fake-timer files. Mocked imports are either
+registered before the module under test is dynamically imported or intentionally
+load a pure helper first to capture its real implementation. Mock state,
+spies and fake timers are restored in file/describe cleanup hooks or in
+`try`/`finally` blocks.
+
+The isolated full suite was run in normal, repeated and reverse file order.
+Each run produced 2,057 passed, 101 environment-gated skips and 0 failures
+across 113 files. Resource-heavy files use explicit teardown for PGLite,
+temporary directories, ports, subprocesses, environment variables and
+database advisory locks. These files remain isolated-only until the later
+no-isolate leak probes prove otherwise.
