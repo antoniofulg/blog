@@ -27,13 +27,21 @@
 - **Date**: 2026-08-23
 - **Status**: active
 
+### AD-004
+- **Decision**: Keep Bun 1.4 + Vitest as the permanent unit, component, and integration test runner; retire Bun Test and its shadow/cutover workflow.
+- **Reason**: Two local full-suite signals were roughly twice as slow (60.96 vs 119.71 s and 59.56 vs 127.88 s), but inventory/skip differences and shared-runner conditions made both uncontrolled; memory evidence was inconclusive, and the evidence did not justify maintaining the candidate.
+- **Trade-off**: Bun Test migration code, duplicate tests, and live comparison commands are removed; benchmark reports and completed specs remain as historical evidence.
+- **Scope**: Unit/component/integration runner, test scripts, CI shadowing, and migration documentation.
+- **Date**: 2026-08-24
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: Bun migration follow-up (`.specs/features/bun-migration-follow-up/`)
-- **Phase / Task**: T1-T10 implementation complete; Bun Test cutover evidence collection remains an operational follow-up.
-- **Completed**: `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Current persisted Chromium runtime evidence covers 49/49 with five measured samples per Node/Bun arm; Chromium, Firefox, and WebKit each pass 49/49. Current parity is 141/141 files, and the five synthetic Bun Test skips are normalized at leaf-outcome level while raw counts remain preserved. Previous independent verification failed only on a nondiscriminating changed-inventory test; both verifier twins now cover individually valid, zero-failure arms with different Playwright inventories and assert the exact invalidation reason and forced Bun command.
+- **Feature**: Bun Test retirement (`docs/plans/2026-08-24-retire-bun-test-design.md`)
+- **Phase / Task**: Retirement complete; historical evidence and completed migration specs retained.
+- **Completed**: Bun 1.4 + Vitest is permanent for unit, component, and integration tests. The Bun Test duplicate tree, shadow CI job, parity/cutover tooling, and live candidate commands were retired. `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Historical benchmark reports and migration validation remain linked for traceability.
 - **In-progress** (file:line): none.
-- **Next step**: Bun Test status remains 0/10 valid consecutive shadow runs. Continue collecting ten real consecutive green runs from distinct commits before deciding whether to replace Vitest itself. Use serialized `test:local` profile `1` for reliability.
-- **Blockers**: none. One Node fallback E2E run hit the known PGLite lock timeout; the required subsequent full retry passed 49/49.
-- **Repository state**: Implementation changes are committed; `validation.md` is the authoritative independent verification artifact.
-- **Branch**: test/bun-migration-follow-up
+- **Next step**: none for Bun Test migration. Maintain Bun 1.4 + Vitest and preserve historical benchmark evidence.
+- **Blockers**: none.
+- **Repository state**: Current operational state is the post-retirement runner configuration; historical specs and benchmark reports are not executable guidance.
+- **Branch**: chore/retire-bun-test (merge target: main)

@@ -1,7 +1,7 @@
 ---
 title: "Migrating this blog's test toolchain to Bun 1.4: what changed"
 slug: migrating-tests-to-bun-1-4
-description: "A small, noisy-machine migration from Node-backed tooling to Bun 1.4, with the wins, invalid runs, rollback paths, and evidence that kept Bun Test out of the default stack."
+description: "A small, noisy-machine migration from Node-backed tooling to Bun 1.4, with the wins, invalid runs, rollback paths, and evidence that led us to retire Bun Test."
 publishedAt: 2026-08-23
 category: tooling
 draft: true
@@ -15,7 +15,7 @@ This blog already had a test setup that worked. Node, Vitest, and Playwright wer
 
 The reason to move was narrower: Bun 1.4 was already the runtime used for installs and production, while several test commands still crossed back to Node through package shebangs. I wanted the tools that run the tests to match the runtime we ship, and I wanted to know whether the change helped when several worktrees competed for the same laptop.
 
-The short version is mixed. Bun made dependency installation much lighter, and Bun plus Vitest used less peak memory than Node plus Vitest. Test time was effectively tied. Playwright through Bun was faster and used less memory in one persisted five-sample comparison, but that result is scoped to one machine. Bun Test remains a shadow candidate, not the default runner.
+The short version is mixed. Bun made dependency installation much lighter, and Bun plus Vitest used less peak memory than Node plus Vitest. Test time was effectively tied. Playwright through Bun was faster and used less memory in one persisted five-sample comparison, but that result is scoped to one machine. Bun Test was evaluated and retired: the observed runs were slower, while the memory comparison was inconclusive.
 
 ## Why now
 
@@ -77,11 +77,11 @@ I also ran the full 49-outcome suite in all configured browsers through Bun. Chr
 
 ## The experiments I did not promote
 
-### Bun Test is not the default
+### Bun Test was retired
 
-Bun's built-in runner is useful, and the repository has a mirrored candidate tree for it. The five extra skip counts found in historical comparisons were runner-only synthetic `(unnamed)` hook entries: two in `lang-slug-route`, two in `og-slug-route`, and one in `docker-compose`. They were not lost leaf tests. Static file and assertion parity, plus normalized leaf outcomes, remain separate gates.
+Bun's built-in runner was a reasonable candidate to evaluate, but it did not earn a place in the stack. The first comparison reported 60.96 seconds for Bun plus Vitest and 119.71 seconds for Bun Test, but that run was invalid because the inventories differed. A later comparison aligned the passed-test count and reported 59.56 seconds for Node plus Vitest and 127.88 seconds for Bun Test. That second run still contained a synthetic skip-count difference, so neither result is a controlled benchmark of runner performance. Memory data for Bun Test was inconclusive.
 
-The cutover rule is stricter than “it passed locally”: ten consecutive valid shadow records from ten distinct CI commits, with matching inventory and outcomes. The current ledger has 0/10 distinct CI commits. Vitest stays in the blocking path, and Node 24 remains a rollback route. Bun's [test runner documentation](https://bun.com/docs/test) is useful context for the candidate, but this post does not turn compatibility evidence into a speed claim.
+The useful conclusion is narrower: Bun Test added compatibility and accounting complexity without evidence of a speed or memory win. Vitest remains the permanent unit, component, and integration-test runner. Node 24 remains available as a fallback, and Bun's [test runner documentation](https://bun.com/docs/test) remains linked as historical context for the evaluated option.
 
 ### Bun.WebView is archived
 
@@ -89,9 +89,9 @@ I also compared five public smoke scenarios in Bun.WebView and Bun plus Playwrig
 
 ## Cutover discipline and rollback
 
-The live stack now uses Bun 1.4 for dependency installation, Bun 1.4 plus Vitest for unit, component, and integration tests, and Bun 1.4 plus Playwright for E2E. The current local profile is serialized Vitest through `test:local`. Bun Test is shadow-only. Node 24 plus Vitest is still available through `test:vitest:node`; Node plus Playwright remains available through `test:e2e:node`.
+The live stack now uses Bun 1.4 for dependency installation, Bun 1.4 plus Vitest for unit, component, and integration tests, and Bun 1.4 plus Playwright for E2E. The current local profile is serialized Vitest through `test:local`. Node 24 plus Vitest is still available through `test:vitest:node`; Node plus Playwright remains available through `test:e2e:node`.
 
-The rollback is intentionally boring. If Bun plus Vitest regresses, map the blocking `test` command back to `test:vitest:node` or the Bun-hosted Vitest route while investigating the evidence. If Playwright through Bun regresses, use `test:e2e:node`. Do not remove Vitest or Node while the shadow gate is empty. The [Bun Test playbook](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/bun-test/README.md) records those routes and the removal checklist.
+The rollback is intentionally boring. If Bun plus Vitest regresses, map the blocking `test` command back to `test:vitest:node` or the Bun-hosted Vitest route while investigating the evidence. If Playwright through Bun regresses, use `test:e2e:node`. The [Bun Test evaluation record](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/bun-test/README.md) preserves the historical evidence and the final retirement decision.
 
 ## What I would do differently
 
@@ -103,6 +103,6 @@ Finally, I would have persisted the Node-versus-Bun Playwright comparison before
 
 ## Status on 2026-08-23
 
-The runtime migration is complete. The evidence supports Bun 1.4 for installs, Vitest hosting, and Playwright execution in this repository. It does not support a universal speed claim, a Bun Test cutover, or a WebView replacement. The old stack remains available where it is the useful reference.
+The runtime migration is complete. The evidence supports Bun 1.4 for installs, Vitest hosting, and Playwright execution in this repository. Bun Test is retired, and WebView remains archived rather than replacing Playwright. The old stack remains available where it is the useful reference.
 
-Next work has two concrete parts. First, collect ten valid Bun Test shadow records from distinct CI commits without weakening parity or skip accounting. Second, rerun the Playwright runtime comparison on a quieter, controlled machine if the project needs a CI-specific decision. Until then, the current stack is the smallest change that matches production while keeping a reversible path.
+The remaining work is narrower: rerun the Playwright runtime comparison on a quieter, controlled machine only if the project needs a CI-specific decision. Until then, the current stack is the smallest change that matches production while keeping a reversible path.

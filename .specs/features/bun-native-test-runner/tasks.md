@@ -1,5 +1,12 @@
 # Bun Native Test Runner Migration Tasks
 
+> Retirement amendment (2026-08-24): These completed tasks are historical
+> traceability, not an execution queue. Bun 1.4 + Vitest is permanent. Two
+> local full-suite signals were roughly twice as slow for Bun Test, but
+> inventory/skip and shared-runner differences made both uncontrolled; memory
+> evidence was inconclusive. Do not run the Bun Test shadow/cutover or ten-run
+> work described below.
+
 > Historical status amendment (2026-08-23): task implementation and validation
 > are complete for the shadow-migration scope. Do not use the original
 > Node-blocking wording below as current operational guidance; use the dated

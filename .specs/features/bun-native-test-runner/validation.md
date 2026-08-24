@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Validation
 
+> Retirement amendment (2026-08-24): This PASS report is historical evidence
+> for a retired candidate. Bun 1.4 + Vitest is permanent. Two local full-suite
+> signals were roughly twice as slow for Bun Test, but inventory/skip and
+> shared-runner differences made both uncontrolled; memory evidence was
+> inconclusive. No shadow continuation or ten-run gate remains operational.
+
 > Historical status amendment (2026-08-23): implementation and validation are
 > complete for the shadow-migration scope. Current worker, Playwright, browser,
 > skip-accounting, and cutover-readiness evidence is consolidated in

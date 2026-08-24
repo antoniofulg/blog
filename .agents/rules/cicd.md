@@ -24,30 +24,33 @@ Six quality checks run in parallel:
 | quality (e2e) | `make test-e2e` (Playwright) | yes |
 | quality (lint-tests) | `make lint-tests` | yes |
 
-Two additional jobs run on PRs only:
+One additional job runs on pushes and PRs:
+
+| Job | What it checks |
+|-----|----------------|
+| docker-build | Production runner image builds and runs `db:migrate` against isolated PostgreSQL |
+
+Two more jobs run on PRs only:
 
 | Job | What it checks |
 |-----|----------------|
 | commitlint | All commits in PR follow Conventional Commits |
 | branch-check | Branch name matches `<feat\|fix\|chore\|docs\|test\|refactor\|ci\|hotfix>/<slug>` or `post/<lang>/<slug>` |
 
-All eight checks must be green before a PR can merge.
+All nine jobs must be green before a PR can merge.
 
-### Bun Test shadow mode
+### Test runner decision
 
-The `quality` matrix `test` job remains blocking and runs Vitest through Bun
-1.4.0. `test:vitest:node` remains the explicit Node 24 reference and rollback
-route. Separate `bun-test-shadow` runs parity, captures Bun + Vitest reference
-outcomes, and runs the Bun Test candidate under Bun 1.4.0 with
-`continue-on-error: true`. It uploads comparison JSON and logs for seven days.
-Shadow failures expose compatibility evidence without replacing the Vitest
-gate.
+The `quality` matrix `test` job runs the permanent Bun 1.4 + Vitest default.
+`test:vitest:node` remains the explicit Node 24 reference and rollback route.
+Bun Test was retired on 2026-08-24 after two local full-suite signals were
+roughly twice as slow (60.96 vs 119.71 s and 59.56 vs 127.88 s).
+Inventory/skip differences and shared-runner conditions made both uncontrolled
+rather than valid performance benchmarks; memory evidence was inconclusive,
+and the evidence did not justify maintaining the candidate. Historical
+benchmark artifacts remain versioned, but no Bun Test shadow job or future
+cutover gate exists.
 
-Cutover is manual after ten consecutive green results from distinct commits,
-with matching inventory and normalized leaf outcomes. A failure, timeout,
-noisy run, duplicate commit, inventory mismatch, or outcome mismatch resets the
-suffix. Rollback maps `test` to `test:vitest:node` and restores Node 24 in the
-quality test job; migrated tests and benchmark history remain.
 The canonical Playwright command is forced through Bun while its web server also
 runs through Bun. `test:e2e:node` remains the explicit local fallback. The
 retired Bun.WebView experiment is preserved as documentation and does not run

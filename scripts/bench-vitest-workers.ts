@@ -8,8 +8,7 @@ import { collectHostMeta } from "#/lib/bench/host.server";
 import { spawnMeasured, WORKLOAD_TIMEOUT_MS } from "#/lib/bench/runner.server";
 import { aggregate } from "#/lib/bench/stats";
 import type { Aggregate, HostMeta, Sample } from "#/lib/bench/types";
-import { parseVitestSummary } from "#/lib/test-bench/runner.server";
-import type { TestOutcome } from "#/lib/test-bench/types";
+import { parseVitestSummary, type TestOutcome } from "#/lib/bench/vitest-summary";
 
 export const WORKER_PROFILE_IDS = ["1", "2", "4", "auto"] as const;
 export type WorkerProfileId = (typeof WORKER_PROFILE_IDS)[number];

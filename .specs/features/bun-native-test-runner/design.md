@@ -1,5 +1,11 @@
 # Bun Native Test Runner Migration Design
 
+> Retirement amendment (2026-08-24): This design is historical and superseded.
+> Bun 1.4 + Vitest is permanent. Two local full-suite signals were roughly
+> twice as slow for Bun Test, but inventory/skip and shared-runner differences
+> made both uncontrolled; memory evidence was inconclusive. Do not execute the
+> Bun Test shadow/cutover workflow or ten-run gate described below.
+
 > Historical status amendment (2026-08-23): implementation and validation are
 > complete as a shadow migration. Current default is Bun 1.4 + Vitest, with
 > Node 24 + Vitest fallback; Bun Test remains behind the ten-run evidence gate.

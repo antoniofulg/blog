@@ -1,129 +1,20 @@
-# Bun Test migration playbook
+# Bun Test migration — historical evidence
 
-This migration uses Bun 1.4/Vitest as the blocking default while Bun Test runs
-in CI shadow mode. Node 24/Vitest remains the explicit reference and rollback
-route. Vitest is not being removed.
+Status: superseded on 2026-08-24. Bun 1.4 + Vitest is the permanent
+unit/component/integration runner. Bun Test was retired after two local
+full-suite signals were roughly twice as slow (60.96 vs 119.71 s and 59.56 vs
+127.88 s). Inventory/skip differences and shared-runner conditions made both
+uncontrolled rather than valid performance benchmarks; memory evidence was
+inconclusive, and the evidence did not justify maintaining the candidate. No
+Bun Test command, parity gate, shadow run, or cutover is operational.
 
-## Commands
+This directory remains as the evidence pointer for the retired experiment. The
+full measurements, historical tables, raw-report links, and limitations are in
+the [consolidated testing-runtime evidence pack](../testing-runtimes/2026-08-22-summary.md).
+The completed migration requirements and independent verification remain in the
+[native-runner validation report](../../../.specs/features/bun-native-test-runner/validation.md)
+and [migration follow-up validation](../../../.specs/features/bun-migration-follow-up/validation.md).
 
-Run commands from the repository root with Bun 1.4.0 and Node 24 available:
-
-```sh
-bun run test                         # blocking Bun 1.4/Vitest default
-bun run test:vitest:node             # A: explicit Node 24 + Vitest 4.1.5
-bun run test:vitest:bun              # B: Bun 1.4.0 + Vitest 4.1.5
-bun run test:bun                     # C: Bun 1.4.0 + Bun Test
-bun run test:parity                  # reference/candidate inventory gate
-bun run bench:tests                  # one sequential A/B/C repetition
-bun run bench:tests --only=A,C --repetitions=3
-```
-
-The Vitest runtime probe adapts its assertions to Node or Bun. It and the
-candidate preflight print executable and version provenance. A mismatched
-runtime fails before tests run.
-
-## A/B/C measurements
-
-The arms change one variable at a time:
-
-| Arm | Runtime | Runner | Tree |
-| --- | --- | --- | --- |
-| A | Node 24 | Vitest 4.1.5 | `app/tests` |
-| B | Bun 1.4.0 | Vitest 4.1.5 | `app/tests` |
-| C | Bun 1.4.0 | Bun Test 1.4.0 | `app/tests-bun` |
-
-The harness runs arms sequentially on one machine. Repetitions reverse arm
-order, so ambient load does not always favor one arm. Each sample records
-duration, peak RSS, load, executable, runtime, runner, versions, commit,
-timestamp, outcome counts, and failure excerpts. Dependency installation and
-Playwright browser time are outside this comparison.
-
-Reports are unique timestamped JSON and Markdown files in
-`docs/benchmarks/bun-test/`. JSON retains raw samples. Markdown reports per-arm
-medians and deltas only when the comparison is valid.
-
-A comparison is invalid when parity differs, provenance is missing or wrong,
-an arm exits non-zero, times out, or produces no summary. Invalid reports list
-reasons and make no performance claim. Shared-runner timing is compatibility
-evidence, not a performance winner claim.
-
-## Shadow eligibility
-
-The CI `bun-test-shadow` job runs parity, Bun 1.4 + Vitest (reference), and
-Bun 1.4 + Bun Test (candidate). Its failure is non-blocking, but JSON and all
-three logs are uploaded for seven days. The `quality` matrix `test` entry
-remains blocking and runs Vitest through Bun.
-
-Bun Test becomes eligible for an explicit cutover decision only after a suffix
-of ten consecutive green, valid, matching-inventory shadow results from ten
-distinct commits. Each record must contain equivalent reference/candidate
-file, pass, fail, and normalized leaf-skip outcomes; raw runner skip counts
-remain in the record for audit. Evaluate results by timestamp, not filesystem
-order. A failed test, timeout, noisy run, inventory mismatch, outcome mismatch,
-malformed result, duplicate timestamp, or duplicate commit resets eligibility.
-Noise from PGLite contention never counts.
-
-CI does not commit history. The uploaded `shadow-result.json` is imported
-manually into the durable ledger at
-`docs/benchmarks/bun-test/shadow-ledger.jsonl`, one JSON record per line, before
-eligibility is evaluated. The ledger is a maintainer-owned evidence file, not a
-CI output path, and imports must preserve the raw logs and commit SHA.
-
-## Cutover and rollback
-
-Cutover is a deliberate change, not an automatic CI action. After the ten-run
-threshold and review:
-
-1. Change `test` to delegate to `test:bun`.
-2. Keep `test:vitest:node` as the explicit fallback.
-3. Keep parity and the twin tree in CI.
-4. If Bun Test regresses, map `test` back to `test:vitest:bun`, retain all
-   migrated tests and reports, and investigate the recorded evidence.
-
-Vitest can be removed only when the Vitest-only inventory is empty and a
-separate removal decision is recorded. The runtime-only cutover from Node to
-Bun + Vitest is complete; the runner cutover to Bun Test is not.
-
-## Playwright boundary
-
-Playwright remains the primary E2E suite, now forced through Bun by
-`test:e2e:bun`. Its configured web server starts the Blog through
-`bun run scripts/e2e-server.ts`. The project keeps one worker, fixtures,
-traces, reporters, retries, and screenshots. `test:e2e` pins Chromium for CI,
-`test:e2e:all` runs Chromium, Firefox, and WebKit locally, and
-`test:e2e:node` remains the explicit Chromium fallback. The retired Bun.WebView
-experiment is historical evidence only and is not part of the Bun Test cutover.
-
-## T9 evidence snapshot (2026-08-23)
-
-The current parity scan is 141 reference files to 141 Bun Test files, with no
-candidate residual Vitest API and no production `partial mock skipped` marker.
-The five historical extra Bun Test skips are synthetic runner `(unnamed)`
-entries (two `lang-slug-route`, two `og-slug-route`, one `docker-compose`).
-Comparison uses equivalent leaf skips and preserves raw runner skip counts.
-See the [consolidated evidence pack](../testing-runtimes/2026-08-22-summary.md).
-
-T8 now requires ten valid runs from ten distinct commits plus equivalent
-file/pass/fail/leaf-skip outcomes. The rule and duplicate-commit reset are
-covered by mirrored tests in commit `83bac33`; no real CI records have been
-imported into a durable ledger, so eligibility remains 0/10. Synthetic test
-fixtures are not shadow evidence.
-
-### Vitest removal checklist
-
-Vitest remains required. Current direct/runtime surfaces are:
-
-- `package.json` and `bun.lock` (`vitest` 4.1.5);
-- `vitest.config.ts` and the `VITEST` guard in `vite.config.ts`;
-- `test:vitest:node`, `test:vitest:bun`, `test:local`, and
-  `bench:vitest:workers` scripts;
-- `scripts/check-test-runtime.ts`, `scripts/bench-tests.ts`, and
-  `scripts/bench-vitest-workers.ts`;
-- `.github/workflows/ci.yml` reference/shadow arm and `app/tests/**` reference
-  tree.
-
-Before removing Vitest, obtain ten valid distinct-commit shadow records, rerun
-parity plus the full Bun Test suite, record a separate removal decision, then
-remove only obsolete package/config/CI surfaces and regenerate the lockfile.
-Keep Node/Vitest fallback until rollback ownership is explicitly closed. Keep
-historical reports and specs; never rewrite or delete raw evidence.
+Historical A/B/C work compared Node 24 + Vitest, Bun 1.4 + Vitest, and Bun 1.4
++ Bun Test. Preserve its numbers and reports for traceability; do not treat
+them as current performance guidance or a pending runner decision.

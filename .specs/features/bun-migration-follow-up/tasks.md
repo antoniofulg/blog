@@ -1,5 +1,12 @@
 # Bun Migration Follow-up Tasks
 
+> Retirement amendment (2026-08-24): These completed tasks are historical
+> traceability, not an execution queue. Bun 1.4 + Vitest is permanent. Two
+> local full-suite signals were roughly twice as slow for Bun Test, but
+> inventory/skip and shared-runner differences made both uncontrolled; memory
+> evidence was inconclusive. Do not run Bun Test shadow/cutover or ten-run work
+> described below.
+
 ## Execution Protocol (MANDATORY -- do not skip)
 
 Implement these tasks with the `tlc-spec-driven` skill. Follow its per-task
