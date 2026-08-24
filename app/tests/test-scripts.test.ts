@@ -27,7 +27,7 @@ const vitestConfig = readFileSync(
 	"utf8",
 );
 
-describe("A/B/C test scripts", () => {
+describe("test scripts", () => {
 	it("maps local tests to the reliable serialized Bun+Vitest profile", () => {
 		expect(scripts.test).toBe("bun run test:vitest:bun");
 		expect(scripts["test:local"]).toBe(
@@ -48,13 +48,6 @@ describe("A/B/C test scripts", () => {
 		expect(scripts["test:vitest:bun"]).not.toContain("--exclude");
 	});
 
-	it("runs only the Bun Test candidate tree", () => {
-		expect(scripts["test:bun"]).toContain(
-			"bun test --timeout 60000 app/tests-bun",
-		);
-		expect(scripts["test:bun"]).toContain("--isolate");
-	});
-
 	it("includes both TypeScript reference test extensions", () => {
 		expect(vitestConfig).toContain('"app/tests/**/*.test.ts"');
 		expect(vitestConfig).toContain('"app/tests/**/*.test.tsx"');
@@ -64,12 +57,6 @@ describe("A/B/C test scripts", () => {
 		expect(vitestConfig).toContain("process.versions.bun");
 		expect(vitestConfig).toContain("deps: { inline:");
 		expect(viteConfig).not.toContain("deps: { inline:");
-	});
-
-	it("pins Bun 1.4 provenance for the candidate", () => {
-		expect(scripts["test:bun"]).toContain(
-			"--runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0",
-		);
 	});
 
 	it("exposes the Vitest worker benchmark alias", () => {

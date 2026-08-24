@@ -14,19 +14,19 @@ can run in Node with JSDOM or just file reads, it belongs in `app/tests/`.
 The retired Bun.WebView experiment is preserved only as benchmark evidence in
 `docs/benchmarks/e2e-webview/`; it is not an executable test route.
 
-## Bun Test migration boundary
+## Test runner decision
 
-During shadow mode, `test` and the blocking CI quality entry use Bun 1.4 with
-Vitest. This runtime cutover was selected for lower measured peak memory;
-`test:vitest:node` remains the explicit Node 24 reference and rollback route.
-`test:bun` is the Bun Test candidate. Run `test:parity` before interpreting
-candidate results. Bun Test does not become the default until ten consecutive
-green, matching-inventory shadow results are recorded. Any failure, timeout,
-noise, or mismatch resets that suffix. Do not remove Vitest while the
-Vitest-only inventory is non-empty.
+Bun 1.4 + Vitest is the permanent unit, component, and integration test
+runner, including the blocking CI quality entry. `test:vitest:node` remains the
+explicit Node 24 reference and rollback route. Bun Test was retired on
+2026-08-24 after two local full-suite signals were roughly twice as slow
+(60.96 vs 119.71 s and 59.56 vs 127.88 s). Inventory/skip differences and
+shared-runner conditions made both uncontrolled rather than valid performance
+benchmarks; memory evidence was inconclusive, and the evidence did not justify
+maintaining the candidate.
 
-Benchmark reports under `docs/benchmarks/bun-test/` are compatibility evidence;
-timing from shared CI runners is not a performance claim.
+Reports under `docs/benchmarks/bun-test/` are historical compatibility evidence
+only. Do not add or restore Bun Test shadow, parity, or cutover workflow.
 
 ## Layout
 

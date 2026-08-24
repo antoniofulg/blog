@@ -1,5 +1,12 @@
 # Bun Migration Follow-up Specification
 
+> Retirement amendment (2026-08-24): This completed specification is historical
+> record, not operational guidance. Bun 1.4 + Vitest is permanent. Two local
+> full-suite signals were roughly twice as slow for Bun Test, but inventory/skip
+> and shared-runner differences made both uncontrolled; memory evidence was
+> inconclusive. Bun Test shadow/cutover work and the ten-run gate are
+> superseded.
+
 **Execution status (2026-08-23)**: independently verified PASS (17/17
 acceptance criteria). T9 consolidated committed worker, Playwright, browser,
 skip-accounting, branch, and Vitest-inventory evidence. The ten-run Bun Test

@@ -1,5 +1,12 @@
 # Bun Native Test Runner Migration Specification
 
+> Retirement amendment (2026-08-24): This specification is closed and
+> historical. Bun 1.4 + Vitest is permanent. Two local full-suite signals were
+> roughly twice as slow for Bun Test, but inventory/skip and shared-runner
+> differences made both uncontrolled; memory evidence was inconclusive. The
+> Bun Test shadow/cutover workflow and ten-run gate below are superseded and
+> not operational.
+
 > Historical status amendment (2026-08-23): implementation and independent
 > validation are complete for the shadow-migration scope. The current runtime
 > cutover is Bun 1.4 + Vitest; replacing Vitest with Bun Test remains pending

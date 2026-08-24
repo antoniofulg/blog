@@ -1,5 +1,11 @@
 # Bun Migration Follow-up Validation
 
+> Retirement amendment (2026-08-24): This PASS report is historical evidence
+> for a retired candidate. Bun 1.4 + Vitest is permanent. Two local full-suite
+> signals were roughly twice as slow for Bun Test, but inventory/skip and
+> shared-runner differences made both uncontrolled; memory evidence was
+> inconclusive. No shadow continuation or ten-run gate remains operational.
+
 **Date**: 2026-08-23
 **Spec**: `.specs/features/bun-migration-follow-up/spec.md`
 **Diff range**: `07598d872adebd75d48a050bb731f61ef6922d05..c5ceae5638d5c1c67c1436a4b2ece271ba2c11a9`

@@ -1,5 +1,12 @@
 # Bun Migration Follow-up Design
 
+> Retirement amendment (2026-08-24): This completed follow-up is historical
+> record, not an execution plan. Bun 1.4 + Vitest is permanent. Two local
+> full-suite signals were roughly twice as slow for Bun Test, but inventory/skip
+> and shared-runner differences made both uncontrolled; memory evidence was
+> inconclusive. Bun Test shadow/cutover work and the ten-run gate are
+> superseded.
+
 **Spec**: `.specs/features/bun-migration-follow-up/spec.md`
 **Status**: Approved
 

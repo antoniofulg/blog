@@ -4,8 +4,10 @@
 
 Keep Bun 1.4 as the application, tooling, Vitest, and Playwright runtime. Keep
 Vitest as the permanent unit/component/integration runner. Retire Bun Test as
-an executable candidate: observed full-suite runs were roughly twice as slow,
-and no persisted memory comparison showed a compensating gain.
+an executable candidate: two local full-suite signals were roughly twice as
+slow, but inventory/skip differences made them unsuitable as controlled
+performance benchmarks. Memory evidence was inconclusive, so the experiment
+did not justify its maintenance cost.
 
 ## Remove
 
@@ -36,4 +38,5 @@ advertise a future ten-shadow cutover.
   lint, Playwright Chromium, content audit, Docker runner build/migration,
   commitlint, and branch-name checks pass locally.
 - Test removal is limited to the duplicate Bun Test tree and tests for retired
-  migration infrastructure; the canonical `app/tests/` inventory is unchanged.
+  migration infrastructure. Canonical product-behavior tests in `app/tests/`
+  remain unchanged.

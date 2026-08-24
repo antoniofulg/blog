@@ -1,5 +1,12 @@
 # Bun Native Test Runner Migration Context
 
+> Retirement amendment (2026-08-24): This feature is closed and retained as
+> historical record. Bun 1.4 + Vitest is permanent. Two local full-suite
+> signals were roughly twice as slow for Bun Test, but inventory/skip and
+> shared-runner differences made both uncontrolled; memory evidence was
+> inconclusive. Bun Test commands, shadow work, and the ten-run gate below are
+> superseded and not operational.
+
 **Gathered:** 2026-08-22
 **Spec:** `.specs/features/bun-native-test-runner/spec.md`
 **Status:** Ready for design

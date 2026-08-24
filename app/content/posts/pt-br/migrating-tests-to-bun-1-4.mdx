@@ -1,7 +1,7 @@
 ---
 title: "Migrando o toolchain de testes deste blog para o Bun 1.4: o que mudou"
 slug: migrating-tests-to-bun-1-4
-description: "Uma migração pequena, feita em uma máquina com ruído, de ferramentas baseadas em Node para Bun 1.4, com ganhos, medições inválidas, rollback e as evidências que mantiveram Bun Test fora do stack padrão."
+description: "Uma migração pequena, feita em uma máquina com ruído, de ferramentas baseadas em Node para Bun 1.4, com ganhos, medições inválidas, rollback e as evidências que levaram à aposentadoria do Bun Test."
 publishedAt: 2026-08-23
 category: tooling
 draft: true
@@ -15,7 +15,7 @@ Este blog já tinha uma configuração de testes que funcionava. Node, Vitest e 
 
 O motivo da mudança era mais estreito: Bun 1.4 já era o runtime usado nas instalações e em produção, enquanto alguns comandos de teste ainda voltavam para Node por causa dos shebangs dos pacotes. Eu queria que as ferramentas que executam os testes correspondessem ao runtime que enviamos, e queria saber se isso ajudava quando vários worktrees disputavam o mesmo laptop.
 
-A versão curta é mista. Bun deixou a instalação de dependências muito mais leve, e Bun com Vitest usou menos memória de pico do que Node com Vitest. O tempo de teste ficou efetivamente empatado. Playwright através do Bun foi mais rápido e usou menos memória em uma comparação persistida com cinco amostras, mas o resultado é limitado a uma máquina. Bun Test continua candidato em shadow, não o runner padrão.
+A versão curta é mista. Bun deixou a instalação de dependências muito mais leve, e Bun com Vitest usou menos memória de pico do que Node com Vitest. O tempo de teste ficou efetivamente empatado. Playwright através do Bun foi mais rápido e usou menos memória em uma comparação persistida com cinco amostras, mas o resultado é limitado a uma máquina. Bun Test foi avaliado e aposentado: as execuções observadas foram mais lentas, enquanto a comparação de memória foi inconclusiva.
 
 ## Por que agora
 
@@ -77,11 +77,11 @@ Também rodei a suíte completa de 49 resultados em todos os browsers configurad
 
 ## Os experimentos que não promovi
 
-### Bun Test não é o padrão
+### Bun Test foi aposentado
 
-O runner embutido do Bun é útil, e o repositório tem uma árvore candidata espelhada. Os cinco skips extras encontrados nas comparações históricas eram entradas sintéticas `(unnamed)` de hooks, geradas pelo runner: duas em `lang-slug-route`, duas em `og-slug-route` e uma em `docker-compose`. Não eram testes folha perdidos. Paridade estática de arquivos e asserções, além de resultados folha normalizados, continuam sendo gates separados.
+O runner embutido do Bun era um candidato razoável para avaliação, mas não conquistou um lugar no stack. A primeira comparação registrou 60,96 segundos para Bun com Vitest e 119,71 segundos para Bun Test, mas essa execução era inválida porque os inventários eram diferentes. Uma comparação posterior alinhou a contagem de testes aprovados e registrou 59,56 segundos para Node com Vitest e 127,88 segundos para Bun Test. Essa segunda execução ainda tinha uma diferença sintética na contagem de skips, então nenhum dos resultados é um benchmark controlado de performance do runner. Os dados de memória do Bun Test foram inconclusivos.
 
-A regra de cutover é mais rígida do que “passou localmente”: dez registros consecutivos de shadow válidos, vindos de dez commits distintos de CI, com inventário e resultados correspondentes. O ledger atual tem 0/10 commits distintos de CI. Vitest continua no caminho bloqueante, e Node 24 continua como rota de rollback. A [documentação do test runner do Bun](https://bun.com/docs/test) dá contexto para o candidato, mas este post não transforma evidência de compatibilidade em afirmação de velocidade.
+A conclusão útil é mais estreita: Bun Test adicionou complexidade de compatibilidade e de contagem sem evidência de ganho de velocidade ou memória. Vitest continua sendo o runner permanente dos testes unitários, de componentes e de integração. Node 24 continua disponível como fallback, e a [documentação do test runner do Bun](https://bun.com/docs/test) permanece vinculada como contexto histórico da opção avaliada.
 
 ### Bun.WebView foi arquivado
 
@@ -89,9 +89,9 @@ Também comparei cinco cenários públicos de smoke em Bun.WebView e Bun com Pla
 
 ## Disciplina de cutover e rollback
 
-O stack atual usa Bun 1.4 para instalação de dependências, Bun 1.4 com Vitest para testes unitários, de componentes e de integração, e Bun 1.4 com Playwright para E2E. O perfil local atual é Vitest serializado através de `test:local`. Bun Test roda apenas em shadow. Node 24 com Vitest continua disponível em `test:vitest:node`; Node com Playwright continua disponível em `test:e2e:node`.
+O stack atual usa Bun 1.4 para instalação de dependências, Bun 1.4 com Vitest para testes unitários, de componentes e de integração, e Bun 1.4 com Playwright para E2E. O perfil local atual é Vitest serializado através de `test:local`. Node 24 com Vitest continua disponível em `test:vitest:node`; Node com Playwright continua disponível em `test:e2e:node`.
 
-O rollback é propositalmente sem graça. Se Bun com Vitest regredir, o comando bloqueante `test` pode voltar para `test:vitest:node` ou para a rota Vitest hospedada pelo Bun enquanto a evidência é investigada. Se Playwright através do Bun regredir, use `test:e2e:node`. Não remova Vitest ou Node enquanto o gate de shadow estiver vazio. O [playbook do Bun Test](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/bun-test/README.md) registra essas rotas e a checklist de remoção.
+O rollback é propositalmente sem graça. Se Bun com Vitest regredir, o comando bloqueante `test` pode voltar para `test:vitest:node` ou para a rota Vitest hospedada pelo Bun enquanto a evidência é investigada. Se Playwright através do Bun regredir, use `test:e2e:node`. O [registro da avaliação do Bun Test](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/bun-test/README.md) preserva a evidência histórica e a decisão final de aposentadoria.
 
 ## O que eu faria diferente
 
@@ -103,6 +103,6 @@ Por fim, eu teria persistido a comparação Node contra Bun do Playwright antes 
 
 ## Status em 2026-08-23
 
-A migração de runtime terminou. As evidências sustentam Bun 1.4 para instalações, hospedagem do Vitest e execução do Playwright neste repositório. Elas não sustentam uma afirmação universal de velocidade, um cutover para Bun Test ou uma substituição por WebView. O stack antigo continua disponível onde é a referência útil.
+A migração de runtime terminou. As evidências sustentam Bun 1.4 para instalações, hospedagem do Vitest e execução do Playwright neste repositório. Bun Test foi aposentado, e WebView permanece arquivado em vez de substituir o Playwright. O stack antigo continua disponível onde é a referência útil.
 
-O próximo trabalho tem duas partes concretas. Primeiro, coletar dez registros válidos de shadow do Bun Test em commits distintos de CI sem enfraquecer a paridade ou a contagem de skips. Segundo, repetir a comparação de runtime do Playwright em uma máquina mais quieta e controlada se o projeto precisar de uma decisão específica para CI. Até lá, o stack atual é a menor mudança que corresponde à produção e mantém um caminho reversível.
+O trabalho restante é mais estreito: repetir a comparação de runtime do Playwright em uma máquina mais quieta e controlada apenas se o projeto precisar de uma decisão específica para CI. Até lá, o stack atual é a menor mudança que corresponde à produção e mantém um caminho reversível.

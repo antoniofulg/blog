@@ -63,8 +63,6 @@ describe("test runtime provenance", () => {
 
 	it("rejects an unsupported runner", () => {
 		const malformed: unknown = { ...expected, runner: "jest" };
-		expect(() => assertRuntime(malformed)).toThrow(
-			/runner must be vitest or bun:test/,
-		);
+		expect(() => assertRuntime(malformed)).toThrow(/runner must be vitest/);
 	});
 });
