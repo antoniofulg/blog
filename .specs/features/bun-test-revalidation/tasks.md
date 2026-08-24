@@ -275,16 +275,22 @@ used for the decision.
 
 **Done when**:
 
-- [ ] Summary reports medians/spread and links every material claim to raw evidence
-- [ ] Multi-worktree memory recommendation is explicit
-- [ ] Matched-profile and best-safe-profile conclusions are separate
-- [ ] Maintenance and future CI implications are documented
-- [ ] `.specs/STATE.md` preserves or supersedes AD-004 consistently
-- [ ] Full local gates pass before independent verification
+- [x] Summary reports medians/spread and links every material claim to raw evidence
+- [x] Multi-worktree memory recommendation is explicit
+- [x] Matched-profile and best-safe-profile conclusions are separate
+- [x] Maintenance and future CI implications are documented
+- [x] `.specs/STATE.md` preserves or supersedes AD-004 consistently
+- [x] Full local gates pass before independent verification
 
 **Tests**: documentation/decision consistency
 **Gate**: final
 **Commit**: `docs(test): decide native bun test adoption`
+
+**Status**: ✅ Complete. The valid isolated-1 result favors Bun Test for
+elapsed time and queue release, but its higher peak RSS and the missing final
+2/4-worker/`--smol` matrix mean AD-004 is preserved. Defaults, CI and
+Playwright remain unchanged; the evidence and follow-up criteria are recorded
+in `docs/benchmarks/bun-test-revalidation/README.md`.
 
 ## Diagram-Definition Cross-Check
 

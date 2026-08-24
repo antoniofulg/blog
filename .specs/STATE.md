@@ -29,8 +29,8 @@
 
 ### AD-004
 - **Decision**: Keep Bun 1.4 + Vitest as the permanent unit, component, and integration test runner; retire Bun Test and its shadow/cutover workflow.
-- **Reason**: Two local full-suite signals were roughly twice as slow (60.96 vs 119.71 s and 59.56 vs 127.88 s), but inventory/skip differences and shared-runner conditions made both uncontrolled; memory evidence was inconclusive, and the evidence did not justify maintaining the candidate.
-- **Trade-off**: Bun Test migration code, duplicate tests, and live comparison commands are removed; benchmark reports and completed specs remain as historical evidence.
+- **Reason**: The controlled isolated-1 revalidation completed five valid interleaved samples with equivalent 110-file/2,057-pass/67-skip outcomes. Bun Test was 26.8% faster and improved nominal serialized release throughput by 36.6%, but peak process-tree RSS was 27.6% higher. Its RSS×duration approximation was 6.6% lower, yet only isolated-1 was run to the final gate; the 2/4-worker and `--smol` profiles still need a complete matrix before a default cutover.
+- **Trade-off**: Keep the lower-peak-RSS Vitest default for multi-worktree safety while retaining Bun Test isolated-1 as a promising local candidate. The valid and invalid raw reports, parser fixes, and follow-up criteria remain versioned for a future decision.
 - **Scope**: Unit/component/integration runner, test scripts, CI shadowing, and migration documentation.
 - **Date**: 2026-08-24
 - **Status**: active
