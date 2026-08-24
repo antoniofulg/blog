@@ -1,9 +1,8 @@
 # Bun Test revalidation — agent handoff
 
-> Snapshot: 2026-08-24. This document is a handoff, not the final decision.
-> The complete 1/2/4-worker and `--smol` matrix is still running. Read the
-> current Git status, feature artifacts, validation report, and newer raw runs
-> before acting on any number below.
+> Final snapshot: 2026-08-24. The complete 1/2/4-worker and `--smol` matrix
+> passed independent validation. Read the current Git status and newer commits
+> before changing defaults or CI.
 
 ## Mission
 
@@ -23,7 +22,7 @@ change neither the default runner nor CI until independent validation passes.
 - Canonical tree: `app/tests/`.
 - Feature artifacts: `.specs/features/bun-test-revalidation/`.
 - Evidence: `docs/benchmarks/bun-test-revalidation/`.
-- First independent verdict: FAIL; see
+- Independent validation iteration 2: PASS; see
   `.specs/features/bun-test-revalidation/validation.md`.
 
 ## Current status
@@ -42,13 +41,13 @@ Completed:
 9. External-load sensors and two shared machine locks implemented.
 10. One isolated-1 comparison completed with five valid samples per arm.
 
-In progress:
+Finalized:
 
-1. Full decision-quality isolated-1/2/4 and `--smol` matrix.
-2. All 113 product files must remain in the commands; fully skipped file
-   semantics are normalized instead of excluding files.
-3. Final STATE/testing-rule reconciliation.
-4. Fresh Sol-medium verification after the complete matrix.
+1. Full decision-quality isolated-1/2/4 and `--smol`-2 matrix.
+2. All 113 product files remain represented in every valid arm.
+3. Fully skipped DB file semantics are normalized instead of excluding files.
+4. STATE and testing rules agree with the opt-in candidate state.
+5. Sol-medium validation iteration 2 returned PASS.
 
 Queued after Bun Test validation:
 
@@ -57,23 +56,18 @@ Queued after Bun Test validation:
 2. Restore a local Bun.WebView smoke harness and retest only the equivalent
    five-route subset. Keep it out of CI/defaults.
 
-## Best valid result available
+## Final matrix
 
-The only repeated valid result available at this snapshot is the matched
-isolated-1 profile. It is narrow, not a general cutover decision.
+Every arm has one discarded warm-up, five valid interleaved samples, 113
+product files, 2,057 passes, 84 normalized environmental skips, and zero
+failures/todos.
 
-| Metric | Vitest on Bun | Bun Test | Bun delta |
-| --- | ---: | ---: | ---: |
-| Runtime | Bun 1.4.0 | Bun 1.4.0 | equal |
-| Profile | 1 worker | 1 worker, `--isolate` | matched |
-| Samples | 1 warm-up + 5 valid | 1 warm-up + 5 valid | equal |
-| Passing leaf tests | 2,057 | 2,057 | equal |
-| Skipped leaf tests | 67 | 67 | equal |
-| Median time | 55.671 s | 40.762 s | **-26.8%** |
-| Observed spread | 54.792–60.663 s | 39.274–41.549 s | Bun narrower |
-| Median process-tree RSS | 2,006.8 MiB | 2,559.7 MiB | **+27.6%** |
-| Peak-RSS × median time | 111,717 MiB·s | 104,339 MiB·s | **-6.6%** |
-| Nominal serialized throughput | 64.7 suites/hour | 88.3 suites/hour | **+36.6%** |
+| Profile | Vitest median / peak RSS | Bun median / peak RSS | Bun result | Bun RSS×time |
+| --- | ---: | ---: | ---: | ---: |
+| isolated-1 | 55.549 s / 2,278.6 MiB | 38.271 s / 2,777.5 MiB | **31.10% faster**, 21.90% more RSS | **16.02% lower** |
+| isolated-2 | 33.080 s / 2,751.9 MiB | 25.922 s / 2,841.1 MiB | **21.64% faster**, 3.24% more RSS | **19.10% lower** |
+| isolated-4 | 20.433 s / 3,394.8 MiB | 21.318 s / 3,031.2 MiB | 4.33% slower, **10.71% less RSS** | **6.84% lower** |
+| `--smol`-2 | 38.190 s / 2,631.5 MiB | 32.916 s / 2,728.3 MiB | **13.81% faster**, 3.68% more RSS | **10.64% lower** |
 
 Interpretation:
 
@@ -82,12 +76,13 @@ Interpretation:
 - Bun wins the approximate memory-occupancy product.
 - For queued worktrees, shorter occupancy may outweigh the higher peak.
 - For simultaneous uncoordinated worktrees, Bun's higher peak remains a risk.
-- The complete 1/2/4/`--smol` matrix decides whether this trade-off holds.
+- Isolated-2 is the strongest throughput/peak-RSS compromise in this matrix.
+- The validated project decision still keeps Vitest as default because the
+  second independent tree has maintenance cost and the result is profile-dependent.
 
-Raw evidence:
-
-- `docs/benchmarks/bun-test-revalidation/runs/run-2026-08-24T20-36-29-794Z.json`
-- `docs/benchmarks/bun-test-revalidation/runs/run-2026-08-24T20-36-29-794Z.md`
+Raw evidence is linked from
+`docs/benchmarks/bun-test-revalidation/matrix-2026-08-24.md` and
+`docs/benchmarks/bun-test-revalidation/README.md`.
 
 ## Why the original comparison was unfair
 
@@ -283,9 +278,8 @@ The first Sol-medium verifier returned FAIL. Blockers were:
    retired state.
 4. The full Vitest gate inherited an unavailable PostgreSQL URL.
 
-Remediation commit `ed5f26d` normalizes profiles and database skips without
-removing product files. The complete matrix and final documentation remain in
-progress. Run a fresh verifier after they finish.
+Remediation commits `ed5f26d`, `ac12830`, `3d66dcc`, `9d022e7`, and `be377cb`
+closed these blockers. Validation iteration 2 in commit `1b027d5` returned PASS.
 
 ## Important commits
 
@@ -305,6 +299,11 @@ progress. Run a fresh verifier after they finish.
 | `94595ef` | Narrow conservative decision |
 | `f88613a` | Preserve first verifier FAIL |
 | `ed5f26d` | Normalize full matrix and database skips |
+| `ac12830` | Aggregate parallel worker memory |
+| `3d66dcc` | Record complete finalist matrix |
+| `9d022e7` | Record final revalidation decision |
+| `be377cb` | Sanitize local database gate environment |
+| `1b027d5` | Independent validation iteration 2 PASS |
 
 Read newer commits before assuming this list is current.
 
@@ -312,21 +311,12 @@ Read newer commits before assuming this list is current.
 
 1. Read `.specs/features/bun-test-revalidation/{spec,context,design,tasks,validation}.md`.
 2. Read this handoff, then inspect newer commits and raw run artifacts.
-3. Wait for the active remediation agent; avoid starting another benchmark in
-   parallel.
-4. Confirm every T7 finalist has one discarded warm-up and at least five valid
-   full-suite samples with all 113 product files represented.
-5. Confirm equal leaf outcomes and environmental skips.
-6. Recompute time, throughput, peak RSS, and peak-RSS×time from raw JSON.
-7. Reconcile `.specs/STATE.md`, `.agents/rules/testing.md`, and package scripts.
-8. Run parity, focused harness tests, typecheck, Biome, build, lint-tests, full
-   sanitized Vitest, full Bun candidate, and the TLC validators.
-9. Run a fresh Sol-medium verifier with a discrimination mutation in a
-   temporary worktree.
-10. Keep `test`, CI, Playwright, and Bun.WebView defaults unchanged until the
-    verifier passes and the maintainer explicitly approves a cutover.
+3. Treat the complete matrix and validation PASS as the current evidence.
+4. Keep `test`, CI, Playwright, and Bun.WebView defaults unchanged until the
+   maintainer explicitly approves a separate cutover.
+5. The next approved experiment is Playwright Node/Bun workers 1/2 followed by
+   a local-only equivalent Bun.WebView smoke revalidation.
 
-Completion criterion: every promoted profile has decision-quality evidence,
-all product outcomes match, the full local gates pass, STATE/rules agree, and
-the independent verifier verdict is PASS.
-
+Completion criterion for any cutover: make a separate explicit decision that
+accounts for the maintenance cost of the second suite and the profile-dependent
+time/peak-RSS trade-off.
