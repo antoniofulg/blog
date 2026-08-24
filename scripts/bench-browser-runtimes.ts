@@ -70,6 +70,8 @@ export type BrowserProfileResult = {
 	warmup: BrowserSample;
 	samples: BrowserSample[];
 	screening?: { warmup: BrowserSample; samples: BrowserSample[] };
+	extraWarmups?: BrowserSample[];
+	excludedSamples?: BrowserSample[];
 	aggregate: Aggregate | null;
 	valid: boolean;
 	invalidReasons: string[];
@@ -302,6 +304,43 @@ async function runProfile(profile: Profile, repetitions: number): Promise<Browse
 	return { profile, warmup, samples, aggregate: aggregateSamples(samples), valid: invalidReasons.length === 0, invalidReasons, nonDominated: false, interleaved: false };
 }
 
+async function runColdFinalistsInterleaved(
+	profiles: Profile[],
+	repetitions: number,
+): Promise<Map<string, BrowserProfileResult>> {
+	const states = new Map<string, BrowserProfileResult>();
+	for (let round = 0; round < repetitions; round += 1) {
+		for (const profile of profiles) {
+			const run = await runProfile(profile, 1);
+			const state = states.get(profile.id);
+			if (!state) {
+				const measured = run.samples.find((sample) => sample.valid) ?? run.samples[0];
+				states.set(profile.id, {
+					...run,
+					samples: measured ? [measured] : [],
+					extraWarmups: [],
+					excludedSamples: run.samples.filter((sample) => sample !== measured),
+					invalidReasons: [...run.invalidReasons],
+					interleaved: true,
+				});
+				continue;
+			}
+			const measured = run.samples.find((sample) => sample.valid) ?? run.samples[0];
+			if (measured) state.samples.push(measured);
+			state.extraWarmups?.push(run.warmup);
+			state.excludedSamples?.push(...run.samples.filter((sample) => sample !== measured));
+			state.invalidReasons.push(...run.invalidReasons);
+		}
+	}
+	for (const state of states.values()) {
+		const validCount = state.samples.filter((sample) => sample.valid).length;
+		if (validCount !== repetitions) state.invalidReasons.push(`expected ${repetitions} interleaved valid samples, got ${validCount}`);
+		state.aggregate = aggregateSamples(state.samples);
+		state.valid = state.warmup.valid && validCount === repetitions && state.invalidReasons.length === 0;
+	}
+	return states;
+}
+
 async function commit(): Promise<string> {
 	try { return (await exec("git", ["rev-parse", "HEAD"])).stdout.trim(); } catch { return "unknown"; }
 }
@@ -346,14 +385,22 @@ export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, pro
 	const screening: BrowserProfileResult[] = [];
 	for (const profile of profiles) screening.push(await runProfile(profile, SCREENING_REPETITIONS));
 	const screeningFinalists = selectNonDominated(screening.map((result) => ({ ...result, interleaved: true })));
-	const confirmed = new Map<string, BrowserProfileResult>();
-	const finalistSchedule = interleaveProfileIds(screeningFinalists, repetitions);
-	for (const profile of profiles.filter((candidate) => screeningFinalists.includes(candidate.id))) {
+	const confirmed = await runColdFinalistsInterleaved(
+		profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "cold"),
+		repetitions,
+	);
+	const finalistSchedule = interleaveProfileIds([...confirmed.keys()], repetitions);
+	for (const profile of profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "warm")) {
 		const result = await runProfile(profile, repetitions);
+		result.invalidReasons.push("warm finalist invalidated: warm session cannot be interleaved across process groups");
+		result.valid = false;
+		result.interleaved = false;
+		confirmed.set(profile.id, result);
+	}
+	for (const profile of profiles.filter((candidate) => confirmed.has(candidate.id))) {
+		const result = confirmed.get(profile.id)!;
 		const prior = screening.find((candidate) => candidate.profile.id === profile.id);
 		if (prior) result.screening = { warmup: prior.warmup, samples: prior.samples };
-		result.interleaved = true;
-		confirmed.set(profile.id, result);
 	}
 	const results = profiles.map((profile) => confirmed.get(profile.id) ?? screening.find((result) => result.profile.id === profile.id)!);
 	const finalists = selectNonDominated(results);
