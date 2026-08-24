@@ -72,15 +72,18 @@ T6 → T7 → T8 → T9
 
 **Done when**:
 
-- [ ] Candidate product tests and fixtures are restored as a separate tree
-- [ ] Historical benchmark/shadow tests are excluded or clearly classified as experiment infrastructure
-- [ ] Imports resolve against current application code
-- [ ] Candidate smoke inventory is documented
-- [ ] Candidate gate passes for a representative pure file
+- [x] Candidate product tests and fixtures are restored as a separate tree
+- [x] Historical benchmark/shadow tests are excluded or clearly classified as experiment infrastructure
+- [x] Imports resolve against current application code
+- [x] Candidate smoke inventory is documented
+- [x] Candidate gate passes for a representative pure file
 
 **Tests**: candidate smoke/inventory
 **Gate**: candidate
 **Commit**: `test(bun): restore native candidate suite`
+
+**Status**: ✅ Complete. The representative smoke and full isolated candidate
+run are green; outcome parity remains a T4 responsibility.
 
 ### T2: Add scoped Bun DOM environment
 
@@ -273,4 +276,3 @@ T6 → T7 → T8 → T9
 | T7 | evidence | integration benchmark | yes | ✅ |
 | T8 | evidence | full benchmark | yes | ✅ |
 | T9 | docs/decision | consistency and final gates | yes | ✅ |
-
