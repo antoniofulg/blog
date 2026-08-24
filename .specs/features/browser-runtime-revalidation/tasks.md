@@ -50,6 +50,7 @@ T4 → T5 → T6
 **Tests**: unit
 **Gate**: quick
 **Commit**: `test(browser): add common smoke contract`
+**Status**: ✅ Complete
 
 ### T2: Extend Playwright runtime profiles
 **What**: Add controlled Node/Bun worker-1/2 screening without changing E2E defaults.
