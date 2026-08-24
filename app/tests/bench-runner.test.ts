@@ -10,6 +10,7 @@ import {
 } from "#/lib/bench/runner.server";
 import type { HostMeta } from "#/lib/bench/types";
 import {
+	parseRunnerOutcome,
 	type RevalidationArm,
 	type RevalidationDeps,
 	type RevalidationRun,
@@ -207,6 +208,16 @@ function depsFor(
 }
 
 describe("Bun Test revalidation harness", () => {
+	it("normalizes Bun's unnamed skipped describe wrappers", () => {
+		const outcome = parseRunnerOutcome(
+			'{"runner":"bun:test"}\n11 pass\n2 skip\n(skip) integration > (unnamed)\n(skip) integration > skipped leaf\nRan 11 tests across 1 files.',
+			"bun:test",
+		);
+		expect(outcome).toMatchObject({
+			testsPassed: 11,
+			testsSkipped: 1,
+		});
+	});
 	it("discards one warmup, rotates measured arms, and aggregates valid samples", async () => {
 		const runs = [
 			...arms.map((arm) => runResult(arm)),

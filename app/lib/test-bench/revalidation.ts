@@ -162,6 +162,9 @@ function parseBunOutcome(stdout: string): RevalidationOutcome | null {
 	const ran = stdout.match(/Ran\s+(\d+)\s+tests?\s+across\s+(\d+)\s+files?/i);
 	if (!ran) return null;
 	const flat = stdout.split("\n").join(" ");
+	const unnamedSkippedTests = stdout
+		.split("\n")
+		.filter((line) => /\(skip\).*?>\s+\(unnamed\)/i.test(line)).length;
 	return {
 		filesPassed:
 			numberAfter(flat, "pass") === 0 ? 0 : Number.parseInt(ran[2], 10),
@@ -169,7 +172,7 @@ function parseBunOutcome(stdout: string): RevalidationOutcome | null {
 			numberAfter(flat, "fail") === 0 ? 0 : Number.parseInt(ran[2], 10),
 		testsPassed: numberAfter(flat, "pass"),
 		testsFailed: numberAfter(flat, "fail"),
-		testsSkipped: numberAfter(flat, "skip"),
+		testsSkipped: Math.max(0, numberAfter(flat, "skip") - unnamedSkippedTests),
 		testsTodo: numberAfter(flat, "todo"),
 		testFileCount: Number.parseInt(ran[2], 10),
 	};
