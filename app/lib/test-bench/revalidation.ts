@@ -86,6 +86,13 @@ export type RevalidationDeps = {
 	) => string | undefined;
 };
 
+export type RevalidationOptions = {
+	/** Maximum measured attempts per arm when excluded samples are replenished. */
+	maxAttempts?: number;
+	/** Permit known contaminated/failed attempts when enough valid samples remain. */
+	allowExcludedSamples?: boolean;
+};
+
 const PROVENANCE_KEYS = [
 	"command",
 	"execPath",
@@ -277,11 +284,15 @@ export async function runRevalidation(
 	arms: RevalidationArm[],
 	repetitions = 5,
 	deps: RevalidationDeps = defaultRevalidationDeps,
+	options: RevalidationOptions = {},
 ): Promise<RevalidationRun> {
 	if (arms.length < 2)
 		throw new Error("at least two benchmark arms are required");
 	if (!Number.isInteger(repetitions) || repetitions < 1)
 		throw new Error("repetitions must be a positive integer");
+	const maxAttempts = options.maxAttempts ?? repetitions;
+	if (!Number.isInteger(maxAttempts) || maxAttempts < repetitions)
+		throw new Error("maxAttempts must be an integer >= repetitions");
 	const samples: RevalidationSample[] = [];
 	const armOrderByRepetition: string[][] = [];
 	const armById = new Map(arms.map((arm) => [arm.id, arm]));
@@ -309,8 +320,13 @@ export async function runRevalidation(
 		samples.push(sample);
 	}
 
-	for (let repetition = 1; repetition <= repetitions; repetition += 1) {
-		const order = repetition % 2 === 1 ? arms : [...arms].reverse();
+	const validCounts = new Map(arms.map((arm) => [arm.id, 0]));
+	for (let repetition = 1; repetition <= maxAttempts; repetition += 1) {
+		if (arms.every((arm) => (validCounts.get(arm.id) ?? 0) >= repetitions))
+			break;
+		const order = (repetition % 2 === 1 ? arms : [...arms].reverse()).filter(
+			(arm) => (validCounts.get(arm.id) ?? 0) < repetitions,
+		);
 		armOrderByRepetition.push(order.map((arm) => arm.id));
 		for (const arm of order) {
 			const run = await deps.spawn(arm.command, env, {
@@ -350,6 +366,8 @@ export async function runRevalidation(
 				failureExcerpt: failureExcerpt(run),
 			};
 			samples.push(sample);
+			if (!sample.excluded)
+				validCounts.set(arm.id, (validCounts.get(arm.id) ?? 0) + 1);
 		}
 	}
 
@@ -359,7 +377,12 @@ export async function runRevalidation(
 		const arm = armById.get(sample.arm);
 		if (arm && !sample.excluded)
 			invalidReasons.push(...sampleReasons(sample, arm));
-		if (sample.excluded && sample.repetition > 0 && sample.exclusionReason)
+		if (
+			!options.allowExcludedSamples &&
+			sample.excluded &&
+			sample.repetition > 0 &&
+			sample.exclusionReason
+		)
 			invalidReasons.push(
 				`${sample.arm} repetition ${sample.repetition}: ${sample.exclusionReason}`,
 			);
