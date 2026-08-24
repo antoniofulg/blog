@@ -4,6 +4,11 @@ import {
 	ALL_PROFILES,
 	type BrowserProfileResult,
 	commandForProfile,
+	detectBrowserContamination,
+	interleaveProfileIds,
+	parseSmokeOutput,
+	parseWebViewPassOutcomes,
+	sampleBoundary,
 	selectNonDominated,
 } from "../../scripts/bench-browser-runtimes";
 
@@ -69,5 +74,79 @@ describe("browser finalist benchmark", () => {
 			]),
 		).toEqual(["fast", "memory"]);
 		expect(BROWSER_SMOKE_ROUTE_IDS).toHaveLength(5);
+	});
+
+	test("encodes cold restart and warm reuse boundaries", () => {
+		const cold = ALL_PROFILES.find(
+			(profile) => profile.id === "webview:webkit:cold:1view",
+		);
+		const warm = ALL_PROFILES.find(
+			(profile) => profile.id === "webview:webkit:warm:1view",
+		);
+		expect(sampleBoundary(cold!)).toEqual({
+			phase: "cold",
+			server: "restarted-per-sample",
+			browser: "restarted-per-sample",
+			process: "restarted-per-sample",
+		});
+		expect(sampleBoundary(warm!)).toEqual({
+			phase: "warm",
+			server: "reused-arm",
+			browser: "reused-arm",
+			process: "reused-arm",
+		});
+	});
+
+	test("retains exact five route identities in Playwright and WebView outcomes", () => {
+		const playwrightReport = JSON.stringify({
+			stats: { expected: 5, skipped: 0, unexpected: 0, flaky: 0 },
+			suites: [
+				{
+					title: "public read",
+					specs: [
+						"en post render: title",
+						"pt-br post render: title",
+						"404: missing",
+						"/ renders 200",
+						"/pt-br/ renders 200",
+					].map((title) => ({
+						title,
+						tests: [{ results: [{ status: "passed" }] }],
+					})),
+				},
+			],
+		});
+		const playwright = parseSmokeOutput(playwrightReport, "playwright");
+		expect(playwright?.routes.map((route) => route.id)).toEqual(
+			BROWSER_SMOKE_ROUTE_IDS,
+		);
+		expect(playwright?.routes.every((route) => route.passed)).toBe(true);
+		const webview = parseWebViewPassOutcomes(
+			`BROWSER_SMOKE_RESULT ${JSON.stringify({ passOutcomes: [playwright?.routes] })}`,
+		);
+		expect(webview).toHaveLength(1);
+		expect(webview[0]?.routes.map((route) => route.id)).toEqual(
+			BROWSER_SMOKE_ROUTE_IDS,
+		);
+	});
+
+	test("detects external browser activity and preserves round-robin finalist schedule", () => {
+		expect(
+			detectBrowserContamination(
+				"123 456 /usr/bin/chromium --headless",
+				"/worktree",
+			),
+		).toContain("chromium");
+		expect(
+			detectBrowserContamination(
+				"123 456 /worktree/node_modules/chromium",
+				"/worktree",
+			),
+		).toBeUndefined();
+		expect(interleaveProfileIds(["node", "bun"], 3)).toEqual([
+			["node#1", "bun#1"],
+			["node#2", "bun#2"],
+			["node#3", "bun#3"],
+		]);
 	});
 });

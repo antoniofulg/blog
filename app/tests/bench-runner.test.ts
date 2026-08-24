@@ -7,6 +7,7 @@ import {
 	type MeasuredRun,
 	spawnMeasured,
 	tailLines,
+	verifyProcessGroupCleanup,
 } from "#/lib/bench/runner.server";
 import type { HostMeta } from "#/lib/bench/types";
 import {
@@ -116,6 +117,14 @@ describe("bench spawn measurement", () => {
 
 	it("reports zero resident memory for a process group that no longer exists", async () => {
 		expect(await groupRssBytes(999_999)).toBe(0);
+	});
+
+	it("proves measured process groups are gone after a successful run", async () => {
+		const result = await spawnMeasured(["bash", "-c", "exit 0"], ENV, {
+			timeoutMs: 10_000,
+		});
+		expect(result.cleanupVerified).toBe(true);
+		expect((await verifyProcessGroupCleanup(result.pgid)).verified).toBe(true);
 	});
 });
 

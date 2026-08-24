@@ -37,6 +37,10 @@ export type WebViewSmokeResult = {
 	smol: boolean;
 	routes: BrowserSmokeObservation[];
 	viewOutcomes: BrowserSmokeObservation[][];
+	/** One normalized route inventory per pass, retained for benchmark samples. */
+	passOutcomes: BrowserSmokeObservation[][];
+	/** Wall time for each pass, excluding browser construction. */
+	passDurationsMs: number[];
 	passed: boolean;
 };
 
@@ -196,9 +200,11 @@ async function runView(
 	view: Bun.WebView,
 	baseUrl: string,
 	passes: number,
-): Promise<BrowserSmokeObservation[]> {
+): Promise<{ outcomes: BrowserSmokeObservation[]; durationsMs: number[] }> {
 	const observations: BrowserSmokeObservation[] = [];
+	const durationsMs: number[] = [];
 	for (let pass = 0; pass < passes; pass += 1) {
+		const started = performance.now();
 		for (const route of BROWSER_SMOKE_ROUTES) {
 			try {
 				const snapshot = await pageSnapshot(
@@ -214,8 +220,9 @@ async function runView(
 				});
 			}
 		}
+		durationsMs.push(performance.now() - started);
 	}
-	return observations;
+	return { outcomes: observations, durationsMs };
 }
 
 function aggregateObservations(
@@ -237,6 +244,27 @@ function aggregateObservations(
 	});
 }
 
+function passObservations(
+	viewOutcomes: BrowserSmokeObservation[][],
+	passes: number,
+): BrowserSmokeObservation[][] {
+	return Array.from({ length: passes }, (_, pass) =>
+		BROWSER_SMOKE_ROUTES.map((route, routeIndex) => {
+			const observations = viewOutcomes.map(
+				(outcomes) => outcomes[pass * BROWSER_SMOKE_ROUTES.length + routeIndex],
+			);
+			return (
+				observations.find((observation) => !observation?.passed) ??
+				observations.find((observation) => observation !== undefined) ?? {
+					id: route.id,
+					passed: false,
+					error: "missing WebView observation",
+				}
+			);
+		}),
+	);
+}
+
 export async function runWebViewSmoke(
 	options: WebViewCliOptions,
 ): Promise<WebViewSmokeResult> {
@@ -256,10 +284,11 @@ export async function runWebViewSmoke(
 		const outcomes = await Promise.all(
 			views.map((view) => runView(view, options.baseUrl, options.passes)),
 		);
-		viewOutcomes.push(...outcomes);
+		viewOutcomes.push(...outcomes.map((result) => result.outcomes));
 		const routes = aggregateObservations(viewOutcomes, options.passes);
 		const normalized = normalizeBrowserSmokeOutcome({ routes });
 		if (!normalized) throw new Error("WebView smoke produced an invalid route inventory");
+		const perPass = passObservations(viewOutcomes, options.passes);
 		return {
 			backend: options.backend,
 			views: options.views,
@@ -267,6 +296,10 @@ export async function runWebViewSmoke(
 			smol: options.smol,
 			routes: normalized.routes,
 			viewOutcomes,
+			passOutcomes: perPass,
+			passDurationsMs: Array.from({ length: options.passes }, (_, pass) =>
+				Math.max(...outcomes.map((result) => result.durationsMs[pass] ?? 0)),
+			),
 			passed: normalized.passed,
 		};
 	} catch (error) {
