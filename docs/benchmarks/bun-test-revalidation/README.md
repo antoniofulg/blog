@@ -1,79 +1,61 @@
 # Bun Test revalidation
 
-This directory records the controlled Bun 1.4 revalidation requested after the
-initial Bun Test comparison. The experiment compares the existing Vitest suite
-running on Bun with the Bun-first suite; it does not change the default runner,
-CI, Playwright, or WebView decisions.
+This experiment compares Bun-hosted Vitest 4.1.5 with native Bun Test 1.4.0
+without changing the default runner, CI, Playwright, or production behavior.
 
-## Valid full-suite evidence
+## Final decision
 
-The decision-quality artifact is
-[`run-2026-08-24T20-36-29-794Z.md`](./runs/run-2026-08-24T20-36-29-794Z.md), with
-the complete machine-readable data in
-[`run-2026-08-24T20-36-29-794Z.json`](./runs/run-2026-08-24T20-36-29-794Z.json).
+The complete finalist matrix is in
+[`matrix-2026-08-24.md`](./matrix-2026-08-24.md). All four pairs have one
+discarded warm-up and five valid interleaved samples, process-tree RSS, and
+equivalent 113-file outcomes. The three DB integration files run in both arms;
+when local PostgreSQL is unavailable they produce intentional equal skips.
 
-It used Bun 1.4.0 on an Apple M3 Pro with 11 cores, isolated execution and one
-worker per arm. Each arm received one discarded warmup and five interleaved
-measured samples. Both arms represented 110 files, 2,057 passing tests and 67
-environment-skipped tests; the outcome gate passed. Eight measured attempts
-were contaminated by unrelated external validation processes and retained as
-excluded evidence. The two warmups are also retained and excluded.
+Keep Bun-hosted Vitest as `test` and as the blocking CI runner. The evidence is
+profile-dependent: native Bun Test is materially faster at isolated-1,
+isolated-2, and `--smol`-2, while Vitest is 4.33% faster at isolated-4. Bun's
+isolated-4 profile uses 10.71% less peak RSS, but its lower speed and the
+maintenance cost of a second suite do not justify a default or CI cutover.
 
-| Arm | Median time | Measured spread | Median process-tree RSS | Nominal serialized throughput |
-| --- | ---: | ---: | ---: | ---: |
-| Vitest on Bun | 55.671 s | 54.792–60.663 s | 2,006.8 MiB | 64.7 suites/hour |
-| Bun Test on Bun | 40.762 s | 39.274–41.549 s | 2,559.7 MiB | 88.3 suites/hour |
+The smallest reversible next step is to retain the explicit Bun routes as
+opt-in local candidates, with isolated-2 as the throughput candidate and
+`--smol`-2 as the memory-oriented candidate. Any future adoption must be a
+separate explicit decision; this run does not supersede AD-004.
 
-For this matched isolated-1 profile, Bun Test releases the machine 26.8% sooner
-and has a nominal serialized throughput gain of 36.6%, but its peak process-tree
-RSS is 27.6% higher. As a queue/occupancy approximation, median RSS multiplied
-by median duration is 111,717 MiB·s for Vitest and 104,339 MiB·s for Bun Test;
-Bun is 6.6% lower on this measure. This is not a true integral because RSS was
-sampled at 100 ms and the report stores peak RSS, so peak memory remains the
-primary multi-worktree safety metric.
+## Matrix summary
 
-## Conservative decision
+| Profile | Vitest median / peak RSS | Bun median / peak RSS | Bun result |
+| --- | ---: | ---: | --- |
+| isolated-1 | 55.549 s / 2,278.6 MiB | 38.271 s / 2,777.5 MiB | 31.10% faster, 21.90% more RSS |
+| isolated-2 | 33.080 s / 2,751.9 MiB | 25.922 s / 2,841.1 MiB | 21.64% faster, 3.24% more RSS |
+| isolated-4 | 20.433 s / 3,394.8 MiB | 21.318 s / 3,031.2 MiB | 4.33% slower, 10.71% less RSS |
+| `--smol`-2 | 38.190 s / 2,631.5 MiB | 32.916 s / 2,728.3 MiB | 13.81% faster, 3.68% more RSS |
 
-The matched-profile result is materially better for elapsed time and machine
-release, but it is not sufficient to replace the project default yet:
+All valid samples: 2,057 passed, 84 skipped, 0 failed, 0 todo, 113 files.
+The three fully skipped files are `auth-integ.test.ts`,
+`indexer-integ.test.ts`, and `sync-integ.test.ts`; their leaf identities remain
+in the parity manifest and both arms use the same sanitized local DB
+environment. Excluded contamination attempts are retained in the raw files:
+12 for isolated-4 and 6 for `--smol`-2.
 
-- only isolated-1 has a decision-quality full-suite run in T8; the 2/4-worker
-  and `--smol` profiles were screened in T7 but were not promoted to a final
-  winner;
-- the faster arm uses substantially more peak RSS, which matters when several
-  worktrees share the machine;
-- the result does not establish a CI-wide gain or a safe no-isolate profile;
-- the benchmark remains a local comparison and does not authorize changing
-  `test`, CI, or the Playwright runtime.
+## Raw evidence
 
-Therefore AD-004 remains active: keep Bun 1.4 + Vitest as the permanent
-unit/component/integration runner for now. Bun Test isolated-1 is a promising
-local candidate for a separately scoped follow-up, provided a complete
-2/4-worker and `--smol` final matrix confirms that the memory trade-off is
-acceptable. No CI or default-script cutover is made by this revalidation.
+- [`isolated-1 JSON`](./runs/run-2026-08-24T21-12-52-666Z.json) · [`Markdown`](./runs/run-2026-08-24T21-12-52-666Z.md)
+- [`isolated-2 JSON`](./runs/run-2026-08-24T21-37-17-650Z.json) · [`Markdown`](./runs/run-2026-08-24T21-37-17-650Z.md)
+- [`isolated-4 JSON`](./runs/run-2026-08-24T21-45-50-205Z.json) · [`Markdown`](./runs/run-2026-08-24T21-45-50-205Z.md)
+- [`--smol`-2 JSON`](./runs/run-2026-08-24T22-04-15-738Z.json) · [`Markdown`](./runs/run-2026-08-24T22-04-15-738Z.md)
 
-## Invalid and historical evidence
+The earlier invalid and contaminated runs remain versioned as historical
+evidence and are not used for the decision.
 
-These artifacts remain versioned for auditability but must not be used as
-performance winners:
+## Operational interpretation
 
-- [`run-2026-08-24T19-35-07-029Z.md`](./runs/run-2026-08-24T19-35-07-029Z.md)
-  reached five samples but used the pre-fix stderr parser and reported a false
-  skip mismatch (`67` vs `75`).
-- [`run-2026-08-24T20-16-29-696Z.md`](./runs/run-2026-08-24T20-16-29-696Z.md)
-  used full stderr after the first parser fix but double-counted Bun's repeated
-  skip summary (`67` vs `56`).
-- [`run-2026-08-24T15-00-23-611Z.md`](./runs/run-2026-08-24T15-00-23-611Z.md)
-  is the earlier contaminated/failed full-suite screen documented by T7.
+Peak instantaneous RSS is the primary multi-worktree metric. RSS·time is
+reported as a secondary queue-occupancy approximation: Bun is 16.02%, 19.10%,
+6.84%, and 10.64% lower for isolated-1, isolated-2, isolated-4, and `--smol`-2
+respectively. This does not mean a worktree can always start earlier: peak RSS,
+resource contention, and profile stability still govern safe concurrency.
 
-The parser and measurement fixes are covered by commits `4f1d012` and
-`e197636`; the valid T8 artifact and traceability update are commit `22c0ab7`.
-The cohort, isolation and `--smol` screening evidence is in
-[`cohort-screening.md`](./cohort-screening.md).
-
-## Follow-up
-
-If the project chooses to revisit the cutover, run the same controlled matrix
-for isolated-2, isolated-4 and `--smol`, with the same quiet-host and external
-process coordination. Record peak RSS, memory-time approximation, release
-time, outcome parity and CI-equivalent runs before superseding AD-004.
+The no-isolate probes remain rejected for DOM, mocks/timers, and integration
+cohorts because those suites leak state or contend for resources. No CI or
+default-script change is authorized by this artifact.

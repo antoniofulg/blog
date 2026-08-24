@@ -25,8 +25,15 @@ shared-runner conditions made both uncontrolled rather than valid performance
 benchmarks; memory evidence was inconclusive, and the evidence did not justify
 maintaining the candidate.
 
-Reports under `docs/benchmarks/bun-test/` are historical compatibility evidence
-only. Do not add or restore Bun Test shadow, parity, or cutover workflow.
+Reports under `docs/benchmarks/bun-test/` are historical compatibility evidence.
+The approved revalidation candidate is separate and opt-in: `app/tests-bun/`,
+`bun run test:parity`, matched `test:vitest:bun:1|2|4`, isolated
+`test:bun:parallel:2|4`, `test:bun:smol:2`, and
+`scripts/run-bun-revalidation-final.ts`. These routes must keep the full
+113-file product inventory, normalize fully skipped files with manifest/leaf
+identities, sanitize database environment, and preserve equivalent outcomes.
+They do not change `test`, blocking CI, or Playwright. Any default/CI cutover
+requires a separate explicit decision backed by a fresh versioned matrix.
 
 ## Layout
 

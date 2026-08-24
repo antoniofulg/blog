@@ -139,3 +139,16 @@ final report agree.
 | BTRV-06 | Peak-memory-first local decision | Tasks/Execute |
 | BTRV-07 | Versioned raw and narrative evidence | Tasks/Execute |
 | BTRV-08 | Reversible final recommendation | Validation |
+
+## Final traceability
+
+| Requirement | Evidence | Status |
+| --- | --- | --- |
+| BTRV-01 | `bun run test:parity`: 133 reference / 113 candidate files; explicit infrastructure dispositions | ✅ Verified |
+| BTRV-02 | Native DOM/resource semantics plus isolated candidate run: 2,057 pass / 84 skips / 0 failures | ✅ Verified |
+| BTRV-03 | `matrix-2026-08-24.md`: matched isolated 1/2/4 and Bun `--smol`-2 profiles | ✅ Verified |
+| BTRV-04 | All finalist raw outcomes agree at 113 files, 2,057 pass, 84 skips, 0 failures; fully skipped DB files are named | ✅ Verified |
+| BTRV-05 | Four raw runs each retain one warm-up and five valid interleaved samples per arm | ✅ Verified |
+| BTRV-06 | Final matrix reports process-tree peak RSS, RSS·time, wall time, and serialized throughput | ✅ Verified |
+| BTRV-07 | Non-overwriting JSON/Markdown pairs are linked from `README.md` | ✅ Verified |
+| BTRV-08 | `README.md`, `.specs/STATE.md`, and `.agents/rules/testing.md` preserve AD-004 and opt-in candidates | ✅ Verified |

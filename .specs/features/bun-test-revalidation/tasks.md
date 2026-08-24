@@ -257,13 +257,13 @@ and is not used as a winner.
 **Gate**: final
 **Commit**: `docs(test): record bun test revalidation runs`
 
-**Status**: ✅ Complete. The valid isolated-1 run is
-`run-2026-08-24T20-36-29-794Z` (five measured samples per arm, one warmup
-per arm, equivalent 110-file/2,057-pass/67-skip outcomes). Eight contaminated
-attempts are retained in the same artifact and excluded. Earlier parser,
-outcome, and contamination failures remain preserved as
-`run-2026-08-24T19-35-07-029Z` and `run-2026-08-24T20-16-29-696Z`; neither is
-used for the decision.
+**Status**: ✅ Complete. The final matrix is summarized in
+`docs/benchmarks/bun-test-revalidation/matrix-2026-08-24.md` and links four
+raw JSON/Markdown pairs. Isolated-1, isolated-2, isolated-4, and Bun
+`--smol`-2 each have one discarded warmup and five valid interleaved samples
+per arm. Every valid sample reports the complete 113-file product inventory,
+2,057 pass, 84 equal environmental skips, and zero failures; contaminated
+attempts are retained and excluded in the raw artifacts.
 
 ### T9: Record the runner decision
 
@@ -286,11 +286,13 @@ used for the decision.
 **Gate**: final
 **Commit**: `docs(test): decide native bun test adoption`
 
-**Status**: ✅ Complete. The valid isolated-1 result favors Bun Test for
-elapsed time and queue release, but its higher peak RSS and the missing final
-2/4-worker/`--smol` matrix mean AD-004 is preserved. Defaults, CI and
-Playwright remain unchanged; the evidence and follow-up criteria are recorded
-in `docs/benchmarks/bun-test-revalidation/README.md`.
+**Status**: ✅ Complete. The complete matrix favors Bun Test for elapsed time at
+isolated-1, isolated-2, and `--smol`-2, while Vitest is faster at isolated-4
+and has the lower peak RSS at 1/2 workers. AD-004 remains active: defaults, CI,
+and Playwright remain unchanged. Explicit Bun routes are retained as reversible
+local candidates, and the profile-scoped recommendation plus RSS·time,
+time-to-release, and throughput evidence is recorded in
+`docs/benchmarks/bun-test-revalidation/README.md`.
 
 ## Diagram-Definition Cross-Check
 

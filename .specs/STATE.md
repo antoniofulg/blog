@@ -29,19 +29,26 @@
 
 ### AD-004
 - **Decision**: Keep Bun 1.4 + Vitest as the permanent unit, component, and integration test runner; retire Bun Test and its shadow/cutover workflow.
-- **Reason**: The controlled isolated-1 revalidation completed five valid interleaved samples with equivalent 110-file/2,057-pass/67-skip outcomes. Bun Test was 26.8% faster and improved nominal serialized release throughput by 36.6%, but peak process-tree RSS was 27.6% higher. Its RSS×duration approximation was 6.6% lower, yet only isolated-1 was run to the final gate; the 2/4-worker and `--smol` profiles still need a complete matrix before a default cutover.
-- **Trade-off**: Keep the lower-peak-RSS Vitest default for multi-worktree safety while retaining Bun Test isolated-1 as a promising local candidate. The valid and invalid raw reports, parser fixes, and follow-up criteria remain versioned for a future decision.
+- **Reason**: The final matrix completed five valid interleaved samples for matched isolated 1/2/4 and Bun `--smol`-2 profiles with equivalent 113-file/2,057-pass/84-skip outcomes. Bun Test was faster at isolated-1 (31.10%), isolated-2 (21.64%), and `--smol`-2 (13.81%), while Vitest was faster at isolated-4 (4.33%); Bun peak RSS was lower only at isolated-4.
+- **Trade-off**: Keep Vitest as the default and CI runner while retaining explicit Bun profiles as reversible local candidates. The complete raw matrix, parser fixes, sanitized environment, and skip normalization remain versioned for a future adoption decision.
 - **Scope**: Unit/component/integration runner, test scripts, CI shadowing, and migration documentation.
 - **Date**: 2026-08-24
 - **Status**: active
 
 ## Handoff
 
-- **Feature**: Bun Test retirement (`docs/plans/2026-08-24-retire-bun-test-design.md`)
-- **Phase / Task**: Retirement complete; historical evidence and completed migration specs retained.
-- **Completed**: Bun 1.4 + Vitest is permanent for unit, component, and integration tests. The Bun Test duplicate tree, shadow CI job, parity/cutover tooling, and live candidate commands were retired. `test:e2e` delegates to Bun-driven Playwright and `test:e2e:node` remains the fallback. The WebView harness and routes were removed after raw reports were archived. Historical benchmark reports and migration validation remain linked for traceability.
+- **Feature**: Bun Test revalidation (`.specs/features/bun-test-revalidation/`)
+- **Phase / Task**: T9 complete; final matrix and decision artifacts are committed.
+- **Completed**: Bun 1.4 + Vitest remains the permanent `test` and blocking CI
+  runner under AD-004. The independent Bun-first product tree, parity gate,
+  matched `test:vitest:bun:1|2|4`, isolated Bun `test:bun:parallel:2|4`,
+  `test:bun:smol:2`, and final benchmark routes remain available as explicit
+  opt-in revalidation candidates. `test:e2e` remains Bun-driven Playwright and
+  `test:e2e:node` remains the fallback.
 - **In-progress** (file:line): none.
-- **Next step**: none for Bun Test migration. Maintain Bun 1.4 + Vitest and preserve historical benchmark evidence.
-- **Blockers**: none.
-- **Repository state**: Current operational state is the post-retirement runner configuration; historical specs and benchmark reports are not executable guidance.
-- **Branch**: chore/retire-bun-test (merge target: main)
+- **Next step**: Any default or CI Bun Test adoption requires a separate,
+  explicit decision using the versioned matrix evidence; no automatic cutover.
+- **Blockers**: none for the approved revalidation scope.
+- **Repository state**: Operational defaults are unchanged; experimental parity,
+  profile, and benchmark routes are executable but opt-in only.
+- **Branch**: test/bun-test-revalidation (merge target: main)
