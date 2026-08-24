@@ -35,6 +35,14 @@
 - **Date**: 2026-08-24
 - **Status**: active
 
+### AD-005
+- **Decision**: Keep Playwright as the E2E reference and keep Bun.WebView as an opt-in local five-route diagnostic only.
+- **Reason**: The controlled browser revalidation preserved the five-route outcome contract and process-tree measurements, but WebView remains experimental and lacks Playwright's full suite capabilities. Only Node Playwright worker-1 completed five uncontaminated finalist samples; external browser activity invalidated the remaining confirmation attempt.
+- **Trade-off**: The WebView harness and raw profiles remain versioned for future local experiments, while no default, CI, or Playwright configuration changes are made.
+- **Scope**: Browser runtime revalidation feature under `.specs/features/browser-runtime-revalidation/`.
+- **Date**: 2026-08-24
+- **Status**: active
+
 ## Handoff
 
 - **Feature**: Bun Test revalidation (`.specs/features/bun-test-revalidation/`)

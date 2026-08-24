@@ -100,6 +100,7 @@ T4 → T5 → T6
 **Tests**: documentation/gate consistency
 **Gate**: final
 **Commit**: `docs(browser): decide runtime revalidation`
+**Status**: ✅ Complete
 
 ## Diagram-Definition Cross-Check
 
