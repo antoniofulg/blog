@@ -191,16 +191,22 @@ runner provenance checks. The default `test` script remains unchanged.
 
 **Done when**:
 
-- [ ] Warm-up is discarded and measured arm order rotates
-- [ ] Complete process-tree peak RSS, wall time, load and provenance are recorded
-- [ ] Inventory/outcome mismatch and contaminated samples invalidate/exclude correctly
-- [ ] Median and spread are derived from valid samples
-- [ ] Reports are unique JSON/Markdown and agree exactly
-- [ ] Unit/integration fixture tests cover success, failure, timeout and invalidation
+- [x] Warm-up is discarded and measured arm order rotates
+- [x] Complete process-tree peak RSS, wall time, load and provenance are recorded
+- [x] Inventory/outcome mismatch and contaminated samples invalidate/exclude correctly
+- [x] Median and spread are derived from valid samples
+- [x] Reports are unique JSON/Markdown and agree exactly
+- [x] Unit/integration fixture tests cover success, failure, timeout and invalidation
 
 **Tests**: unit/integration
 **Gate**: full
 **Commit**: `test(bun): add controlled benchmark harness`
+
+**Status**: ✅ Complete. The harness executes interleaved arms with one retained
+warmup per arm, records process-tree RSS/provenance/load, excludes and retains
+contaminated or failed samples, invalidates outcome mismatches, aggregates
+median/spread, and writes unique JSON/Markdown reports. The thin CLI supports
+profile selection and repetition count without changing the default test route.
 
 ### T7: Screen cohorts and select finalists
 

@@ -104,6 +104,12 @@ describe("test scripts", () => {
 		);
 	});
 
+	it("exposes the Bun Test revalidation benchmark alias", () => {
+		expect(scripts["bench:test:revalidation"]).toBe(
+			"bun run scripts/bench-bun-test-revalidation.ts",
+		);
+	});
+
 	it("exposes the Playwright runtime benchmark alias", () => {
 		expect(scripts["bench:e2e:runtimes"]).toBe(
 			"bun run scripts/bench-e2e-runtimes.ts",

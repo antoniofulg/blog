@@ -47,6 +47,7 @@
     "favicons": "bun run scripts/generate-favicons.ts",
     "bench": "bun run scripts/bench.ts",
     "bench:vitest:workers": "bun run scripts/bench-vitest-workers.ts",
+    "bench:test:revalidation": "bun run scripts/bench-bun-test-revalidation.ts",
     "bench:e2e:runtimes": "bun run scripts/bench-e2e-runtimes.ts"
   },
   "dependencies": {
