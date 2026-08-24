@@ -69,4 +69,4 @@
 - **Evidence**: Prior schema-1 runs remain audit-only. Schema-2 sensor-check run `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-24T23-21-37-689Z.json` retained as invalid because external automation was active.
 - **Next step**: Run approved quiet-machine matrix. Require one warm-up + three valid screening samples for every arm, then five valid interleaved confirmation samples for each non-dominated finalist. Update `validation.md` only after fresh verifier pass.
 - **Defaults / CI**: unchanged.
-- **Commits**: `846303b`, `a4d2e2d`, `22b2754`.
+- **Commits**: `846303b`, `a4d2e2d`, `a4e6054`, `22b2754`.
