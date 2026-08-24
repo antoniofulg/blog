@@ -201,6 +201,10 @@ function failureExcerpt(run: MeasuredRun): string | undefined {
 	return value || undefined;
 }
 
+function runnerOutput(run: MeasuredRun): string {
+	return [run.stdout, run.stderrTail].filter(Boolean).join("\n");
+}
+
 function sampleReasons(
 	sample: RevalidationSample,
 	arm: RevalidationArm,
@@ -294,7 +298,7 @@ export async function runRevalidation(
 			timedOut: run.timedOut,
 			loadAvg1: run.loadAvg1,
 			provenance: parseProvenance(run.stdout, arm),
-			outcome: parseRunnerOutcome(run.stdout, arm.runner),
+			outcome: parseRunnerOutcome(runnerOutput(run), arm.runner),
 			excluded: true,
 			exclusionReason: "warmup",
 			failureExcerpt: failureExcerpt(run),
@@ -320,7 +324,7 @@ export async function runRevalidation(
 					timedOut: run.timedOut,
 					loadAvg1: run.loadAvg1,
 					provenance: parseProvenance(run.stdout, arm),
-					outcome: parseRunnerOutcome(run.stdout, arm.runner),
+					outcome: parseRunnerOutcome(runnerOutput(run), arm.runner),
 					excluded: false,
 				},
 				arm,
@@ -335,7 +339,7 @@ export async function runRevalidation(
 				timedOut: run.timedOut,
 				loadAvg1: run.loadAvg1,
 				provenance: parseProvenance(run.stdout, arm),
-				outcome: parseRunnerOutcome(run.stdout, arm.runner),
+				outcome: parseRunnerOutcome(runnerOutput(run), arm.runner),
 				excluded: reasons.length > 0 || contamination !== undefined,
 				exclusionReason: contamination
 					? `contaminated: ${contamination}`
