@@ -70,6 +70,7 @@ T4 → T5 → T6
 **Tests**: unit/integration
 **Gate**: browser
 **Commit**: `test(browser): restore local webview smoke`
+**Status**: ✅ Complete
 
 ### T4: Add browser finalist benchmark
 **What**: Screen cold/warm, serial/parallel-view and smol profiles and confirm valid finalists.

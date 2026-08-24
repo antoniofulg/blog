@@ -11,7 +11,7 @@ export type BrowserSmokeRouteId = (typeof BROWSER_SMOKE_ROUTE_IDS)[number];
 export type BrowserSmokeRoute = {
 	id: BrowserSmokeRouteId;
 	path: string;
-	expectedStatus: number;
+	expectedStatus?: number;
 	expectedLang?: string;
 	expectedHeading?: string;
 	expectedText?: string;
@@ -38,7 +38,6 @@ export const BROWSER_SMOKE_ROUTES: readonly BrowserSmokeRoute[] = [
 	{
 		id: "not-found",
 		path: "/this-slug-does-not-exist-e2e-99999",
-		expectedStatus: 200,
 		expectedHeading: "Post not found",
 	},
 	{

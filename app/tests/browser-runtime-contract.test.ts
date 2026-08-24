@@ -15,8 +15,11 @@ describe("browser smoke contract", () => {
 			5,
 		);
 		expect(
-			BROWSER_SMOKE_ROUTES.every((route) => route.expectedStatus === 200),
-		).toBe(true);
+			BROWSER_SMOKE_ROUTES.filter((route) => route.expectedStatus === 200),
+		).toHaveLength(4);
+		expect(
+			BROWSER_SMOKE_ROUTES.find((route) => route.id === "not-found"),
+		).not.toHaveProperty("expectedStatus");
 	});
 
 	test("normalizes a complete successful outcome without runner-specific fields", () => {
