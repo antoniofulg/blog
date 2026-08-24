@@ -20,9 +20,9 @@ rather than product behavior:
 - `test-scripts.test.ts`
 - `write-shadow-result.test.ts`
 
-The current canonical inventory has 132 test files. The parity phase records
-the 19-file infrastructure disposition before any performance result is
-considered valid.
+The current canonical inventory has 133 test files: 113 product files and 20
+runner/benchmark infrastructure files. The parity phase records each
+infrastructure disposition before any performance result is considered valid.
 
 Representative smoke command:
 

@@ -142,15 +142,20 @@ the TypeScript/Biome gates are green.
 
 **Done when**:
 
-- [ ] Relative files, leaf tests, assertions, fixtures and dispositions are deterministic
-- [ ] Missing/lower candidate inventory fails precisely
-- [ ] Runtime file/test/pass/fail/skip/todo differences invalidate comparison
-- [ ] DOM environment and residual Vitest API mismatches are detected
-- [ ] All branches and listed mismatch edge cases have tests
+- [x] Relative files, leaf tests, assertions, fixtures and dispositions are deterministic
+- [x] Missing/lower candidate inventory fails precisely
+- [x] Runtime file/test/pass/fail/skip/todo differences invalidate comparison
+- [x] DOM environment and residual Vitest API mismatches are detected
+- [x] All branches and listed mismatch edge cases have tests
 
 **Tests**: unit
 **Gate**: quick
 **Commit**: `test(bun): add outcome parity gate`
+
+**Status**: ✅ Complete. Static inventories now include deterministic leaf
+identities, fixture coverage, lifecycle hooks, resource semantics, mock export
+checks and explicit infrastructure dispositions. Runtime outcome comparison
+covers file/test/pass/fail/skip/todo counts and optional leaf identities.
 
 ### T5: Add controlled runner profiles
 
