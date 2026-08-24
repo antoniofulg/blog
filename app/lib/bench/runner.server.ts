@@ -26,6 +26,8 @@ const STDERR_TAIL_LINES = 20;
 
 export type MeasuredRun = Sample & {
 	stdout: string;
+	/** Full stderr for parsers whose structured summary is emitted there. */
+	stderr?: string;
 	stderrTail: string;
 	timedOut: boolean;
 	/** Process-group id the command ran in, so a caller can prove it is gone. */
@@ -117,6 +119,7 @@ export async function spawnMeasured(
 		exitCode,
 		loadAvg1,
 		stdout,
+		stderr,
 		stderrTail: tailLines(stderr),
 		timedOut,
 		pgid,

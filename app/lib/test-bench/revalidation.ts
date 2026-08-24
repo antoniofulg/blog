@@ -212,7 +212,7 @@ function failureExcerpt(run: MeasuredRun): string | undefined {
 }
 
 function runnerOutput(run: MeasuredRun): string {
-	return [run.stdout, run.stderrTail].filter(Boolean).join("\n");
+	return [run.stdout, run.stderr ?? run.stderrTail].filter(Boolean).join("\n");
 }
 
 export function externalProcessContamination(
