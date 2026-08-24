@@ -90,6 +90,7 @@ T4 → T5 → T6
 **Tests**: benchmark evidence
 **Gate**: final
 **Commit**: `docs(browser): record runtime revalidation runs`
+**Status**: ✅ Complete — one valid five-sample finalist recorded; contaminated/invalid arms retained with reasons
 
 ### T6: Record browser runtime decision
 **What**: Compare performance, memory, coverage and maintenance without changing defaults/CI.

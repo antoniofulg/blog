@@ -1,0 +1,104 @@
+{
+  "schemaVersion": 1,
+  "commit": "508dfca2b51571cf386f8040dc1002860aa786b6",
+  "timestamp": "2026-08-24T22:37:55.051Z",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 8.236328125,
+    "powerSource": "ac",
+    "startedAt": "2026-08-24T22:37:55.066Z"
+  },
+  "repetitions": 1,
+  "warmupsPerProfile": 1,
+  "canonicalRoutes": 5,
+  "profiles": [
+    {
+      "profile": {
+        "id": "webview:webkit:cold:1view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:cold:1view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 1314.8004580000002,
+        "peakRssBytes": 132415488,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:cold:1view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 758.0733749999999,
+          "peakRssBytes": 140345344,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 758.0733749999999,
+        "minMs": 758.0733749999999,
+        "maxMs": 758.0733749999999,
+        "medianPeakRssBytes": 140345344,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": true
+    }
+  ],
+  "finalists": [
+    "webview:webkit:cold:1view"
+  ],
+  "locks": [
+    "/tmp/praxis-playwright.lock",
+    "/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/creatista-test.lock"
+  ]
+}

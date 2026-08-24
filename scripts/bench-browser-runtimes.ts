@@ -158,10 +158,20 @@ function parseSmokeOutput(stdout: string, arm: Profile["arm"]): BrowserSample["o
 		}
 		return null;
 	}
-	const match = stdout.match(/Test Files\s+.*?\((\d+)\)|Tests\s+.*?\((\d+)\)/);
-	return match
-		? { passed: true, routeCount: BROWSER_SMOKE_ROUTE_IDS.length }
-		: null;
+	try {
+		const report = JSON.parse(stdout.trim()) as {
+			stats?: { unexpected?: unknown; flaky?: unknown; skipped?: unknown };
+		};
+		const stats = report.stats;
+		if (!stats) return null;
+		return {
+			passed:
+				stats.unexpected === 0 && stats.flaky === 0 && stats.skipped === 0,
+			routeCount: BROWSER_SMOKE_ROUTE_IDS.length,
+		};
+	} catch {
+		return null;
+	}
 }
 
 function sampleFromRun(profile: Profile, kind: BrowserSample["kind"], run: number, measured: MeasuredRun, command: string[]): BrowserSample {
@@ -212,9 +222,17 @@ async function runProfile(profile: Profile, repetitions: number, baseUrl: string
 	const command = commandForProfile(profile, baseUrl);
 	const warmup = sampleFromRun(profile, "warmup", 0, await spawnMeasured(command, process.env, { timeoutMs: 15 * 60_000, cwd: process.cwd() }), command);
 	const samples: BrowserSample[] = [];
-	for (let repetition = 1; repetition <= repetitions; repetition += 1) {
+	let attempt = 0;
+	const maxAttempts = repetitions + 5;
+	while (samples.filter((sample) => sample.valid).length < repetitions && attempt < maxAttempts) {
+		attempt += 1;
+		const contamination = await externalBrowserContamination();
 		const measured = await spawnMeasured(command, process.env, { timeoutMs: 15 * 60_000, cwd: process.cwd() });
-		const sample = sampleFromRun(profile, "measured", repetition, measured, command);
+		const sample = sampleFromRun(profile, "measured", attempt, measured, command);
+		if (contamination) {
+			sample.valid = false;
+			sample.exclusionReason = `contaminated: ${contamination}`;
+		}
 		samples.push(sample);
 	}
 	const validSamples = samples.filter((sample) => sample.valid);
@@ -237,6 +255,19 @@ async function runProfile(profile: Profile, repetitions: number, baseUrl: string
 		invalidReasons,
 		nonDominated: false,
 	};
+}
+
+async function externalBrowserContamination(): Promise<string | undefined> {
+	try {
+		const output = (await exec("ps", ["-axo", "pid=,command="])).stdout;
+		const external = output
+			.split("\n")
+			.filter((line) => line && !line.includes(process.cwd()))
+			.filter((line) => /playwright test|media-validation-host-proxy/.test(line));
+		return external.length ? external.join(" | ") : undefined;
+	} catch {
+		return undefined;
+	}
 }
 
 async function reserveStem(timestamp: string): Promise<string> {
@@ -340,6 +371,27 @@ export async function runBrowserBenchmark(repetitions: number, profiles: Profile
 }
 
 export async function main(args = process.argv.slice(2)): Promise<void> {
+	if (!process.env.BROWSER_BENCH_LOCKED) {
+		const antclipsLock = join(tmpdir(), "creatista-test.lock");
+		const scriptPath = fileURLToPath(import.meta.url);
+		const result = await exec(
+			"python3",
+			[
+				"/Users/antoniofulg/Projects/crm/tools/machine-lock.py",
+				"lockf",
+				"-ks",
+				antclipsLock,
+				process.execPath,
+				scriptPath,
+				...args,
+			],
+			{ env: { ...process.env, BROWSER_BENCH_LOCKED: "1" } },
+		).catch((error: unknown) => {
+			throw new Error(error instanceof Error ? error.message : String(error));
+		});
+		process.exitCode = result ? 0 : 1;
+		return;
+	}
 	const options = parseArgs(args);
 	const run = await runBrowserBenchmark(options.repetitions, options.profiles);
 	const stem = await reserveStem(run.timestamp);
