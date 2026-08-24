@@ -123,3 +123,18 @@ T4 → T5 → T6
 | T4 | unit/integration | yes | ✅ |
 | T5 | evidence | yes | ✅ |
 | T6 | consistency/final gates | yes | ✅ |
+
+## Remediation Tasks
+
+The independent verifier found blockers after T1–T6. The following Execute
+fixes close harness and evidence gaps without changing Playwright defaults or
+CI:
+
+| Fix | Scope | Status | Evidence |
+| --- | --- | --- | --- |
+| R1 | Real cold/warm WebView boundaries; one session for warm passes | ✅ | `scripts/bench-browser-runtimes.ts:282`, `scripts/run-e2e-webview.ts:206` |
+| R2 | Three-sample screening, five-sample finalist confirmation metadata, round-robin schedule | ✅ | `scripts/bench-browser-runtimes.ts:20`, `scripts/bench-browser-runtimes.ts:345` |
+| R3 | Exact route identities, Playwright setup overhead, runtime/backend provenance | ✅ | `scripts/bench-browser-runtimes.ts:157`, `scripts/bench-browser-runtimes.ts:168` |
+| R4 | Before/during/after contamination sensor and deterministic process-group cleanup | ✅ | `scripts/bench-browser-runtimes.ts:219`, `app/lib/bench/runner.server.ts:102` |
+| R5 | Raw/report protocol reconciliation and invalid evidence retention | ✅ | `docs/benchmarks/browser-runtime-revalidation/README.md:3`, `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-24T23-21-37-689Z.json` |
+| R6 | Focused behavior tests including contamination and cleanup discrimination | ✅ | `app/tests/bench-browser-runtimes.test.ts:79`, `app/tests/bench-runner.test.ts:113` |
