@@ -133,10 +133,16 @@ describe("browser finalist benchmark", () => {
 	test("detects external browser activity and preserves round-robin finalist schedule", () => {
 		expect(
 			detectBrowserContamination(
-				"123 456 /Users/test/Library/Caches/ms-playwright/chromium-123/chrome",
+				"123 456 node /other/node_modules/.bin/playwright test --project=chromium\n124 456 /Users/test/Library/Caches/ms-playwright/chromium-123/chrome",
 				"/worktree",
 			),
-		).toContain("ms-playwright");
+		).toContain("playwright test");
+		expect(
+			detectBrowserContamination(
+				"123 456 node /other/node_modules/.bin/playwright-mcp",
+				"/worktree",
+			),
+		).toBeUndefined();
 		expect(
 			detectBrowserContamination(
 				"123 456 /worktree/node_modules/chromium",

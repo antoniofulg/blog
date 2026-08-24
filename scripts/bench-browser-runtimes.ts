@@ -206,11 +206,13 @@ export function parseWebViewPassOutcomes(stdout: string): BrowserOutcome[] {
 }
 
 export function detectBrowserContamination(snapshot: string, cwd: string, ignoredPgid = 0): string | undefined {
-	const pattern = /playwright(?:\s|\/)|ms-playwright|media-validation-host-proxy|playwright-mcp/i;
-	const matches = snapshot.split("\n").filter(Boolean).filter((line) => !line.includes(cwd)).filter((line) => {
+	const rootPattern = /(?:playwright(?:\.js)?\s+test|node_modules\/playwright\/lib\/worker|media-validation-host-proxy)/i;
+	const rows = snapshot.split("\n").filter(Boolean).map((line) => {
 		const fields = line.trim().split(/\s+/);
-		return ignoredPgid === 0 || Number(fields[1]) !== ignoredPgid;
-	}).filter((line) => pattern.test(line));
+		return { line, pgid: Number(fields[1]), command: fields.slice(2).join(" ") };
+	}).filter((row) => !row.line.includes(cwd) && Number.isFinite(row.pgid) && row.pgid !== ignoredPgid);
+	const contaminatedGroups = new Set(rows.filter((row) => rootPattern.test(row.command)).map((row) => row.pgid));
+	const matches = rows.filter((row) => contaminatedGroups.has(row.pgid)).map((row) => row.line);
 	return matches.length ? matches.join(" | ") : undefined;
 }
 
