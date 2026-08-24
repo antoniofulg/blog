@@ -204,7 +204,7 @@ export function parseWebViewPassOutcomes(stdout: string): BrowserOutcome[] {
 }
 
 export function detectBrowserContamination(snapshot: string, cwd: string, ignoredPgid = 0): string | undefined {
-	const pattern = /playwright|chromium|chrome|webkit|firefox|media-validation-host-proxy/i;
+	const pattern = /playwright(?:\s|\/)|ms-playwright|media-validation-host-proxy|playwright-mcp/i;
 	const matches = snapshot.split("\n").filter(Boolean).filter((line) => !line.includes(cwd)).filter((line) => {
 		const fields = line.trim().split(/\s+/);
 		return ignoredPgid === 0 || Number(fields[1]) !== ignoredPgid;

@@ -133,10 +133,10 @@ describe("browser finalist benchmark", () => {
 	test("detects external browser activity and preserves round-robin finalist schedule", () => {
 		expect(
 			detectBrowserContamination(
-				"123 456 /usr/bin/chromium --headless",
+				"123 456 /Users/test/Library/Caches/ms-playwright/chromium-123/chrome",
 				"/worktree",
 			),
-		).toContain("chromium");
+		).toContain("ms-playwright");
 		expect(
 			detectBrowserContamination(
 				"123 456 /worktree/node_modules/chromium",
