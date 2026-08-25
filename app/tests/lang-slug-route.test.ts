@@ -1,17 +1,18 @@
-import { createServer } from "node:net";
-import { join } from "node:path";
-import { isNotFound } from "@tanstack/react-router";
-import { createElement } from "react";
-import { renderToStaticMarkup } from "react-dom/server";
 import {
 	afterAll,
 	beforeAll,
 	beforeEach,
 	describe,
 	expect,
-	it,
-	vi,
-} from "vitest";
+	jest,
+	mock,
+	test,
+} from "bun:test";
+import { createServer } from "node:net";
+import { join } from "node:path";
+import { isNotFound } from "@tanstack/react-router";
+import { createElement } from "react";
+import { renderToStaticMarkup } from "react-dom/server";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
@@ -20,25 +21,25 @@ const HUMAN_UA =
 
 const BOT_UA = "Googlebot/2.1 (+http://www.google.com/bot.html)";
 
-const mocks = vi.hoisted(() => {
-	const selectWhere = vi.fn().mockResolvedValue([]);
-	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
-	const select = vi.fn().mockReturnValue({ from: selectFrom });
+const mocks = (() => {
+	const selectWhere = jest.fn().mockResolvedValue([]);
+	const selectFrom = jest.fn().mockReturnValue({ where: selectWhere });
+	const select = jest.fn().mockReturnValue({ from: selectFrom });
 
-	const updateWhere = vi.fn().mockResolvedValue([]);
-	const set = vi.fn().mockReturnValue({ where: updateWhere });
-	const update = vi.fn().mockReturnValue({ set });
+	const updateWhere = jest.fn().mockResolvedValue([]);
+	const set = jest.fn().mockReturnValue({ where: updateWhere });
+	const update = jest.fn().mockReturnValue({ set });
 
-	const readFile = vi.fn().mockResolvedValue("# Test\n\nContent");
+	const readFile = jest.fn().mockResolvedValue("# Test\n\nContent");
 
-	const loadStaticPage = vi.fn().mockResolvedValue(null);
-	const staticPageHasTwin = vi.fn().mockReturnValue(true);
+	const loadStaticPage = jest.fn().mockResolvedValue(null);
+	const staticPageHasTwin = jest.fn().mockReturnValue(true);
 
-	const recordPostView = vi
+	const recordPostView = jest
 		.fn()
 		.mockResolvedValue({ recorded: true, counterIncremented: true });
 
-	const getRequest = vi.fn().mockReturnValue(
+	const getRequest = jest.fn().mockReturnValue(
 		new Request("http://localhost/", {
 			headers: {
 				"User-Agent":
@@ -60,25 +61,25 @@ const mocks = vi.hoisted(() => {
 		recordPostView,
 		getRequest,
 	};
-});
+})();
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: {
 		select: mocks.select,
 		update: mocks.update,
 	},
 }));
 
-vi.mock("node:fs/promises", () => ({
+mock.module("node:fs/promises", () => ({
 	readFile: mocks.readFile,
 }));
 
-vi.mock("#/lib/mdx/pages.server", () => ({
+mock.module("#/lib/mdx/pages.server", () => ({
 	loadStaticPage: mocks.loadStaticPage,
 	staticPageHasTwin: mocks.staticPageHasTwin,
 }));
 
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -87,15 +88,18 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
-vi.mock("@tanstack/react-start/server", () => ({
+mock.module("@tanstack/react-start/server", () => ({
 	getRequest: mocks.getRequest,
 }));
 
-vi.mock("#/lib/analytics/record-event.server", () => ({
+mock.module("#/lib/analytics/record-event.server", () => ({
 	recordPostView: mocks.recordPostView,
 }));
 
-import { TranslationNotice } from "#/components/ui/translation-notice";
+const { TranslationNotice } = await import(
+	"#/components/ui/translation-notice"
+);
+
 import type { posts } from "#/db/schema";
 import {
 	getPostBySlugWithLangFn,
@@ -127,7 +131,7 @@ function makePost(overrides: Partial<Post> = {}): Post {
 function resetMocks() {
 	// resetAllMocks clears call counts AND purges pending mockResolvedValueOnce
 	// queues — preventing stale One-time values from leaking into later tests.
-	vi.resetAllMocks();
+	jest.resetAllMocks();
 	mocks.selectWhere.mockResolvedValue([]);
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
@@ -150,27 +154,27 @@ function resetMocks() {
 // ─── Unit: validateLocaleInput ────────────────────────────────────────────────
 
 describe("unit: validateLocaleInput", () => {
-	it("rejects invalid locale string", () => {
+	test("rejects invalid locale string", () => {
 		expect(() => validateLocaleInput({ slug: "test", lang: "fr" })).toThrow(
 			'Invalid locale: "fr"',
 		);
 	});
 
-	it("accepts valid en locale", () => {
+	test("accepts valid en locale", () => {
 		expect(validateLocaleInput({ slug: "test", lang: "en" })).toEqual({
 			slug: "test",
 			lang: "en",
 		});
 	});
 
-	it("accepts valid pt-br locale", () => {
+	test("accepts valid pt-br locale", () => {
 		expect(validateLocaleInput({ slug: "test", lang: "pt-br" })).toEqual({
 			slug: "test",
 			lang: "pt-br",
 		});
 	});
 
-	it("rejects empty string", () => {
+	test("rejects empty string", () => {
 		expect(() => validateLocaleInput({ slug: "test", lang: "" })).toThrow(
 			'Invalid locale: ""',
 		);
@@ -182,7 +186,7 @@ describe("unit: validateLocaleInput", () => {
 describe("unit: getPostBySlugWithLangFn — exact match", () => {
 	beforeEach(resetMocks);
 
-	it("exact match found → notTranslated: false, availableLang: null", async () => {
+	test("exact match found → notTranslated: false, availableLang: null", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
@@ -194,7 +198,7 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		expect(result.post.slug).toBe("react-suspense");
 	});
 
-	it("exact match with pt-br alternate → alternateLang: 'pt-br'", async () => {
+	test("exact match with pt-br alternate → alternateLang: 'pt-br'", async () => {
 		const enPost = makePost({ lang: "en" });
 		const ptPost = makePost({
 			lang: "pt-br",
@@ -209,7 +213,7 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		expect(result.alternateLang).toBe("pt-br");
 	});
 
-	it("exact match with no alternate → alternateLang: null", async () => {
+	test("exact match with no alternate → alternateLang: null", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
@@ -218,13 +222,13 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 		expect(result.alternateLang).toBeNull();
 	});
 
-	it("exact match found → html is string", async () => {
+	test("exact match found → html is string", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
 		expect(typeof result.html).toBe("string");
 	});
 
-	it("reads file from post.filePath on exact match", async () => {
+	test("reads file from post.filePath on exact match", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost()]);
 		await getPostBySlugWithLangFn("react-suspense", "en");
 		expect(mocks.readFile).toHaveBeenCalledWith(
@@ -237,7 +241,7 @@ describe("unit: getPostBySlugWithLangFn — exact match", () => {
 describe("unit: getPostBySlugWithLangFn — fallback", () => {
 	beforeEach(resetMocks);
 
-	it("(slug, pt-br) miss → fallback en → notTranslated: true, availableLang: 'en', alternateLang: null", async () => {
+	test("(slug, pt-br) miss → fallback en → notTranslated: true, availableLang: 'en', alternateLang: null", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
@@ -249,7 +253,7 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 		expect(result.alternateLang).toBeNull();
 	});
 
-	it("(slug, en) miss → fallback pt-br → notTranslated: true, availableLang: 'pt-br'", async () => {
+	test("(slug, en) miss → fallback pt-br → notTranslated: true, availableLang: 'pt-br'", async () => {
 		const ptPost = makePost({
 			lang: "pt-br",
 			filePath: "/content/pt-br/hello.mdx",
@@ -263,13 +267,13 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 		expect(result.requestedLang).toBe("en");
 	});
 
-	it("(missing, en) both miss → notFound() thrown", async () => {
+	test("(missing, en) both miss → notFound() thrown", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 		const err = await getPostBySlugWithLangFn("missing", "en").catch((e) => e);
 		expect(isNotFound(err)).toBe(true);
 	});
 
-	it("fallback post html is string", async () => {
+	test("fallback post html is string", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
@@ -282,7 +286,7 @@ describe("unit: getPostBySlugWithLangFn — fallback", () => {
 describe("unit: incrementViewCountFn", () => {
 	beforeEach(resetMocks);
 
-	it("delegates to recordPostView with correct postId, lang, and referrer (human UA)", async () => {
+	test("delegates to recordPostView with correct postId, lang, and referrer (human UA)", async () => {
 		// Provide the post row for the lang lookup inside incrementViewCountFn.
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
 
@@ -306,7 +310,7 @@ describe("unit: incrementViewCountFn", () => {
 		expect(mocks.update).not.toHaveBeenCalled();
 	});
 
-	it("forwards a null referrer when navigation had no upstream source", async () => {
+	test("forwards a null referrer when navigation had no upstream source", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "en" }]);
 
 		await incrementViewCountFn({ id: 42, referrer: null, utmSource: null });
@@ -316,7 +320,7 @@ describe("unit: incrementViewCountFn", () => {
 		);
 	});
 
-	it("pt-br post lang is forwarded to recordPostView correctly", async () => {
+	test("pt-br post lang is forwarded to recordPostView correctly", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([{ lang: "pt-br" }]);
 
 		await incrementViewCountFn({ id: 7, referrer: null, utmSource: null });
@@ -326,7 +330,7 @@ describe("unit: incrementViewCountFn", () => {
 		);
 	});
 
-	it("bot UA: early return before DB query — recordPostView is never called", async () => {
+	test("bot UA: early return before DB query — recordPostView is never called", async () => {
 		// Simulate a Googlebot request arriving via getRequest().
 		// The bot check now runs BEFORE the lang SELECT (issue_009 fix), so no
 		// DB query is made and recordPostView is never reached.
@@ -345,7 +349,7 @@ describe("unit: incrementViewCountFn", () => {
 		expect(mocks.update).not.toHaveBeenCalled();
 	});
 
-	it("returns early without calling recordPostView when post is not found", async () => {
+	test("returns early without calling recordPostView when post is not found", async () => {
 		// Lang lookup returns no rows.
 		mocks.selectWhere.mockResolvedValueOnce([]);
 
@@ -359,7 +363,7 @@ describe("unit: incrementViewCountFn", () => {
 // ─── Unit: TranslationNotice component ───────────────────────────────────────
 
 describe("unit: TranslationNotice", () => {
-	it("renders without error for pt-br → en", () => {
+	test("renders without error for pt-br → en", () => {
 		const html = renderToStaticMarkup(
 			createElement(TranslationNotice, {
 				requestedLang: "pt-br",
@@ -370,7 +374,7 @@ describe("unit: TranslationNotice", () => {
 		expect(html).toContain("English");
 	});
 
-	it("renders without error for en → pt-br", () => {
+	test("renders without error for en → pt-br", () => {
 		const html = renderToStaticMarkup(
 			createElement(TranslationNotice, {
 				requestedLang: "en",
@@ -381,7 +385,7 @@ describe("unit: TranslationNotice", () => {
 		expect(html).toContain("Português");
 	});
 
-	it("pt-br → en message is in Portuguese", () => {
+	test("pt-br → en message is in Portuguese", () => {
 		const html = renderToStaticMarkup(
 			createElement(TranslationNotice, {
 				requestedLang: "pt-br",
@@ -394,7 +398,7 @@ describe("unit: TranslationNotice", () => {
 		expect(html).toContain("Exibindo a versão");
 	});
 
-	it("en → pt-br message is in English", () => {
+	test("en → pt-br message is in English", () => {
 		const html = renderToStaticMarkup(
 			createElement(TranslationNotice, {
 				requestedLang: "en",
@@ -405,7 +409,7 @@ describe("unit: TranslationNotice", () => {
 		expect(html).toContain("Showing");
 	});
 
-	it("banner copy does not contain the word 'post' (content-neutral for About)", () => {
+	test("banner copy does not contain the word 'post' (content-neutral for About)", () => {
 		const ptBrHtml = renderToStaticMarkup(
 			createElement(TranslationNotice, {
 				requestedLang: "pt-br",
@@ -429,7 +433,7 @@ describe("unit: TranslationNotice", () => {
 describe("unit: getPostBySlugWithLangFn — normalizeCoverImage behaviour", () => {
 	beforeEach(resetMocks);
 
-	it("non-empty string coverImage → ogImagePath reflects it", async () => {
+	test("non-empty string coverImage → ogImagePath reflects it", async () => {
 		mocks.readFile.mockResolvedValueOnce(
 			"---\ncoverImage: /images/my-cover.png\n---\n# Post\n\nContent",
 		);
@@ -442,7 +446,7 @@ describe("unit: getPostBySlugWithLangFn — normalizeCoverImage behaviour", () =
 		expect(result.ogImagePath).toContain("/images/my-cover.png");
 	});
 
-	it("empty string coverImage → ogImagePath falls back (not the empty string)", async () => {
+	test("empty string coverImage → ogImagePath falls back (not the empty string)", async () => {
 		mocks.readFile.mockResolvedValueOnce(
 			"---\ncoverImage: ''\n---\n# Post\n\nContent",
 		);
@@ -456,7 +460,7 @@ describe("unit: getPostBySlugWithLangFn — normalizeCoverImage behaviour", () =
 		expect(result.ogImagePath).not.toContain("my-cover");
 	});
 
-	it("non-string coverImage (number) → ogImagePath falls back to site default", async () => {
+	test("non-string coverImage (number) → ogImagePath falls back to site default", async () => {
 		mocks.readFile.mockResolvedValueOnce(
 			"---\ncoverImage: 0\n---\n# Post\n\nContent",
 		);
@@ -470,7 +474,7 @@ describe("unit: getPostBySlugWithLangFn — normalizeCoverImage behaviour", () =
 		expect(result.ogImagePath).toContain("og-image.jpg");
 	});
 
-	it("fallback branch: non-empty string coverImage → ogImagePath reflects it", async () => {
+	test("fallback branch: non-empty string coverImage → ogImagePath reflects it", async () => {
 		mocks.readFile.mockResolvedValueOnce(
 			"---\ncoverImage: /images/cover.png\n---\n# Fallback Post\n\nContent",
 		);
@@ -491,20 +495,20 @@ describe("unit: getPostBySlugWithLangFn — normalizeCoverImage behaviour", () =
 describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 	beforeEach(resetMocks);
 
-	it("exact match → kind is 'post'", async () => {
+	test("exact match → kind is 'post'", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
 		expect(result.kind).toBe("post");
 	});
 
-	it("fallback match → kind is 'post'", async () => {
+	test("fallback match → kind is 'post'", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "pt-br");
 		expect(result.kind).toBe("post");
 	});
 
-	it("post miss → page found → kind is 'page'", async () => {
+	test("post miss → page found → kind is 'page'", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 		const pageResult = {
 			entry: {
@@ -527,7 +531,7 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 		}
 	});
 
-	it("post miss → page found pt-br → kind is 'page' with pt-br locale", async () => {
+	test("post miss → page found pt-br → kind is 'page' with pt-br locale", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 		const pageResult = {
 			entry: {
@@ -548,7 +552,7 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 		}
 	});
 
-	it("post miss + page miss → notFound()", async () => {
+	test("post miss + page miss → notFound()", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 		mocks.loadStaticPage.mockResolvedValueOnce(null);
 		const err = await getPostBySlugWithLangFn("nonexistent", "en").catch(
@@ -557,7 +561,7 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 		expect(isNotFound(err)).toBe(true);
 	});
 
-	it("collision: post and page both exist → returns post (post wins)", async () => {
+	test("collision: post and page both exist → returns post (post wins)", async () => {
 		const enPost = makePost({ slug: "about", lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([enPost]);
 		const result = await getPostBySlugWithLangFn("about", "en");
@@ -565,14 +569,14 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 		expect(mocks.loadStaticPage).not.toHaveBeenCalled();
 	});
 
-	it("loadStaticPage receives correct slug and locale", async () => {
+	test("loadStaticPage receives correct slug and locale", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([]);
 		mocks.loadStaticPage.mockResolvedValueOnce(null);
 		await getPostBySlugWithLangFn("uses", "pt-br").catch(() => null);
 		expect(mocks.loadStaticPage).toHaveBeenCalledWith("uses", "pt-br");
 	});
 
-	it("stale post row (ENOENT on filePath) falls through to static page", async () => {
+	test("stale post row (ENOENT on filePath) falls through to static page", async () => {
 		// Simulate the /about regression: DB has a ghost post row pointing at a
 		// moved/deleted MDX file. Loader must not crash — fall through to the
 		// static-page branch and return the page result.
@@ -604,7 +608,7 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 		expect(mocks.loadStaticPage).toHaveBeenCalledWith("about", "en");
 	});
 
-	it("stale fallback row (ENOENT) falls through to static page", async () => {
+	test("stale fallback row (ENOENT) falls through to static page", async () => {
 		// Variant: exact-match query returns nothing; fallback query returns a
 		// ghost row (e.g. slug=about, lang=pt-br pointing at old `content/pt-br/about.mdx`).
 		// Loader must not crash — fall through to static-page branch.
@@ -634,7 +638,7 @@ describe("unit: getPostBySlugWithLangFn — kind discriminator", () => {
 		expect(result.kind).toBe("page");
 	});
 
-	it("non-ENOENT readFile error still propagates", async () => {
+	test("non-ENOENT readFile error still propagates", async () => {
 		// Permission errors etc. should NOT be swallowed — only ENOENT means
 		// "file missing, try next branch".
 		const enPost = makePost({ slug: "react-suspense", lang: "en" });
@@ -669,7 +673,7 @@ describe.skipIf(port5432Free || port3000Free)(
 			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 		const BASE_URL = "http://localhost:3000";
 		const SLUG = `integ-locale-slug-${Date.now()}`;
-		const FIXTURE = join(import.meta.dirname, "fixtures", "hello.mdx");
+		const FIXTURE = join(process.cwd(), "app/tests/fixtures/hello.mdx");
 
 		beforeAll(async () => {
 			const pg = await import("postgres");
@@ -686,21 +690,21 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql.end();
 		});
 
-		it("GET /<slug> returns 200 and renders post title", async () => {
+		test("GET /<slug> returns 200 and renders post title", async () => {
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
 			expect(html).toContain("Integration Lang Slug Test");
 		});
 
-		it("GET /<slug> does not show translation notice", async () => {
+		test("GET /<slug> does not show translation notice", async () => {
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			const html = await res.text();
 			expect(html).not.toContain("not available in English");
 			expect(html).not.toContain("não está disponível");
 		});
 
-		it("GET /pt-br/<slug> (no pt-br post) returns 200 with English content and translation notice", async () => {
+		test("GET /pt-br/<slug> (no pt-br post) returns 200 with English content and translation notice", async () => {
 			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
@@ -708,19 +712,19 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(html).toContain("Português");
 		});
 
-		it("GET /pt-br/<slug> (fallback to en) article element has lang=en", async () => {
+		test("GET /pt-br/<slug> (fallback to en) article element has lang=en", async () => {
 			const res = await fetch(`${BASE_URL}/pt-br/${SLUG}`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
 			expect(html).toMatch(/<article[^>]+lang="en"/);
 		});
 
-		it("GET /<nonexistent-slug> returns 404", async () => {
+		test("GET /<nonexistent-slug> returns 404", async () => {
 			const res = await fetch(`${BASE_URL}/__nonexistent_slug_${Date.now()}__`);
 			expect(res.status).toBe(404);
 		});
 
-		it("GET /<slug> head contains hreflang pair for pt-br alternate", async () => {
+		test("GET /<slug> head contains hreflang pair for pt-br alternate", async () => {
 			// Insert pt-br version of the post so alternateLang is populated
 			await sql`
         INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
@@ -736,7 +740,7 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
 		});
 
-		it("GET /pt-br/<slug> head contains hreflang pair for en alternate", async () => {
+		test("GET /pt-br/<slug> head contains hreflang pair for en alternate", async () => {
 			await sql`
         INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
         VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
@@ -751,7 +755,7 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
 		});
 
-		it("GET /<slug> hreflang hrefs contain no /en/ prefix", async () => {
+		test("GET /<slug> hreflang hrefs contain no /en/ prefix", async () => {
 			await sql`
         INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
         VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
@@ -763,13 +767,13 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql`DELETE FROM posts WHERE slug = ${SLUG} AND lang = 'pt-br'`;
 		});
 
-		it("GET /<slug> SSR contains en postMeta.publishedOn label before the date", async () => {
+		test("GET /<slug> SSR contains en postMeta.publishedOn label before the date", async () => {
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			const html = await res.text();
 			expect(html).toContain("Published on");
 		});
 
-		it("GET /pt-br/<slug> SSR contains pt-br postMeta.publishedOn label before the date", async () => {
+		test("GET /pt-br/<slug> SSR contains pt-br postMeta.publishedOn label before the date", async () => {
 			await sql`
         INSERT INTO posts (file_path, slug, lang, title, description, published_at, view_count, indexed_at)
         VALUES (${FIXTURE}, ${SLUG}, 'pt-br', 'Integration Lang Slug Test PT', 'desc', NOW(), 0, NOW())
@@ -786,28 +790,28 @@ describe.skipIf(port5432Free || port3000Free)(
 describe.skipIf(port3000Free)("integration: static page routes (about)", () => {
 	const BASE_URL = "http://localhost:3000";
 
-	it("GET /about returns 200 with migrated page content", async () => {
+	test("GET /about returns 200 with migrated page content", async () => {
 		const res = await fetch(`${BASE_URL}/about`);
 		expect(res.status).toBe(200);
 		const html = await res.text();
 		expect(html.toLowerCase()).toContain("about");
 	});
 
-	it("GET /pt-br/about returns 200 with pt-br page content", async () => {
+	test("GET /pt-br/about returns 200 with pt-br page content", async () => {
 		const res = await fetch(`${BASE_URL}/pt-br/about`);
 		expect(res.status).toBe(200);
 		const html = await res.text();
 		expect(html).toBeTruthy();
 	});
 
-	it("GET /about does not contain published date label (pages have no date)", async () => {
+	test("GET /about does not contain published date label (pages have no date)", async () => {
 		const res = await fetch(`${BASE_URL}/about`);
 		const html = await res.text();
 		expect(html).not.toContain("Published on");
 		expect(html).not.toContain("Publicado em");
 	});
 
-	it("GET /__nonexistent_page__ returns 404", async () => {
+	test("GET /__nonexistent_page__ returns 404", async () => {
 		const res = await fetch(`${BASE_URL}/__nonexistent_page_${Date.now()}__`);
 		expect(res.status).toBe(404);
 	});

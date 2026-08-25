@@ -1,4 +1,14 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+import * as realChildProcess from "node:child_process";
+import * as realFs from "node:fs";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
@@ -10,25 +20,27 @@ type WatcherProc = {
 	kill?: (signal?: unknown) => unknown;
 };
 
-const mocks = vi.hoisted(() => ({
-	execFileSync: vi.fn(),
-	spawn: vi.fn(
-		(): WatcherProc => ({ pid: 4242, unref: vi.fn(), kill: vi.fn() }),
+const mocks = (() => ({
+	execFileSync: jest.fn(),
+	spawn: jest.fn(
+		(): WatcherProc => ({ pid: 4242, unref: jest.fn(), kill: jest.fn() }),
 	),
-	syncAll: vi.fn().mockResolvedValue(undefined),
-	existsSync: vi.fn(() => false),
-	readFileSync: vi.fn(() => ""),
-	writeFileSync: vi.fn(),
-	mkdirSync: vi.fn(),
-	rmSync: vi.fn(),
-}));
+	syncAll: jest.fn().mockResolvedValue(undefined),
+	existsSync: jest.fn(() => false),
+	readFileSync: jest.fn(() => ""),
+	writeFileSync: jest.fn(),
+	mkdirSync: jest.fn(),
+	rmSync: jest.fn(),
+}))();
 
-vi.mock("node:child_process", () => ({
+mock.module("node:child_process", () => ({
+	...realChildProcess,
 	execFileSync: mocks.execFileSync,
 	spawn: mocks.spawn,
 }));
 
-vi.mock("node:fs", () => ({
+mock.module("node:fs", () => ({
+	...realFs,
 	existsSync: mocks.existsSync,
 	readFileSync: mocks.readFileSync,
 	writeFileSync: mocks.writeFileSync,
@@ -36,19 +48,20 @@ vi.mock("node:fs", () => ({
 	rmSync: mocks.rmSync,
 }));
 
-vi.mock("#/db/indexer", () => ({
+mock.module("#/db/indexer", () => ({
 	syncAll: mocks.syncAll,
 }));
 
 import { join } from "node:path";
-import { runDevBoot } from "../../app/lib/dev-boot";
+
+const { runDevBoot } = await import("#/lib/dev-boot");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function resetAll() {
-	vi.clearAllMocks();
+	jest.clearAllMocks();
 	mocks.execFileSync.mockReturnValue(undefined);
-	mocks.spawn.mockReturnValue({ pid: 4242, unref: vi.fn(), kill: vi.fn() });
+	mocks.spawn.mockReturnValue({ pid: 4242, unref: jest.fn(), kill: jest.fn() });
 	mocks.syncAll.mockResolvedValue(undefined);
 	mocks.existsSync.mockReturnValue(false);
 	mocks.readFileSync.mockReturnValue("");
@@ -61,19 +74,21 @@ function resetAll() {
 
 describe("unit: runDevBoot — syncAll invocation count", () => {
 	beforeEach(resetAll);
-	afterEach(vi.restoreAllMocks);
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
 
-	it("calls syncAll exactly once", async () => {
+	test("calls syncAll exactly once", async () => {
 		await runDevBoot();
 		expect(mocks.syncAll).toHaveBeenCalledTimes(1);
 	});
 
-	it("passes content dir to syncAll", async () => {
+	test("passes content dir to syncAll", async () => {
 		await runDevBoot("./content");
 		expect(mocks.syncAll).toHaveBeenCalledWith("./content");
 	});
 
-	it("custom dir propagates to syncAll", async () => {
+	test("custom dir propagates to syncAll", async () => {
 		await runDevBoot("/tmp/custom");
 		expect(mocks.syncAll).toHaveBeenCalledWith("/tmp/custom");
 	});
@@ -83,9 +98,11 @@ describe("unit: runDevBoot — syncAll invocation count", () => {
 
 describe("unit: runDevBoot — call order", () => {
 	beforeEach(resetAll);
-	afterEach(vi.restoreAllMocks);
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
 
-	it("migrate → seed → sync (strict ordering)", async () => {
+	test("migrate → seed → sync (strict ordering)", async () => {
 		const callOrder: string[] = [];
 		mocks.execFileSync.mockImplementation((_cmd: string, args: string[]) => {
 			if ((args as string[])[1] === "db:migrate") callOrder.push("migrate");
@@ -103,14 +120,14 @@ describe("unit: runDevBoot — call order", () => {
 		expect(callOrder.indexOf("seed")).toBeLessThan(callOrder.indexOf("sync"));
 	});
 
-	it("sync called before watcher subprocess spawn", async () => {
+	test("sync called before watcher subprocess spawn", async () => {
 		const callOrder: string[] = [];
 		mocks.syncAll.mockImplementation(async () => {
 			callOrder.push("sync");
 		});
 		mocks.spawn.mockImplementation(() => {
 			callOrder.push("spawn");
-			return { unref: vi.fn() };
+			return { unref: jest.fn() };
 		});
 
 		await runDevBoot();
@@ -125,14 +142,16 @@ describe("unit: runDevBoot — call order", () => {
 
 describe("unit: runDevBoot — error propagation", () => {
 	beforeEach(resetAll);
-	afterEach(vi.restoreAllMocks);
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
 
-	it("re-throws when syncAll rejects", async () => {
+	test("re-throws when syncAll rejects", async () => {
 		mocks.syncAll.mockRejectedValue(new Error("DB connection failed"));
 		await expect(runDevBoot()).rejects.toThrow("DB connection failed");
 	});
 
-	it("does not spawn watcher when syncAll throws", async () => {
+	test("does not spawn watcher when syncAll throws", async () => {
 		mocks.syncAll.mockRejectedValue(new Error("boom"));
 		await expect(runDevBoot()).rejects.toThrow();
 		expect(mocks.spawn).not.toHaveBeenCalled();
@@ -143,11 +162,13 @@ describe("unit: runDevBoot — error propagation", () => {
 
 describe("unit: runDevBoot — [sync] log messages", () => {
 	beforeEach(resetAll);
-	afterEach(vi.restoreAllMocks);
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
 
-	it("logs [sync] sync_started before calling syncAll", async () => {
+	test("logs [sync] sync_started before calling syncAll", async () => {
 		const loggedBeforeSync: string[] = [];
-		const logSpy = vi
+		const logSpy = jest
 			.spyOn(console, "log")
 			.mockImplementation((msg: string) => {
 				loggedBeforeSync.push(msg);
@@ -167,8 +188,8 @@ describe("unit: runDevBoot — [sync] log messages", () => {
 		logSpy.mockRestore();
 	});
 
-	it("logs [sync] sync_completed after syncAll resolves", async () => {
-		const logSpy = vi.spyOn(console, "log").mockImplementation(() => {});
+	test("logs [sync] sync_completed after syncAll resolves", async () => {
+		const logSpy = jest.spyOn(console, "log").mockImplementation(() => {});
 		await runDevBoot();
 		const msgs = logSpy.mock.calls.map((c) => c[0] as string);
 		expect(
@@ -177,8 +198,8 @@ describe("unit: runDevBoot — [sync] log messages", () => {
 		logSpy.mockRestore();
 	});
 
-	it("logs [sync] sync_failed when syncAll throws", async () => {
-		const errorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
+	test("logs [sync] sync_failed when syncAll throws", async () => {
+		const errorSpy = jest.spyOn(console, "error").mockImplementation(() => {});
 		mocks.syncAll.mockRejectedValue(new Error("oops"));
 		await expect(runDevBoot()).rejects.toThrow();
 		const msgs = errorSpy.mock.calls.map((c) => c[0] as string);
@@ -193,12 +214,18 @@ describe("unit: runDevBoot — [sync] log messages", () => {
 
 describe("unit: runDevBoot — watcher lifecycle (leak guard)", () => {
 	beforeEach(resetAll);
-	afterEach(vi.restoreAllMocks);
+	afterEach(() => {
+		jest.restoreAllMocks();
+	});
 
 	const PID_FILE_SUFFIX = join(".tanstack", "content-watcher.pid");
 
-	it("writes the spawned watcher PID to the content-watcher pidfile", async () => {
-		mocks.spawn.mockReturnValue({ pid: 4242, unref: vi.fn(), kill: vi.fn() });
+	test("writes the spawned watcher PID to the content-watcher pidfile", async () => {
+		mocks.spawn.mockReturnValue({
+			pid: 4242,
+			unref: jest.fn(),
+			kill: jest.fn(),
+		});
 		await runDevBoot();
 		const pidWrite = mocks.writeFileSync.mock.calls.find((c) =>
 			String(c[0]).endsWith(PID_FILE_SUFFIX),
@@ -207,16 +234,16 @@ describe("unit: runDevBoot — watcher lifecycle (leak guard)", () => {
 		expect(pidWrite?.[1]).toBe("4242");
 	});
 
-	it("does not write a pidfile when spawn returns no pid", async () => {
-		mocks.spawn.mockReturnValue({ unref: vi.fn() });
+	test("does not write a pidfile when spawn returns no pid", async () => {
+		mocks.spawn.mockReturnValue({ unref: jest.fn() });
 		await runDevBoot();
 		expect(mocks.writeFileSync).not.toHaveBeenCalled();
 	});
 
-	it("reaps a live stale watcher (SIGTERM) before spawning a new one", async () => {
+	test("reaps a live stale watcher (SIGTERM) before spawning a new one", async () => {
 		mocks.existsSync.mockReturnValue(true);
 		mocks.readFileSync.mockReturnValue("9999");
-		const killSpy = vi.spyOn(process, "kill").mockImplementation(() => true);
+		const killSpy = jest.spyOn(process, "kill").mockImplementation(() => true);
 
 		await runDevBoot();
 
@@ -228,9 +255,9 @@ describe("unit: runDevBoot — watcher lifecycle (leak guard)", () => {
 		killSpy.mockRestore();
 	});
 
-	it("does not SIGTERM when no pidfile exists", async () => {
+	test("does not SIGTERM when no pidfile exists", async () => {
 		mocks.existsSync.mockReturnValue(false);
-		const killSpy = vi.spyOn(process, "kill").mockImplementation(() => true);
+		const killSpy = jest.spyOn(process, "kill").mockImplementation(() => true);
 
 		await runDevBoot();
 
@@ -238,10 +265,10 @@ describe("unit: runDevBoot — watcher lifecycle (leak guard)", () => {
 		killSpy.mockRestore();
 	});
 
-	it("skips SIGTERM when the recorded PID is already dead", async () => {
+	test("skips SIGTERM when the recorded PID is already dead", async () => {
 		mocks.existsSync.mockReturnValue(true);
 		mocks.readFileSync.mockReturnValue("9999");
-		const killSpy = vi
+		const killSpy = jest
 			.spyOn(process, "kill")
 			.mockImplementation((_pid, signal) => {
 				if (signal === 0) throw new Error("ESRCH"); // probe: not alive

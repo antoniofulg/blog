@@ -1,8 +1,8 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import { readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "../..");
 const composePath = join(root, "docker-compose.yml");
@@ -25,13 +25,13 @@ describe("unit: docker-compose.yml", () => {
 		content = readFileSync(composePath, "utf8");
 	});
 
-	it("is valid YAML (docker compose config exits 0)", () => {
+	test("is valid YAML (docker compose config exits 0)", () => {
 		expect(() =>
 			execSync("docker compose config", { cwd: root, stdio: "pipe" }),
 		).not.toThrow();
 	}, 15_000);
 
-	it("defines an app service built from the dev Dockerfile target", () => {
+	test("defines an app service built from the dev Dockerfile target", () => {
 		const config = JSON.parse(
 			execSync("docker compose config --format json", {
 				cwd: root,
@@ -56,11 +56,11 @@ describe("unit: docker-compose.yml", () => {
 		);
 	}, 15_000);
 
-	it("loads app environment from .env", () => {
+	test("loads app environment from .env", () => {
 		expect(content).toMatch(/^\s+env_file: \.env$/m);
 	});
 
-	it("waits for the database healthcheck before starting app", () => {
+	test("waits for the database healthcheck before starting app", () => {
 		const config = JSON.parse(
 			execSync("docker compose config --format json", {
 				cwd: root,
@@ -74,7 +74,7 @@ describe("unit: docker-compose.yml", () => {
 		);
 	}, 15_000);
 
-	it("declares an anonymous node_modules volume for app", () => {
+	test("declares an anonymous node_modules volume for app", () => {
 		const config = JSON.parse(
 			execSync("docker compose config --format json", {
 				cwd: root,
@@ -91,7 +91,7 @@ describe("unit: docker-compose.yml", () => {
 		);
 	}, 15_000);
 
-	it("configures compose watch sync and rebuild paths", () => {
+	test("configures compose watch sync and rebuild paths", () => {
 		const config = JSON.parse(
 			execSync("docker compose config --format json", {
 				cwd: root,
@@ -124,11 +124,11 @@ describe("unit: docker-compose.yml", () => {
 		);
 	}, 15_000);
 
-	it(`health check command is pg_isready -U \${POSTGRES_USER}`, () => {
+	test(`health check command is pg_isready -U \${POSTGRES_USER}`, () => {
 		expect(content).toContain(`pg_isready -U \${POSTGRES_USER}`);
 	});
 
-	it("postgres_data volume declared in top-level volumes key", () => {
+	test("postgres_data volume declared in top-level volumes key", () => {
 		const topLevelVolumesIdx = content.indexOf("\nvolumes:");
 		expect(topLevelVolumesIdx).toBeGreaterThan(-1);
 		const afterVolumes = content.slice(topLevelVolumesIdx);
@@ -149,7 +149,7 @@ describe.skipIf(!runComposeLifecycle || !port5432Free)(
 			}
 		}, 60_000);
 
-		it("docker compose up -d exits 0", () => {
+		test("docker compose up -d exits 0", () => {
 			expect(() =>
 				execSync("docker compose up -d", {
 					cwd: root,
@@ -159,7 +159,7 @@ describe.skipIf(!runComposeLifecycle || !port5432Free)(
 			).not.toThrow();
 		}, 120_000);
 
-		it("compose services reach running or healthy state within 30 seconds", async () => {
+		test("compose services reach running or healthy state within 30 seconds", async () => {
 			const deadline = Date.now() + 30_000;
 			while (Date.now() < deadline) {
 				const output = execSync("docker compose ps", {
@@ -176,7 +176,7 @@ describe.skipIf(!runComposeLifecycle || !port5432Free)(
 		}, 35_000);
 
 		// Uses psql bundled in postgres:16-alpine — no host psql required
-		it("database reachable via psql", () => {
+		test("database reachable via psql", () => {
 			expect(() =>
 				execSync("docker exec blog-db-1 psql -U blog blog -c '\\l'", {
 					cwd: root,
@@ -185,7 +185,7 @@ describe.skipIf(!runComposeLifecycle || !port5432Free)(
 			).not.toThrow();
 		});
 
-		it("docker compose down exits 0 without removing named volumes", () => {
+		test("docker compose down exits 0 without removing named volumes", () => {
 			expect(() =>
 				execSync("docker compose down", {
 					cwd: root,

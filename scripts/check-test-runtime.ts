@@ -1,23 +1,19 @@
-import { readFileSync } from "node:fs";
-import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
-
-export type RuntimeKind = "node" | "bun";
-export type TestRunner = "vitest" | "bun:test";
+import { fileURLToPath } from "node:url";
 
 export type RuntimeExpectation = {
-	runtime: RuntimeKind;
+	runtime: "bun";
 	version: string;
-	runner: TestRunner;
+	runner: "bun:test";
 	runnerVersion?: string;
 };
 
 export type RuntimeProvenance = {
 	command: string;
 	execPath: string;
-	runtime: RuntimeKind;
+	runtime: "bun" | "node";
 	runtimeVersion: string;
-	runner: TestRunner;
+	runner: "bun:test";
 	runnerVersion: string;
 };
 
@@ -30,42 +26,9 @@ function bunVersion(): string | undefined {
 	if (typeof version === "string") return version;
 
 	const bun = valueOf(globalThis, "Bun");
-	if (typeof bun === "object" && bun !== null) {
-		const detected = valueOf(bun, "version");
-		if (typeof detected === "string") return detected;
-	}
-
-	return undefined;
-}
-
-function detectRuntime(): { runtime: RuntimeKind; version: string } {
-	const detectedBunVersion = bunVersion();
-	if (detectedBunVersion) {
-		return { runtime: "bun", version: detectedBunVersion };
-	}
-
-	return { runtime: "node", version: process.versions.node };
-}
-
-function installedVitestVersion(): string {
-	try {
-		const packagePath = new URL("../node_modules/vitest/package.json", import.meta.url);
-		const packageJson: unknown = JSON.parse(readFileSync(packagePath, "utf8"));
-		if (typeof packageJson === "object" && packageJson !== null) {
-			const version = valueOf(packageJson, "version");
-			if (typeof version === "string") return version;
-		}
-	} catch {
-		return "unknown";
-	}
-
-	return "unknown";
-}
-
-function detectRunner(expected: TestRunner): { runner: TestRunner; runnerVersion: string } {
-	return expected === "bun:test"
-		? { runner: "bun:test", runnerVersion: bunVersion() ?? "unknown" }
-		: { runner: "vitest", runnerVersion: installedVitestVersion() };
+	if (typeof bun !== "object" || bun === null) return undefined;
+	const detected = valueOf(bun, "version");
+	return typeof detected === "string" ? detected : undefined;
 }
 
 function parseExpectation(input: unknown): RuntimeExpectation {
@@ -77,26 +40,17 @@ function parseExpectation(input: unknown): RuntimeExpectation {
 	const version = valueOf(input, "version");
 	const runner = valueOf(input, "runner");
 	const runnerVersion = valueOf(input, "runnerVersion");
-	if (runtime !== "node" && runtime !== "bun") {
-		throw new Error("Invalid runtime expectation: runtime must be node or bun");
+	if (runtime !== "bun") {
+		throw new Error("Invalid runtime expectation: runtime must be bun");
 	}
-	if (typeof version !== "string" || version.length === 0) {
-		throw new Error("Invalid runtime expectation: version must be non-empty");
+	if (typeof version !== "string" || !/^\d+\.\d+\.\d+$/.test(version)) {
+		throw new Error("Invalid runtime expectation: Bun version must be exact semver");
 	}
-	if (runner !== "vitest" && runner !== "bun:test") {
-		throw new Error("Invalid runtime expectation: runner must be vitest or bun:test");
-	}
-	if (runner === "bun:test" && runtime !== "bun") {
-		throw new Error("Invalid runtime expectation: bun:test requires the Bun runtime");
+	if (runner !== "bun:test") {
+		throw new Error("Invalid runtime expectation: runner must be bun:test");
 	}
 	if (runnerVersion !== undefined && typeof runnerVersion !== "string") {
 		throw new Error("Invalid runtime expectation: runnerVersion must be a string");
-	}
-	if (runtime === "node" && !/^\d+$/.test(version)) {
-		throw new Error("Invalid runtime expectation: Node version must be a major number");
-	}
-	if (runtime === "bun" && !/^\d+\.\d+\.\d+$/.test(version)) {
-		throw new Error("Invalid runtime expectation: Bun version must be exact semver");
 	}
 
 	return {
@@ -107,47 +61,34 @@ function parseExpectation(input: unknown): RuntimeExpectation {
 	};
 }
 
-function expectedVersionMatches(expectation: RuntimeExpectation, detectedVersion: string): boolean {
-	if (expectation.runtime === "node") {
-		return detectedVersion.split(".")[0] === expectation.version;
-	}
-	return detectedVersion === expectation.version;
-}
-
 export function inspectRuntime(input: RuntimeExpectation): RuntimeProvenance {
 	parseExpectation(input);
-	const detected = detectRuntime();
-	const runner = detectRunner(input.runner);
+	const detectedBunVersion = bunVersion();
 	return {
 		command: process.argv.join(" "),
 		execPath: process.execPath,
-		runtime: detected.runtime,
-		runtimeVersion: detected.version,
-		runner: runner.runner,
-		runnerVersion: runner.runnerVersion,
+		runtime: detectedBunVersion ? "bun" : "node",
+		runtimeVersion: detectedBunVersion ?? process.versions.node,
+		runner: "bun:test",
+		runnerVersion: detectedBunVersion ?? "unknown",
 	};
 }
 
 export function assertRuntime(input: unknown): RuntimeProvenance {
 	const expectation = parseExpectation(input);
 	const provenance = inspectRuntime(expectation);
-	const expectedLabel = `${expectation.runtime === "node" ? "Node" : "Bun"} ${expectation.version}`;
-	const detectedLabel = `${provenance.runtime === "node" ? "Node" : "Bun"} ${provenance.runtimeVersion}`;
-	if (!expectedVersionMatches(expectation, provenance.runtimeVersion) || provenance.runtime !== expectation.runtime) {
-		const nodeSetupHint =
-			expectation.runtime === "node" && provenance.runtime === "node"
-				? ". Install or select Node 24 using your preferred version manager or the official Node.js installer."
-				: "";
+	if (
+		provenance.runtime !== "bun" ||
+		provenance.runtimeVersion !== expectation.version
+	) {
 		throw new Error(
-			`Runtime mismatch: expected ${expectedLabel}, detected ${detectedLabel} at ${provenance.execPath}${nodeSetupHint}`,
+			`Runtime mismatch: expected Bun ${expectation.version}, detected ${provenance.runtime === "bun" ? "Bun" : "Node"} ${provenance.runtimeVersion} at ${provenance.execPath}`,
 		);
 	}
-	if (provenance.runner !== expectation.runner) {
-		throw new Error(
-			`Runner mismatch: expected ${expectation.runner}, detected ${provenance.runner} at ${provenance.execPath}`,
-		);
-	}
-	if (expectation.runnerVersion && provenance.runnerVersion !== expectation.runnerVersion) {
+	if (
+		expectation.runnerVersion &&
+		provenance.runnerVersion !== expectation.runnerVersion
+	) {
 		throw new Error(
 			`Runner version mismatch: expected ${expectation.runnerVersion}, detected ${provenance.runnerVersion} at ${provenance.execPath}`,
 		);
@@ -172,7 +113,9 @@ function cliExpectation(args: string[]): RuntimeExpectation {
 	});
 }
 
-const isMain = process.argv[1] !== undefined && resolve(process.argv[1]) === fileURLToPath(import.meta.url);
+const isMain =
+	process.argv[1] !== undefined &&
+	resolve(process.argv[1]) === fileURLToPath(import.meta.url);
 if (isMain) {
 	try {
 		console.log(JSON.stringify(assertRuntime(cliExpectation(process.argv.slice(2)))));

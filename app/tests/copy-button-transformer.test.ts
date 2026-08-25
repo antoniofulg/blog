@@ -10,12 +10,12 @@
  * token highlighting are populated by Shiki exactly as in production — not mocked.
  */
 
+import { beforeAll, describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import type { Element, Root, RootContent } from "hast";
 import { createHighlighterCore } from "shiki/core";
 import { createJavaScriptRegexEngine } from "shiki/engine/javascript";
-import { beforeAll, describe, expect, it } from "vitest";
 
 import {
 	CHECK_ICON_CLASS,
@@ -87,7 +87,7 @@ function classList(el: Element): string[] {
 }
 
 describe("copyButtonTransformer", () => {
-	it("stashes the exact raw source on <pre> (3-line TS block, no token markup)", () => {
+	test("stashes the exact raw source on <pre> (3-line TS block, no token markup)", () => {
 		const source = "const a = 1\nconst b = 2\nconst c = 3";
 		const pre = preIn(highlightToBlock(source));
 		const raw = pre.properties?.[RAW_SOURCE_ATTR];
@@ -97,7 +97,7 @@ describe("copyButtonTransformer", () => {
 		expect(String(raw)).not.toContain("shiki");
 	});
 
-	it("wraps the <pre> in a non-scrolling positioning context", () => {
+	test("wraps the <pre> in a non-scrolling positioning context", () => {
 		const block = highlightToBlock("const x = 1");
 		expect(block.tagName).toBe("div");
 		expect(classList(block)).toEqual(
@@ -108,21 +108,21 @@ describe("copyButtonTransformer", () => {
 		expect(collectByTag(preIn(block), "button")).toHaveLength(0);
 	});
 
-	it("injects exactly one copy button per fenced block", () => {
+	test("injects exactly one copy button per fenced block", () => {
 		const block = highlightToBlock("const x: number = 1");
 		const buttons = collectByTag(block, "button");
 		expect(buttons).toHaveLength(1);
 		expect(buttons[0].properties?.type).toBe("button");
 	});
 
-	it("ships a static aria-label so the button is named pre-JS (WCAG 4.1.2)", () => {
+	test("ships a static aria-label so the button is named pre-JS (WCAG 4.1.2)", () => {
 		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		// The control is focusable and in the a11y tree at compile time; without a
 		// static name it has an empty accessible name until `wireCopyButtons` runs.
 		expect(button.properties?.["aria-label"]).toBe("Copy code");
 	});
 
-	it("bakes the supplied localized aria-label into SSR markup (issue 002)", () => {
+	test("bakes the supplied localized aria-label into SSR markup (issue 002)", () => {
 		// pt-br renders must ship "Copiar código" before any client JS runs, so the
 		// no-JS / pre-hydration button is named in the reader's language.
 		const [button] = collectByTag(
@@ -132,12 +132,12 @@ describe("copyButtonTransformer", () => {
 		expect(button.properties?.["aria-label"]).toBe("Copiar código");
 	});
 
-	it("button carries the stable client-hook class", () => {
+	test("button carries the stable client-hook class", () => {
 		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		expect(classList(button)).toContain(COPY_BUTTON_CLASS);
 	});
 
-	it("button is hidden by default and revealed on hover/focus via classes (AC-3)", () => {
+	test("button is hidden by default and revealed on hover/focus via classes (AC-3)", () => {
 		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		const classes = classList(button);
 		expect(classes).toContain("opacity-0");
@@ -145,7 +145,7 @@ describe("copyButtonTransformer", () => {
 		expect(classes).toContain("focus-visible:opacity-100");
 	});
 
-	it("button carries design-token utility classes", () => {
+	test("button carries design-token utility classes", () => {
 		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		const classes = classList(button);
 		expect(classes).toEqual(
@@ -158,7 +158,7 @@ describe("copyButtonTransformer", () => {
 		);
 	});
 
-	it("embeds both copy and check glyphs so the CSS state swap has icons (G1)", () => {
+	test("embeds both copy and check glyphs so the CSS state swap has icons (G1)", () => {
 		const [button] = collectByTag(highlightToBlock("const x = 1"), "button");
 		const svgs = collectByTag(button, "svg");
 		// Two glyphs ship in the markup: the copy icon (default) and the check icon
@@ -173,7 +173,7 @@ describe("copyButtonTransformer", () => {
 		expect(collectByTag(button, "path").length).toBeGreaterThan(0);
 	});
 
-	it("leaves highlighted token spans intact (does not corrupt highlighting)", () => {
+	test("leaves highlighted token spans intact (does not corrupt highlighting)", () => {
 		const pre = preIn(highlightToBlock("const value: string = 'hi'"));
 		const spans = collectByTag(pre, "span");
 		// Shiki emits one span per token; the transformer must not strip them.
@@ -188,7 +188,7 @@ describe("copyButtonTransformer", () => {
 		expect(classList(pre)).toContain("shiki");
 	});
 
-	it("wraps the <pre> and keeps its <code> (button added as sibling)", () => {
+	test("wraps the <pre> and keeps its <code> (button added as sibling)", () => {
 		const block = highlightToBlock("const x = 1");
 		const pre = preIn(block);
 		expect(collectByTag(pre, "code")).toHaveLength(1);
@@ -201,7 +201,7 @@ describe("copyButtonTransformer", () => {
 // ─── Touch-device visibility (issue 001) ──────────────────────────────────────
 
 describe("copy button touch-device visibility (issue 001)", () => {
-	it("global.css pins .code-copy-button visible on no-hover pointers", () => {
+	test("global.css pins .code-copy-button visible on no-hover pointers", () => {
 		// The utility reveal (opacity-0 → group-hover:opacity-100) can never fire on
 		// coarse/no-hover pointers, so a @media (hover: none) rule must keep the
 		// button visible (opacity:1) or the copy affordance is undiscoverable on

@@ -9,9 +9,10 @@
  * This test fails the build if any bucket is missing from either page, forcing
  * the policy update to ship alongside the enum change.
  */
+
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 import { ALL_SOURCES } from "#/lib/analytics/referrer-bucketer";
 
 const PRIVACY_PAGES = [
@@ -27,7 +28,7 @@ describe("privacy policy referrer-bucket disclosure", () => {
 			const content = readFileSync(page, "utf-8");
 
 			for (const source of ALL_SOURCES) {
-				it(`discloses the \`${source}\` bucket`, () => {
+				test(`discloses the \`${source}\` bucket`, () => {
 					// Match the backtick-wrapped token as written in the policy
 					// table, so a substring like "media" in prose can't satisfy
 					// the "medium" bucket by accident.

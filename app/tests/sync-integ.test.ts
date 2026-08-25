@@ -1,16 +1,16 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { isPostgresAvailable } from "#/lib/test-bench/database";
 import { runSync } from "../../scripts/sync";
 
 const execFileAsync = promisify(execFile);
 const DB_URL =
 	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
-// Shared across Vitest/Bun indexer/sync suites and worktrees. Hold one
+// Shared across Bun Test indexer/sync suites and worktrees. Hold one
 // PostgreSQL session lock for each suite because syncAll cleans the full table.
 const INTEGRATION_ADVISORY_LOCK_KEY = 748_231_409;
 
@@ -62,7 +62,7 @@ describe.skipIf(databaseUnavailable)("integration: sync script", () => {
 		return `---\ntitle: ${title}\n---\nContent.`;
 	}
 
-	it("2 .mdx files → 2 rows in posts", async () => {
+	test("2 .mdx files → 2 rows in posts", async () => {
 		const dir = join(tmpDir, "sync2");
 		await mkdir(join(dir, "en"), { recursive: true });
 		await writeFile(join(dir, "en", "t7s2alpha.mdx"), mdx("Post Alpha"));
@@ -73,7 +73,7 @@ describe.skipIf(databaseUnavailable)("integration: sync script", () => {
 		expect(rows).toHaveLength(2);
 	});
 
-	it("idempotent: run twice → same 2 rows", async () => {
+	test("idempotent: run twice → same 2 rows", async () => {
 		const dir = join(tmpDir, "sync-idem");
 		await mkdir(join(dir, "en"), { recursive: true });
 		await writeFile(join(dir, "en", "t7idema.mdx"), mdx("Idem A"));
@@ -85,7 +85,7 @@ describe.skipIf(databaseUnavailable)("integration: sync script", () => {
 		expect(rows).toHaveLength(2);
 	});
 
-	it("delete one file → 1 row (orphan removed)", async () => {
+	test("delete one file → 1 row (orphan removed)", async () => {
 		const dir = join(tmpDir, "sync-orphan");
 		await mkdir(join(dir, "en"), { recursive: true });
 		const keepPath = join(dir, "en", "t7keepme.mdx");
@@ -104,7 +104,7 @@ describe.skipIf(databaseUnavailable)("integration: sync script", () => {
 		expect(remaining[0]?.file_path).toBe(keepPath);
 	});
 
-	it("process exits non-zero when .mdx has missing required title field", async () => {
+	test("process exits non-zero when .mdx has missing required title field", async () => {
 		const dir = join(tmpDir, "sync-malformed");
 		await mkdir(join(dir, "en"), { recursive: true });
 		await writeFile(
@@ -120,7 +120,7 @@ describe.skipIf(databaseUnavailable)("integration: sync script", () => {
 		).rejects.toMatchObject({ code: 1 });
 	}, 20000);
 
-	it("process exits cleanly (exit 0) after sync completes", async () => {
+	test("process exits cleanly (exit 0) after sync completes", async () => {
 		const dir = join(tmpDir, "sync-exit");
 		await mkdir(join(dir, "en"), { recursive: true });
 		await writeFile(join(dir, "en", "t7exitpost.mdx"), mdx("Exit Test"));

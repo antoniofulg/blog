@@ -1,6 +1,6 @@
+import { describe, expect, test } from "bun:test";
 import { lstatSync, readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "../..");
 
@@ -27,11 +27,11 @@ function parseFrontmatter(content: string): Record<string, string | string[]> {
 describe("e2e-coverage SKILL", () => {
 	const skillPath = join(root, ".agents/skills/e2e-coverage/SKILL.md");
 
-	it("SKILL.md exists", () => {
+	test("SKILL.md exists", () => {
 		expect(() => lstatSync(skillPath)).not.toThrow();
 	});
 
-	it("SKILL.md has valid YAML frontmatter with required fields", () => {
+	test("SKILL.md has valid YAML frontmatter with required fields", () => {
 		const content = readFileSync(skillPath, "utf8");
 		expect(content).toMatch(/^---\n[\s\S]*?\n---/);
 
@@ -48,7 +48,7 @@ describe("e2e-coverage SKILL", () => {
 describe("e2e-coverage symlink", () => {
 	const symlinkPath = join(root, ".claude/skills/e2e-coverage");
 
-	it("exists as a symbolic link", () => {
+	test("exists as a symbolic link", () => {
 		const stat = lstatSync(symlinkPath);
 		expect(stat.isSymbolicLink()).toBe(true);
 	});
@@ -57,26 +57,26 @@ describe("e2e-coverage symlink", () => {
 describe(".agents/rules/testing.md", () => {
 	const testingPath = join(root, ".agents/rules/testing.md");
 
-	it("exists", () => {
+	test("exists", () => {
 		expect(() => lstatSync(testingPath)).not.toThrow();
 	});
 
-	it("contains selector hierarchy marker getByRole", () => {
+	test("contains selector hierarchy marker getByRole", () => {
 		const content = readFileSync(testingPath, "utf8");
 		expect(content).toContain("getByRole");
 	});
 
-	it("contains waitForTimeout ban", () => {
+	test("contains waitForTimeout ban", () => {
 		const content = readFileSync(testingPath, "utf8");
 		expect(content).toContain("waitForTimeout");
 	});
 
-	it("contains @smoke tag", () => {
+	test("contains @smoke tag", () => {
 		const content = readFileSync(testingPath, "utf8");
 		expect(content).toContain("@smoke");
 	});
 
-	it("contains 48h SLA rule", () => {
+	test("contains 48h SLA rule", () => {
 		const content = readFileSync(testingPath, "utf8");
 		expect(content).toContain("48");
 	});
@@ -85,12 +85,12 @@ describe(".agents/rules/testing.md", () => {
 describe(".agents/rules/auth.md e2e anti-patterns", () => {
 	const authPath = join(root, ".agents/rules/auth.md");
 
-	it("mentions seeded test user", () => {
+	test("mentions seeded test user", () => {
 		const content = readFileSync(authPath, "utf8");
 		expect(content).toContain("seeded test user");
 	});
 
-	it("mentions storageState.json", () => {
+	test("mentions storageState.json", () => {
 		const content = readFileSync(authPath, "utf8");
 		expect(content).toContain("storageState.json");
 	});
@@ -99,17 +99,17 @@ describe(".agents/rules/auth.md e2e anti-patterns", () => {
 describe("AGENTS.md updates", () => {
 	const agentsPath = join(root, "AGENTS.md");
 
-	it("lists tests/e2e/ in File Structure", () => {
+	test("lists tests/e2e/ in File Structure", () => {
 		const content = readFileSync(agentsPath, "utf8");
 		expect(content).toContain("tests/e2e/");
 	});
 
-	it("has e2e-coverage in Skill Map", () => {
+	test("has e2e-coverage in Skill Map", () => {
 		const content = readFileSync(agentsPath, "utf8");
 		expect(content).toContain("e2e-coverage");
 	});
 
-	it("links to .agents/rules/testing.md in Rules list", () => {
+	test("links to .agents/rules/testing.md in Rules list", () => {
 		const content = readFileSync(agentsPath, "utf8");
 		expect(content).toContain(".agents/rules/testing.md");
 	});

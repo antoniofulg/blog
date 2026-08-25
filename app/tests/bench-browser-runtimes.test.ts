@@ -1,5 +1,5 @@
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
-import { describe, expect, test } from "vitest";
 import { BROWSER_SMOKE_ROUTE_IDS } from "#/lib/browser-bench/contract";
 import {
 	ALL_PROFILES,
@@ -131,17 +131,17 @@ describe("browser finalist benchmark", () => {
 			],
 		});
 		const playwright = parseSmokeOutput(playwrightReport, "playwright");
-		expect(playwright?.routes.map((route) => route.id)).toEqual(
-			BROWSER_SMOKE_ROUTE_IDS,
-		);
+		expect(playwright?.routes.map((route) => route.id)).toEqual([
+			...BROWSER_SMOKE_ROUTE_IDS,
+		]);
 		expect(playwright?.routes.every((route) => route.passed)).toBe(true);
 		const webview = parseWebViewPassOutcomes(
 			`BROWSER_SMOKE_RESULT ${JSON.stringify({ passOutcomes: [playwright?.routes] })}`,
 		);
 		expect(webview).toHaveLength(1);
-		expect(webview[0]?.routes.map((route) => route.id)).toEqual(
-			BROWSER_SMOKE_ROUTE_IDS,
-		);
+		expect(webview[0]?.routes.map((route) => route.id)).toEqual([
+			...BROWSER_SMOKE_ROUTE_IDS,
+		]);
 	});
 
 	test("rejects locale alias and retains setup count/time separately", () => {

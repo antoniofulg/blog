@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from "bun:test";
 import {
 	BROWSER_SMOKE_ROUTE_IDS,
 	BROWSER_SMOKE_ROUTES,
@@ -8,9 +8,9 @@ import {
 describe("browser smoke contract", () => {
 	test("defines the five canonical public outcomes in stable order", () => {
 		expect(BROWSER_SMOKE_ROUTES).toHaveLength(5);
-		expect(BROWSER_SMOKE_ROUTES.map((route) => route.id)).toEqual(
-			BROWSER_SMOKE_ROUTE_IDS,
-		);
+		expect(BROWSER_SMOKE_ROUTES.map((route) => route.id)).toEqual([
+			...BROWSER_SMOKE_ROUTE_IDS,
+		]);
 		expect(new Set(BROWSER_SMOKE_ROUTES.map((route) => route.path)).size).toBe(
 			5,
 		);

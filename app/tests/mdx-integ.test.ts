@@ -1,18 +1,18 @@
+import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
 
 import { renderMdx } from "#/lib/mdx/renderer.server";
 
-const FIXTURES = join(import.meta.dirname, "fixtures");
+const FIXTURES = join(process.cwd(), "app/tests/fixtures");
 const SAMPLE_SOURCE = readFileSync(join(FIXTURES, "sample.mdx"), "utf-8");
 
 // ─── Integration: renderMdx ───────────────────────────────────────────────────
 
 describe("integration: renderMdx", () => {
-	it("rendering fixture to string produces <h1> matching the first heading", async () => {
+	test("rendering fixture to string produces <h1> matching the first heading", async () => {
 		const Component = await renderMdx(SAMPLE_SOURCE);
 		const html = renderToStaticMarkup(createElement(Component, {}));
 		// rehype-slug adds a github-slugger id to every heading (enables in-page
@@ -20,13 +20,13 @@ describe("integration: renderMdx", () => {
 		expect(html).toContain('<h1 id="sample-post">Sample Post</h1>');
 	});
 
-	it("renders **bold** as <strong> (remark-gfm active)", async () => {
+	test("renders **bold** as <strong> (remark-gfm active)", async () => {
 		const Component = await renderMdx("**bold text**");
 		const html = renderToStaticMarkup(createElement(Component, {}));
 		expect(html).toContain("<strong>bold text</strong>");
 	});
 
-	it("mdx modules are protected from client bundle in vite.config.ts", () => {
+	test("mdx modules are protected from client bundle in vite.config.ts", () => {
 		const viteConfig = readFileSync(
 			join(import.meta.dirname, "../../vite.config.ts"),
 			"utf-8",

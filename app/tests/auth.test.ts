@@ -1,36 +1,36 @@
+import { describe, expect, jest, mock, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: {},
-	closeDb: vi.fn(),
+	closeDb: jest.fn(),
 }));
 
 // Prevent TanStack Start plugin from stripping server fn handlers.
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		handler: (fn: unknown) => fn,
 	}),
 }));
 
-vi.mock("@tanstack/react-start/server", () => ({
-	getRequest: vi.fn(() => new Request("http://localhost/")),
+mock.module("@tanstack/react-start/server", () => ({
+	getRequest: jest.fn(() => new Request("http://localhost/")),
 }));
 
-import { auth, resolveAuthBaseURL } from "#/lib/auth";
-import { Route } from "#/routes/api/auth/$";
+const { auth, resolveAuthBaseURL } = await import("#/lib/auth");
+const { Route } = await import("#/routes/api/auth/$");
 
 // ─── Unit: auth config ────────────────────────────────────────────────────────
 
 describe("unit: auth config", () => {
-	it("emailAndPassword is enabled", () => {
+	test("emailAndPassword is enabled", () => {
 		expect(auth.options.emailAndPassword?.enabled).toBe(true);
 	});
 
-	it("reactStartCookies is the last plugin in the plugins array", () => {
+	test("reactStartCookies is the last plugin in the plugins array", () => {
 		const plugins =
 			(auth.options.plugins as Array<{ id?: string }> | undefined) ?? [];
 		expect(plugins.length).toBeGreaterThan(0);
@@ -38,12 +38,12 @@ describe("unit: auth config", () => {
 		expect(last?.id).toBe("react-start-cookies");
 	});
 
-	it("plugins array is non-empty", () => {
+	test("plugins array is non-empty", () => {
 		const plugins = auth.options.plugins ?? [];
 		expect(plugins.length).toBeGreaterThan(0);
 	});
 
-	it("resolveAuthBaseURL prefers BETTER_AUTH_URL over SITE_URL", () => {
+	test("resolveAuthBaseURL prefers BETTER_AUTH_URL over SITE_URL", () => {
 		expect(
 			resolveAuthBaseURL({
 				BETTER_AUTH_URL: "https://auth.example",
@@ -52,13 +52,13 @@ describe("unit: auth config", () => {
 		).toBe("https://auth.example");
 	});
 
-	it("resolveAuthBaseURL falls back to SITE_URL and strips trailing slash", () => {
+	test("resolveAuthBaseURL falls back to SITE_URL and strips trailing slash", () => {
 		expect(resolveAuthBaseURL({ SITE_URL: "https://antoniofulg.tech/" })).toBe(
 			"https://antoniofulg.tech",
 		);
 	});
 
-	it("resolveAuthBaseURL is undefined when both auth and site URLs are missing", () => {
+	test("resolveAuthBaseURL is undefined when both auth and site URLs are missing", () => {
 		expect(resolveAuthBaseURL({})).toBeUndefined();
 	});
 });
@@ -66,19 +66,19 @@ describe("unit: auth config", () => {
 // ─── Unit: route handler exports ─────────────────────────────────────────────
 
 describe("unit: api/auth/$ handler exports", () => {
-	it("Route has GET handler in server.handlers", () => {
+	test("Route has GET handler in server.handlers", () => {
 		// biome-ignore lint/suspicious/noExplicitAny: server.handlers is not typed on RouteOptions
 		const handlers = (Route.options as any).server?.handlers;
 		expect(typeof handlers?.GET).toBe("function");
 	});
 
-	it("Route has POST handler in server.handlers", () => {
+	test("Route has POST handler in server.handlers", () => {
 		// biome-ignore lint/suspicious/noExplicitAny: server.handlers is not typed on RouteOptions
 		const handlers = (Route.options as any).server?.handlers;
 		expect(typeof handlers?.POST).toBe("function");
 	});
 
-	it("GET handler is async (returns a Promise)", async () => {
+	test("GET handler is async (returns a Promise)", async () => {
 		// biome-ignore lint/suspicious/noExplicitAny: server.handlers is not typed on RouteOptions
 		const handlers = (Route.options as any).server?.handlers;
 		// Minimal smoke: handler is callable and returns a thenable
@@ -86,7 +86,7 @@ describe("unit: api/auth/$ handler exports", () => {
 		expect(handlers?.GET.constructor.name).toBe("AsyncFunction");
 	});
 
-	it("POST handler is async (returns a Promise)", () => {
+	test("POST handler is async (returns a Promise)", () => {
 		// biome-ignore lint/suspicious/noExplicitAny: server.handlers is not typed on RouteOptions
 		const handlers = (Route.options as any).server?.handlers;
 		expect(handlers?.POST.constructor.name).toBe("AsyncFunction");
@@ -99,17 +99,17 @@ describe("unit: client bundle exclusion", () => {
 	const configPath = join(import.meta.dirname, "../../vite.config.ts");
 	const viteConfig = readFileSync(configPath, "utf-8");
 
-	it("vite.config.ts has server-only stub plugin protecting client bundle", () => {
+	test("vite.config.ts has server-only stub plugin protecting client bundle", () => {
 		expect(viteConfig).toContain("serverOnlyStubPlugin");
 	});
 
-	it("TanStack Start import protection is not disabled", () => {
+	test("TanStack Start import protection is not disabled", () => {
 		expect(viteConfig).not.toMatch(
 			/importProtection\s*:\s*\{[^}]*enabled\s*:\s*false/,
 		);
 	});
 
-	it("auth module is in the server-only stub list", () => {
+	test("auth module is in the server-only stub list", () => {
 		expect(viteConfig).toContain("#/lib/auth");
 	});
 });
@@ -117,7 +117,7 @@ describe("unit: client bundle exclusion", () => {
 // ─── Unit: auth client export ─────────────────────────────────────────────────
 
 describe("unit: authClient export", () => {
-	it("auth.client.ts exports authClient", async () => {
+	test("auth.client.ts exports authClient", async () => {
 		const mod = await import("#/lib/auth.client");
 		expect(mod.authClient).toBeDefined();
 	});

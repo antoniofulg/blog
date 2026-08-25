@@ -1,23 +1,31 @@
+import {
+	afterAll,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
 import { execFile } from "node:child_process";
 import { mkdir, mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join, resolve } from "node:path";
 import { promisify } from "node:util";
-import { afterAll, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ─────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => ({
-	runContentAudit: vi.fn().mockResolvedValue([]),
-	writeReport: vi.fn().mockResolvedValue(undefined),
-}));
+const mocks = (() => ({
+	runContentAudit: jest.fn().mockResolvedValue([]),
+	writeReport: jest.fn().mockResolvedValue(undefined),
+}))();
 
-vi.mock("#/lib/content-audit/checks.server", () => ({
+mock.module("#/lib/content-audit/checks.server", () => ({
 	runContentAudit: mocks.runContentAudit,
 }));
 
-vi.mock("#/lib/content-audit/reporter.server", () => ({
+mock.module("#/lib/content-audit/reporter.server", () => ({
 	writeReport: mocks.writeReport,
 }));
 
@@ -71,25 +79,25 @@ function makeMinorFinding() {
 // ─── parseTrigger ──────────────────────────────────────────────────────────
 
 describe("parseTrigger", () => {
-	it("extracts --trigger=foo", () => {
+	test("extracts --trigger=foo", () => {
 		expect(parseTrigger(["--trigger=foo"])).toBe("foo");
 	});
 
-	it("extracts trigger from multi-arg list", () => {
+	test("extracts trigger from multi-arg list", () => {
 		expect(parseTrigger(["--other=val", "--trigger=ci-pr-42"])).toBe(
 			"ci-pr-42",
 		);
 	});
 
-	it("defaults to 'manual' when no flag", () => {
+	test("defaults to 'manual' when no flag", () => {
 		expect(parseTrigger([])).toBe("manual");
 	});
 
-	it("defaults to 'manual' for unrelated flags", () => {
+	test("defaults to 'manual' for unrelated flags", () => {
 		expect(parseTrigger(["--content-dir=/tmp"])).toBe("manual");
 	});
 
-	it("preserves value with hyphens and numbers", () => {
+	test("preserves value with hyphens and numbers", () => {
 		expect(parseTrigger(["--trigger=workflow-dispatch-123"])).toBe(
 			"workflow-dispatch-123",
 		);
@@ -99,15 +107,15 @@ describe("parseTrigger", () => {
 // ─── parseContentDir ───────────────────────────────────────────────────────
 
 describe("parseContentDir", () => {
-	it("extracts --content-dir=/some/path", () => {
+	test("extracts --content-dir=/some/path", () => {
 		expect(parseContentDir(["--content-dir=/some/path"])).toBe("/some/path");
 	});
 
-	it("returns undefined when not present", () => {
+	test("returns undefined when not present", () => {
 		expect(parseContentDir([])).toBeUndefined();
 	});
 
-	it("returns undefined for unrelated flags", () => {
+	test("returns undefined for unrelated flags", () => {
 		expect(parseContentDir(["--trigger=manual"])).toBeUndefined();
 	});
 });
@@ -120,30 +128,30 @@ describe("runAuditCli — exit codes", () => {
 		mocks.writeReport.mockResolvedValue(undefined);
 	});
 
-	it("exit 0 when no findings", async () => {
+	test("exit 0 when no findings", async () => {
 		const result = await runAuditCli([]);
 		expect(result.exitCode).toBe(0);
 	});
 
-	it("exit 0 when only major findings", async () => {
+	test("exit 0 when only major findings", async () => {
 		mocks.runContentAudit.mockResolvedValue([makeMajorFinding()]);
 		const result = await runAuditCli([]);
 		expect(result.exitCode).toBe(0);
 	});
 
-	it("exit 0 when only minor findings", async () => {
+	test("exit 0 when only minor findings", async () => {
 		mocks.runContentAudit.mockResolvedValue([makeMinorFinding()]);
 		const result = await runAuditCli([]);
 		expect(result.exitCode).toBe(0);
 	});
 
-	it("exit 1 when has blocker finding", async () => {
+	test("exit 1 when has blocker finding", async () => {
 		mocks.runContentAudit.mockResolvedValue([makeBlockerFinding()]);
 		const result = await runAuditCli([]);
 		expect(result.exitCode).toBe(1);
 	});
 
-	it("exit 1 when mixed findings with blocker", async () => {
+	test("exit 1 when mixed findings with blocker", async () => {
 		mocks.runContentAudit.mockResolvedValue([
 			makeBlockerFinding(),
 			makeMajorFinding(),
@@ -162,7 +170,7 @@ describe("runAuditCli — summary line format", () => {
 		mocks.writeReport.mockResolvedValue(undefined);
 	});
 
-	it("summary line contains severity counts", async () => {
+	test("summary line contains severity counts", async () => {
 		mocks.runContentAudit.mockResolvedValue([
 			makeBlockerFinding(),
 			makeMajorFinding(),
@@ -174,26 +182,26 @@ describe("runAuditCli — summary line format", () => {
 		expect(summaryLine).toMatch(/1 minor/);
 	});
 
-	it("summary line contains today's report path", async () => {
+	test("summary line contains today's report path", async () => {
 		const { summaryLine } = await runAuditCli([]);
 		const today = new Date().toISOString().slice(0, 10);
 		expect(summaryLine).toContain(`docs/_reports/content-audit-${today}.md`);
 	});
 
-	it("reportPath matches today's date", async () => {
+	test("reportPath matches today's date", async () => {
 		const { reportPath } = await runAuditCli([]);
 		const today = new Date().toISOString().slice(0, 10);
 		expect(reportPath).toBe(`docs/_reports/content-audit-${today}.md`);
 	});
 
-	it("zero counts when no findings", async () => {
+	test("zero counts when no findings", async () => {
 		const { summaryLine } = await runAuditCli([]);
 		expect(summaryLine).toMatch(/0 blocker/);
 		expect(summaryLine).toMatch(/0 major/);
 		expect(summaryLine).toMatch(/0 minor/);
 	});
 
-	it("countsLine uses stable key=value format independent of summaryLine (issue 003)", async () => {
+	test("countsLine uses stable key=value format independent of summaryLine (issue 003)", async () => {
 		mocks.runContentAudit.mockResolvedValue([
 			makeBlockerFinding(),
 			makeMajorFinding(),
@@ -206,7 +214,7 @@ describe("runAuditCli — summary line format", () => {
 		expect(countsLine).toContain("minors=1");
 	});
 
-	it("countsLine zero counts when no findings (issue 003)", async () => {
+	test("countsLine zero counts when no findings (issue 003)", async () => {
 		const { countsLine } = await runAuditCli([]);
 		expect(countsLine).toContain("blockers=0");
 		expect(countsLine).toContain("majors=0");
@@ -222,12 +230,12 @@ describe("runAuditCli — trigger forwarding", () => {
 		mocks.writeReport.mockResolvedValue(undefined);
 	});
 
-	it("passes --trigger value to writeReport", async () => {
+	test("passes --trigger value to writeReport", async () => {
 		await runAuditCli(["--trigger=ci-pr-42"]);
 		expect(mocks.writeReport).toHaveBeenCalledWith([], "ci-pr-42");
 	});
 
-	it("passes 'manual' to writeReport when no flag", async () => {
+	test("passes 'manual' to writeReport when no flag", async () => {
 		await runAuditCli([]);
 		expect(mocks.writeReport).toHaveBeenCalledWith([], "manual");
 	});
@@ -241,12 +249,12 @@ describe("runAuditCli — content dir forwarding", () => {
 		mocks.writeReport.mockResolvedValue(undefined);
 	});
 
-	it("passes --content-dir to runContentAudit", async () => {
+	test("passes --content-dir to runContentAudit", async () => {
 		await runAuditCli(["--content-dir=/tmp/test"]);
 		expect(mocks.runContentAudit).toHaveBeenCalledWith("/tmp/test");
 	});
 
-	it("passes undefined when no --content-dir", async () => {
+	test("passes undefined when no --content-dir", async () => {
 		await runAuditCli([]);
 		expect(mocks.runContentAudit).toHaveBeenCalledWith(undefined);
 	});
@@ -268,7 +276,7 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 	const DB_URL =
 		process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 
-	it("exit 0 on clean content tree", async () => {
+	test("exit 0 on clean content tree", async () => {
 		const summaryDir = await mkdtemp(join(tmpdir(), "audit-clean-"));
 		await expect(
 			execFileAsync("bun", ["run", scriptPath, "--trigger=test-int-clean"], {
@@ -284,7 +292,7 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 		await rm(summaryDir, { recursive: true, force: true });
 	}, 35000);
 
-	it("exit 1 when fixture has a blocker (missing title)", async () => {
+	test("exit 1 when fixture has a blocker (missing title)", async () => {
 		tmpDir = await mkdtemp(join(tmpdir(), "audit-cli-test-"));
 		const enDir = join(tmpDir, "en");
 		await mkdir(enDir, { recursive: true });
@@ -315,7 +323,7 @@ describe.skipIf(port5432Free)("integration: subprocess", () => {
 		).rejects.toMatchObject({ code: 1 });
 	}, 35000);
 
-	it("SUMMARY.md row count increases by 1 per invocation", async () => {
+	test("SUMMARY.md row count increases by 1 per invocation", async () => {
 		// Isolate the SUMMARY.md to a tmpdir so tests don't pollute the committed file.
 		const fixtureDir = await mkdtemp(join(tmpdir(), "audit-rowcount-"));
 		const summaryPath = join(fixtureDir, "SUMMARY.md");

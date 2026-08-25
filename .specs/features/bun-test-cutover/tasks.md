@@ -85,13 +85,17 @@ T3 -> T4 -> T5 -> T6
 **Requirement**: BTC-01, BTC-03, BTC-04
 **Tools**: Bun, filesystem
 **Done when**:
-- [ ] `bun run test` runs `app/tests` through Bun Test with two workers.
-- [ ] 133 files pass with zero failures.
-- [ ] Vitest/jsdom/config/package routes are absent.
-- [ ] `bun install --frozen-lockfile` succeeds after lockfile regeneration.
+- [x] `bun run test` runs `app/tests` through Bun Test with two isolated workers.
+- [x] 133 files pass with zero failures (2,256 pass, 101 raw skips).
+- [x] Vitest/jsdom/config/package routes are absent.
+- [x] `bun install --frozen-lockfile` succeeds after lockfile regeneration.
 **Tests**: unit + integration
 **Gate**: quick
 **Commit**: `test(bun): make native runner canonical`
+
+**Test-count note**: Seven runner-only leaves were removed when Vitest profile,
+parity, and rollback assertions became impossible by design. All 113 product
+files and 20 active infrastructure files remain represented.
 
 ### T4: Update blocking CI contracts
 

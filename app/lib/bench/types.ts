@@ -84,7 +84,7 @@ export type Finding = {
 	workloadId: string;
 	exitCode: number | null;
 	stderrTail: string;
-	/** Tail of stdout. Vitest and Playwright print their failure summary here;
+	/** Tail of stdout. Bun Test and Playwright print their failure summary here;
 	 * stderr alone tends to carry server log noise that looks like a cause and
 	 * is not one. */
 	stdoutTail?: string;

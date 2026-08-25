@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, test } from "bun:test";
 import type { DeviceClass } from "#/lib/analytics/device-detector";
 import { detectDevice } from "#/lib/analytics/device-detector";
 
@@ -61,21 +61,21 @@ describe("detectDevice", () => {
 		],
 	];
 
-	it.each(cases)("classifies %s as %s", (ua, expected) => {
+	test.each(cases)("classifies %s as %s", (ua, expected) => {
 		expect(detectDevice(ua)).toBe(expected);
 	});
 
 	// ── Edge cases ───────────────────────────────────────────────────────────────
 
-	it("returns desktop for null", () => {
+	test("returns desktop for null", () => {
 		expect(detectDevice(null)).toBe("desktop");
 	});
 
-	it("returns desktop for undefined", () => {
+	test("returns desktop for undefined", () => {
 		expect(detectDevice(undefined)).toBe("desktop");
 	});
 
-	it("returns desktop for empty string", () => {
+	test("returns desktop for empty string", () => {
 		expect(detectDevice("")).toBe("desktop");
 	});
 });

@@ -1,12 +1,13 @@
-// @vitest-environment jsdom
-import { cleanup, render } from "@testing-library/react";
+import "./happydom";
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+
+const { cleanup, render } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { Footer } from "#/components/layout/footer";
 
 // ─── Locale holder (allows per-describe locale switching) ─────────────────────
 
-const localeMock = vi.hoisted(() => {
+const localeMock = (() => {
 	let _locale = "en";
 	return {
 		get: () => _locale,
@@ -17,9 +18,9 @@ const localeMock = vi.hoisted(() => {
 			_locale = "en";
 		},
 	};
-});
+})();
 
-vi.mock("@tanstack/react-router", () => ({
+mock.module("@tanstack/react-router", () => ({
 	useRouterState: ({
 		select,
 	}: {
@@ -47,11 +48,12 @@ vi.mock("@tanstack/react-router", () => ({
 	},
 }));
 
-vi.mock("#/lib/locale", async () => {
-	const actual =
-		await vi.importActual<typeof import("#/lib/locale")>("#/lib/locale");
-	return { ...actual, useCurrentLocale: () => localeMock.get() };
-});
+mock.module("#/lib/locale", () => ({
+	DEFAULT_LOCALE: "en",
+	useCurrentLocale: () => localeMock.get(),
+}));
+
+const { Footer } = await import("#/components/layout/footer");
 
 function renderFooter() {
 	return render(React.createElement(Footer));
@@ -65,17 +67,17 @@ afterEach(() => {
 // ─── unit: navLinks absent entries ────────────────────────────────────────────
 
 describe("unit: Footer navLinks absent entries", () => {
-	it("no link to /tutorials", () => {
+	test("no link to /tutorials", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/tutorials"]')).toBeNull();
 	});
 
-	it("no link to /projects", () => {
+	test("no link to /projects", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/projects"]')).toBeNull();
 	});
 
-	it("no link to /blog (deleted route, listing moved to /)", () => {
+	test("no link to /blog (deleted route, listing moved to /)", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/blog"]')).toBeNull();
 	});
@@ -84,22 +86,22 @@ describe("unit: Footer navLinks absent entries", () => {
 // ─── unit: resourceLinks absent entries ───────────────────────────────────────
 
 describe("unit: Footer resourceLinks absent entries", () => {
-	it("no link to /feed.xml", () => {
+	test("no link to /feed.xml", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/feed.xml"]')).toBeNull();
 	});
 
-	it("no link to /sitemap.xml", () => {
+	test("no link to /sitemap.xml", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/sitemap.xml"]')).toBeNull();
 	});
 
-	it("no link to /newsletter", () => {
+	test("no link to /newsletter", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/newsletter"]')).toBeNull();
 	});
 
-	it("no link to /search", () => {
+	test("no link to /search", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/search"]')).toBeNull();
 	});
@@ -108,17 +110,17 @@ describe("unit: Footer resourceLinks absent entries", () => {
 // ─── unit: social links absent ────────────────────────────────────────────────
 
 describe("unit: Footer social links absent", () => {
-	it("no placeholder github.com link", () => {
+	test("no placeholder github.com link", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="https://github.com"]')).toBeNull();
 	});
 
-	it("no placeholder linkedin.com link", () => {
+	test("no placeholder linkedin.com link", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="https://linkedin.com"]')).toBeNull();
 	});
 
-	it("no placeholder twitter.com link", () => {
+	test("no placeholder twitter.com link", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="https://twitter.com"]')).toBeNull();
 	});
@@ -127,17 +129,17 @@ describe("unit: Footer social links absent", () => {
 // ─── unit: valid remaining links ──────────────────────────────────────────────
 
 describe("unit: Footer valid remaining links (locale=en)", () => {
-	it("renders link to /", () => {
+	test("renders link to /", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/"]')).not.toBeNull();
 	});
 
-	it("renders link to /en/about (locale-aware About)", () => {
+	test("renders link to /en/about (locale-aware About)", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/en/about"]')).not.toBeNull();
 	});
 
-	it("no unprefixed /about link (replaced by /en/about for bilingual parity)", () => {
+	test("no unprefixed /about link (replaced by /en/about for bilingual parity)", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/about"]')).toBeNull();
 	});
@@ -146,21 +148,21 @@ describe("unit: Footer valid remaining links (locale=en)", () => {
 // ─── unit: bilingual copy ─────────────────────────────────────────────────────
 
 describe("unit: Footer copy (locale=en)", () => {
-	it("renders English tagline", () => {
+	test("renders English tagline", () => {
 		renderFooter();
 		expect(
 			document.body.textContent?.includes("Daily lessons from shipping"),
 		).toBe(true);
 	});
 
-	it("renders English rights-reserved string", () => {
+	test("renders English rights-reserved string", () => {
 		renderFooter();
 		expect(document.body.textContent?.includes("All rights reserved")).toBe(
 			true,
 		);
 	});
 
-	it("renders dynamic copyright year", () => {
+	test("renders dynamic copyright year", () => {
 		renderFooter();
 		expect(
 			document.body.textContent?.includes(String(new Date().getFullYear())),
@@ -171,12 +173,12 @@ describe("unit: Footer copy (locale=en)", () => {
 // ─── unit: Privacy link (locale=en) ──────────────────────────────────────────
 
 describe("unit: Footer Privacy link (locale=en)", () => {
-	it("renders a Privacy link pointing at /en/privacy", () => {
+	test("renders a Privacy link pointing at /en/privacy", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/en/privacy"]')).not.toBeNull();
 	});
 
-	it("Privacy link label is 'Privacy'", () => {
+	test("Privacy link label is 'Privacy'", () => {
 		renderFooter();
 		const link = document.querySelector('a[href="/en/privacy"]');
 		expect(link?.textContent).toBe("Privacy");
@@ -190,12 +192,12 @@ describe("unit: Footer Privacy link (locale=pt-br)", () => {
 		localeMock.set("pt-br");
 	});
 
-	it("renders a Privacy link pointing at /pt-br/privacy", () => {
+	test("renders a Privacy link pointing at /pt-br/privacy", () => {
 		renderFooter();
 		expect(document.querySelector('a[href="/pt-br/privacy"]')).not.toBeNull();
 	});
 
-	it("Privacy link label is 'Privacidade'", () => {
+	test("Privacy link label is 'Privacidade'", () => {
 		renderFooter();
 		const link = document.querySelector('a[href="/pt-br/privacy"]');
 		expect(link?.textContent).toBe("Privacidade");

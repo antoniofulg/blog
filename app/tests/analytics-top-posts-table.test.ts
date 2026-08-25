@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit tests for TopPostsTable component.
  *
@@ -6,23 +7,30 @@
  * row-click interaction, keyboard activation (Enter/Space), language-badge
  * output for both locales, and the functional-updater pattern for ADR-006.
  *
- * Recharts is fully mocked — jsdom has no ResizeObserver or SVG layout.
+ * Recharts is fully mocked — HappyDOM has no ResizeObserver or SVG layout.
  * All component tests use React.createElement (no JSX) and .ts extension
- * to match the project's vitest include pattern.
+ * to match the project's test discovery pattern.
  */
+
 import {
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-	within,
-} from "@testing-library/react";
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { cleanup, fireEvent, render, screen, within } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
+const mocks = (() => {
 	let locale: "en" | "pt-br" = "en";
 	return {
 		setLocale: (l: "en" | "pt-br") => {
@@ -30,19 +38,19 @@ const mocks = vi.hoisted(() => {
 		},
 		getLocale: () => locale,
 	};
-});
+})();
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 // Provide LOCALES so strings.ts module-level validation loop works.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	useLocale: () => ({ locale: mocks.getLocale() }),
 	LOCALES: ["en", "pt-br"],
 }));
 
-// Stub Recharts — jsdom has no ResizeObserver / SVG layout support.
+// Stub Recharts — HappyDOM has no ResizeObserver / SVG layout support.
 // LineChart exposes data length via data-count for sparkline assertions.
-vi.mock("recharts", () => ({
+mock.module("recharts", () => ({
 	ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
 		children,
 	LineChart: ({
@@ -62,8 +70,10 @@ vi.mock("recharts", () => ({
 
 // ── SUT imports (after mocks) ─────────────────────────────────────────────────
 
-import { TopPostsTable } from "#/components/admin/analytics/top-posts-table";
-import { strings } from "#/lib/i18n/strings";
+const { TopPostsTable } = await import(
+	"#/components/admin/analytics/top-posts-table"
+);
+const { strings } = await import("#/lib/i18n/strings");
 
 // ── Types & fixture helpers ───────────────────────────────────────────────────
 
@@ -102,7 +112,7 @@ function make10Posts(): TopPost[] {
 function renderTable(
 	topPosts: TopPost[],
 	locale: "en" | "pt-br" = "en",
-	onRowClick = vi.fn(),
+	onRowClick = jest.fn(),
 ) {
 	mocks.setLocale(locale);
 	return {
@@ -124,12 +134,12 @@ afterEach(cleanup);
 // ── Rendering: row count ──────────────────────────────────────────────────────
 
 describe("TopPostsTable — row count (AC-1)", () => {
-	it("renders wrapper with data-testid='top-posts-table'", () => {
+	test("renders wrapper with data-testid='top-posts-table'", () => {
 		renderTable([makePost()]);
 		expect(screen.getByTestId("top-posts-table")).toBeDefined();
 	});
 
-	it("renders 10 rows for a 10-element topPosts array", () => {
+	test("renders 10 rows for a 10-element topPosts array", () => {
 		renderTable(make10Posts());
 		const table = screen.getByTestId("top-posts-table");
 		// Each row has role="button"
@@ -137,14 +147,14 @@ describe("TopPostsTable — row count (AC-1)", () => {
 		expect(rows).toHaveLength(10);
 	});
 
-	it("renders 1 row for a single-item array", () => {
+	test("renders 1 row for a single-item array", () => {
 		renderTable([makePost()]);
 		const table = screen.getByTestId("top-posts-table");
 		const rows = within(table).getAllByRole("button");
 		expect(rows).toHaveLength(1);
 	});
 
-	it("renders EmptyState (awaitingData) for an empty topPosts array when no postId", () => {
+	test("renders EmptyState (awaitingData) for an empty topPosts array when no postId", () => {
 		renderTable([]);
 		// Wrapper still renders (no longer returns null — task_18)
 		expect(screen.getByTestId("top-posts-table")).toBeDefined();
@@ -153,13 +163,13 @@ describe("TopPostsTable — row count (AC-1)", () => {
 		).toBeDefined();
 	});
 
-	it("renders filter-empty message when postId is set and topPosts is empty", () => {
+	test("renders filter-empty message when postId is set and topPosts is empty", () => {
 		mocks.setLocale("en");
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: [],
 				locale: "en",
-				onRowClick: vi.fn(),
+				onRowClick: jest.fn(),
 				postId: 99,
 			}),
 		);
@@ -177,24 +187,24 @@ describe("TopPostsTable — row count (AC-1)", () => {
 // ── Rendering: column content ─────────────────────────────────────────────────
 
 describe("TopPostsTable — column content (AC-2)", () => {
-	it("renders the post title in each row", () => {
+	test("renders the post title in each row", () => {
 		renderTable([makePost({ title: "My Great Post" })]);
 		expect(screen.getByText("My Great Post")).toBeDefined();
 	});
 
-	it("renders the visit count for each row", () => {
+	test("renders the visit count for each row", () => {
 		renderTable([makePost({ count: 99 })]);
 		expect(screen.getByText("99")).toBeDefined();
 	});
 
-	it("renders a sparkline LineChart per row", () => {
+	test("renders a sparkline LineChart per row", () => {
 		renderTable([makePost({ sparkline: [10, 20, 30] })]);
 		const chart = screen.getByTestId("line-chart");
 		// Sparkline data: [10,20,30] → 3 points
 		expect(chart.getAttribute("data-count")).toBe("3");
 	});
 
-	it("renders one LineChart per row for 5 posts", () => {
+	test("renders one LineChart per row for 5 posts", () => {
 		const posts = Array.from({ length: 5 }, (_, i) =>
 			makePost({ postId: i + 1, slug: `p${i}`, sparkline: [1, 2] }),
 		);
@@ -203,7 +213,7 @@ describe("TopPostsTable — column content (AC-2)", () => {
 		expect(charts).toHaveLength(5);
 	});
 
-	it("sparkline data-count equals sparkline array length", () => {
+	test("sparkline data-count equals sparkline array length", () => {
 		renderTable([makePost({ sparkline: [5, 10, 15, 20] })]);
 		const chart = screen.getByTestId("line-chart");
 		expect(chart.getAttribute("data-count")).toBe("4");
@@ -213,17 +223,17 @@ describe("TopPostsTable — column content (AC-2)", () => {
 // ── Language badge (AC-2, subtask 15.5) ──────────────────────────────────────
 
 describe("TopPostsTable — language badge", () => {
-	it("renders 'EN' badge for lang='en' rows", () => {
+	test("renders 'EN' badge for lang='en' rows", () => {
 		renderTable([makePost({ lang: "en" })]);
 		expect(screen.getByText("EN")).toBeDefined();
 	});
 
-	it("renders 'PT-BR' badge for lang='pt-br' rows", () => {
+	test("renders 'PT-BR' badge for lang='pt-br' rows", () => {
 		renderTable([makePost({ lang: "pt-br" })]);
 		expect(screen.getByText("PT-BR")).toBeDefined();
 	});
 
-	it("renders correct badge for each row in a mixed-locale list", () => {
+	test("renders correct badge for each row in a mixed-locale list", () => {
 		const posts = [
 			makePost({ postId: 1, slug: "p1", lang: "en", title: "EN Post" }),
 			makePost({ postId: 2, slug: "p2", lang: "pt-br", title: "PT Post" }),
@@ -237,7 +247,7 @@ describe("TopPostsTable — language badge", () => {
 // ── Row click (AC-3) ──────────────────────────────────────────────────────────
 
 describe("TopPostsTable — row click (AC-3)", () => {
-	it("calls onRowClick with the correct postId on click", () => {
+	test("calls onRowClick with the correct postId on click", () => {
 		const { onRowClick } = renderTable([makePost({ postId: 7 })]);
 		const table = screen.getByTestId("top-posts-table");
 		const row = within(table).getByRole("button");
@@ -245,7 +255,7 @@ describe("TopPostsTable — row click (AC-3)", () => {
 		expect(onRowClick).toHaveBeenCalledWith(7);
 	});
 
-	it("calls onRowClick exactly once per click", () => {
+	test("calls onRowClick exactly once per click", () => {
 		const { onRowClick } = renderTable([makePost({ postId: 3 })]);
 		const table = screen.getByTestId("top-posts-table");
 		const row = within(table).getByRole("button");
@@ -253,7 +263,7 @@ describe("TopPostsTable — row click (AC-3)", () => {
 		expect(onRowClick).toHaveBeenCalledTimes(1);
 	});
 
-	it("calls onRowClick with the postId of the specific clicked row", () => {
+	test("calls onRowClick with the postId of the specific clicked row", () => {
 		const posts = [
 			makePost({ postId: 10, slug: "p10", title: "Post A" }),
 			makePost({ postId: 20, slug: "p20", title: "Post B" }),
@@ -270,7 +280,7 @@ describe("TopPostsTable — row click (AC-3)", () => {
 // ── Keyboard activation (AC-4) ────────────────────────────────────────────────
 
 describe("TopPostsTable — keyboard activation (AC-4)", () => {
-	it("calls onRowClick on Enter key", () => {
+	test("calls onRowClick on Enter key", () => {
 		const { onRowClick } = renderTable([makePost({ postId: 5 })]);
 		const table = screen.getByTestId("top-posts-table");
 		const row = within(table).getByRole("button");
@@ -278,7 +288,7 @@ describe("TopPostsTable — keyboard activation (AC-4)", () => {
 		expect(onRowClick).toHaveBeenCalledWith(5);
 	});
 
-	it("calls onRowClick on Space key", () => {
+	test("calls onRowClick on Space key", () => {
 		const { onRowClick } = renderTable([makePost({ postId: 5 })]);
 		const table = screen.getByTestId("top-posts-table");
 		const row = within(table).getByRole("button");
@@ -286,7 +296,7 @@ describe("TopPostsTable — keyboard activation (AC-4)", () => {
 		expect(onRowClick).toHaveBeenCalledWith(5);
 	});
 
-	it("does not call onRowClick on other keys (e.g. Tab)", () => {
+	test("does not call onRowClick on other keys (e.g. Tab)", () => {
 		const { onRowClick } = renderTable([makePost({ postId: 5 })]);
 		const table = screen.getByTestId("top-posts-table");
 		const row = within(table).getByRole("button");
@@ -294,7 +304,7 @@ describe("TopPostsTable — keyboard activation (AC-4)", () => {
 		expect(onRowClick).not.toHaveBeenCalled();
 	});
 
-	it("rows have tabIndex=0 (keyboard-focusable)", () => {
+	test("rows have tabIndex=0 (keyboard-focusable)", () => {
 		renderTable([makePost()]);
 		const table = screen.getByTestId("top-posts-table");
 		const row = within(table).getByRole("button");
@@ -305,21 +315,21 @@ describe("TopPostsTable — keyboard activation (AC-4)", () => {
 // ── Widget title locale (AC-1) ────────────────────────────────────────────────
 
 describe("TopPostsTable — widget title", () => {
-	it("renders widget title from en strings", () => {
+	test("renders widget title from en strings", () => {
 		renderTable([makePost()]);
 		expect(
 			screen.getByText(strings.en.admin.analytics.widgets.topPosts),
 		).toBeDefined();
 	});
 
-	it("renders widget title from pt-br strings", () => {
+	test("renders widget title from pt-br strings", () => {
 		renderTable([makePost()], "pt-br");
 		expect(
 			screen.getByText(strings["pt-br"].admin.analytics.widgets.topPosts),
 		).toBeDefined();
 	});
 
-	it("widget title differs between en and pt-br", () => {
+	test("widget title differs between en and pt-br", () => {
 		expect(strings.en.admin.analytics.widgets.topPosts).not.toBe(
 			strings["pt-br"].admin.analytics.widgets.topPosts,
 		);
@@ -329,7 +339,7 @@ describe("TopPostsTable — widget title", () => {
 // ── Column headers locale ─────────────────────────────────────────────────────
 
 describe("TopPostsTable — column headers", () => {
-	it("renders en column headers (Title, Language, Visits)", () => {
+	test("renders en column headers (Title, Language, Visits)", () => {
 		renderTable([makePost()]);
 		const t = strings.en.admin.analytics.topPostsTable;
 		expect(screen.getByText(t.columnTitle)).toBeDefined();
@@ -337,7 +347,7 @@ describe("TopPostsTable — column headers", () => {
 		expect(screen.getByText(t.columnVisits)).toBeDefined();
 	});
 
-	it("renders pt-br column headers (Título, Idioma, Visitas)", () => {
+	test("renders pt-br column headers (Título, Idioma, Visitas)", () => {
 		renderTable([makePost()], "pt-br");
 		const t = strings["pt-br"].admin.analytics.topPostsTable;
 		expect(screen.getByText(t.columnTitle)).toBeDefined();
@@ -354,7 +364,7 @@ describe("TopPostsTable — column headers", () => {
 describe("TopPostsTable — functional updater preserves range (ADR-006)", () => {
 	type AnalyticsSearch = { range: string; postId?: number };
 
-	it("spread updater preserves range when adding postId", () => {
+	test("spread updater preserves range when adding postId", () => {
 		const prev: AnalyticsSearch = { range: "30d" };
 		const updater = (p: AnalyticsSearch): AnalyticsSearch => ({
 			...p,
@@ -363,7 +373,7 @@ describe("TopPostsTable — functional updater preserves range (ADR-006)", () =>
 		expect(updater(prev)).toEqual({ range: "30d", postId: 42 });
 	});
 
-	it("spread updater preserves range='90d' when setting postId=7", () => {
+	test("spread updater preserves range='90d' when setting postId=7", () => {
 		const prev: AnalyticsSearch = { range: "90d" };
 		const updater = (p: AnalyticsSearch): AnalyticsSearch => ({
 			...p,
@@ -372,7 +382,7 @@ describe("TopPostsTable — functional updater preserves range (ADR-006)", () =>
 		expect(updater(prev)).toEqual({ range: "90d", postId: 7 });
 	});
 
-	it("spread updater replaces an existing postId with a new one", () => {
+	test("spread updater replaces an existing postId with a new one", () => {
 		const prev: AnalyticsSearch = { range: "7d", postId: 5 };
 		const updater = (p: AnalyticsSearch): AnalyticsSearch => ({
 			...p,
@@ -381,7 +391,7 @@ describe("TopPostsTable — functional updater preserves range (ADR-006)", () =>
 		expect(updater(prev)).toEqual({ range: "7d", postId: 42 });
 	});
 
-	it("spread updater keeps postId undefined when not set", () => {
+	test("spread updater keeps postId undefined when not set", () => {
 		const prev: AnalyticsSearch = { range: "all" };
 		const updater = (p: AnalyticsSearch): AnalyticsSearch => ({
 			...p,

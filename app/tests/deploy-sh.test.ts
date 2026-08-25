@@ -1,8 +1,8 @@
+import { describe, expect, test } from "bun:test";
 import { spawnSync } from "node:child_process";
 import { mkdirSync, mkdtempSync, readFileSync, writeFileSync } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "../..");
 const deployScript = join(root, "scripts/deploy.sh");
@@ -40,7 +40,7 @@ const requiredVars = {
 };
 
 describe("unit: scripts/deploy.sh", () => {
-	it("bash -n syntax check exits 0", () => {
+	test("bash -n syntax check exits 0", () => {
 		const result = spawnSync("bash", ["-n", deployScript], {
 			encoding: "utf8",
 		});
@@ -48,7 +48,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stderr).toBe("");
 	});
 
-	it("git tracks executable bit (mode 100755)", () => {
+	test("git tracks executable bit (mode 100755)", () => {
 		const result = spawnSync(
 			"git",
 			["ls-files", "--stage", "scripts/deploy.sh"],
@@ -57,7 +57,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stdout.trim()).toMatch(/^100755/);
 	});
 
-	it("SSH call includes -p 22 when VPS_PORT is unset", () => {
+	test("SSH call includes -p 22 when VPS_PORT is unset", () => {
 		const { binDir, logPath } = makeWorkspace();
 		const result = spawnSync("bash", [deployScript], {
 			env: {
@@ -72,7 +72,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("-p 22");
 	});
 
-	it("SSH call includes StrictHostKeyChecking=accept-new", () => {
+	test("SSH call includes StrictHostKeyChecking=accept-new", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -86,7 +86,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("StrictHostKeyChecking=accept-new");
 	});
 
-	it("SSH call includes ConnectTimeout and ServerAlive options", () => {
+	test("SSH call includes ConnectTimeout and ServerAlive options", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -102,7 +102,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("ServerAliveCountMax=3");
 	});
 
-	it("scp pushes docker-compose.prod.yml to VPS before ssh runs", () => {
+	test("scp pushes docker-compose.prod.yml to VPS before ssh runs", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -123,7 +123,7 @@ describe("unit: scripts/deploy.sh", () => {
 		);
 	});
 
-	it("scp uses COMPOSE_FILE override as destination filename", () => {
+	test("scp uses COMPOSE_FILE override as destination filename", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -140,7 +140,7 @@ describe("unit: scripts/deploy.sh", () => {
 		);
 	});
 
-	it("docker pull runs before migration before docker compose up", () => {
+	test("docker pull runs before migration before docker compose up", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -159,7 +159,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(upIdx).toBeGreaterThan(migrateIdx);
 	});
 
-	it("bun run sync runs after migrate and before docker compose up", () => {
+	test("bun run sync runs after migrate and before docker compose up", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -178,7 +178,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(upIdx).toBeGreaterThan(syncIdx);
 	});
 
-	it("runs migrations inside pulled image via docker run, not from VPS filesystem", () => {
+	test("runs migrations inside pulled image via docker run, not from VPS filesystem", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -194,7 +194,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).not.toContain("make db-migrate");
 	});
 
-	it("uses docker-compose.yml (default) for app restart", () => {
+	test("uses docker-compose.yml (default) for app restart", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -209,7 +209,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("up -d --no-deps app");
 	});
 
-	it("uses COMPOSE_FILE override when set", () => {
+	test("uses COMPOSE_FILE override when set", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -225,7 +225,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("up -d --no-deps app");
 	});
 
-	it("uses IMAGE_TAG when set, deploying exact SHA image", () => {
+	test("uses IMAGE_TAG when set, deploying exact SHA image", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -242,7 +242,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).not.toContain("docker pull ghcr.io/myowner/myblog:latest");
 	});
 
-	it("defaults to :latest tag when IMAGE_TAG is unset", () => {
+	test("defaults to :latest tag when IMAGE_TAG is unset", () => {
 		const { binDir, logPath } = makeWorkspace();
 		spawnSync("bash", [deployScript], {
 			env: {
@@ -256,7 +256,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(log).toContain("ghcr.io/myowner/myblog:latest");
 	});
 
-	it("exits non-zero and references VPS_USER when unset", () => {
+	test("exits non-zero and references VPS_USER when unset", () => {
 		const { binDir } = makeWorkspace();
 		const { VPS_USER: _removed, ...withoutUser } = requiredVars;
 		const result = spawnSync("bash", [deployScript], {
@@ -271,7 +271,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stderr).toContain("VPS_USER");
 	});
 
-	it("requires explicit opt-in before any legacy deploy", () => {
+	test("requires explicit opt-in before any legacy deploy", () => {
 		const { ALLOW_LEGACY_SSH_DEPLOY: _removed, ...withoutOptIn } = requiredVars;
 		const result = spawnSync("bash", [deployScript], {
 			env: { ...baseEnv, ...withoutOptIn },
@@ -281,7 +281,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stderr).toContain("ALLOW_LEGACY_SSH_DEPLOY");
 	});
 
-	it("exits non-zero and references DEPLOY_PATH when unset", () => {
+	test("exits non-zero and references DEPLOY_PATH when unset", () => {
 		const { binDir } = makeWorkspace();
 		const { DEPLOY_PATH: _removed, ...withoutPath } = requiredVars;
 		const result = spawnSync("bash", [deployScript], {
@@ -296,7 +296,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stderr).toContain("DEPLOY_PATH");
 	});
 
-	it("exits non-zero and references VPS_HOST when unset", () => {
+	test("exits non-zero and references VPS_HOST when unset", () => {
 		const { binDir } = makeWorkspace();
 		const { VPS_HOST: _removed, ...withoutHost } = requiredVars;
 		const result = spawnSync("bash", [deployScript], {
@@ -311,7 +311,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stderr).toContain("VPS_HOST");
 	});
 
-	it("exits non-zero and references GHCR_OWNER when unset", () => {
+	test("exits non-zero and references GHCR_OWNER when unset", () => {
 		const { binDir } = makeWorkspace();
 		const { GHCR_OWNER: _removed, ...withoutGhcrOwner } = requiredVars;
 		const result = spawnSync("bash", [deployScript], {
@@ -326,7 +326,7 @@ describe("unit: scripts/deploy.sh", () => {
 		expect(result.stderr).toContain("GHCR_OWNER");
 	});
 
-	it("exits non-zero and references GHCR_REPO when unset", () => {
+	test("exits non-zero and references GHCR_REPO when unset", () => {
 		const { binDir } = makeWorkspace();
 		const { GHCR_REPO: _removed, ...withoutGhcrRepo } = requiredVars;
 		const result = spawnSync("bash", [deployScript], {
@@ -343,7 +343,7 @@ describe("unit: scripts/deploy.sh", () => {
 });
 
 describe("integration: make deploy", () => {
-	it("make deploy with deploy script present does not print 'No deploy script found'", () => {
+	test("make deploy with deploy script present does not print 'No deploy script found'", () => {
 		const result = spawnSync("make", ["-f", join(root, "Makefile"), "deploy"], {
 			cwd: root,
 			env: { ...baseEnv, PATH: process.env.PATH },
@@ -353,7 +353,7 @@ describe("integration: make deploy", () => {
 		expect(combined).not.toContain("No deploy script found");
 	});
 
-	it("bash scripts/deploy.sh without env vars exits non-zero with clear error", () => {
+	test("bash scripts/deploy.sh without env vars exits non-zero with clear error", () => {
 		const result = spawnSync("bash", [deployScript], {
 			env: { ...baseEnv },
 			encoding: "utf8",

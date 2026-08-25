@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit tests for app/components/ui/post-share.tsx
  *
@@ -14,14 +15,20 @@
  */
 
 import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { act, cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── JSDOM polyfills for Radix UI ──────────────────────────────────────────────
 
@@ -37,7 +44,7 @@ global.ResizeObserver = class ResizeObserver {
 
 // #/lib/locale is mocked so we don't pull in @tanstack/react-router.
 // strings.ts only needs LOCALES from this module.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	LOCALES: ["en", "pt-br"],
 	DEFAULT_LOCALE: "en",
 	localeHref: (locale: string, slug: string) =>
@@ -47,7 +54,9 @@ vi.mock("#/lib/locale", () => ({
 }));
 
 // Import under test — AFTER mocks
-import { buildTaggedUrl, PostShare } from "#/components/ui/post-share";
+const { buildTaggedUrl, PostShare } = await import(
+	"#/components/ui/post-share"
+);
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -83,13 +92,13 @@ function renderDropdown(locale: "en" | "pt-br" = "en") {
 
 afterEach(() => {
 	cleanup();
-	vi.restoreAllMocks();
+	jest.restoreAllMocks();
 });
 
 // ── Unit: buildTaggedUrl (pure function) ──────────────────────────────────────
 
 describe("unit: buildTaggedUrl", () => {
-	it("adds per-platform UTM params to absolute URL", () => {
+	test("adds per-platform UTM params to absolute URL", () => {
 		expect(
 			buildTaggedUrl("https://blog.example/post", "linkedin", "post"),
 		).toBe(
@@ -97,7 +106,7 @@ describe("unit: buildTaggedUrl", () => {
 		);
 	});
 
-	it("adds utm_source=twitter for twitter platform", () => {
+	test("adds utm_source=twitter for twitter platform", () => {
 		const result = buildTaggedUrl(
 			"https://blog.example/post",
 			"twitter",
@@ -108,20 +117,20 @@ describe("unit: buildTaggedUrl", () => {
 		expect(result).toContain("utm_campaign=post");
 	});
 
-	it("returns canonical URL unchanged for 'copy' platform (no UTM tagging)", () => {
+	test("returns canonical URL unchanged for 'copy' platform (no UTM tagging)", () => {
 		expect(buildTaggedUrl("https://blog.example/post", "copy", "post")).toBe(
 			"https://blog.example/post",
 		);
 	});
 
-	it("fallback: appends UTM params to relative URL without throwing", () => {
+	test("fallback: appends UTM params to relative URL without throwing", () => {
 		const result = buildTaggedUrl("/my-slug", "reddit", "my-slug");
 		expect(result).toContain("utm_source=reddit");
 		expect(result).toContain("utm_medium=social");
 		expect(result).toContain("utm_campaign=my-slug");
 	});
 
-	it("does NOT double-add utm_source if already present (URL constructor deduplicates)", () => {
+	test("does NOT double-add utm_source if already present (URL constructor deduplicates)", () => {
 		const result = buildTaggedUrl(
 			"https://blog.example/post?utm_source=other",
 			"linkedin",
@@ -144,21 +153,21 @@ describe("unit: inline variant — 6 chips rendered when navigator.share undefin
 		});
 	});
 
-	it("renders 5 platform link chips (X, LinkedIn, Reddit, WhatsApp, Email) as <a>", async () => {
+	test("renders 5 platform link chips (X, LinkedIn, Reddit, WhatsApp, Email) as <a>", async () => {
 		renderInline();
 		await act(async () => {});
 		const links = screen.getAllByRole("link");
 		expect(links.length).toBe(5);
 	});
 
-	it("renders the Copy link button (6th chip)", async () => {
+	test("renders the Copy link button (6th chip)", async () => {
 		renderInline();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Copy link" });
 		expect(btn).toBeDefined();
 	});
 
-	it("renders all 6 chips with English labels", async () => {
+	test("renders all 6 chips with English labels", async () => {
 		renderInline("en");
 		await act(async () => {});
 		expect(screen.getByRole("link", { name: "Share on X" })).toBeDefined();
@@ -173,7 +182,7 @@ describe("unit: inline variant — 6 chips rendered when navigator.share undefin
 		expect(screen.getByRole("button", { name: "Copy link" })).toBeDefined();
 	});
 
-	it("renders all 6 chips with pt-br labels", async () => {
+	test("renders all 6 chips with pt-br labels", async () => {
 		renderInline("pt-br");
 		await act(async () => {});
 		expect(
@@ -194,14 +203,14 @@ describe("unit: inline variant — 6 chips rendered when navigator.share undefin
 		expect(screen.getByRole("button", { name: "Copiar link" })).toBeDefined();
 	});
 
-	it("does NOT render a native Share button", async () => {
+	test("does NOT render a native Share button", async () => {
 		renderInline();
 		await act(async () => {});
 		const shareBtn = screen.queryByRole("button", { name: "Share" });
 		expect(shareBtn).toBeNull();
 	});
 
-	it("all platform link chips open in a new tab (target=_blank)", async () => {
+	test("all platform link chips open in a new tab (target=_blank)", async () => {
 		renderInline();
 		await act(async () => {});
 		const links = screen.getAllByRole("link");
@@ -225,7 +234,7 @@ describe("unit: inline variant — chip hrefs contain per-platform UTM params (A
 		await act(async () => {});
 	});
 
-	it("LinkedIn chip href has utm_source=linkedin", () => {
+	test("LinkedIn chip href has utm_source=linkedin", () => {
 		const link = screen.getByRole("link", { name: "Share on LinkedIn" });
 		const href = link.getAttribute("href") ?? "";
 		expect(href).toMatch(/linkedin\.com\/sharing\/share-offsite\//);
@@ -234,7 +243,7 @@ describe("unit: inline variant — chip hrefs contain per-platform UTM params (A
 		expect(href).toContain(encodeURIComponent(`utm_campaign=${POST_SLUG}`));
 	});
 
-	it("X chip href has utm_source=twitter", () => {
+	test("X chip href has utm_source=twitter", () => {
 		const link = screen.getByRole("link", { name: "Share on X" });
 		const href = link.getAttribute("href") ?? "";
 		expect(href).toMatch(/twitter\.com\/intent\/tweet/);
@@ -242,21 +251,21 @@ describe("unit: inline variant — chip hrefs contain per-platform UTM params (A
 		expect(href).toContain(encodeURIComponent("utm_medium=social"));
 	});
 
-	it("Reddit chip href has utm_source=reddit", () => {
+	test("Reddit chip href has utm_source=reddit", () => {
 		const link = screen.getByRole("link", { name: "Share on Reddit" });
 		const href = link.getAttribute("href") ?? "";
 		expect(href).toMatch(/reddit\.com\/submit/);
 		expect(href).toContain(encodeURIComponent("utm_source=reddit"));
 	});
 
-	it("WhatsApp chip href has utm_source=whatsapp", () => {
+	test("WhatsApp chip href has utm_source=whatsapp", () => {
 		const link = screen.getByRole("link", { name: "Share on WhatsApp" });
 		const href = link.getAttribute("href") ?? "";
 		expect(href).toMatch(/wa\.me/);
 		expect(href).toContain(encodeURIComponent("utm_source=whatsapp"));
 	});
 
-	it("Email chip href starts with mailto: and has utm_source=email", () => {
+	test("Email chip href starts with mailto: and has utm_source=email", () => {
 		const link = screen.getByRole("link", { name: "Share on Email" });
 		const href = link.getAttribute("href") ?? "";
 		expect(href).toMatch(/^mailto:\?/);
@@ -268,7 +277,7 @@ describe("unit: inline variant — chip hrefs contain per-platform UTM params (A
 // ── Unit: Copy chip (AC-3) ────────────────────────────────────────────────────
 
 describe("unit: Copy chip writes canonical URL (no UTM) and shows confirmation (AC-3)", () => {
-	let clipboardSpy: ReturnType<typeof vi.fn>;
+	let clipboardSpy: ReturnType<typeof jest.fn>;
 
 	beforeEach(() => {
 		Object.defineProperty(navigator, "share", {
@@ -276,7 +285,7 @@ describe("unit: Copy chip writes canonical URL (no UTM) and shows confirmation (
 			writable: true,
 			configurable: true,
 		});
-		clipboardSpy = vi.fn().mockResolvedValue(undefined);
+		clipboardSpy = jest.fn().mockResolvedValue(undefined);
 		Object.defineProperty(navigator, "clipboard", {
 			value: { writeText: clipboardSpy },
 			writable: true,
@@ -284,7 +293,7 @@ describe("unit: Copy chip writes canonical URL (no UTM) and shows confirmation (
 		});
 	});
 
-	it("clicking Copy link in inline variant calls clipboard.writeText with canonical URL (no UTM)", async () => {
+	test("clicking Copy link in inline variant calls clipboard.writeText with canonical URL (no UTM)", async () => {
 		renderInline();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Copy link" });
@@ -295,7 +304,7 @@ describe("unit: Copy chip writes canonical URL (no UTM) and shows confirmation (
 		expect(clipboardSpy).toHaveBeenCalledWith(POST_URL);
 	});
 
-	it("aria-live region shows 'Copied!' after clicking Copy link (inline)", async () => {
+	test("aria-live region shows 'Copied!' after clicking Copy link (inline)", async () => {
 		renderInline();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Copy link" });
@@ -306,14 +315,14 @@ describe("unit: Copy chip writes canonical URL (no UTM) and shows confirmation (
 		expect(status.textContent).toBe("Copied!");
 	});
 
-	it("aria-live region is empty before clicking Copy link", async () => {
+	test("aria-live region is empty before clicking Copy link", async () => {
 		renderInline();
 		await act(async () => {});
 		const status = screen.getByRole("status");
 		expect(status.textContent).toBe("");
 	});
 
-	it("Copy chip in pt-br locale shows 'Copiado!'", async () => {
+	test("Copy chip in pt-br locale shows 'Copiado!'", async () => {
 		cleanup();
 		render(
 			React.createElement(PostShare, {
@@ -337,10 +346,10 @@ describe("unit: Copy chip writes canonical URL (no UTM) and shows confirmation (
 // ── Unit: native share branch — inline only (AC-4) ───────────────────────────
 
 describe("unit: native share branch applies only to inline variant (AC-4)", () => {
-	let shareSpy: ReturnType<typeof vi.fn>;
+	let shareSpy: ReturnType<typeof jest.fn>;
 
 	beforeEach(() => {
-		shareSpy = vi.fn().mockResolvedValue(undefined);
+		shareSpy = jest.fn().mockResolvedValue(undefined);
 		Object.defineProperty(navigator, "share", {
 			value: shareSpy,
 			writable: true,
@@ -356,21 +365,21 @@ describe("unit: native share branch applies only to inline variant (AC-4)", () =
 		});
 	});
 
-	it("inline: renders a single Share button instead of chip row when navigator.share is defined", async () => {
+	test("inline: renders a single Share button instead of chip row when navigator.share is defined", async () => {
 		renderInline();
 		await act(async () => {});
 		expect(screen.getByRole("button", { name: "Share" })).toBeDefined();
 		expect(screen.queryAllByRole("link").length).toBe(0);
 	});
 
-	it("inline: Share button has SVG icon", async () => {
+	test("inline: Share button has SVG icon", async () => {
 		renderInline();
 		await act(async () => {});
 		const btn = screen.getByRole("button", { name: "Share" });
 		expect(btn.querySelector("svg")).not.toBeNull();
 	});
 
-	it("inline: clicking Share button calls navigator.share with a campaign-tagged URL (utm_medium=social, no utm_source)", async () => {
+	test("inline: clicking Share button calls navigator.share with a campaign-tagged URL (utm_medium=social, no utm_source)", async () => {
 		renderInline();
 		await act(async () => {});
 		const shareBtn = screen.getByRole("button", { name: "Share" });
@@ -394,7 +403,7 @@ describe("unit: native share branch applies only to inline variant (AC-4)", () =
 		expect(shared.searchParams.has("utm_source")).toBe(false);
 	});
 
-	it("inline: Share button text reads 'Compartilhar' in pt-br locale", async () => {
+	test("inline: Share button text reads 'Compartilhar' in pt-br locale", async () => {
 		cleanup();
 		render(
 			React.createElement(PostShare, {
@@ -421,7 +430,7 @@ describe("unit: dropdown variant — never swaps to native share (AC-5)", () => 
 		});
 	});
 
-	it("renders trigger button even when navigator.share is undefined", async () => {
+	test("renders trigger button even when navigator.share is undefined", async () => {
 		Object.defineProperty(navigator, "share", {
 			value: undefined,
 			writable: true,
@@ -432,9 +441,9 @@ describe("unit: dropdown variant — never swaps to native share (AC-5)", () => 
 		expect(screen.getByRole("button", { name: "Share post" })).toBeDefined();
 	});
 
-	it("renders trigger button even when navigator.share is a function", async () => {
+	test("renders trigger button even when navigator.share is a function", async () => {
 		Object.defineProperty(navigator, "share", {
-			value: vi.fn().mockResolvedValue(undefined),
+			value: jest.fn().mockResolvedValue(undefined),
 			writable: true,
 			configurable: true,
 		});
@@ -458,21 +467,21 @@ describe("unit: dropdown variant — popover open/close + ARIA roles (AC-6)", ()
 		});
 	});
 
-	it("renders a single trigger button with aria-label='Share post'", async () => {
+	test("renders a single trigger button with aria-label='Share post'", async () => {
 		renderDropdown();
 		await act(async () => {});
 		const trigger = screen.getByRole("button", { name: "Share post" });
 		expect(trigger).toBeDefined();
 	});
 
-	it("popover content is not visible before trigger click", async () => {
+	test("popover content is not visible before trigger click", async () => {
 		renderDropdown();
 		await act(async () => {});
 		// The menu should not be present in the DOM before opening
 		expect(screen.queryByRole("menu")).toBeNull();
 	});
 
-	it("clicking trigger opens popover with role='menu'", async () => {
+	test("clicking trigger opens popover with role='menu'", async () => {
 		renderDropdown();
 		await act(async () => {});
 		const trigger = screen.getByRole("button", { name: "Share post" });
@@ -483,7 +492,7 @@ describe("unit: dropdown variant — popover open/close + ARIA roles (AC-6)", ()
 		expect(menu).toBeDefined();
 	});
 
-	it("open popover contains all 6 chips", async () => {
+	test("open popover contains all 6 chips", async () => {
 		renderDropdown();
 		await act(async () => {});
 		const trigger = screen.getByRole("button", { name: "Share post" });
@@ -494,8 +503,8 @@ describe("unit: dropdown variant — popover open/close + ARIA roles (AC-6)", ()
 		expect(items.length).toBe(6);
 	});
 
-	it("chips inside open popover are buttons that copy the per-platform UTM URL", async () => {
-		const writeText = vi.fn().mockResolvedValue(undefined);
+	test("chips inside open popover are buttons that copy the per-platform UTM URL", async () => {
+		const writeText = jest.fn().mockResolvedValue(undefined);
 		Object.defineProperty(navigator, "clipboard", {
 			configurable: true,
 			value: { writeText },
@@ -529,7 +538,7 @@ describe("unit: dropdown variant — popover open/close + ARIA roles (AC-6)", ()
 		expect(copied).toContain("utm_medium=social");
 	});
 
-	it("pressing Escape closes the popover", async () => {
+	test("pressing Escape closes the popover", async () => {
 		renderDropdown();
 		await act(async () => {});
 		const trigger = screen.getByRole("button", { name: "Share post" });
@@ -545,8 +554,8 @@ describe("unit: dropdown variant — popover open/close + ARIA roles (AC-6)", ()
 		expect(screen.queryByRole("menu")).toBeNull();
 	});
 
-	it("Copy chip in open dropdown calls clipboard.writeText with canonical URL (no UTM)", async () => {
-		const clipboardSpy = vi.fn().mockResolvedValue(undefined);
+	test("Copy chip in open dropdown calls clipboard.writeText with canonical URL (no UTM)", async () => {
+		const clipboardSpy = jest.fn().mockResolvedValue(undefined);
 		Object.defineProperty(navigator, "clipboard", {
 			value: { writeText: clipboardSpy },
 			writable: true,
@@ -575,9 +584,9 @@ describe("unit: dropdown variant — popover open/close + ARIA roles (AC-6)", ()
 // ── Unit: timer cleanup on unmount (AC-7) ────────────────────────────────────
 
 describe("unit: timer cleanup on unmount (AC-7)", () => {
-	it("unmounting component clears the copy timer without throwing", async () => {
-		const clearTimeoutSpy = vi.spyOn(global, "clearTimeout");
-		const clipboardSpy = vi.fn().mockResolvedValue(undefined);
+	test("unmounting component clears the copy timer without throwing", async () => {
+		const clearTimeoutSpy = jest.spyOn(global, "clearTimeout");
+		const clipboardSpy = jest.fn().mockResolvedValue(undefined);
 		Object.defineProperty(navigator, "clipboard", {
 			value: { writeText: clipboardSpy },
 			writable: true,
@@ -605,10 +614,10 @@ describe("unit: timer cleanup on unmount (AC-7)", () => {
 // ── Unit: AbortError handling (AC-8) ─────────────────────────────────────────
 
 describe("unit: AbortError from navigator.share is silent (AC-8)", () => {
-	let shareSpy: ReturnType<typeof vi.fn>;
+	let shareSpy: ReturnType<typeof jest.fn>;
 
 	beforeEach(() => {
-		shareSpy = vi.fn();
+		shareSpy = jest.fn();
 		Object.defineProperty(navigator, "share", {
 			value: shareSpy,
 			writable: true,
@@ -624,10 +633,10 @@ describe("unit: AbortError from navigator.share is silent (AC-8)", () => {
 		});
 	});
 
-	it("AbortError rejection does NOT call console.error (user dismissed sheet)", async () => {
+	test("AbortError rejection does NOT call console.error (user dismissed sheet)", async () => {
 		const abortError = new DOMException("Share cancelled", "AbortError");
 		shareSpy.mockRejectedValueOnce(abortError);
-		const consoleSpy = vi
+		const consoleSpy = jest
 			.spyOn(console, "error")
 			.mockImplementation(() => undefined);
 
@@ -641,9 +650,9 @@ describe("unit: AbortError from navigator.share is silent (AC-8)", () => {
 		expect(consoleSpy).not.toHaveBeenCalled();
 	});
 
-	it("non-AbortError rejection calls console.error once", async () => {
+	test("non-AbortError rejection calls console.error once", async () => {
 		shareSpy.mockRejectedValueOnce(new Error("Network error"));
-		const consoleSpy = vi
+		const consoleSpy = jest
 			.spyOn(console, "error")
 			.mockImplementation(() => undefined);
 

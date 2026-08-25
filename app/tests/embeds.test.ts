@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Tests for app/lib/mdx/embeds.tsx — the embed allowlist registry and the
  * server `Embed` placeholder supplied to the MDX components map.
@@ -10,26 +11,28 @@
  * File is .ts (not .tsx) per project convention — React.createElement throughout.
  */
 
-import { cleanup, render } from "@testing-library/react";
+import { afterEach, describe, expect, test } from "bun:test";
+
+const { cleanup, render } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
 import { TicTacToe } from "#/components/posts/tic-tac-toe";
 import { EMBEDS, Embed } from "#/lib/mdx/embeds";
 
 afterEach(cleanup);
 
 describe("EMBEDS registry", () => {
-	it("resolves the tic-tac-toe key to the TicTacToe component", () => {
-		expect(EMBEDS["tic-tac-toe"]).toBe(TicTacToe);
+	test("resolves the tic-tac-toe key to the TicTacToe component", () => {
+		expect(EMBEDS["tic-tac-toe"] as unknown).toBe(TicTacToe);
 	});
 
-	it("returns undefined for an unregistered key", () => {
+	test("returns undefined for an unregistered key", () => {
 		expect(EMBEDS["does-not-exist"]).toBeUndefined();
 	});
 });
 
 describe("Embed placeholder", () => {
-	it("renders a single div with data-embed set to the name", () => {
+	test("renders a single div with data-embed set to the name", () => {
 		const { container } = render(
 			React.createElement(Embed, { name: "tic-tac-toe", locale: "en" }),
 		);
@@ -39,7 +42,7 @@ describe("Embed placeholder", () => {
 		expect(nodes[0].getAttribute("data-embed")).toBe("tic-tac-toe");
 	});
 
-	it("serializes props (minus name) to JSON-parsable data-props", () => {
+	test("serializes props (minus name) to JSON-parsable data-props", () => {
 		const { container } = render(
 			React.createElement(Embed, { name: "tic-tac-toe", locale: "en" }),
 		);
@@ -50,7 +53,7 @@ describe("Embed placeholder", () => {
 		expect(JSON.parse(raw as string)).toEqual({ locale: "en" });
 	});
 
-	it("excludes name from data-props and keeps arbitrary extra props", () => {
+	test("excludes name from data-props and keeps arbitrary extra props", () => {
 		const { container } = render(
 			React.createElement(Embed, {
 				name: "tic-tac-toe",
@@ -67,7 +70,7 @@ describe("Embed placeholder", () => {
 		});
 	});
 
-	it("renders a non-empty static fallback string visible without JS", () => {
+	test("renders a non-empty static fallback string visible without JS", () => {
 		const { container } = render(
 			React.createElement(Embed, { name: "tic-tac-toe", locale: "en" }),
 		);

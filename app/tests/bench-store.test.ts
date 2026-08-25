@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { resolvePreparePath } from "#/lib/bench/runner.server";
 import { envFor, toolchainFor } from "#/lib/bench/versions";
 import { WORKLOADS } from "#/lib/bench/workloads";
@@ -24,6 +24,8 @@ describe("install-cold clears the store the measured version actually uses", () 
 				{ PATH: "/usr/bin" },
 				CWD,
 			).BUN_INSTALL_CACHE_DIR;
+			expect(used).toBeDefined();
+			if (!used) throw new Error("missing Bun install cache directory");
 			expect(cleared).toBe(used);
 			expect(cleared).toBe(toolchainFor(version, CWD).cacheDir);
 		}

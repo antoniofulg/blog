@@ -1,8 +1,10 @@
-// @vitest-environment jsdom
-import { cleanup, render, screen } from "@testing-library/react";
+import "./happydom";
+import { afterEach, describe, expect, test } from "bun:test";
+
+const { cleanup, render, screen } = await import("@testing-library/react");
+
 import React from "react";
 import { renderToString } from "react-dom/server";
-import { afterEach, describe, expect, it } from "vitest";
 import { LanguageMenu } from "#/components/ui/language-menu";
 
 afterEach(() => {
@@ -10,13 +12,13 @@ afterEach(() => {
 });
 
 // LanguageMenu's default `pair` variant uses `hidden lg:inline-flex`, so the
-// chips are display:none at jsdom's default viewport. Use the `list` variant
+// chips are display:none at HappyDOM's default viewport. Use the `list` variant
 // so items render immediately for unit assertions.
 
 // ─── unit: aria-label — issue 002 ────────────────────────────────────────────
 
 describe("unit: aria-label on menu items (issue 002 — screen reader accessibility)", () => {
-	it("keeps controls disabled in SSR markup until hydration", () => {
+	test("keeps controls disabled in SSR markup until hydration", () => {
 		const html = renderToString(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -28,7 +30,7 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 		expect(html).toContain("disabled");
 	});
 
-	it("available item aria-label is just the locale label", () => {
+	test("available item aria-label is just the locale label", () => {
 		// Non-active locale so the item config (label/available) is consumed.
 		render(
 			React.createElement(LanguageMenu, {
@@ -42,7 +44,7 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 		expect(item.getAttribute("aria-label")).toBe("Português");
 	});
 
-	it("unavailable item aria-label includes the hint text (en currentLocale)", () => {
+	test("unavailable item aria-label includes the hint text (en currentLocale)", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -59,7 +61,7 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 		);
 	});
 
-	it("unavailable item aria-label uses pt-br hint when currentLocale is pt-br", () => {
+	test("unavailable item aria-label uses pt-br hint when currentLocale is pt-br", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -74,7 +76,7 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 		expect(item.getAttribute("aria-label")).toBe("English, sem tradução");
 	});
 
-	it("unavailable item still renders visible hint span for sighted users", () => {
+	test("unavailable item still renders visible hint span for sighted users", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -98,7 +100,7 @@ describe("unit: aria-label on menu items (issue 002 — screen reader accessibil
 // implicitly by every test that uses fireEvent.click on the chip.
 
 describe("unit: tabIndex and aria-current on active chip", () => {
-	it("active chip carries aria-current and tabIndex=-1", () => {
+	test("active chip carries aria-current and tabIndex=-1", () => {
 		// The active locale's chip is rendered but should not be a tab stop —
 		// pressing Enter/Space on it would be a no-op (handler is undefined).
 		render(
@@ -113,7 +115,7 @@ describe("unit: tabIndex and aria-current on active chip", () => {
 		expect(active.tabIndex).toBe(-1);
 	});
 
-	it("alternate chip is in the tab order", () => {
+	test("alternate chip is in the tab order", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",

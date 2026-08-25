@@ -1,5 +1,5 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import * as net from "node:net";
-import { afterAll, beforeAll, describe, expect, test } from "vitest";
 import { createTestDb, type TestDb } from "../../tests/e2e/db";
 
 // ---- lock-acquire timer-cleanup tests (round-016 issue-001) ----

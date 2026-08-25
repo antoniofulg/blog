@@ -1,4 +1,4 @@
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { isPostgresAvailable } from "#/lib/test-bench/database";
 
 // ─── DB availability check ─────────────────────────────────────────────────────
@@ -37,7 +37,7 @@ describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 
 	// ── Sign-in ────────────────────────────────────────────────────────────────
 
-	it("POST /api/auth/sign-in/email returns 200 and Set-Cookie for valid credentials", async () => {
+	test("POST /api/auth/sign-in/email returns 200 and Set-Cookie for valid credentials", async () => {
 		const resp = await authHandler(
 			new Request("http://localhost/api/auth/sign-in/email", {
 				method: "POST",
@@ -52,7 +52,7 @@ describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 		expect(setCookie).toContain("HttpOnly");
 	});
 
-	it("POST /api/auth/sign-in/email returns 401 for wrong password", async () => {
+	test("POST /api/auth/sign-in/email returns 401 for wrong password", async () => {
 		const resp = await authHandler(
 			new Request("http://localhost/api/auth/sign-in/email", {
 				method: "POST",
@@ -65,7 +65,7 @@ describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 
 	// ── Get-session ────────────────────────────────────────────────────────────
 
-	it("GET /api/auth/get-session with valid cookie returns user object", async () => {
+	test("GET /api/auth/get-session with valid cookie returns user object", async () => {
 		// Sign in to get cookie
 		const signInResp = await authHandler(
 			new Request("http://localhost/api/auth/sign-in/email", {
@@ -88,7 +88,7 @@ describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 		expect(data?.user?.email).toBe(ADMIN_EMAIL);
 	});
 
-	it("GET /api/auth/get-session without cookie returns null", async () => {
+	test("GET /api/auth/get-session without cookie returns null", async () => {
 		const resp = await authHandler(
 			new Request("http://localhost/api/auth/get-session", {
 				method: "GET",
@@ -101,7 +101,7 @@ describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 
 	// ── Sign-out ────────────────────────────────────────────────────────────────
 
-	it("POST /api/auth/sign-out invalidates session; subsequent get-session returns no user", async () => {
+	test("POST /api/auth/sign-out invalidates session; subsequent get-session returns no user", async () => {
 		// Sign in
 		const signInResp = await authHandler(
 			new Request("http://localhost/api/auth/sign-in/email", {
@@ -141,7 +141,7 @@ describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 
 	// ── beforeLoad session loading (auth.api.getSession) ──────────────────────
 
-	it("auth.api.getSession returns user for authenticated request (beforeLoad simulation)", async () => {
+	test("auth.api.getSession returns user for authenticated request (beforeLoad simulation)", async () => {
 		// Sign in to get a valid session token
 		const signInResp = await authHandler(
 			new Request("http://localhost/api/auth/sign-in/email", {
@@ -158,7 +158,7 @@ describe.skipIf(databaseUnavailable)("integration: auth round trip", () => {
 		expect(session?.user?.email).toBe(ADMIN_EMAIL);
 	});
 
-	it("auth.api.getSession returns null for unauthenticated request (beforeLoad simulation)", async () => {
+	test("auth.api.getSession returns null for unauthenticated request (beforeLoad simulation)", async () => {
 		const headers = new Headers();
 		const session = await getSession({ headers });
 		expect(session?.user ?? null).toBeNull();

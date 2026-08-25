@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import type { MeasuredRun } from "#/lib/bench/runner.server";
 import {
 	commandEnvironment,

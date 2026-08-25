@@ -16,9 +16,9 @@
  * mechanism is unchanged).
  */
 
+import { describe, expect, test } from "bun:test";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 
 // ---------------------------------------------------------------------------
 // Helpers
@@ -38,27 +38,27 @@ describe("cs16 vendored font assets", () => {
 	const woff2Path = abs("public/fonts/cs16/vt323-latin-400.woff2");
 	const cssPath = abs("public/fonts/cs16/cs16-font.css");
 
-	it("vt323-latin-400.woff2 exists in public/fonts/cs16/", () => {
+	test("vt323-latin-400.woff2 exists in public/fonts/cs16/", () => {
 		expect(existsSync(woff2Path)).toBe(true);
 	});
 
-	it("vt323-latin-400.woff2 is non-empty (sanity check on the vendored bytes)", () => {
+	test("vt323-latin-400.woff2 is non-empty (sanity check on the vendored bytes)", () => {
 		expect(statSync(woff2Path).size).toBeGreaterThan(1000);
 	});
 
-	it("cs16-font.css exists and declares @font-face for VT323", () => {
+	test("cs16-font.css exists and declares @font-face for VT323", () => {
 		expect(existsSync(cssPath)).toBe(true);
 		const css = readFileSync(cssPath, "utf-8");
 		expect(css).toContain("@font-face");
 		expect(css).toContain("VT323");
 	});
 
-	it("cs16-font.css points its src URL at /fonts/cs16/vt323-latin-400.woff2", () => {
+	test("cs16-font.css points its src URL at /fonts/cs16/vt323-latin-400.woff2", () => {
 		const css = readFileSync(cssPath, "utf-8");
 		expect(css).toContain("/fonts/cs16/vt323-latin-400.woff2");
 	});
 
-	it("cs16-font.css declares exactly one @font-face block (no fallback chain needed)", () => {
+	test("cs16-font.css declares exactly one @font-face block (no fallback chain needed)", () => {
 		const css = readFileSync(cssPath, "utf-8");
 		// Match the rule head (`@font-face {`) so prose mentions inside the
 		// file's top comment do not count as declarations.
@@ -66,7 +66,7 @@ describe("cs16 vendored font assets", () => {
 		expect(fontFaceCount).toBe(1);
 	});
 
-	it("cs16-font.css sets font-display: swap (non-blocking pattern)", () => {
+	test("cs16-font.css sets font-display: swap (non-blocking pattern)", () => {
 		const css = readFileSync(cssPath, "utf-8");
 		expect(css).toContain("font-display: swap");
 	});
@@ -79,7 +79,7 @@ describe("cs16 vendored font assets", () => {
 describe("cs16 global.css regression guard", () => {
 	const globalCss = abs("app/styles/global.css");
 
-	it("global.css does not statically @import any cs16 font (must lazy-load via ensureCs16Font)", () => {
+	test("global.css does not statically @import any cs16 font (must lazy-load via ensureCs16Font)", () => {
 		const css = readFileSync(globalCss, "utf-8");
 		// Historical cs16 fonts (Press Start 2P, ArialPixel) are explicitly banned
 		// alongside the current VT323 — any static @import puts the font on the
@@ -89,7 +89,7 @@ describe("cs16 global.css regression guard", () => {
 		expect(css).not.toMatch(/@import\s+["'][^"']*vt323/i);
 	});
 
-	it("global.css references the VT323 family in the .cs16 block (font is applied once loaded)", () => {
+	test("global.css references the VT323 family in the .cs16 block (font is applied once loaded)", () => {
 		const css = readFileSync(globalCss, "utf-8");
 		expect(css).toContain("VT323");
 	});
@@ -107,21 +107,21 @@ describe("cs16 vendored-font build output", () => {
 
 	const hasBuildOutput = existsSync(woff2Output) && existsSync(cssOutput);
 
-	it.skipIf(!hasBuildOutput)(
+	test.skipIf(!hasBuildOutput)(
 		"vt323-latin-400.woff2 lands at .output/public/fonts/cs16/vt323-latin-400.woff2",
 		() => {
 			expect(existsSync(woff2Output)).toBe(true);
 		},
 	);
 
-	it.skipIf(!hasBuildOutput)(
+	test.skipIf(!hasBuildOutput)(
 		"cs16-font.css lands at .output/public/fonts/cs16/cs16-font.css",
 		() => {
 			expect(existsSync(cssOutput)).toBe(true);
 		},
 	);
 
-	it.skipIf(!hasBuildOutput)(
+	test.skipIf(!hasBuildOutput)(
 		"copied cs16-font.css is non-empty and still references the vendored woff2",
 		() => {
 			const css = readFileSync(cssOutput, "utf-8");

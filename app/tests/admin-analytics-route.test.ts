@@ -1,23 +1,31 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit tests for the /admin/analytics route, server fn, and search-param schema.
  *
- * Component rendering is tested with @testing-library/react in jsdom.
- * Server fn and schema tests run in the same env (jsdom is permissive enough).
+ * Component rendering is tested with @testing-library/react in HappyDOM.
+ * Server fn and schema tests run in the same env (HappyDOM is permissive enough).
  */
+
 import {
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-	within,
-} from "@testing-library/react";
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { cleanup, fireEvent, render, screen, within } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
+const mocks = (() => {
 	type Locale = "en" | "pt-br";
 
 	const state = {
@@ -31,20 +39,20 @@ const mocks = vi.hoisted(() => {
 		},
 	};
 	const callOrder: string[] = [];
-	const requireSessionSpy = vi.fn();
-	const getDashboardSpy = vi.fn();
-	const navigateSpy = vi.fn();
+	const requireSessionSpy = jest.fn();
+	const getDashboardSpy = jest.fn();
+	const navigateSpy = jest.fn();
 
 	return { state, callOrder, requireSessionSpy, getDashboardSpy, navigateSpy };
-});
+})();
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
-// Strip server-only guard so imports don't throw in node/jsdom.
-vi.mock("@tanstack/react-start/server-only", () => ({}));
+// Strip server-only guard so imports don't throw in node/HappyDOM.
+mock.module("@tanstack/react-start/server-only", () => ({}));
 
 // Make createServerFn transparent — returns the raw handler function.
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -56,7 +64,7 @@ vi.mock("@tanstack/react-start", () => ({
 // Give Route a controllable useLoaderData / useSearch / useNavigate.
 // Plain mock — no importOriginal to avoid loading two React instances.
 // lazyRouteComponent stub is required: TanStack Start Vite plugin injects a check for it.
-vi.mock("@tanstack/react-router", () => ({
+mock.module("@tanstack/react-router", () => ({
 	createFileRoute:
 		(_path: string) =>
 		(opts: Record<string, unknown>): Record<string, unknown> => ({
@@ -75,10 +83,10 @@ vi.mock("@tanstack/react-router", () => ({
 	lazyRouteComponent: (fn: () => unknown) => fn,
 }));
 
-// Stub Recharts so jsdom tests don't fail on ResizeObserver / SVG layout.
+// Stub Recharts so HappyDOM tests don't fail on ResizeObserver / SVG layout.
 // Any new dashboard widget that adds a Recharts chart type MUST add its stub here
-// (see workflow memory: "Recharts mock pattern for jsdom tests").
-vi.mock("recharts", () => ({
+// (see workflow memory: "Recharts mock pattern for HappyDOM tests").
+mock.module("recharts", () => ({
 	ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
 		children,
 	LineChart: ({
@@ -146,13 +154,13 @@ vi.mock("recharts", () => ({
 }));
 
 // Mock locale — must export LOCALES so strings.ts validation loop works.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	useLocale: () => ({ locale: mocks.state.locale }),
 	LOCALES: ["en", "pt-br"],
 }));
 
 // Mock session — controllable throw to simulate 401.
-vi.mock("#/lib/session", () => ({
+mock.module("#/lib/session", () => ({
 	requireSession: async () => {
 		mocks.requireSessionSpy();
 		mocks.callOrder.push("requireSession");
@@ -163,7 +171,7 @@ vi.mock("#/lib/session", () => ({
 }));
 
 // Mock analytics-queries — spy + controllable result.
-vi.mock("#/db/analytics-queries", () => ({
+mock.module("#/db/analytics-queries", () => ({
 	getAnalyticsDashboard: async (...args: unknown[]) => {
 		mocks.getDashboardSpy(...args);
 		mocks.callOrder.push("getAnalyticsDashboard");
@@ -173,16 +181,13 @@ vi.mock("#/db/analytics-queries", () => ({
 
 // ── SUT imports (after mocks) ─────────────────────────────────────────────────
 
-import { strings } from "#/lib/i18n/strings";
-import {
-	AnalyticsDashboard,
-	analyticsSearchSchema,
-	Route,
-} from "#/routes/admin/analytics/index";
-import {
-	getAnalyticsDashboardFn,
-	getAnalyticsDashboardHandler,
-} from "#/routes/admin/analytics/index.server";
+const { strings } = await import("#/lib/i18n/strings");
+const { AnalyticsDashboard, analyticsSearchSchema, Route } = await import(
+	"#/routes/admin/analytics/index"
+);
+const { getAnalyticsDashboardFn, getAnalyticsDashboardHandler } = await import(
+	"#/routes/admin/analytics/index.server"
+);
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
@@ -232,45 +237,45 @@ afterEach(cleanup);
 
 describe("analyticsSearchSchema", () => {
 	describe("range field", () => {
-		it("defaults to '30d' when range is absent", () => {
+		test("defaults to '30d' when range is absent", () => {
 			const result = analyticsSearchSchema.parse({});
 			expect(result.range).toBe("30d");
 		});
 
-		it("accepts all valid range values", () => {
+		test("accepts all valid range values", () => {
 			for (const r of ["7d", "30d", "90d", "mtd", "ytd", "all"] as const) {
 				expect(analyticsSearchSchema.parse({ range: r }).range).toBe(r);
 			}
 		});
 
-		it("falls back to '30d' for an invalid range string", () => {
+		test("falls back to '30d' for an invalid range string", () => {
 			const result = analyticsSearchSchema.parse({ range: "foo" });
 			expect(result.range).toBe("30d");
 		});
 
-		it("falls back to '30d' for numeric range value", () => {
+		test("falls back to '30d' for numeric range value", () => {
 			const result = analyticsSearchSchema.parse({ range: 99 });
 			expect(result.range).toBe("30d");
 		});
 	});
 
 	describe("postId field", () => {
-		it("is undefined when absent", () => {
+		test("is undefined when absent", () => {
 			const result = analyticsSearchSchema.parse({ range: "30d" });
 			expect(result.postId).toBeUndefined();
 		});
 
-		it("accepts a valid positive integer", () => {
+		test("accepts a valid positive integer", () => {
 			const result = analyticsSearchSchema.parse({ range: "30d", postId: 42 });
 			expect(result.postId).toBe(42);
 		});
 
-		it("coerces a numeric string to a number", () => {
+		test("coerces a numeric string to a number", () => {
 			const result = analyticsSearchSchema.parse({ range: "30d", postId: "7" });
 			expect(result.postId).toBe(7);
 		});
 
-		it("rejects a negative postId (returns undefined)", () => {
+		test("rejects a negative postId (returns undefined)", () => {
 			const result = analyticsSearchSchema.parse({
 				range: "30d",
 				postId: -1,
@@ -278,7 +283,7 @@ describe("analyticsSearchSchema", () => {
 			expect(result.postId).toBeUndefined();
 		});
 
-		it("rejects zero postId (returns undefined — not positive)", () => {
+		test("rejects zero postId (returns undefined — not positive)", () => {
 			const result = analyticsSearchSchema.parse({
 				range: "30d",
 				postId: 0,
@@ -286,7 +291,7 @@ describe("analyticsSearchSchema", () => {
 			expect(result.postId).toBeUndefined();
 		});
 
-		it("rejects a non-numeric string postId (returns undefined)", () => {
+		test("rejects a non-numeric string postId (returns undefined)", () => {
 			const result = analyticsSearchSchema.parse({
 				range: "30d",
 				postId: "abc",
@@ -299,22 +304,22 @@ describe("analyticsSearchSchema", () => {
 // ── getAnalyticsDashboardFn ───────────────────────────────────────────────────
 
 describe("getAnalyticsDashboardFn", () => {
-	it("delegates to getAnalyticsDashboard with the input", async () => {
+	test("delegates to getAnalyticsDashboard with the input", async () => {
 		const input = { range: "30d" as const };
 		const result = await getAnalyticsDashboardFn(input);
 		expect(mocks.getDashboardSpy).toHaveBeenCalledWith(input);
-		expect(result).toEqual(mocks.state.dashboardResult);
+		expect(result as unknown).toEqual(mocks.state.dashboardResult);
 	});
 
-	it("passes postId filter through to getAnalyticsDashboard", async () => {
+	test("passes postId filter through to getAnalyticsDashboard", async () => {
 		const input = { range: "7d" as const, postId: 42 };
 		await getAnalyticsDashboardFn(input);
 		expect(mocks.getDashboardSpy).toHaveBeenCalledWith(input);
 	});
 
-	it("returns the shape matching AnalyticsDashboardData (mocked DB)", async () => {
+	test("returns the shape matching AnalyticsDashboardData (mocked DB)", async () => {
 		const data = await getAnalyticsDashboardFn({ range: "30d" });
-		expect(data).toHaveProperty("summary");
+		expect(data as Record<string, unknown>).toHaveProperty("summary");
 		expect(data).toHaveProperty("dailyTrend");
 		expect(data).toHaveProperty("referrerByDay");
 		expect(data).toHaveProperty("topPosts");
@@ -329,7 +334,7 @@ describe("getAnalyticsDashboardFn", () => {
 // directly rather than the getAllPosts server fn wrapper.
 
 describe("getAnalyticsDashboardHandler (auth gate)", () => {
-	it("calls requireSession before getAnalyticsDashboard", async () => {
+	test("calls requireSession before getAnalyticsDashboard", async () => {
 		await getAnalyticsDashboardHandler({ range: "30d" });
 
 		const reqIdx = mocks.callOrder.indexOf("requireSession");
@@ -338,25 +343,25 @@ describe("getAnalyticsDashboardHandler (auth gate)", () => {
 		expect(dbIdx).toBeGreaterThan(reqIdx);
 	});
 
-	it("calls requireSession exactly once per invocation", async () => {
+	test("calls requireSession exactly once per invocation", async () => {
 		await getAnalyticsDashboardHandler({ range: "30d" });
 		expect(mocks.requireSessionSpy).toHaveBeenCalledTimes(1);
 	});
 
-	it("throws 401 Response when session is missing", async () => {
+	test("throws 401 Response when session is missing", async () => {
 		mocks.state.requireSessionShouldThrow = true;
 		await expect(
 			getAnalyticsDashboardHandler({ range: "30d" }),
 		).rejects.toBeInstanceOf(Response);
 	});
 
-	it("does not call getAnalyticsDashboard when session is missing", async () => {
+	test("does not call getAnalyticsDashboard when session is missing", async () => {
 		mocks.state.requireSessionShouldThrow = true;
 		await getAnalyticsDashboardHandler({ range: "30d" }).catch(() => {});
 		expect(mocks.getDashboardSpy).not.toHaveBeenCalled();
 	});
 
-	it("passes the data input through to getAnalyticsDashboardFn", async () => {
+	test("passes the data input through to getAnalyticsDashboardFn", async () => {
 		await getAnalyticsDashboardHandler({ range: "90d", postId: 5 });
 		expect(mocks.getDashboardSpy).toHaveBeenCalledWith({
 			range: "90d",
@@ -371,7 +376,7 @@ describe("getAnalyticsDashboardHandler (auth gate)", () => {
 // Route.component, which would cause Suspense during render.
 
 describe("AnalyticsDashboard component", () => {
-	it("renders the page title in English from strings", () => {
+	test("renders the page title in English from strings", () => {
 		mocks.state.locale = "en";
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.getByRole("heading", { level: 1 })).toBeDefined();
@@ -380,7 +385,7 @@ describe("AnalyticsDashboard component", () => {
 		).toBeDefined();
 	});
 
-	it("renders the page title in pt-br from strings", () => {
+	test("renders the page title in pt-br from strings", () => {
 		mocks.state.locale = "pt-br";
 		render(React.createElement(AnalyticsDashboard));
 		expect(
@@ -388,7 +393,7 @@ describe("AnalyticsDashboard component", () => {
 		).toBeDefined();
 	});
 
-	it("renders the SummaryCards component with 4 cards (task 12)", () => {
+	test("renders the SummaryCards component with 4 cards (task 12)", () => {
 		mocks.state.locale = "en";
 		render(React.createElement(AnalyticsDashboard));
 		// SummaryCards renders 4 label spans — verify at least the totalVisits label
@@ -398,27 +403,27 @@ describe("AnalyticsDashboard component", () => {
 		).toBeDefined();
 	});
 
-	it("renders the DailyTrendChart widget (task 13)", () => {
+	test("renders the DailyTrendChart widget (task 13)", () => {
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.getByTestId("daily-trend-chart")).toBeDefined();
 	});
 
-	it("renders the RangeSelector widget (task 13)", () => {
+	test("renders the RangeSelector widget (task 13)", () => {
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.getByTestId("range-selector")).toBeDefined();
 	});
 
-	it("renders the referrer sources bar widget (task 14)", () => {
+	test("renders the referrer sources bar widget (task 14)", () => {
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.getByTestId("referrer-sources-bar")).toBeDefined();
 	});
 
-	it("renders the top posts table widget (task 15)", () => {
+	test("renders the top posts table widget (task 15)", () => {
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.getByTestId("top-posts-table")).toBeDefined();
 	});
 
-	it("top posts table row click calls navigate with functional postId updater (AC-3)", () => {
+	test("top posts table row click calls navigate with functional postId updater (AC-3)", () => {
 		render(React.createElement(AnalyticsDashboard));
 		const table = screen.getByTestId("top-posts-table");
 		const rows = within(table).getAllByRole("button");
@@ -438,12 +443,12 @@ describe("AnalyticsDashboard component", () => {
 		expect(result.postId).toBe(1); // makeDashboardData topPosts[0].postId === 1
 	});
 
-	it("renders the device split donut widget (task 16)", () => {
+	test("renders the device split donut widget (task 16)", () => {
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.getByTestId("device-split-donut")).toBeDefined();
 	});
 
-	it("page title matches strings for both locales", () => {
+	test("page title matches strings for both locales", () => {
 		mocks.state.locale = "en";
 		const { unmount } = render(React.createElement(AnalyticsDashboard));
 		const enTitle = screen.getByRole("heading", { level: 1 }).textContent;
@@ -459,19 +464,19 @@ describe("AnalyticsDashboard component", () => {
 
 	// ── FilterChip integration (task 17) ─────────────────────────────────────────
 
-	it("filter chip is absent from DOM when no postId in search params (AC-1)", () => {
+	test("filter chip is absent from DOM when no postId in search params (AC-1)", () => {
 		mocks.state.searchParams = { range: "30d", postId: undefined };
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.queryByTestId("filter-chip")).toBeNull();
 	});
 
-	it("filter chip renders when postId is set in search params (AC-2)", () => {
+	test("filter chip renders when postId is set in search params (AC-2)", () => {
 		mocks.state.searchParams = { range: "30d", postId: 1 };
 		render(React.createElement(AnalyticsDashboard));
 		expect(screen.getByTestId("filter-chip")).toBeDefined();
 	});
 
-	it("filter chip shows resolved title from topPosts (AC-2)", () => {
+	test("filter chip shows resolved title from topPosts (AC-2)", () => {
 		mocks.state.searchParams = { range: "30d", postId: 1 };
 		render(React.createElement(AnalyticsDashboard));
 		const chip = screen.getByTestId("filter-chip");
@@ -479,7 +484,7 @@ describe("AnalyticsDashboard component", () => {
 		expect(chip.textContent).toContain("Hello");
 	});
 
-	it("filter chip X click calls navigate with updater that removes postId, preserves range (AC-3)", () => {
+	test("filter chip X click calls navigate with updater that removes postId, preserves range (AC-3)", () => {
 		mocks.state.searchParams = { range: "90d", postId: 1 };
 		render(React.createElement(AnalyticsDashboard));
 		const chip = screen.getByTestId("filter-chip");
@@ -511,7 +516,7 @@ describe("beforeLoad auth guard", () => {
 	};
 	const routeOpts = Route as unknown as RouteOpts;
 
-	it("redirects to /login when context.auth.user is null", () => {
+	test("redirects to /login when context.auth.user is null", () => {
 		let threw: unknown;
 		try {
 			routeOpts.beforeLoad?.({
@@ -525,7 +530,7 @@ describe("beforeLoad auth guard", () => {
 		expect((threw as { __redirect: boolean }).__redirect).toBe(true);
 	});
 
-	it("does not redirect when context.auth.user is set", () => {
+	test("does not redirect when context.auth.user is set", () => {
 		let threw = false;
 		try {
 			routeOpts.beforeLoad?.({

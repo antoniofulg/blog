@@ -1,43 +1,43 @@
+import { describe, expect, test } from "bun:test";
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join } from "node:path";
 import matter from "gray-matter";
 import { createElement } from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { describe, expect, it } from "vitest";
 
 import { parseFrontmatter } from "#/lib/mdx/parser.server";
 import { renderMdx } from "#/lib/mdx/renderer.server";
 
-const FIXTURES = join(import.meta.dirname, "fixtures");
+const FIXTURES = join(process.cwd(), "app/tests/fixtures");
 const CONTENT_DIR = join(import.meta.dirname, "../content/posts");
 
 // ─── Unit: parseFrontmatter ───────────────────────────────────────────────────
 
 describe("unit: parseFrontmatter", () => {
-	it("returns title, description, and publishedAt matching the YAML block", async () => {
+	test("returns title, description, and publishedAt matching the YAML block", async () => {
 		const fm = await parseFrontmatter(join(FIXTURES, "sample.mdx"));
 		expect(fm.title).toBe("Sample Post");
 		expect(fm.description).toBe("A sample post for testing.");
 		expect(fm.publishedAt).toBe("2026-05-02");
 	});
 
-	it("returns undefined for optional fields not present in frontmatter", async () => {
+	test("returns undefined for optional fields not present in frontmatter", async () => {
 		// no-slug.mdx has title and description but no publishedAt and no slug
 		const fm = await parseFrontmatter(join(FIXTURES, "no-slug.mdx"));
 		expect(fm.publishedAt).toBeUndefined();
 	});
 
-	it("derives slug from filename when frontmatter has no slug field", async () => {
+	test("derives slug from filename when frontmatter has no slug field", async () => {
 		const fm = await parseFrontmatter(join(FIXTURES, "no-slug.mdx"));
 		expect(fm.slug).toBe("no-slug");
 	});
 
-	it("uses slug from frontmatter when slug field is present", async () => {
+	test("uses slug from frontmatter when slug field is present", async () => {
 		const fm = await parseFrontmatter(join(FIXTURES, "sample.mdx"));
 		expect(fm.slug).toBe("sample-post");
 	});
 
-	it("throws when frontmatter has no title field", async () => {
+	test("throws when frontmatter has no title field", async () => {
 		const err = await parseFrontmatter(join(FIXTURES, "no-title.mdx")).catch(
 			(e) => e,
 		);
@@ -49,13 +49,13 @@ describe("unit: parseFrontmatter", () => {
 // ─── Unit: renderMdx ─────────────────────────────────────────────────────────
 
 describe("unit: renderMdx", () => {
-	it("returns a React component (not null, not a string)", async () => {
+	test("returns a React component (not null, not a string)", async () => {
 		const Component = await renderMdx("# Hello\n\nWorld");
 		expect(Component).toBeDefined();
 		expect(typeof Component).toBe("function");
 	});
 
-	it("rendered output contains Shiki-highlighted code for TypeScript block", async () => {
+	test("rendered output contains Shiki-highlighted code for TypeScript block", async () => {
 		const source = "```typescript\nconst x: number = 1\n```";
 		const Component = await renderMdx(source);
 		const html = renderToStaticMarkup(createElement(Component, {}));
@@ -124,7 +124,7 @@ function lintFrontmatter(filePath: string): void {
 }
 
 describe("lint: frontmatter conventions", () => {
-	it("all post MDX files in content/ pass frontmatter validation", () => {
+	test("all post MDX files in content/ pass frontmatter validation", () => {
 		// About pages use aboutFrontmatterSchema (different shape); exclude from post lint.
 		// e2e fixtures intentionally omit optional frontmatter — not real posts.
 		const files = findMdxFiles(CONTENT_DIR).filter(
@@ -136,43 +136,43 @@ describe("lint: frontmatter conventions", () => {
 		}
 	});
 
-	it("lorem-ipsum.mdx has all required fields", () => {
+	test("lorem-ipsum.mdx has all required fields", () => {
 		expect(() =>
 			lintFrontmatter(join(FIXTURES, "lorem-ipsum.mdx")),
 		).not.toThrow();
 	});
 
-	it("react-component-composition.mdx has all required fields", () => {
+	test("react-component-composition.mdx has all required fields", () => {
 		expect(() =>
 			lintFrontmatter(join(CONTENT_DIR, "en/react-component-composition.mdx")),
 		).not.toThrow();
 	});
 
-	it("throws on missing title", () => {
+	test("throws on missing title", () => {
 		expect(() => lintFrontmatter(join(FIXTURES, "no-title.mdx"))).toThrow(
 			/missing required field "title"/,
 		);
 	});
 
-	it("throws on unknown category value", () => {
+	test("throws on unknown category value", () => {
 		expect(() => lintFrontmatter(join(FIXTURES, "bad-category.mdx"))).toThrow(
 			/unknown category/,
 		);
 	});
 
-	it("throws when series is set without seriesPart", () => {
+	test("throws when series is set without seriesPart", () => {
 		expect(() => lintFrontmatter(join(FIXTURES, "series-no-part.mdx"))).toThrow(
 			/must both be set or both omitted/,
 		);
 	});
 
-	it("throws when seriesPart is set without series", () => {
+	test("throws when seriesPart is set without series", () => {
 		expect(() => lintFrontmatter(join(FIXTURES, "part-no-series.mdx"))).toThrow(
 			/must both be set or both omitted/,
 		);
 	});
 
-	it("passes when category field is absent", () => {
+	test("passes when category field is absent", () => {
 		expect(() =>
 			lintFrontmatter(join(FIXTURES, "lorem-ipsum.mdx")),
 		).not.toThrow();

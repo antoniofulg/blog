@@ -15,33 +15,33 @@
  *   AC-4: DB insert throws → caught, structured JSON logged, returns { recorded: false }.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, jest, mock, test } from "bun:test";
 import type {
 	RecordThemeEventInput,
 	RecordThemeEventResult,
 } from "#/lib/analytics/record-theme-event.server";
 
 // ── Hoisted mocks ─────────────────────────────────────────────────────────────
-// Must be declared before any imports so vi.hoisted() runs first.
+// Must be declared before any imports so ()() runs first.
 
-const mocks = vi.hoisted(() => {
-	const insertValues = vi.fn();
-	const insert = vi.fn();
+const mocks = (() => {
+	const insertValues = jest.fn();
+	const insert = jest.fn();
 	return { insert, insertValues };
-});
+})();
 
-// server-only guard: no-op in Node/vitest context
-vi.mock("@tanstack/react-start/server-only", () => ({}));
+// server-only guard: no-op in Bun Test context
+mock.module("@tanstack/react-start/server-only", () => ({}));
 
 // getRequest: used inside the server fn handler wrapper; no-op for unit tests
 // since we call recordThemeEventHandler directly (getRequest never runs in this path).
-vi.mock("@tanstack/react-start/server", () => ({
-	getRequest: vi.fn(() => new Request("http://localhost/")),
+mock.module("@tanstack/react-start/server", () => ({
+	getRequest: jest.fn(() => new Request("http://localhost/")),
 }));
 
 // Prevent TanStack Start Vite plugin from stripping server fn handlers.
 // Pattern mirrors admin-routes.test.ts / auth.test.ts.
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -51,7 +51,7 @@ vi.mock("@tanstack/react-start", () => ({
 }));
 
 // Mock #/db/client — no real DB connection attempted.
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: {
 		insert: mocks.insert,
 	},
@@ -59,7 +59,9 @@ vi.mock("#/db/client", () => ({
 
 // ── Import after mocks are hoisted ────────────────────────────────────────────
 
-import { recordThemeEventHandler } from "#/lib/analytics/record-theme-event.server";
+const { recordThemeEventHandler } = await import(
+	"#/lib/analytics/record-theme-event.server"
+);
 
 // ── Shared test data ──────────────────────────────────────────────────────────
 
@@ -86,7 +88,7 @@ function makeRequest(ua?: string | null, referer?: string | null): Request {
 // ── Reset mock state before each test ────────────────────────────────────────
 
 beforeEach(() => {
-	vi.resetAllMocks();
+	jest.resetAllMocks();
 	mocks.insertValues.mockResolvedValue([]);
 	mocks.insert.mockReturnValue({ values: mocks.insertValues });
 });
@@ -94,7 +96,7 @@ beforeEach(() => {
 // ── Success path ──────────────────────────────────────────────────────────────
 
 describe("recordThemeEventHandler — success path (human UA)", () => {
-	it("returns { recorded: true } for a non-bot request", async () => {
+	test("returns { recorded: true } for a non-bot request", async () => {
 		const result = await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(HUMAN_UA),
@@ -102,7 +104,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		expect(result).toEqual({ recorded: true });
 	});
 
-	it("calls db.insert exactly once (AC-3)", async () => {
+	test("calls db.insert exactly once (AC-3)", async () => {
 		await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(HUMAN_UA),
@@ -111,7 +113,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		expect(mocks.insertValues).toHaveBeenCalledTimes(1);
 	});
 
-	it("inserts theme, source, lang from input data (AC-3)", async () => {
+	test("inserts theme, source, lang from input data (AC-3)", async () => {
 		const input: RecordThemeEventInput = {
 			theme: "cs16",
 			source: "long-press",
@@ -132,7 +134,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		});
 	});
 
-	it("derives device and referrerSource from request headers (AC-3)", async () => {
+	test("derives device and referrerSource from request headers (AC-3)", async () => {
 		await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(HUMAN_UA, "https://www.linkedin.com/feed/"),
@@ -147,7 +149,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		});
 	});
 
-	it("derives device=mobile from iPhone UA", async () => {
+	test("derives device=mobile from iPhone UA", async () => {
 		await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(MOBILE_UA),
@@ -159,7 +161,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		expect(inserted).toMatchObject({ device: "mobile" });
 	});
 
-	it("derives referrerSource=direct when no Referer header", async () => {
+	test("derives referrerSource=direct when no Referer header", async () => {
 		await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(HUMAN_UA), // no Referer
@@ -171,7 +173,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		expect(inserted).toMatchObject({ referrerSource: "direct" });
 	});
 
-	it("derives referrerSource=github from GitHub Referer", async () => {
+	test("derives referrerSource=github from GitHub Referer", async () => {
 		await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(HUMAN_UA, "https://github.com/tanstack"),
@@ -183,7 +185,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		expect(inserted).toMatchObject({ referrerSource: "github" });
 	});
 
-	it("source='keyboard' is passed through correctly", async () => {
+	test("source='keyboard' is passed through correctly", async () => {
 		const input: RecordThemeEventInput = {
 			theme: "cs16",
 			source: "keyboard",
@@ -200,7 +202,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 		expect(inserted).toMatchObject({ source: "keyboard" });
 	});
 
-	it("all six columns are present in the inserted row (AC-3)", async () => {
+	test("all six columns are present in the inserted row (AC-3)", async () => {
 		const input: RecordThemeEventInput = {
 			theme: "cs16",
 			source: "long-press",
@@ -223,7 +225,7 @@ describe("recordThemeEventHandler — success path (human UA)", () => {
 // ── Bot short-circuit path ────────────────────────────────────────────────────
 
 describe("recordThemeEventHandler — bot short-circuit (AC-2)", () => {
-	it("returns { recorded: false } for Googlebot UA", async () => {
+	test("returns { recorded: false } for Googlebot UA", async () => {
 		const result = await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(BOT_UA),
@@ -231,7 +233,7 @@ describe("recordThemeEventHandler — bot short-circuit (AC-2)", () => {
 		expect(result).toEqual({ recorded: false });
 	});
 
-	it("does NOT call db.insert for bot UA", async () => {
+	test("does NOT call db.insert for bot UA", async () => {
 		await recordThemeEventHandler({
 			data: VALID_INPUT,
 			request: makeRequest(BOT_UA),
@@ -239,7 +241,7 @@ describe("recordThemeEventHandler — bot short-circuit (AC-2)", () => {
 		expect(mocks.insert).not.toHaveBeenCalled();
 	});
 
-	it("null User-Agent is not a known bot → proceeds to DB (documents behaviour)", async () => {
+	test("null User-Agent is not a known bot → proceeds to DB (documents behaviour)", async () => {
 		// null UA: isbot() returns false for unknown UA → treated as human.
 		const result = await recordThemeEventHandler({
 			data: VALID_INPUT,
@@ -252,7 +254,7 @@ describe("recordThemeEventHandler — bot short-circuit (AC-2)", () => {
 // ── DB failure path ───────────────────────────────────────────────────────────
 
 describe("recordThemeEventHandler — DB failure path (AC-4)", () => {
-	it("returns { recorded: false } when db.insert().values() throws", async () => {
+	test("returns { recorded: false } when db.insert().values() throws", async () => {
 		mocks.insertValues.mockRejectedValueOnce(new Error("connection lost"));
 		const result = await recordThemeEventHandler({
 			data: VALID_INPUT,
@@ -261,18 +263,17 @@ describe("recordThemeEventHandler — DB failure path (AC-4)", () => {
 		expect(result).toEqual({ recorded: false });
 	});
 
-	it("does not re-throw the DB error (never-throws contract)", async () => {
+	test("does not re-throw the DB error (never-throws contract)", async () => {
 		mocks.insertValues.mockRejectedValueOnce(new Error("fatal DB error"));
-		await expect(
-			recordThemeEventHandler({
-				data: VALID_INPUT,
-				request: makeRequest(HUMAN_UA),
-			}),
-		).resolves.not.toThrow();
+		const result = await recordThemeEventHandler({
+			data: VALID_INPUT,
+			request: makeRequest(HUMAN_UA),
+		});
+		expect(result).toEqual({ recorded: false });
 	});
 
-	it("logs one structured JSON line with event='theme_event_record_failed' (AC-4)", async () => {
-		const consoleSpy = vi
+	test("logs one structured JSON line with event='theme_event_record_failed' (AC-4)", async () => {
+		const consoleSpy = jest
 			.spyOn(console, "error")
 			.mockImplementation(() => undefined);
 		mocks.insertValues.mockRejectedValueOnce(new Error("connection lost"));
@@ -292,8 +293,8 @@ describe("recordThemeEventHandler — DB failure path (AC-4)", () => {
 		consoleSpy.mockRestore();
 	});
 
-	it("error log includes theme, source, lang discriminators", async () => {
-		const consoleSpy = vi
+	test("error log includes theme, source, lang discriminators", async () => {
+		const consoleSpy = jest
 			.spyOn(console, "error")
 			.mockImplementation(() => undefined);
 		mocks.insertValues.mockRejectedValueOnce(new Error("write failed"));
@@ -321,8 +322,8 @@ describe("recordThemeEventHandler — DB failure path (AC-4)", () => {
 		consoleSpy.mockRestore();
 	});
 
-	it("handles non-Error thrown values (string) without crashing", async () => {
-		const consoleSpy = vi
+	test("handles non-Error thrown values (string) without crashing", async () => {
+		const consoleSpy = jest
 			.spyOn(console, "error")
 			.mockImplementation(() => undefined);
 		mocks.insertValues.mockImplementationOnce(() =>
@@ -341,7 +342,7 @@ describe("recordThemeEventHandler — DB failure path (AC-4)", () => {
 // ── Compile-time type contract (AC-1) ─────────────────────────────────────────
 
 describe("recordThemeEventHandler — exported types (AC-1)", () => {
-	it("RecordThemeEventInput accepts all valid combinations (compile-time check)", () => {
+	test("RecordThemeEventInput accepts all valid combinations (compile-time check)", () => {
 		const _longPress: RecordThemeEventInput = {
 			theme: "cs16",
 			source: "long-press",
@@ -356,7 +357,7 @@ describe("recordThemeEventHandler — exported types (AC-1)", () => {
 		expect(_keyboard.source).toBe("keyboard");
 	});
 
-	it("RecordThemeEventResult has boolean 'recorded' (compile-time check)", () => {
+	test("RecordThemeEventResult has boolean 'recorded' (compile-time check)", () => {
 		const _ok: RecordThemeEventResult = { recorded: true };
 		const _fail: RecordThemeEventResult = { recorded: false };
 		expect(typeof _ok.recorded).toBe("boolean");

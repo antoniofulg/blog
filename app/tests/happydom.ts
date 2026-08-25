@@ -20,7 +20,7 @@ if (nativeResponse) globalThis.Response = nativeResponse;
 if (nativeHeaders) globalThis.Headers = nativeHeaders;
 process.env.SITE_URL ??= "http://localhost";
 
-// jsdom ships these; happy-dom does not. The component under test observes its
+// Browsers ship these; happy-dom does not. The component under test observes its
 // container, so without this the render throws instead of failing an assertion.
 const resizeObserver =
 	"ResizeObserver" in globalThis

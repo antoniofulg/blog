@@ -4,7 +4,7 @@
  * These tests exercise the full `getAnalyticsDashboard` query path against an
  * in-memory PGLite instance using the real schema applied via pushSchema.
  *
- * The #/db/client mock uses the lazy-getter pattern (vi.hoisted + getter) so
+ * The #/db/client mock uses the lazy-getter pattern (jest.hoisted + getter) so
  * the PGLite db instance (resolved asynchronously in beforeAll) is injected
  * before `getAnalyticsDashboard` imports #/db/client.
  *
@@ -16,14 +16,14 @@
  *   AC-5: non-existent postId → zeros/empty, no exception
  */
 
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { analyticsEvents, posts } from "#/db/schema";
 import type { TestDb } from "../../tests/e2e/db";
 import { createTestDb } from "../../tests/e2e/db";
 
 // ── PGLite injection via hoisted getter ───────────────────────────────────────
 
-const dbHolder = vi.hoisted(() => {
+const dbHolder = (() => {
 	// biome-ignore lint/suspicious/noExplicitAny: db type varies between drizzle adapters
 	let _db: any = null;
 	return {
@@ -39,18 +39,27 @@ const dbHolder = vi.hoisted(() => {
 			return _db;
 		},
 	};
-});
+})();
 
-vi.mock("@tanstack/react-start/server-only", () => ({}));
-
-vi.mock("#/db/client", () => ({
-	get db() {
-		return dbHolder.get();
+const dbProxy = new Proxy(
+	{},
+	{
+		get(_target, property: string | symbol) {
+			const db = dbHolder.get();
+			const value = db?.[property as keyof typeof db];
+			return typeof value === "function" ? value.bind(db) : value;
+		},
 	},
+);
+
+mock.module("@tanstack/react-start/server-only", () => ({}));
+
+mock.module("#/db/client", () => ({
+	db: dbProxy,
 }));
 
 // Import SUTs after mocks
-import { getAnalyticsDashboard } from "#/db/analytics-queries";
+const { getAnalyticsDashboard } = await import("#/db/analytics-queries");
 
 // ── Suite setup ───────────────────────────────────────────────────────────────
 
@@ -137,7 +146,7 @@ function daysAgo(n: number): Date {
 // ── Integration test suite ────────────────────────────────────────────────────
 
 describe("getAnalyticsDashboard integration: PGLite", () => {
-	it("IT1: seed 100 events across 7 days → summary.totalVisits = 100 (AC-1)", async () => {
+	test("IT1: seed 100 events across 7 days → summary.totalVisits = 100 (AC-1)", async () => {
 		// Seed 100 events spread across 7 days, 3 referrer buckets, 3 devices
 		const events: SeedEventParams[] = [];
 		const referrers = ["google", "linkedin", "direct"];
@@ -169,7 +178,7 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 		expect(result.summary.totalVisits).toBe(100);
 	}, 30_000);
 
-	it("IT2: postId filter cascades — all widget values shrink to post1 only (AC-2)", async () => {
+	test("IT2: postId filter cascades — all widget values shrink to post1 only (AC-2)", async () => {
 		// Count how many of the 100 seeded events belong to post1
 		// post1Id gets events at i % 3 === 0 → indices 0,3,6,...99 → 34 events
 		const post1EventCount = Math.ceil(100 / 3);
@@ -202,9 +211,8 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 		expect(deviceTotal).toBe(post1EventCount);
 	}, 30_000);
 
-	it("IT3: zero events → getAnalyticsDashboard returns empty arrays and zero counts", async () => {
+	test("IT3: zero events → getAnalyticsDashboard returns empty arrays and zero counts", async () => {
 		// Use a fresh DB with no events (no shared test data).
-		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
 		const freshDb = await createTestDb();
 		const originalDb = dbHolder.get();
 		dbHolder.set(freshDb.db);
@@ -238,11 +246,10 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 			dbHolder.set(originalDb);
 			await freshDb.close();
 		}
-	}, 60_000);
+	}, 30_000);
 
-	it("IT4: previousPeriodTotal matches count from preceding 7d window (AC-3)", async () => {
+	test("IT4: previousPeriodTotal matches count from preceding 7d window (AC-3)", async () => {
 		// Use a fresh DB for precise control over timestamps.
-		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
 		const freshDb = await createTestDb();
 		const originalDb = dbHolder.get();
 		dbHolder.set(freshDb.db);
@@ -307,9 +314,9 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 			dbHolder.set(originalDb);
 			await freshDb.close();
 		}
-	}, 60_000);
+	}, 30_000);
 
-	it("topPosts are limited to ≤10 and sorted descending by event count (AC-4)", async () => {
+	test("topPosts are limited to ≤10 and sorted descending by event count (AC-4)", async () => {
 		const result = await getAnalyticsDashboard({ range: "7d" });
 		expect(result.topPosts.length).toBeLessThanOrEqual(10);
 
@@ -323,7 +330,7 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 		}
 	}, 30_000);
 
-	it("non-existent postId returns zeros and empty arrays without throwing (AC-5)", async () => {
+	test("non-existent postId returns zeros and empty arrays without throwing (AC-5)", async () => {
 		const result = await getAnalyticsDashboard({
 			range: "7d",
 			postId: 999999,
@@ -336,7 +343,7 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 		expect(result.referrerByDay).toEqual([]);
 	}, 30_000);
 
-	it("referrerByDay contains at least the seeded referrer buckets", async () => {
+	test("referrerByDay contains at least the seeded referrer buckets", async () => {
 		const result = await getAnalyticsDashboard({ range: "7d" });
 		const sources = new Set(result.referrerByDay.map((r) => r.source));
 		// We seeded google, linkedin, direct in IT1
@@ -345,14 +352,14 @@ describe("getAnalyticsDashboard integration: PGLite", () => {
 		expect(sources.has("direct")).toBe(true);
 	}, 30_000);
 
-	it("dailyTrend has ≤8 entries for range=7d (7-day window spans 8 calendar days inclusive after gap-fill)", async () => {
+	test("dailyTrend has ≤8 entries for range=7d (7-day window spans 8 calendar days inclusive after gap-fill)", async () => {
 		const result = await getAnalyticsDashboard({ range: "7d" });
 		// resolveRange("7d") = [now-7d, now]; fillDailyGaps fills every calendar
 		// day in that inclusive window → 8 rows (today + 7 preceding days).
 		expect(result.dailyTrend.length).toBeLessThanOrEqual(8);
 	}, 30_000);
 
-	it("deviceSplit sums match totalVisits", async () => {
+	test("deviceSplit sums match totalVisits", async () => {
 		const result = await getAnalyticsDashboard({ range: "7d" });
 		const deviceTotal =
 			result.deviceSplit.mobile +

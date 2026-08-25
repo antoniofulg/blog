@@ -1,4 +1,4 @@
-import { describe, expect, test } from "vitest";
+import { describe, expect, test } from "bun:test";
 import { BROWSER_SMOKE_ROUTE_IDS } from "#/lib/browser-bench/contract";
 import {
 	assessWebViewRoute,

@@ -110,10 +110,10 @@ faster smoke harness is not mistaken for complete E2E coverage.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| BTC-01 | Canonical Bun Test runner | Execute | Pending |
+| BTC-01 | Canonical Bun Test runner | Execute | Implementing |
 | BTC-02 | Preserve test inventory | Execute | Implementing |
 | BTC-03 | Remove obsolete Vitest surface | Execute | Implementing |
-| BTC-04 | Preserve DOM behavior | Execute | Pending |
+| BTC-04 | Preserve DOM behavior | Execute | Implementing |
 | BTC-05 | Preserve browser boundary | Execute | Pending |
 | BTC-06 | Document direct comparison | Execute | Pending |
 

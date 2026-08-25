@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * A11y and responsive unit tests for analytics dashboard widgets (task_19).
  *
@@ -10,16 +11,21 @@
  *  - DeviceSplitDonut: correct responsive visibility classes (AC-4)
  *
  * Uses React.createElement (no JSX) and .ts extension per project convention.
- * Recharts mocked to avoid ResizeObserver / SVG failures in jsdom.
+ * Recharts mocked to avoid ResizeObserver / SVG failures in HappyDOM.
  */
-import { cleanup, render, screen, within } from "@testing-library/react";
+
+import { afterEach, describe, expect, mock, test } from "bun:test";
+
+const { cleanup, render, screen, within } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 // Recharts mock — same pattern as admin-analytics-route.test.ts
-vi.mock("recharts", () => ({
+mock.module("recharts", () => ({
 	ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
 		children,
 	LineChart: ({
@@ -86,18 +92,26 @@ vi.mock("recharts", () => ({
 }));
 
 // Mock locale — must export LOCALES so strings.ts validation works at import time.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	useLocale: () => ({ locale: "en" }),
 	LOCALES: ["en", "pt-br"],
 }));
 
 // ── SUT imports (after mocks) ─────────────────────────────────────────────────
 
-import { DailyTrendChart } from "#/components/admin/analytics/daily-trend-chart";
-import { DeviceSplitDonut } from "#/components/admin/analytics/device-split-donut";
-import { ReferrerSourcesBar } from "#/components/admin/analytics/referrer-sources-bar";
-import { TopPostsTable } from "#/components/admin/analytics/top-posts-table";
-import { strings } from "#/lib/i18n/strings";
+const { DailyTrendChart } = await import(
+	"#/components/admin/analytics/daily-trend-chart"
+);
+const { DeviceSplitDonut } = await import(
+	"#/components/admin/analytics/device-split-donut"
+);
+const { ReferrerSourcesBar } = await import(
+	"#/components/admin/analytics/referrer-sources-bar"
+);
+const { TopPostsTable } = await import(
+	"#/components/admin/analytics/top-posts-table"
+);
+const { strings } = await import("#/lib/i18n/strings");
 
 // ── Fixtures ──────────────────────────────────────────────────────────────────
 
@@ -141,7 +155,7 @@ afterEach(cleanup);
 // ── TopPostsTable: sticky first column (AC-3) ─────────────────────────────────
 
 describe("TopPostsTable sticky first column (AC-3)", () => {
-	it("first <th> has 'sticky' class", () => {
+	test("first <th> has 'sticky' class", () => {
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: TOP_POSTS,
@@ -154,7 +168,7 @@ describe("TopPostsTable sticky first column (AC-3)", () => {
 		expect(firstTh?.className).toContain("sticky");
 	});
 
-	it("first <th> has 'left-0' class", () => {
+	test("first <th> has 'left-0' class", () => {
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: TOP_POSTS,
@@ -167,7 +181,7 @@ describe("TopPostsTable sticky first column (AC-3)", () => {
 		expect(firstTh?.className).toContain("left-0");
 	});
 
-	it("first <td> in data rows has 'sticky' class", () => {
+	test("first <td> in data rows has 'sticky' class", () => {
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: TOP_POSTS,
@@ -180,7 +194,7 @@ describe("TopPostsTable sticky first column (AC-3)", () => {
 		expect(firstTd?.className).toContain("sticky");
 	});
 
-	it("first <td> in data rows has 'left-0' class", () => {
+	test("first <td> in data rows has 'left-0' class", () => {
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: TOP_POSTS,
@@ -193,7 +207,7 @@ describe("TopPostsTable sticky first column (AC-3)", () => {
 		expect(firstTd?.className).toContain("left-0");
 	});
 
-	it("first <th> has 'bg-card' class (sticky background)", () => {
+	test("first <th> has 'bg-card' class (sticky background)", () => {
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: TOP_POSTS,
@@ -206,7 +220,7 @@ describe("TopPostsTable sticky first column (AC-3)", () => {
 		expect(firstTh?.className).toContain("bg-card");
 	});
 
-	it("first <td> has 'bg-card' class (sticky background)", () => {
+	test("first <td> has 'bg-card' class (sticky background)", () => {
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: TOP_POSTS,
@@ -223,7 +237,7 @@ describe("TopPostsTable sticky first column (AC-3)", () => {
 // ── DailyTrendChart: sr-only table (AC-6) ─────────────────────────────────────
 
 describe("DailyTrendChart sr-only table (AC-6)", () => {
-	it("renders a <table> with aria-label matching the widget title", () => {
+	test("renders a <table> with aria-label matching the widget title", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: DAILY_TREND,
@@ -236,7 +250,7 @@ describe("DailyTrendChart sr-only table (AC-6)", () => {
 		expect(srTable).toBeDefined();
 	});
 
-	it("sr-only table has the same number of data rows as dailyTrend input", () => {
+	test("sr-only table has the same number of data rows as dailyTrend input", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: DAILY_TREND,
@@ -251,7 +265,7 @@ describe("DailyTrendChart sr-only table (AC-6)", () => {
 		expect(rows).toHaveLength(DAILY_TREND.length + 1); // +1 for header row
 	});
 
-	it("sr-only table has Date and Visits column headers", () => {
+	test("sr-only table has Date and Visits column headers", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: DAILY_TREND,
@@ -273,7 +287,7 @@ describe("DailyTrendChart sr-only table (AC-6)", () => {
 		).toBeDefined();
 	});
 
-	it("sr-only table has class 'sr-only' for visual hiding", () => {
+	test("sr-only table has class 'sr-only' for visual hiding", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: DAILY_TREND,
@@ -286,7 +300,7 @@ describe("DailyTrendChart sr-only table (AC-6)", () => {
 		expect(srTable.className).toContain("sr-only");
 	});
 
-	it("does not render sr-only table when dailyTrend is empty", () => {
+	test("does not render sr-only table when dailyTrend is empty", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: [],
@@ -301,7 +315,7 @@ describe("DailyTrendChart sr-only table (AC-6)", () => {
 // ── ReferrerSourcesBar: sr-only table (AC-6) ──────────────────────────────────
 
 describe("ReferrerSourcesBar sr-only table (AC-6)", () => {
-	it("renders a <table> with aria-label matching the widget title", () => {
+	test("renders a <table> with aria-label matching the widget title", () => {
 		render(
 			React.createElement(ReferrerSourcesBar, {
 				referrerByDay: REFERRER_BY_DAY,
@@ -314,7 +328,7 @@ describe("ReferrerSourcesBar sr-only table (AC-6)", () => {
 		expect(srTable).toBeDefined();
 	});
 
-	it("sr-only table has the same number of data rows as referrerByDay input", () => {
+	test("sr-only table has the same number of data rows as referrerByDay input", () => {
 		render(
 			React.createElement(ReferrerSourcesBar, {
 				referrerByDay: REFERRER_BY_DAY,
@@ -328,7 +342,7 @@ describe("ReferrerSourcesBar sr-only table (AC-6)", () => {
 		expect(rows).toHaveLength(REFERRER_BY_DAY.length + 1); // +1 for header
 	});
 
-	it("sr-only table has Date, Source, and Visits column headers", () => {
+	test("sr-only table has Date, Source, and Visits column headers", () => {
 		render(
 			React.createElement(ReferrerSourcesBar, {
 				referrerByDay: REFERRER_BY_DAY,
@@ -359,7 +373,7 @@ describe("ReferrerSourcesBar sr-only table (AC-6)", () => {
 // ── DeviceSplitDonut: sr-only table (AC-6) + visibility classes (AC-4) ────────
 
 describe("DeviceSplitDonut sr-only table (AC-6)", () => {
-	it("renders a <table> with aria-label matching the widget title", () => {
+	test("renders a <table> with aria-label matching the widget title", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -372,7 +386,7 @@ describe("DeviceSplitDonut sr-only table (AC-6)", () => {
 		expect(srTable).toBeDefined();
 	});
 
-	it("sr-only table has exactly 3 data rows (mobile, tablet, desktop)", () => {
+	test("sr-only table has exactly 3 data rows (mobile, tablet, desktop)", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -386,7 +400,7 @@ describe("DeviceSplitDonut sr-only table (AC-6)", () => {
 		expect(rows).toHaveLength(4); // 1 header + 3 data rows
 	});
 
-	it("sr-only table has Device and Visits column headers", () => {
+	test("sr-only table has Device and Visits column headers", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -408,7 +422,7 @@ describe("DeviceSplitDonut sr-only table (AC-6)", () => {
 		).toBeDefined();
 	});
 
-	it("does not render sr-only table when device split is all zeros", () => {
+	test("does not render sr-only table when device split is all zeros", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: { mobile: 0, tablet: 0, desktop: 0 },
@@ -421,7 +435,7 @@ describe("DeviceSplitDonut sr-only table (AC-6)", () => {
 });
 
 describe("DeviceSplitDonut responsive visibility classes (AC-4)", () => {
-	it("donut wrapper has 'hidden' class (hidden on mobile)", () => {
+	test("donut wrapper has 'hidden' class (hidden on mobile)", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -432,7 +446,7 @@ describe("DeviceSplitDonut responsive visibility classes (AC-4)", () => {
 		expect(donutWrapper.className).toContain("hidden");
 	});
 
-	it("donut wrapper has 'min-[480px]:block' class (visible above 480px)", () => {
+	test("donut wrapper has 'min-[480px]:block' class (visible above 480px)", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -443,7 +457,7 @@ describe("DeviceSplitDonut responsive visibility classes (AC-4)", () => {
 		expect(donutWrapper.className).toContain("min-[480px]:block");
 	});
 
-	it("bar wrapper has 'block' class (visible on mobile)", () => {
+	test("bar wrapper has 'block' class (visible on mobile)", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -454,7 +468,7 @@ describe("DeviceSplitDonut responsive visibility classes (AC-4)", () => {
 		expect(barWrapper.className).toContain("block");
 	});
 
-	it("bar wrapper has 'min-[480px]:hidden' class (hidden above 480px)", () => {
+	test("bar wrapper has 'min-[480px]:hidden' class (hidden above 480px)", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -469,7 +483,7 @@ describe("DeviceSplitDonut responsive visibility classes (AC-4)", () => {
 // ── Aria-label on chart containers ────────────────────────────────────────────
 
 describe("Chart container aria-labels", () => {
-	it("DailyTrendChart container has aria-label", () => {
+	test("DailyTrendChart container has aria-label", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: DAILY_TREND,
@@ -482,7 +496,7 @@ describe("Chart container aria-labels", () => {
 		);
 	});
 
-	it("ReferrerSourcesBar container has aria-label", () => {
+	test("ReferrerSourcesBar container has aria-label", () => {
 		render(
 			React.createElement(ReferrerSourcesBar, {
 				referrerByDay: REFERRER_BY_DAY,
@@ -495,7 +509,7 @@ describe("Chart container aria-labels", () => {
 		);
 	});
 
-	it("DeviceSplitDonut container has aria-label", () => {
+	test("DeviceSplitDonut container has aria-label", () => {
 		render(
 			React.createElement(DeviceSplitDonut, {
 				deviceSplit: DEVICE_SPLIT,
@@ -508,7 +522,7 @@ describe("Chart container aria-labels", () => {
 		);
 	});
 
-	it("TopPostsTable container has aria-label", () => {
+	test("TopPostsTable container has aria-label", () => {
 		render(
 			React.createElement(TopPostsTable, {
 				topPosts: TOP_POSTS,

@@ -1,6 +1,6 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { type Post, posts } from "#/db/schema";
 
@@ -29,13 +29,13 @@ const dbReachable = await canReachDb(DB_URL);
 // ─── Unit: schema inference ──────────────────────────────────────────────────
 
 describe("unit: posts schema — isPublished removed", () => {
-	it("posts table columns do not include is_published", () => {
+	test("posts table columns do not include is_published", () => {
 		const columnNames = Object.keys(posts);
 		expect(columnNames).not.toContain("isPublished");
 		expect(columnNames).not.toContain("is_published");
 	});
 
-	it("Post inferred type does not include isPublished key", () => {
+	test("Post inferred type does not include isPublished key", () => {
 		// Compile-time assertion: if isPublished were still in the schema,
 		// the expression below would produce a TS error.
 		type HasIsPublished = "isPublished" extends keyof Post ? true : false;
@@ -43,7 +43,7 @@ describe("unit: posts schema — isPublished removed", () => {
 		expect(result).toBe(false);
 	});
 
-	it("posts table retains all expected columns", () => {
+	test("posts table retains all expected columns", () => {
 		const columnNames = Object.keys(posts);
 		const expected = [
 			"id",
@@ -69,7 +69,7 @@ describe("unit: posts schema — isPublished removed", () => {
 // ─── Unit: migration file validation ────────────────────────────────────────
 
 describe("unit: migration file 0003", () => {
-	it("migration file exists in drizzle/", async () => {
+	test("migration file exists in drizzle/", async () => {
 		const files = await import("node:fs/promises").then((m) =>
 			m.readdir(join(root, "drizzle")),
 		);
@@ -77,7 +77,7 @@ describe("unit: migration file 0003", () => {
 		expect(migration).toBeDefined();
 	});
 
-	it("migration SQL contains exactly the isPublished DROP COLUMN", async () => {
+	test("migration SQL contains exactly the isPublished DROP COLUMN", async () => {
 		const files = await import("node:fs/promises").then((m) =>
 			m.readdir(join(root, "drizzle")),
 		);
@@ -102,7 +102,7 @@ describe("unit: migration file 0003", () => {
 		expect(statements[0].toLowerCase()).toContain("is_published");
 	});
 
-	it("migration SQL does not contain any DROP TABLE statement", async () => {
+	test("migration SQL does not contain any DROP TABLE statement", async () => {
 		const files = await import("node:fs/promises").then((m) =>
 			m.readdir(join(root, "drizzle")),
 		);
@@ -118,17 +118,17 @@ describe("unit: migration file 0003", () => {
 // ─── Unit: TZ migration (0004) ──────────────────────────────────────────────
 
 describe("unit: posts schema — timestamptz columns", () => {
-	it("publishedAt Drizzle column definition uses withTimezone: true", () => {
+	test("publishedAt Drizzle column definition uses withTimezone: true", () => {
 		const col = posts.publishedAt as unknown as Record<string, unknown>;
 		expect(col.withTimezone).toBe(true);
 	});
 
-	it("indexedAt Drizzle column definition uses withTimezone: true", () => {
+	test("indexedAt Drizzle column definition uses withTimezone: true", () => {
 		const col = posts.indexedAt as unknown as Record<string, unknown>;
 		expect(col.withTimezone).toBe(true);
 	});
 
-	it("migration file 0004 exists in drizzle/", async () => {
+	test("migration file 0004 exists in drizzle/", async () => {
 		const files = await import("node:fs/promises").then((m) =>
 			m.readdir(join(root, "drizzle")),
 		);
@@ -136,7 +136,7 @@ describe("unit: posts schema — timestamptz columns", () => {
 		expect(migration).toBeDefined();
 	});
 
-	it("migration 0004 SQL alters published_at to timestamptz USING UTC", async () => {
+	test("migration 0004 SQL alters published_at to timestamptz USING UTC", async () => {
 		const sql = await readFile(
 			join(root, "drizzle", "0004_posts_timestamptz.sql"),
 			"utf8",
@@ -150,7 +150,7 @@ describe("unit: posts schema — timestamptz columns", () => {
 		expect(upper).toContain("UTC");
 	});
 
-	it("migration 0004 SQL alters indexed_at to timestamptz USING UTC", async () => {
+	test("migration 0004 SQL alters indexed_at to timestamptz USING UTC", async () => {
 		const sql = await readFile(
 			join(root, "drizzle", "0004_posts_timestamptz.sql"),
 			"utf8",
@@ -160,7 +160,7 @@ describe("unit: posts schema — timestamptz columns", () => {
 		expect(upper).toContain("TIMESTAMP WITH TIME ZONE");
 	});
 
-	it("migration 0004 SQL does not DROP any column", async () => {
+	test("migration 0004 SQL does not DROP any column", async () => {
 		const sql = await readFile(
 			join(root, "drizzle", "0004_posts_timestamptz.sql"),
 			"utf8",
@@ -169,7 +169,7 @@ describe("unit: posts schema — timestamptz columns", () => {
 		expect(sql.toUpperCase()).not.toContain("DROP TABLE");
 	});
 
-	it("drizzle/meta/_journal.json contains entry for 0004_posts_timestamptz", async () => {
+	test("drizzle/meta/_journal.json contains entry for 0004_posts_timestamptz", async () => {
 		const raw = await readFile(
 			join(root, "drizzle", "meta", "_journal.json"),
 			"utf8",
@@ -184,7 +184,7 @@ describe("unit: posts schema — timestamptz columns", () => {
 		expect(entry?.idx).toBe(4);
 	});
 
-	it("snapshot 0004 shows published_at as timestamp with time zone", async () => {
+	test("snapshot 0004 shows published_at as timestamp with time zone", async () => {
 		const raw = await readFile(
 			join(root, "drizzle", "meta", "0004_snapshot.json"),
 			"utf8",
@@ -197,7 +197,7 @@ describe("unit: posts schema — timestamptz columns", () => {
 		);
 	});
 
-	it("snapshot 0004 shows indexed_at as timestamp with time zone", async () => {
+	test("snapshot 0004 shows indexed_at as timestamp with time zone", async () => {
 		const raw = await readFile(
 			join(root, "drizzle", "meta", "0004_snapshot.json"),
 			"utf8",
@@ -227,7 +227,7 @@ describe.skipIf(!dbReachable)(
 			await sql?.end();
 		});
 
-		it("is_published column is absent from posts table after migration", async () => {
+		test("is_published column is absent from posts table after migration", async () => {
 			// biome-ignore lint/style/noNonNullAssertion: set in beforeAll
 			const rows = await sql!<{ column_name: string }[]>`
       SELECT column_name
@@ -238,7 +238,7 @@ describe.skipIf(!dbReachable)(
 			expect(rows).toHaveLength(0);
 		});
 
-		it("posts table still has expected columns after migration", async () => {
+		test("posts table still has expected columns after migration", async () => {
 			// biome-ignore lint/style/noNonNullAssertion: set in beforeAll
 			const rows = await sql!<{ column_name: string }[]>`
       SELECT column_name

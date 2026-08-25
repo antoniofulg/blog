@@ -1,6 +1,6 @@
+import { describe, expect, it } from "bun:test";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 
 const root = process.cwd();
 const ci = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");

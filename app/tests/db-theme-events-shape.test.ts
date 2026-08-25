@@ -6,7 +6,7 @@
  * created and that a round-trip insert/select works.
  */
 
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import type { NewThemeEvent, ThemeEvent } from "../db/schema";
 import * as schema from "../db/schema";
 import { themeEvents } from "../db/schema";
@@ -14,7 +14,7 @@ import { themeEvents } from "../db/schema";
 // ─── Unit: themeEvents table metadata ───────────────────────────────────────
 
 describe("unit: themeEvents schema", () => {
-	it("table name is 'theme_events'", () => {
+	test("table name is 'theme_events'", () => {
 		expect(
 			(themeEvents as unknown as Record<symbol, unknown>)[
 				Symbol.for("drizzle:Name")
@@ -22,47 +22,47 @@ describe("unit: themeEvents schema", () => {
 		).toBe("theme_events");
 	});
 
-	it("id column is bigserial primary key", () => {
+	test("id column is bigserial primary key", () => {
 		const col = themeEvents.id;
 		expect(col.primary).toBe(true);
 	});
 
-	it("createdAt uses withTimezone: true (timestamptz)", () => {
+	test("createdAt uses withTimezone: true (timestamptz)", () => {
 		const col = themeEvents.createdAt as unknown as Record<string, unknown>;
 		expect(col.withTimezone).toBe(true);
 	});
 
-	it("createdAt has defaultNow()", () => {
+	test("createdAt has defaultNow()", () => {
 		const col = themeEvents.createdAt;
 		expect(col.hasDefault).toBe(true);
 	});
 
-	it("theme column is notNull", () => {
+	test("theme column is notNull", () => {
 		const col = themeEvents.theme;
 		expect(col.notNull).toBe(true);
 	});
 
-	it("source column is notNull", () => {
+	test("source column is notNull", () => {
 		const col = themeEvents.source;
 		expect(col.notNull).toBe(true);
 	});
 
-	it("lang column is notNull", () => {
+	test("lang column is notNull", () => {
 		const col = themeEvents.lang;
 		expect(col.notNull).toBe(true);
 	});
 
-	it("device column is notNull", () => {
+	test("device column is notNull", () => {
 		const col = themeEvents.device;
 		expect(col.notNull).toBe(true);
 	});
 
-	it("referrerSource column is notNull", () => {
+	test("referrerSource column is notNull", () => {
 		const col = themeEvents.referrerSource;
 		expect(col.notNull).toBe(true);
 	});
 
-	it("ThemeEvent select type has all 7 expected columns (compile-time check)", () => {
+	test("ThemeEvent select type has all 7 expected columns (compile-time check)", () => {
 		// TypeScript compile check: if ThemeEvent type is wrong this file won't compile.
 		const _event: ThemeEvent = {
 			id: 1,
@@ -82,7 +82,7 @@ describe("unit: themeEvents schema", () => {
 		expect(_event.createdAt).toBeInstanceOf(Date);
 	});
 
-	it("NewThemeEvent omits id and createdAt (compile-time check)", () => {
+	test("NewThemeEvent omits id and createdAt (compile-time check)", () => {
 		// Minimal valid insert — id and createdAt are generated server-side.
 		const _new: NewThemeEvent = {
 			theme: "cs16",
@@ -98,12 +98,12 @@ describe("unit: themeEvents schema", () => {
 		expect(_new.referrerSource).toBe("google");
 	});
 
-	it("themeEvents export is present in schema module", () => {
+	test("themeEvents export is present in schema module", () => {
 		// Regression guard: ensures the export is not accidentally removed.
 		expect(schema.themeEvents).toBeDefined();
 	});
 
-	it("ThemeEvent and NewThemeEvent types are exported (structural check via assignment)", () => {
+	test("ThemeEvent and NewThemeEvent types are exported (structural check via assignment)", () => {
 		// If either type is missing, the imports above will fail at compile time.
 		// This runtime assertion is a belt-and-suspenders check.
 		const id: ThemeEvent["id"] = 99;
@@ -141,7 +141,7 @@ describe("integration: themeEvents (PGLite)", () => {
 		await pgliteClient.close();
 	});
 
-	it("inserts a theme event row and reads it back with correct values", async () => {
+	test("inserts a theme event row and reads it back with correct values", async () => {
 		const [event] = await db
 			.insert(themeEvents)
 			.values({
@@ -162,7 +162,7 @@ describe("integration: themeEvents (PGLite)", () => {
 		expect(typeof event.id).toBe("number");
 	});
 
-	it("inserts keyboard-sourced event with pt-br lang", async () => {
+	test("inserts keyboard-sourced event with pt-br lang", async () => {
 		const [event] = await db
 			.insert(themeEvents)
 			.values({
@@ -179,7 +179,7 @@ describe("integration: themeEvents (PGLite)", () => {
 		expect(event.device).toBe("mobile");
 	});
 
-	it("id auto-increments across consecutive inserts", async () => {
+	test("id auto-increments across consecutive inserts", async () => {
 		const [e1] = await db
 			.insert(themeEvents)
 			.values({
@@ -205,7 +205,7 @@ describe("integration: themeEvents (PGLite)", () => {
 		expect(e2.id).toBeGreaterThan(e1.id);
 	});
 
-	it("createdAt defaults to now() — within 5 seconds of test execution", async () => {
+	test("createdAt defaults to now() — within 5 seconds of test execution", async () => {
 		const before = Date.now();
 		const [event] = await db
 			.insert(themeEvents)

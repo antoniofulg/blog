@@ -9,10 +9,10 @@
  * Uses PGLite in-memory via createTestDb() — no external postgres required.
  */
 
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { PGlite } from "@electric-sql/pglite";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { posts } from "#/db/schema";
 import type { TestDb } from "../../tests/e2e/db";
 import { createTestDb } from "../../tests/e2e/db";
@@ -32,7 +32,7 @@ describe("integration: timestamptz round-trip (PGLite)", () => {
 		await testDb.close();
 	});
 
-	it("insert Date('2025-01-15T10:00:00Z') and read back same UTC instant", async () => {
+	test("insert Date('2025-01-15T10:00:00Z') and read back same UTC instant", async () => {
 		const utcDate = new Date("2025-01-15T10:00:00Z");
 		const expectedMs = utcDate.getTime();
 
@@ -59,7 +59,7 @@ describe("integration: timestamptz round-trip (PGLite)", () => {
 		expect(row?.publishedAt?.getTime()).toBe(expectedMs);
 	});
 
-	it("indexedAt defaults to a valid UTC Date", async () => {
+	test("indexedAt defaults to a valid UTC Date", async () => {
 		const before = Date.now();
 		const [inserted] = await testDb.db
 			.insert(posts)
@@ -128,14 +128,14 @@ describe("integration: TZ migration SQL against old schema (PGLite)", () => {
 		await client.close();
 	});
 
-	it("10 rows exist before migration", async () => {
+	test("10 rows exist before migration", async () => {
 		const result = await client.query<{ count: string }>(
 			"SELECT COUNT(*) AS count FROM posts",
 		);
 		expect(Number(result.rows[0]?.count)).toBe(10);
 	});
 
-	it("migration SQL applies without error", async () => {
+	test("migration SQL applies without error", async () => {
 		// Read and apply the real migration SQL from drizzle/0004_posts_timestamptz.sql
 		const sqlFile = await readFile(
 			join(root, "drizzle", "0004_posts_timestamptz.sql"),
@@ -152,14 +152,14 @@ describe("integration: TZ migration SQL against old schema (PGLite)", () => {
 		}
 	});
 
-	it("row count preserved after migration (AC-2)", async () => {
+	test("row count preserved after migration (AC-2)", async () => {
 		const result = await client.query<{ count: string }>(
 			"SELECT COUNT(*) AS count FROM posts",
 		);
 		expect(Number(result.rows[0]?.count)).toBe(10);
 	});
 
-	it("published_at column type is now timestamptz after migration (AC-1)", async () => {
+	test("published_at column type is now timestamptz after migration (AC-1)", async () => {
 		const result = await client.query<{ data_type: string; udt_name: string }>(
 			`SELECT data_type, udt_name FROM information_schema.columns
        WHERE table_name = 'posts' AND column_name = 'published_at'`,
@@ -171,7 +171,7 @@ describe("integration: TZ migration SQL against old schema (PGLite)", () => {
 		expect(row?.data_type.toLowerCase()).toContain("time zone");
 	});
 
-	it("indexed_at column type is now timestamptz after migration (AC-1)", async () => {
+	test("indexed_at column type is now timestamptz after migration (AC-1)", async () => {
 		const result = await client.query<{ data_type: string }>(
 			`SELECT data_type FROM information_schema.columns
        WHERE table_name = 'posts' AND column_name = 'indexed_at'`,
@@ -182,7 +182,7 @@ describe("integration: TZ migration SQL against old schema (PGLite)", () => {
 		expect(row?.data_type.toLowerCase()).toContain("time zone");
 	});
 
-	it("existing UTC values preserved after migration (AC-3)", async () => {
+	test("existing UTC values preserved after migration (AC-3)", async () => {
 		// The stored value '2025-01-01 12:00:00' was inserted as a plain timestamp
 		// and the migration USING published_at AT TIME ZONE 'UTC' must preserve the
 		// absolute instant at 2025-01-01 12:00:00 UTC (regardless of server TZ).

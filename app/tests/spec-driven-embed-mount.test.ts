@@ -1,18 +1,21 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * task_07 (client side) — twin of `spec-driven-embed-render.test.ts`. That node
  * suite proves the real spec-driven post compiles the `<Embed name="tic-tac-toe" />`
- * marker into the exact placeholder reconstructed below; this jsdom suite proves
+ * marker into the exact placeholder reconstructed below; this HappyDOM suite proves
  * the client island mount turns that placeholder into the interactive TicTacToe,
- * locale injected, fallback gone (AC-3 client side). jsdom cannot read the post
+ * locale injected, fallback gone (AC-3 client side). HappyDOM cannot read the post
  * file via `node:fs`, so the placeholder is rebuilt from the same DOM contract the
  * `Embed` component emits (ADR-004): `<div data-embed data-props='{}'>` + fallback.
  *
  * File is .ts per project convention — no JSX.
  */
 
-import { act, cleanup } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+
+const { act, cleanup } = await import("@testing-library/react");
+
 import type { Locale } from "#/lib/locale";
 import { mountEmbeds } from "#/lib/mdx/post-enhancements.client";
 
@@ -53,7 +56,7 @@ describe.each([
 	"en",
 	"pt-br",
 ] as const)("spec-driven post embed mounts and is playable (%s, AC-3)", (locale) => {
-	it("replaces the placeholder with the interactive TicTacToe", async () => {
+	test("replaces the placeholder with the interactive TicTacToe", async () => {
 		appendPlaceholder(root);
 
 		let dispose: () => void = () => {};

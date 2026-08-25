@@ -1,13 +1,11 @@
-// @vitest-environment jsdom
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+import "./happydom";
+import { afterEach, describe, expect, test } from "bun:test";
+
+const { act, cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
 import {
 	Dialog,
 	DialogClose,
@@ -26,35 +24,35 @@ afterEach(() => {
 // ─── unit: exports ────────────────────────────────────────────────────────────
 
 describe("unit: dialog exports", () => {
-	it("Dialog is defined", () => {
+	test("Dialog is defined", () => {
 		expect(Dialog).toBeDefined();
 	});
 
-	it("DialogTrigger is defined", () => {
+	test("DialogTrigger is defined", () => {
 		expect(DialogTrigger).toBeDefined();
 	});
 
-	it("DialogContent is defined", () => {
+	test("DialogContent is defined", () => {
 		expect(DialogContent).toBeDefined();
 	});
 
-	it("DialogHeader is defined", () => {
+	test("DialogHeader is defined", () => {
 		expect(DialogHeader).toBeDefined();
 	});
 
-	it("DialogTitle is defined", () => {
+	test("DialogTitle is defined", () => {
 		expect(DialogTitle).toBeDefined();
 	});
 
-	it("DialogDescription is defined", () => {
+	test("DialogDescription is defined", () => {
 		expect(DialogDescription).toBeDefined();
 	});
 
-	it("DialogFooter is defined", () => {
+	test("DialogFooter is defined", () => {
 		expect(DialogFooter).toBeDefined();
 	});
 
-	it("DialogClose is defined", () => {
+	test("DialogClose is defined", () => {
 		expect(DialogClose).toBeDefined();
 	});
 });
@@ -62,7 +60,7 @@ describe("unit: dialog exports", () => {
 // ─── unit: Dialog opens on trigger click ─────────────────────────────────────
 
 describe("unit: Dialog opens on trigger click", () => {
-	it("renders dialog content after trigger click", async () => {
+	test("renders dialog content after trigger click", async () => {
 		render(
 			React.createElement(
 				Dialog,
@@ -94,7 +92,7 @@ describe("unit: Dialog opens on trigger click", () => {
 // ─── unit: Dialog closes on Escape key ───────────────────────────────────────
 
 describe("unit: Dialog closes on Escape key", () => {
-	it("dialog content disappears after Escape keydown", async () => {
+	test("dialog content disappears after Escape keydown", async () => {
 		render(
 			React.createElement(
 				Dialog,
@@ -127,7 +125,7 @@ describe("unit: Dialog closes on Escape key", () => {
 // ─── unit: DialogClose button closes the dialog ───────────────────────────────
 
 describe("unit: DialogClose button closes the dialog", () => {
-	it("dialog content disappears after close button click", async () => {
+	test("dialog content disappears after close button click", async () => {
 		render(
 			React.createElement(
 				Dialog,
@@ -161,7 +159,7 @@ describe("unit: DialogClose button closes the dialog", () => {
 // ─── unit: Dialog open on mount shows content immediately ─────────────────────
 
 describe("unit: DialogContent visible when Dialog mounts with open=true", () => {
-	it("content is in DOM on first render when open=true (no null first-frame)", async () => {
+	test("content is in DOM on first render when open=true (no null first-frame)", async () => {
 		await act(async () => {
 			render(
 				React.createElement(
@@ -183,7 +181,7 @@ describe("unit: DialogContent visible when Dialog mounts with open=true", () => 
 // ─── integration: SSR guard — closed dialog emits no portal markup ────────────
 
 describe("integration: SSR guard — closed dialog emits no portal markup (IS_BROWSER gate)", () => {
-	it("DialogContent emits no portal markup when dialog is closed", () => {
+	test("DialogContent emits no portal markup when dialog is closed", () => {
 		// Closed dialog: Radix does not render portal content when open=false (default)
 		const { container } = render(
 			React.createElement(

@@ -10,12 +10,20 @@
  *   - getAnalyticsDashboard: returns correctly shaped payload; respects postId filter
  */
 
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
 
 // ── Hoisted mock setup ────────────────────────────────────────────────────────
 
-// server-only guard: no-op in Node/vitest context
-vi.mock("@tanstack/react-start/server-only", () => ({}));
+// server-only guard: no-op in Bun Test context
+mock.module("@tanstack/react-start/server-only", () => ({}));
 
 // Reusable fluent query-chain builder.
 // Drizzle query chains are awaitable objects. We build on top of a real
@@ -33,17 +41,17 @@ function makeChain<T>(resolveValue: T[]) {
 		"orderBy",
 		"limit",
 	]) {
-		base[key] = vi.fn().mockReturnValue(base);
+		base[key] = jest.fn().mockReturnValue(base);
 	}
 	return base as Promise<T[]>;
 }
 
-const dbMock = vi.hoisted(() => {
-	const selectFn = vi.fn();
+const dbMock = (() => {
+	const selectFn = jest.fn();
 	return { selectFn };
-});
+})();
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	get db() {
 		return { select: dbMock.selectFn };
 	},
@@ -56,9 +64,10 @@ import {
 	getAnalyticsDashboard,
 	resolveRange,
 } from "#/db/analytics-queries";
+
 // Real canonical list — imported so this test catches drift if a new
 // ReferrerSource is added without updating the array.
-import { ALL_SOURCES } from "#/lib/analytics/referrer-bucketer";
+const { ALL_SOURCES } = await import("#/lib/analytics/referrer-bucketer");
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
 
@@ -119,7 +128,7 @@ function seedMock(overrides: {
 describe("resolveRange", () => {
 	const ONE_DAY_MS = 24 * 60 * 60 * 1000;
 
-	it("7d — window is exactly 7 days long", () => {
+	test("7d — window is exactly 7 days long", () => {
 		const before = Date.now();
 		const { start, end } = resolveRange("7d");
 		const after = Date.now();
@@ -134,21 +143,21 @@ describe("resolveRange", () => {
 		expect(diff).toBeLessThanOrEqual(7 * ONE_DAY_MS + 1000);
 	});
 
-	it("30d — window is exactly 30 days long", () => {
+	test("30d — window is exactly 30 days long", () => {
 		const { start, end } = resolveRange("30d");
 		const diff = end.getTime() - start.getTime();
 		expect(diff).toBeGreaterThanOrEqual(30 * ONE_DAY_MS - 1000);
 		expect(diff).toBeLessThanOrEqual(30 * ONE_DAY_MS + 1000);
 	});
 
-	it("90d — window is exactly 90 days long", () => {
+	test("90d — window is exactly 90 days long", () => {
 		const { start, end } = resolveRange("90d");
 		const diff = end.getTime() - start.getTime();
 		expect(diff).toBeGreaterThanOrEqual(90 * ONE_DAY_MS - 1000);
 		expect(diff).toBeLessThanOrEqual(90 * ONE_DAY_MS + 1000);
 	});
 
-	it("mtd — start is the first day of the current month at midnight", () => {
+	test("mtd — start is the first day of the current month at midnight", () => {
 		const { start, end } = resolveRange("mtd");
 		const now = new Date();
 
@@ -162,7 +171,7 @@ describe("resolveRange", () => {
 		expect(end.getTime()).toBeGreaterThan(start.getTime());
 	});
 
-	it("ytd — start is January 1st of the current year at midnight", () => {
+	test("ytd — start is January 1st of the current year at midnight", () => {
 		const { start } = resolveRange("ytd");
 		const now = new Date();
 
@@ -171,7 +180,7 @@ describe("resolveRange", () => {
 		expect(start.getDate()).toBe(1);
 	});
 
-	it("all — start is Unix epoch (new Date(0))", () => {
+	test("all — start is Unix epoch (new Date(0))", () => {
 		const { start, end } = resolveRange("all");
 		expect(start.getTime()).toBe(0);
 		expect(end.getTime()).toBeGreaterThan(0);
@@ -181,36 +190,34 @@ describe("resolveRange", () => {
 // ── Tests: Zod validation ─────────────────────────────────────────────────────
 
 describe("getAnalyticsDashboard — Zod validation", () => {
-	it("throws ZodError for unrecognised range string", async () => {
+	test("throws ZodError for unrecognised range string", async () => {
 		await expect(
 			getAnalyticsDashboard({ range: "invalid" as never }),
 		).rejects.toThrow();
 	});
 
-	it("throws ZodError for negative postId", async () => {
+	test("throws ZodError for negative postId", async () => {
 		await expect(
 			getAnalyticsDashboard({ range: "7d", postId: -1 }),
 		).rejects.toThrow();
 	});
 
-	it("throws ZodError for zero postId", async () => {
+	test("throws ZodError for zero postId", async () => {
 		await expect(
 			getAnalyticsDashboard({ range: "7d", postId: 0 }),
 		).rejects.toThrow();
 	});
 
-	it("accepts valid range without postId", async () => {
+	test("accepts valid range without postId", async () => {
 		seedMock({});
-		await expect(
-			getAnalyticsDashboard({ range: "30d" }),
-		).resolves.not.toThrow();
+		const result = await getAnalyticsDashboard({ range: "30d" });
+		expect(result.summary.totalVisits).toBe(50);
 	});
 
-	it("accepts valid range with positive postId", async () => {
+	test("accepts valid range with positive postId", async () => {
 		seedMock({});
-		await expect(
-			getAnalyticsDashboard({ range: "7d", postId: 42 }),
-		).resolves.not.toThrow();
+		const result = await getAnalyticsDashboard({ range: "7d", postId: 42 });
+		expect(result.summary.totalVisits).toBe(50);
 	});
 });
 
@@ -218,14 +225,14 @@ describe("getAnalyticsDashboard — Zod validation", () => {
 
 describe("getAnalyticsDashboard — returned payload shape", () => {
 	beforeEach(() => {
-		vi.resetAllMocks();
+		jest.resetAllMocks();
 	});
 
 	afterEach(() => {
-		vi.resetAllMocks();
+		jest.resetAllMocks();
 	});
 
-	it("returns all five widget data fields with correct shape (AC-1)", async () => {
+	test("returns all five widget data fields with correct shape (AC-1)", async () => {
 		seedMock({});
 		const result = await getAnalyticsDashboard({ range: "30d" });
 
@@ -278,7 +285,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		});
 	});
 
-	it("maps totalVisits from the DB count value (AC-1)", async () => {
+	test("maps totalVisits from the DB count value (AC-1)", async () => {
 		seedMock({
 			summary: [
 				{ totalVisits: 42, uniquePosts: 2, mobile: 5, tablet: 2, desktop: 35 },
@@ -289,7 +296,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		expect(result.summary.uniquePosts).toBe(2);
 	});
 
-	it("maps deviceSplit from conditional sums (AC-1)", async () => {
+	test("maps deviceSplit from conditional sums (AC-1)", async () => {
 		seedMock({
 			summary: [
 				{
@@ -305,7 +312,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		expect(result.deviceSplit).toEqual({ mobile: 40, tablet: 20, desktop: 40 });
 	});
 
-	it("maps languageSplit from conditional sums", async () => {
+	test("maps languageSplit from conditional sums", async () => {
 		seedMock({
 			summary: [
 				{
@@ -323,19 +330,19 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		expect(result.languageSplit).toEqual({ en: 70, "pt-br": 30 });
 	});
 
-	it("topReferrer is null when no referrer rows returned", async () => {
+	test("topReferrer is null when no referrer rows returned", async () => {
 		seedMock({ topReferrer: [] });
 		const result = await getAnalyticsDashboard({ range: "30d" });
 		expect(result.summary.topReferrer).toBeNull();
 	});
 
-	it("topLanguage is null when no lang rows returned", async () => {
+	test("topLanguage is null when no lang rows returned", async () => {
 		seedMock({ topLang: [] });
 		const result = await getAnalyticsDashboard({ range: "30d" });
 		expect(result.summary.topLanguage).toBeNull();
 	});
 
-	it("topReferrer carries correct source and count when present", async () => {
+	test("topReferrer carries correct source and count when present", async () => {
 		seedMock({ topReferrer: [{ source: "linkedin", cnt: 15 }] });
 		const result = await getAnalyticsDashboard({ range: "30d" });
 		expect(result.summary.topReferrer).toEqual({
@@ -344,13 +351,13 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		});
 	});
 
-	it("previousPeriodTotal mapped from Q4 count (AC-3)", async () => {
+	test("previousPeriodTotal mapped from Q4 count (AC-3)", async () => {
 		seedMock({ prevTotal: [{ total: 25 }] });
 		const result = await getAnalyticsDashboard({ range: "30d" });
 		expect(result.summary.previousPeriodTotal).toBe(25);
 	});
 
-	it("previousPeriodTotal is 0 for range=all (no previous period query runs)", async () => {
+	test("previousPeriodTotal is 0 for range=all (no previous period query runs)", async () => {
 		// For "all" range, Q4 is Promise.resolve([{ total: 0 }]) — only 7 select
 		// calls are made (Q4 uses the short-circuit path).
 		dbMock.selectFn
@@ -391,7 +398,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		expect(result.summary.previousPeriodTotal).toBe(0);
 	});
 
-	it("topPosts are sorted descending by count and limited to ≤10 (AC-4)", async () => {
+	test("topPosts are sorted descending by count and limited to ≤10 (AC-4)", async () => {
 		const topPostsMock = Array.from({ length: 10 }, (_, i) => ({
 			postId: i + 1,
 			slug: `post-${i + 1}`,
@@ -415,7 +422,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		);
 	});
 
-	it("topPosts sparkline is an array of numbers (AC-1)", async () => {
+	test("topPosts sparkline is an array of numbers (AC-1)", async () => {
 		seedMock({});
 		const result = await getAnalyticsDashboard({ range: "30d" });
 		for (const p of result.topPosts) {
@@ -426,7 +433,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		}
 	});
 
-	it("empty DB returns zeros and empty arrays (AC-5)", async () => {
+	test("empty DB returns zeros and empty arrays (AC-5)", async () => {
 		dbMock.selectFn
 			.mockReturnValueOnce(
 				makeChain([
@@ -458,7 +465,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		expect(result.deviceSplit).toEqual({ mobile: 0, tablet: 0, desktop: 0 });
 	});
 
-	it("non-existent postId returns zeros and empty arrays without throwing (AC-5)", async () => {
+	test("non-existent postId returns zeros and empty arrays without throwing (AC-5)", async () => {
 		// Simulate a postId that has no matching events
 		dbMock.selectFn
 			.mockReturnValueOnce(
@@ -488,7 +495,7 @@ describe("getAnalyticsDashboard — returned payload shape", () => {
 		});
 	});
 
-	it("sparklines are filled with 0 for days with no events for a post", async () => {
+	test("sparklines are filled with 0 for days with no events for a post", async () => {
 		// Two posts; post 2 has no event on day 1 (only day 2)
 		seedMock({
 			topPosts: [
@@ -526,11 +533,11 @@ describe("fillDailyGaps", () => {
 		end: new Date(`${end}T23:59:59Z`),
 	});
 
-	it("returns empty array for empty input (no data, no axis to fill)", () => {
+	test("returns empty array for empty input (no data, no axis to fill)", () => {
 		expect(fillDailyGaps([], w("2025-01-01", "2025-01-07"), "7d")).toEqual([]);
 	});
 
-	it("returns input unchanged when all dates are present (no gaps)", () => {
+	test("returns input unchanged when all dates are present (no gaps)", () => {
 		const rows = [
 			{ date: "2025-01-01", count: 5 },
 			{ date: "2025-01-02", count: 3 },
@@ -545,7 +552,7 @@ describe("fillDailyGaps", () => {
 		]);
 	});
 
-	it("inserts zero-count entries for missing dates", () => {
+	test("inserts zero-count entries for missing dates", () => {
 		const rows = [
 			{ date: "2025-01-01", count: 5 },
 			{ date: "2025-01-03", count: 7 },
@@ -555,7 +562,7 @@ describe("fillDailyGaps", () => {
 		expect(result[1]).toEqual({ date: "2025-01-02", count: 0 });
 	});
 
-	it("fills all days from window.start to window.end", () => {
+	test("fills all days from window.start to window.end", () => {
 		const rows = [{ date: "2025-01-05", count: 10 }];
 		const result = fillDailyGaps(rows, w("2025-01-01", "2025-01-07"), "7d");
 		expect(result).toHaveLength(7);
@@ -564,7 +571,7 @@ describe("fillDailyGaps", () => {
 		expect(result[6]).toEqual({ date: "2025-01-07", count: 0 });
 	});
 
-	it("for range='all', fills from first data row date (not epoch)", () => {
+	test("for range='all', fills from first data row date (not epoch)", () => {
 		// window.start is epoch but data starts at "2025-01-03"
 		const rows = [
 			{ date: "2025-01-03", count: 2 },
@@ -578,7 +585,7 @@ describe("fillDailyGaps", () => {
 		expect(result[2].date).toBe("2025-01-05");
 	});
 
-	it("preserves ascending order of output dates", () => {
+	test("preserves ascending order of output dates", () => {
 		const rows = [
 			{ date: "2025-01-03", count: 1 },
 			{ date: "2025-01-01", count: 3 },
@@ -601,13 +608,13 @@ describe("fillReferrerDayGaps", () => {
 		end: new Date(`${end}T23:59:59Z`),
 	});
 
-	it("returns empty array for empty input", () => {
+	test("returns empty array for empty input", () => {
 		expect(
 			fillReferrerDayGaps([], w("2025-01-01", "2025-01-03"), "7d"),
 		).toEqual([]);
 	});
 
-	it("returns input unchanged when all dates are present", () => {
+	test("returns input unchanged when all dates are present", () => {
 		const rows = [
 			{ date: "2025-01-01", source: "google", count: 3 },
 			{ date: "2025-01-02", source: "direct", count: 2 },
@@ -620,7 +627,7 @@ describe("fillReferrerDayGaps", () => {
 		expect(result.filter((r) => r.count > 0)).toHaveLength(2);
 	});
 
-	it("inserts sentinel rows for missing dates", () => {
+	test("inserts sentinel rows for missing dates", () => {
 		const rows = [
 			{ date: "2025-01-01", source: "google", count: 3 },
 			{ date: "2025-01-03", source: "linkedin", count: 5 },
@@ -639,7 +646,7 @@ describe("fillReferrerDayGaps", () => {
 		});
 	});
 
-	it("gap sentinel is not a real ReferrerSource — does not pollute activeSources", () => {
+	test("gap sentinel is not a real ReferrerSource — does not pollute activeSources", () => {
 		// Simulates a blog with only LinkedIn traffic + one quiet gap day.
 		// The activeSources computation in referrer-sources-bar.tsx filters
 		// ALL_SOURCES against the set of sources present in the filled rows.
@@ -658,7 +665,7 @@ describe("fillReferrerDayGaps", () => {
 		expect(activeSources).not.toContain("other");
 	});
 
-	it("output is sorted by date", () => {
+	test("output is sorted by date", () => {
 		const rows = [
 			{ date: "2025-01-03", source: "google", count: 3 },
 			{ date: "2025-01-01", source: "direct", count: 2 },

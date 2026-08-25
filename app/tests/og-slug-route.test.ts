@@ -10,20 +10,20 @@
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
-	const selectWhere = vi.fn().mockResolvedValue([]);
-	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
-	const select = vi.fn().mockReturnValue({ from: selectFrom });
+const mocks = (() => {
+	const selectWhere = jest.fn().mockResolvedValue([]);
+	const selectFrom = jest.fn().mockReturnValue({ where: selectWhere });
+	const select = jest.fn().mockReturnValue({ from: selectFrom });
 
-	const readFile = vi.fn().mockResolvedValue("# Test\n\nContent");
+	const readFile = jest.fn().mockResolvedValue("# Test\n\nContent");
 
-	const loadStaticPage = vi.fn().mockResolvedValue(null);
-	const staticPageHasTwin = vi.fn().mockReturnValue(false);
+	const loadStaticPage = jest.fn().mockResolvedValue(null);
+	const staticPageHasTwin = jest.fn().mockReturnValue(false);
 
-	const resolveOgImagePath = vi
+	const resolveOgImagePath = jest
 		.fn()
 		.mockReturnValue("https://blog.test/og-image.jpg");
-	const getSiteOrigin = vi.fn().mockReturnValue("https://blog.test");
+	const getSiteOrigin = jest.fn().mockReturnValue("https://blog.test");
 
 	return {
 		select,
@@ -35,24 +35,24 @@ const mocks = vi.hoisted(() => {
 		resolveOgImagePath,
 		getSiteOrigin,
 	};
-});
+})();
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: {
 		select: mocks.select,
 	},
 }));
 
-vi.mock("node:fs/promises", () => ({
+mock.module("node:fs/promises", () => ({
 	readFile: mocks.readFile,
 }));
 
-vi.mock("#/lib/mdx/pages.server", () => ({
+mock.module("#/lib/mdx/pages.server", () => ({
 	loadStaticPage: mocks.loadStaticPage,
 	staticPageHasTwin: mocks.staticPageHasTwin,
 }));
 
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -61,37 +61,41 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
-vi.mock("@tanstack/react-start/server", () => ({
-	getRequest: vi.fn().mockReturnValue(new Request("http://localhost/")),
+mock.module("@tanstack/react-start/server", () => ({
+	getRequest: jest.fn().mockReturnValue(new Request("http://localhost/")),
 }));
 
-vi.mock("#/lib/analytics/record-event.server", () => ({
-	recordPostView: vi.fn().mockResolvedValue({ recorded: true }),
+mock.module("#/lib/analytics/record-event.server", () => ({
+	recordPostView: jest.fn().mockResolvedValue({ recorded: true }),
 }));
 
-vi.mock("#/lib/og/resolve.server", () => ({
+mock.module("#/lib/og/resolve.server", () => ({
 	resolveOgImagePath: mocks.resolveOgImagePath,
 }));
 
-vi.mock("#/lib/site-origin", () => ({
+mock.module("#/lib/site-origin", () => ({
 	getSiteOrigin: mocks.getSiteOrigin,
 }));
 
 // ─── Imports (after mocks) ─────────────────────────────────────────────────
 
-import { createServer } from "node:net";
-import { join } from "node:path";
 import {
 	afterAll,
 	beforeAll,
 	beforeEach,
 	describe,
 	expect,
-	it,
-	vi,
-} from "vitest";
+	jest,
+	mock,
+	test,
+} from "bun:test";
+import { createServer } from "node:net";
+import { join } from "node:path";
 import type { posts } from "#/db/schema";
-import { getPostBySlugWithLangFn } from "#/routes/{-$locale}/$slug.server";
+
+const { getPostBySlugWithLangFn } = await import(
+	"#/routes/{-$locale}/$slug.server"
+);
 
 type Post = (typeof posts)["_"]["inferSelect"];
 
@@ -115,7 +119,7 @@ function makePost(overrides: Partial<Post> = {}): Post {
 }
 
 function resetMocks() {
-	vi.resetAllMocks();
+	jest.resetAllMocks();
 	mocks.selectWhere.mockResolvedValue([]);
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
 	mocks.select.mockReturnValue({ from: mocks.selectFrom });
@@ -130,7 +134,7 @@ function resetMocks() {
 describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 	beforeEach(resetMocks);
 
-	it("exactPost match → result includes ogImagePath", async () => {
+	test("exactPost match → result includes ogImagePath", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
 		expect(result.kind).toBe("post");
@@ -139,7 +143,7 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 		expect(result.ogImagePath.length).toBeGreaterThan(0);
 	});
 
-	it("exactPost match → resolveOgImagePath called with locale=en and origin", async () => {
+	test("exactPost match → resolveOgImagePath called with locale=en and origin", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		await getPostBySlugWithLangFn("react-suspense", "en");
 		expect(mocks.resolveOgImagePath).toHaveBeenCalledWith(
@@ -151,13 +155,13 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 		);
 	});
 
-	it("exactPost match → getSiteOrigin called once to provide origin", async () => {
+	test("exactPost match → getSiteOrigin called once to provide origin", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		await getPostBySlugWithLangFn("react-suspense", "en");
 		expect(mocks.getSiteOrigin).toHaveBeenCalledTimes(1);
 	});
 
-	it("returns the value from resolveOgImagePath as ogImagePath", async () => {
+	test("returns the value from resolveOgImagePath as ogImagePath", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		mocks.resolveOgImagePath.mockReturnValue(
 			"https://blog.test/og/en/react-suspense.png",
@@ -169,7 +173,7 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 		);
 	});
 
-	it("fallback post branch → result includes ogImagePath", async () => {
+	test("fallback post branch → result includes ogImagePath", async () => {
 		const enPost = makePost({ lang: "en" });
 		// exact miss, fallback hit
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
@@ -180,7 +184,7 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 		expect(result.ogImagePath.length).toBeGreaterThan(0);
 	});
 
-	it("fallback post branch → resolveOgImagePath called with fallback post's locale (en), not requestedLang (pt-br)", async () => {
+	test("fallback post branch → resolveOgImagePath called with fallback post's locale (en), not requestedLang (pt-br)", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectWhere.mockResolvedValueOnce([]).mockResolvedValueOnce([enPost]);
 		await getPostBySlugWithLangFn("react-suspense", "pt-br");
@@ -189,7 +193,7 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 		);
 	});
 
-	it("coverImage in frontmatter is forwarded to resolveOgImagePath", async () => {
+	test("coverImage in frontmatter is forwarded to resolveOgImagePath", async () => {
 		// MDX source with coverImage in frontmatter
 		mocks.readFile.mockResolvedValue(
 			"---\ncoverImage: /og/custom-cover.png\n---\n# Test\n\nContent",
@@ -201,7 +205,7 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 		);
 	});
 
-	it("no coverImage in frontmatter → coverImage is undefined", async () => {
+	test("no coverImage in frontmatter → coverImage is undefined", async () => {
 		mocks.readFile.mockResolvedValue("# Test\n\nContent");
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		await getPostBySlugWithLangFn("react-suspense", "en");
@@ -210,7 +214,7 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 		);
 	});
 
-	it("ogImagePath is absolute URL (from resolveOgImagePath mock)", async () => {
+	test("ogImagePath is absolute URL (from resolveOgImagePath mock)", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		mocks.resolveOgImagePath.mockReturnValue("https://blog.test/og-image.jpg");
 		const result = await getPostBySlugWithLangFn("react-suspense", "en");
@@ -222,7 +226,7 @@ describe("integration: getPostBySlugWithLangFn returns ogImagePath", () => {
 describe("integration: head() og:image meta from ogImagePath", () => {
 	beforeEach(resetMocks);
 
-	it("head meta array contains og:image with the ogImagePath value", async () => {
+	test("head meta array contains og:image with the ogImagePath value", async () => {
 		// Test the head() function indirectly by checking that the Route.options.head
 		// would emit the correct meta given loaderData with ogImagePath.
 		//
@@ -246,7 +250,7 @@ describe("integration: head() og:image meta from ogImagePath", () => {
 		);
 	});
 
-	it("no coverImage + no auto-PNG → fallback ogImagePath used in head", async () => {
+	test("no coverImage + no auto-PNG → fallback ogImagePath used in head", async () => {
 		mocks.selectWhere.mockResolvedValueOnce([makePost({ lang: "en" })]);
 		mocks.resolveOgImagePath.mockReturnValue("https://blog.test/og-image.jpg");
 
@@ -277,7 +281,7 @@ describe.skipIf(port5432Free || port3000Free)(
 			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
 		const BASE_URL = "http://localhost:3000";
 		const SLUG = `integ-og-route-${Date.now()}`;
-		const FIXTURE = join(import.meta.dirname, "fixtures", "hello.mdx");
+		const FIXTURE = join(process.cwd(), "app/tests/fixtures/hello.mdx");
 
 		beforeAll(async () => {
 			const pg = await import("postgres");
@@ -294,14 +298,14 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql.end();
 		});
 
-		it("GET /<slug> response contains og:image meta tag", async () => {
+		test("GET /<slug> response contains og:image meta tag", async () => {
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
 			expect(html).toMatch(/property="og:image"/);
 		});
 
-		it("GET /<slug> og:image content is an absolute URL", async () => {
+		test("GET /<slug> og:image content is an absolute URL", async () => {
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			const html = await res.text();
 			const match = html.match(
@@ -323,7 +327,7 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(url).toMatch(/^https?:\/\//);
 		});
 
-		it("GET /<slug> og:image content ends with .jpg or .png", async () => {
+		test("GET /<slug> og:image content ends with .jpg or .png", async () => {
 			const res = await fetch(`${BASE_URL}/${SLUG}`);
 			const html = await res.text();
 			// Extract all og:image content values

@@ -1,7 +1,7 @@
+import { afterEach, beforeEach, describe, expect, jest, test } from "bun:test";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { AppAuditFinding } from "#/lib/app-audit/browser-sweep.server";
 import { initSummary, writeReport } from "#/lib/app-audit/reporter.server";
 
@@ -29,18 +29,18 @@ let tmpDir: string;
 
 beforeEach(async () => {
 	tmpDir = await mkdtemp(join(tmpdir(), "app-audit-reporter-"));
-	vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+	jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 });
 
 afterEach(async () => {
-	vi.restoreAllMocks();
+	jest.restoreAllMocks();
 	await rm(tmpDir, { recursive: true, force: true });
 });
 
 // ─── writeReport ─────────────────────────────────────────────────────────────
 
 describe("writeReport", () => {
-	it("creates per-run report at expected path", async () => {
+	test("creates per-run report at expected path", async () => {
 		await writeReport([], "manual");
 		const date = new Date().toISOString().slice(0, 10);
 		const reportPath = join(tmpDir, "docs/_reports", `app-audit-${date}.md`);
@@ -48,7 +48,7 @@ describe("writeReport", () => {
 		expect(content).toContain(`# App Audit — ${date}`);
 	});
 
-	it("report contains sections for all 12 categories", async () => {
+	test("report contains sections for all 12 categories", async () => {
 		await writeReport([], "manual");
 		const date = new Date().toISOString().slice(0, 10);
 		const content = await readFile(
@@ -75,7 +75,7 @@ describe("writeReport", () => {
 		}
 	});
 
-	it("empty categories show (none)", async () => {
+	test("empty categories show (none)", async () => {
 		await writeReport([], "manual");
 		const date = new Date().toISOString().slice(0, 10);
 		const content = await readFile(
@@ -85,7 +85,7 @@ describe("writeReport", () => {
 		expect(content).toContain("(none)");
 	});
 
-	it("preflight-error finding: status line shows ABORTED AT PREFLIGHT", async () => {
+	test("preflight-error finding: status line shows ABORTED AT PREFLIGHT", async () => {
 		const findings: AppAuditFinding[] = [
 			makeF(
 				"preflight-error",
@@ -104,7 +104,7 @@ describe("writeReport", () => {
 		);
 	});
 
-	it("preflight-error finding: route-inspection categories show (not checked — audit aborted)", async () => {
+	test("preflight-error finding: route-inspection categories show (not checked — audit aborted)", async () => {
 		const findings: AppAuditFinding[] = [
 			makeF("preflight-error", "blocker", "unreachable"),
 		];
@@ -118,7 +118,7 @@ describe("writeReport", () => {
 		expect(content).not.toContain("(none)");
 	});
 
-	it("no preflight-error: status line shows pending, categories show (none)", async () => {
+	test("no preflight-error: status line shows pending, categories show (none)", async () => {
 		await writeReport([], "manual");
 		const date = new Date().toISOString().slice(0, 10);
 		const content = await readFile(
@@ -130,7 +130,7 @@ describe("writeReport", () => {
 		expect(content).not.toContain("(not checked — audit aborted)");
 	});
 
-	it("report contains preflight-error section", async () => {
+	test("report contains preflight-error section", async () => {
 		await writeReport([], "manual");
 		const date = new Date().toISOString().slice(0, 10);
 		const content = await readFile(
@@ -140,7 +140,7 @@ describe("writeReport", () => {
 		expect(content).toContain("## preflight-error");
 	});
 
-	it("report embeds audit-fingerprint HTML comment in header", async () => {
+	test("report embeds audit-fingerprint HTML comment in header", async () => {
 		const findings: AppAuditFinding[] = [
 			makeF("console-error", "blocker"),
 			makeF("missing-meta", "major"),
@@ -156,7 +156,7 @@ describe("writeReport", () => {
 		);
 	});
 
-	it("appends row to SUMMARY.md with Type: app", async () => {
+	test("appends row to SUMMARY.md with Type: app", async () => {
 		await writeReport([], "ci-pr-42");
 		const summary = await readFile(
 			join(tmpDir, "docs/audits/SUMMARY.md"),
@@ -166,7 +166,7 @@ describe("writeReport", () => {
 		expect(summary).toContain("ci-pr-42");
 	});
 
-	it("severity-sort: blocker picked as top finding even when last in array", async () => {
+	test("severity-sort: blocker picked as top finding even when last in array", async () => {
 		const findings: AppAuditFinding[] = [
 			makeF("slow-response", "minor", "slow paint"),
 			makeF("missing-meta", "major", "og:image missing"),
@@ -180,7 +180,7 @@ describe("writeReport", () => {
 		expect(summary).toContain("console-error");
 	});
 
-	it("severity-sort: major picked over minor when no blocker", async () => {
+	test("severity-sort: major picked over minor when no blocker", async () => {
 		const findings: AppAuditFinding[] = [
 			makeF("slow-response", "minor", "slow paint"),
 			makeF("missing-meta", "major", "og:image"),
@@ -197,7 +197,7 @@ describe("writeReport", () => {
 // ─── initSummary ─────────────────────────────────────────────────────────────
 
 describe("initSummary", () => {
-	it("empty file → writes header with Type column", async () => {
+	test("empty file → writes header with Type column", async () => {
 		await initSummary();
 		const content = await readFile(
 			join(tmpDir, "docs/audits/SUMMARY.md"),
@@ -207,7 +207,7 @@ describe("initSummary", () => {
 		expect(content).toContain("| -------");
 	});
 
-	it("missing file → creates new summary with Type column", async () => {
+	test("missing file → creates new summary with Type column", async () => {
 		// No pre-existing file; initSummary should create it
 		await initSummary();
 		const content = await readFile(
@@ -217,7 +217,7 @@ describe("initSummary", () => {
 		expect(content).toContain("| Date       | Type    |");
 	});
 
-	it("pre-Phase-4 fixture: header gets Type column inserted", async () => {
+	test("pre-Phase-4 fixture: header gets Type column inserted", async () => {
 		const summaryDir = join(tmpDir, "docs/audits");
 		await import("node:fs/promises").then((fs) =>
 			fs.mkdir(summaryDir, { recursive: true }),
@@ -235,7 +235,7 @@ describe("initSummary", () => {
 		expect(content).toContain("| ---------- | ------- | ---------------- |");
 	});
 
-	it("pre-Phase-4 fixture: existing data rows backfilled with content", async () => {
+	test("pre-Phase-4 fixture: existing data rows backfilled with content", async () => {
 		const summaryDir = join(tmpDir, "docs/audits");
 		await import("node:fs/promises").then((fs) =>
 			fs.mkdir(summaryDir, { recursive: true }),
@@ -263,7 +263,7 @@ describe("initSummary", () => {
 		}
 	});
 
-	it("idempotent: calling twice on pre-Phase-4 fixture does not duplicate header", async () => {
+	test("idempotent: calling twice on pre-Phase-4 fixture does not duplicate header", async () => {
 		const summaryDir = join(tmpDir, "docs/audits");
 		await import("node:fs/promises").then((fs) =>
 			fs.mkdir(summaryDir, { recursive: true }),
@@ -288,7 +288,7 @@ describe("initSummary", () => {
 		expect(headerCount).toBe(1);
 	});
 
-	it("idempotent: calling twice on already-migrated file is a no-op", async () => {
+	test("idempotent: calling twice on already-migrated file is a no-op", async () => {
 		const summaryDir = join(tmpDir, "docs/audits");
 		await import("node:fs/promises").then((fs) =>
 			fs.mkdir(summaryDir, { recursive: true }),
@@ -306,7 +306,7 @@ describe("initSummary", () => {
 		expect(content).toBe(migratedContent);
 	});
 
-	it("atomic write: no .tmp file left after migration completes", async () => {
+	test("atomic write: no .tmp file left after migration completes", async () => {
 		const summaryDir = join(tmpDir, "docs/audits");
 		await import("node:fs/promises").then((fs) =>
 			fs.mkdir(summaryDir, { recursive: true }),
@@ -331,7 +331,7 @@ describe("initSummary", () => {
 // ─── Integration: migration round-trip ───────────────────────────────────────
 
 describe("SUMMARY migration round-trip", () => {
-	it("pre-migration fixture → initSummary → 3 backfilled rows → app row appended", async () => {
+	test("pre-migration fixture → initSummary → 3 backfilled rows → app row appended", async () => {
 		const summaryDir = join(tmpDir, "docs/audits");
 		await import("node:fs/promises").then((fs) =>
 			fs.mkdir(summaryDir, { recursive: true }),

@@ -1,13 +1,13 @@
+import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { describe, expect, test } from "vitest";
 import {
 	computeAgeHours,
 	scanDir,
 	scanFile,
 } from "../../scripts/lint-test-annotations";
 
-const FIXTURES = join(import.meta.dirname, "fixtures/lint-annotations");
+const FIXTURES = join(process.cwd(), "app/tests/fixtures/lint-annotations");
 const E2E_DIR = join(import.meta.dirname, "../../tests/e2e");
 
 function isoAgo(days: number): string {

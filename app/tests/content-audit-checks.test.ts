@@ -1,38 +1,34 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, jest, mock, test } from "bun:test";
+import * as realFs from "node:fs/promises";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => ({
-	getPostInventory: vi.fn().mockResolvedValue([]),
-	getRouteInventory: vi.fn().mockResolvedValue([]),
-	enumerateStaticPages: vi.fn().mockResolvedValue([]),
-	readdir: vi.fn().mockResolvedValue([]),
-	readFile: vi.fn().mockResolvedValue(""),
-}));
+const mocks = (() => ({
+	getPostInventory: jest.fn().mockResolvedValue([]),
+	getRouteInventory: jest.fn().mockResolvedValue([]),
+	enumerateStaticPages: jest.fn().mockResolvedValue([]),
+	readdir: jest.fn().mockResolvedValue([]),
+	readFile: jest.fn().mockResolvedValue(""),
+}))();
 
-vi.mock("#/lib/site-model.server", () => ({
+mock.module("#/lib/site-model.server", () => ({
 	getPostInventory: mocks.getPostInventory,
 	getRouteInventory: mocks.getRouteInventory,
 }));
 
-vi.mock("#/lib/mdx/pages.server", () => ({
+mock.module("#/lib/mdx/pages.server", () => ({
 	enumerateStaticPages: mocks.enumerateStaticPages,
 }));
 
-vi.mock("node:fs/promises", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("node:fs/promises")>();
-	return {
-		...actual,
-		readdir: mocks.readdir,
-		readFile: mocks.readFile,
-	};
-});
+mock.module("node:fs/promises", () => ({
+	...realFs,
+	readdir: mocks.readdir,
+	readFile: mocks.readFile,
+}));
 
-import {
-	checkPageTranslationGaps,
-	checkSlugCollisions,
-	runContentAudit,
-} from "#/lib/content-audit/checks.server";
+const { checkPageTranslationGaps, checkSlugCollisions, runContentAudit } =
+	await import("#/lib/content-audit/checks.server");
+
 import type { PageEntry } from "#/lib/mdx/pages.server";
 import type { PostEntry } from "#/lib/site-model.server";
 
@@ -62,7 +58,7 @@ function makePageEntry(
 // ─── checkPageTranslationGaps ─────────────────────────────────────────────────
 
 describe("unit: checkPageTranslationGaps", () => {
-	it("emits translation-gap when en page has no pt-br twin", () => {
+	test("emits translation-gap when en page has no pt-br twin", () => {
 		const findings = checkPageTranslationGaps({
 			en: [makePageEntry({ slug: "about", locale: "en" })],
 			"pt-br": [],
@@ -75,7 +71,7 @@ describe("unit: checkPageTranslationGaps", () => {
 		expect(findings[0].message).toContain('"about"');
 	});
 
-	it("emits no findings when en page has a pt-br twin", () => {
+	test("emits no findings when en page has a pt-br twin", () => {
 		const findings = checkPageTranslationGaps({
 			en: [makePageEntry({ slug: "about", locale: "en" })],
 			"pt-br": [makePageEntry({ slug: "about", locale: "pt-br" })],
@@ -84,7 +80,7 @@ describe("unit: checkPageTranslationGaps", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("emits multiple findings when several en pages lack twins", () => {
+	test("emits multiple findings when several en pages lack twins", () => {
 		const findings = checkPageTranslationGaps({
 			en: [
 				makePageEntry({ slug: "about", locale: "en" }),
@@ -102,12 +98,12 @@ describe("unit: checkPageTranslationGaps", () => {
 		);
 	});
 
-	it("emits no findings when there are no en pages", () => {
+	test("emits no findings when there are no en pages", () => {
 		const findings = checkPageTranslationGaps({ en: [], "pt-br": [] });
 		expect(findings).toHaveLength(0);
 	});
 
-	it("emits finding only for pages missing the twin (partial coverage)", () => {
+	test("emits finding only for pages missing the twin (partial coverage)", () => {
 		const findings = checkPageTranslationGaps({
 			en: [
 				makePageEntry({ slug: "about", locale: "en" }),
@@ -120,7 +116,7 @@ describe("unit: checkPageTranslationGaps", () => {
 		expect(findings[0].message).toContain('"uses"');
 	});
 
-	it("handles missing locale key gracefully (undefined treated as empty)", () => {
+	test("handles missing locale key gracefully (undefined treated as empty)", () => {
 		const findings = checkPageTranslationGaps({
 			en: [makePageEntry({ slug: "about", locale: "en" })],
 		});
@@ -129,7 +125,7 @@ describe("unit: checkPageTranslationGaps", () => {
 		expect(findings[0].category).toBe("translation-gap");
 	});
 
-	it("emits translation-gap when pt-br page has no en twin", () => {
+	test("emits translation-gap when pt-br page has no en twin", () => {
 		const findings = checkPageTranslationGaps({
 			en: [],
 			"pt-br": [makePageEntry({ slug: "uses", locale: "pt-br" })],
@@ -142,7 +138,7 @@ describe("unit: checkPageTranslationGaps", () => {
 		expect(findings[0].message).toContain("pt-br");
 	});
 
-	it("emits findings for both directions when each locale has unmatched pages", () => {
+	test("emits findings for both directions when each locale has unmatched pages", () => {
 		const findings = checkPageTranslationGaps({
 			en: [makePageEntry({ slug: "en-only", locale: "en" })],
 			"pt-br": [makePageEntry({ slug: "ptbr-only", locale: "pt-br" })],
@@ -154,7 +150,7 @@ describe("unit: checkPageTranslationGaps", () => {
 		expect(messages.some((m) => m.includes('"ptbr-only"'))).toBe(true);
 	});
 
-	it("emits no findings when both locales have matching pages", () => {
+	test("emits no findings when both locales have matching pages", () => {
 		const findings = checkPageTranslationGaps({
 			en: [makePageEntry({ slug: "about", locale: "en" })],
 			"pt-br": [makePageEntry({ slug: "about", locale: "pt-br" })],
@@ -167,7 +163,7 @@ describe("unit: checkPageTranslationGaps", () => {
 // ─── checkSlugCollisions ─────────────────────────────────────────────────────
 
 describe("unit: checkSlugCollisions", () => {
-	it("emits slug-collision when post and page share slug in same locale", () => {
+	test("emits slug-collision when post and page share slug in same locale", () => {
 		const posts = [makePostEntry({ slug: "foo", lang: "en" })];
 		const pagesByLocale = {
 			en: [makePageEntry({ slug: "foo", locale: "en" })],
@@ -185,7 +181,7 @@ describe("unit: checkSlugCollisions", () => {
 		expect(findings[0].detail?.locale).toBe("en");
 	});
 
-	it("does NOT emit slug-collision when slugs collide in different locales", () => {
+	test("does NOT emit slug-collision when slugs collide in different locales", () => {
 		// post is en/foo, page is pt-br/foo — different locales, no collision
 		const posts = [makePostEntry({ slug: "foo", lang: "en" })];
 		const pagesByLocale = {
@@ -198,7 +194,7 @@ describe("unit: checkSlugCollisions", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("emits one finding per locale where collision exists", () => {
+	test("emits one finding per locale where collision exists", () => {
 		// post exists in both locales, page exists in both locales
 		const posts = [
 			makePostEntry({ slug: "about", lang: "en" }),
@@ -217,7 +213,7 @@ describe("unit: checkSlugCollisions", () => {
 		expect(locales).toContain("pt-br");
 	});
 
-	it("emits no findings when no slugs overlap", () => {
+	test("emits no findings when no slugs overlap", () => {
 		const posts = [makePostEntry({ slug: "my-post", lang: "en" })];
 		const pagesByLocale = {
 			en: [makePageEntry({ slug: "about", locale: "en" })],
@@ -229,7 +225,7 @@ describe("unit: checkSlugCollisions", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("emits no findings when posts list is empty", () => {
+	test("emits no findings when posts list is empty", () => {
 		const findings = checkSlugCollisions([], {
 			en: [makePageEntry({ slug: "about", locale: "en" })],
 			"pt-br": [],
@@ -238,7 +234,7 @@ describe("unit: checkSlugCollisions", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("emits no findings when pages list is empty", () => {
+	test("emits no findings when pages list is empty", () => {
 		const findings = checkSlugCollisions(
 			[makePostEntry({ slug: "about", lang: "en" })],
 			{ en: [], "pt-br": [] },
@@ -247,7 +243,7 @@ describe("unit: checkSlugCollisions", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("filePath in finding points to the page file, not the post", () => {
+	test("filePath in finding points to the page file, not the post", () => {
 		const posts = [makePostEntry({ slug: "foo", lang: "en" })];
 		const page = makePageEntry({ slug: "foo", locale: "en" });
 		const findings = checkSlugCollisions(posts, { en: [page], "pt-br": [] });
@@ -260,7 +256,7 @@ describe("unit: checkSlugCollisions", () => {
 
 describe("integration: runContentAudit with pages", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		// Default: no posts, no routes, no pages, no files
 		mocks.getPostInventory.mockResolvedValue([]);
 		mocks.getRouteInventory.mockResolvedValue([]);
@@ -269,7 +265,7 @@ describe("integration: runContentAudit with pages", () => {
 		mocks.readFile.mockResolvedValue("");
 	});
 
-	it("emits slug-collision when enumerateStaticPages returns page colliding with post", async () => {
+	test("emits slug-collision when enumerateStaticPages returns page colliding with post", async () => {
 		mocks.getPostInventory.mockResolvedValue([
 			makePostEntry({ slug: "about", lang: "en" }),
 		]);
@@ -286,7 +282,7 @@ describe("integration: runContentAudit with pages", () => {
 		expect(collisions[0].severity).toBe("major");
 	});
 
-	it("emits translation-gap for en page without pt-br twin", async () => {
+	test("emits translation-gap for en page without pt-br twin", async () => {
 		mocks.enumerateStaticPages.mockImplementation(async (locale: string) => {
 			if (locale === "en")
 				return [makePageEntry({ slug: "uses", locale: "en" })];
@@ -300,7 +296,7 @@ describe("integration: runContentAudit with pages", () => {
 		expect(gaps[0].message).toContain('"uses"');
 	});
 
-	it("emits no new findings when pages are fully covered and no collisions", async () => {
+	test("emits no new findings when pages are fully covered and no collisions", async () => {
 		mocks.enumerateStaticPages.mockImplementation(async (locale: string) => {
 			if (locale === "en")
 				return [makePageEntry({ slug: "about", locale: "en" })];
@@ -319,7 +315,7 @@ describe("integration: runContentAudit with pages", () => {
 		).toHaveLength(0);
 	});
 
-	it("calls enumerateStaticPages once per locale", async () => {
+	test("calls enumerateStaticPages once per locale", async () => {
 		await runContentAudit("/tmp/empty-posts");
 
 		expect(mocks.enumerateStaticPages).toHaveBeenCalledWith("en");
@@ -327,7 +323,7 @@ describe("integration: runContentAudit with pages", () => {
 		expect(mocks.enumerateStaticPages).toHaveBeenCalledTimes(2);
 	});
 
-	it("emits frontmatter-invalid when a page MDX file is missing title (issue 006)", async () => {
+	test("emits frontmatter-invalid when a page MDX file is missing title (issue 006)", async () => {
 		mocks.readdir.mockImplementation(async (dir: unknown) => {
 			if (String(dir).includes("pages")) {
 				return [{ name: "about.mdx", isDirectory: () => false }];

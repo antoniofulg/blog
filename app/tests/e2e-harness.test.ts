@@ -1,5 +1,5 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import type { TestDb } from "../../tests/e2e/db";
 import { createTestDb } from "../../tests/e2e/db";
 import { seedAdminUser } from "../../tests/e2e/seed";
@@ -17,7 +17,7 @@ describe("createTestDb()", () => {
 		await testDb.close();
 	});
 
-	it("returns all 4 required properties", () => {
+	test("returns all 4 required properties", () => {
 		expect(testDb).toHaveProperty("db");
 		expect(testDb).toHaveProperty("client");
 		expect(testDb).toHaveProperty("connectionString");
@@ -25,13 +25,13 @@ describe("createTestDb()", () => {
 		expect(typeof testDb.close).toBe("function");
 	});
 
-	it("connectionString matches postgres:// shape (AC-5)", () => {
+	test("connectionString matches postgres:// shape (AC-5)", () => {
 		expect(testDb.connectionString).toMatch(
 			/^postgres:\/\/localhost:\d+\/postgres$/,
 		);
 	});
 
-	it("connectionString is connectable via postgres-js (TCP proxy smoke)", async () => {
+	test("connectionString is connectable via postgres-js (TCP proxy smoke)", async () => {
 		const { default: postgres } = await import("postgres");
 		const sql = postgres(testDb.connectionString, { max: 1, idle_timeout: 1 });
 		try {
@@ -42,7 +42,7 @@ describe("createTestDb()", () => {
 		}
 	});
 
-	it("TCP proxy responds 'N' to SSLRequest", async () => {
+	test("TCP proxy responds 'N' to SSLRequest", async () => {
 		const { createConnection } = await import("node:net");
 		const port = Number(testDb.connectionString.match(/:(\d+)\//)?.[1]);
 		const response = await new Promise<Buffer>((resolve, reject) => {
@@ -62,31 +62,31 @@ describe("createTestDb()", () => {
 		expect(response.toString()).toBe("N");
 	});
 
-	it("posts table is queryable and empty on fresh instance (AC-1)", async () => {
+	test("posts table is queryable and empty on fresh instance (AC-1)", async () => {
 		const { posts } = await import("#/db/schema");
 		const rows = await testDb.db.select().from(posts);
 		expect(rows).toHaveLength(0);
 	});
 
-	it("user table is queryable (schema push includes auth tables)", async () => {
+	test("user table is queryable (schema push includes auth tables)", async () => {
 		const { user } = await import("#/db/auth-schema");
 		const rows = await testDb.db.select().from(user);
 		expect(rows).toHaveLength(0);
 	});
 
-	it("session table is queryable", async () => {
+	test("session table is queryable", async () => {
 		const { session } = await import("#/db/auth-schema");
 		const rows = await testDb.db.select().from(session);
 		expect(rows).toHaveLength(0);
 	});
 
-	it("account table is queryable", async () => {
+	test("account table is queryable", async () => {
 		const { account } = await import("#/db/auth-schema");
 		const rows = await testDb.db.select().from(account);
 		expect(rows).toHaveLength(0);
 	});
 
-	it("verification table is queryable", async () => {
+	test("verification table is queryable", async () => {
 		const { verification } = await import("#/db/auth-schema");
 		const rows = await testDb.db.select().from(verification);
 		expect(rows).toHaveLength(0);
@@ -96,7 +96,7 @@ describe("createTestDb()", () => {
 // ── Unit: TestDb.close() idempotency ──────────────────────────────────────
 
 describe("TestDb.close()", () => {
-	it("second call is a no-op (AC-3)", async () => {
+	test("second call is a no-op (AC-3)", async () => {
 		const testDb = await createTestDb();
 		await testDb.close();
 		await expect(testDb.close()).resolves.toBeUndefined();
@@ -116,7 +116,7 @@ describe("seedAdminUser()", () => {
 		await testDb.close();
 	});
 
-	it("creates admin user with local default credentials", async () => {
+	test("creates admin user with local default credentials", async () => {
 		const userId = await seedAdminUser(testDb.db, {});
 		expect(typeof userId).toBe("string");
 		expect(userId.length).toBeGreaterThan(0);
@@ -126,7 +126,7 @@ describe("seedAdminUser()", () => {
 		expect(rows.some((r) => r.email === "e2e@test.local")).toBe(true);
 	});
 
-	it("is idempotent — second call returns same userId (AC-3 seed variant)", async () => {
+	test("is idempotent — second call returns same userId (AC-3 seed variant)", async () => {
 		const env = {
 			E2E_ADMIN_EMAIL: "idem@e2e.test",
 			E2E_ADMIN_PASSWORD: "idem-pass-123",
@@ -144,7 +144,7 @@ describe("seedAdminUser()", () => {
 		expect(rows).toHaveLength(1);
 	});
 
-	it("throws on CI when E2E_ADMIN_EMAIL is missing (AC-4)", async () => {
+	test("throws on CI when E2E_ADMIN_EMAIL is missing (AC-4)", async () => {
 		const env = {
 			CI: "true",
 			E2E_ADMIN_EMAIL: undefined,
@@ -155,7 +155,7 @@ describe("seedAdminUser()", () => {
 		);
 	});
 
-	it("throws on CI when E2E_ADMIN_PASSWORD is missing (AC-4)", async () => {
+	test("throws on CI when E2E_ADMIN_PASSWORD is missing (AC-4)", async () => {
 		const env = {
 			CI: "true",
 			E2E_ADMIN_EMAIL: "ci-test@e2e.test",
@@ -166,7 +166,7 @@ describe("seedAdminUser()", () => {
 		);
 	});
 
-	it("returns userId matching user table row (AC-2)", async () => {
+	test("returns userId matching user table row (AC-2)", async () => {
 		const env = {
 			E2E_ADMIN_EMAIL: "verify@e2e.test",
 			E2E_ADMIN_PASSWORD: "verify-pass-123",
@@ -188,8 +188,7 @@ describe("seedAdminUser()", () => {
 // ── Integration: full lifecycle ────────────────────────────────────────────
 
 describe("integration: full lifecycle", () => {
-	it("createTestDb → seed → signIn via Better Auth API succeeds", async () => {
-		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
+	test("createTestDb → seed → signIn via Better Auth API succeeds", async () => {
 		const testDb = await createTestDb();
 
 		const env = {
@@ -223,7 +222,7 @@ describe("integration: full lifecycle", () => {
 		expect(signInResult?.token).toBeTruthy();
 
 		await testDb.close();
-	}, 60_000);
+	}, 20_000);
 });
 
 // ── Integration: global-setup/teardown channel ────────────────────────────
@@ -232,7 +231,7 @@ describe("integration: full lifecycle", () => {
 // it with full state; globalTeardown is now a no-op (e2e-server.ts owns cleanup).
 
 describe("integration: global-setup/teardown channel", () => {
-	it("globalSetup seeds data from existing state file; globalTeardown is no-op", async () => {
+	test("globalSetup seeds data from existing state file; globalTeardown is no-op", async () => {
 		const savedUserId = process.env.E2E_ADMIN_USER_ID;
 
 		const { E2E_STATE_FILE, default: globalSetup } = await import(
@@ -243,7 +242,6 @@ describe("integration: global-setup/teardown channel", () => {
 		);
 
 		// Simulate what scripts/e2e-server.ts does: create PGLite + write initial state
-		// PGLite boot costs 10-15 s under suite contention — hence the 60 s budget.
 		const testDb = await createTestDb();
 		const { join } = await import("node:path");
 		const { tmpdir } = await import("node:os");
@@ -286,9 +284,9 @@ describe("integration: global-setup/teardown channel", () => {
 			await unlink(E2E_STATE_FILE).catch(() => {});
 			process.env.E2E_ADMIN_USER_ID = savedUserId;
 		}
-	}, 60_000);
+	}, 25_000);
 
-	it("globalTeardown() is always a no-op (idempotent)", async () => {
+	test("globalTeardown() is always a no-op (idempotent)", async () => {
 		const { default: globalTeardown } = await import(
 			"../../tests/e2e/global-teardown"
 		);

@@ -12,20 +12,9 @@
     "dev": "vite dev --port 3000",
     "build": "vite build",
     "preview": "vite preview",
-    "test": "bun run test:vitest:bun",
-    "test:local": "bun run test:vitest:bun -- --maxWorkers=1",
-    "test:vitest:node": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog node scripts/check-test-runtime.ts --runtime=node --version=24 --runner=vitest --runner-version=4.1.5 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog node node_modules/vitest/vitest.mjs run",
-    "test:vitest:bun": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog bun --bun node_modules/vitest/vitest.mjs run",
-    "test:vitest:bun:1": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=1",
-    "test:vitest:bun:2": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=2",
-    "test:vitest:bun:4": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=4",
-    "test:parity": "TZ=UTC bun run scripts/check-test-parity.ts",
-    "test:bun:parity": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun test app/tests-bun --isolate",
-    "test:bun:parallel:2": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun test app/tests-bun --parallel=2 --isolate",
-    "test:bun:parallel:4": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun test app/tests-bun --parallel=4 --isolate",
-    "test:bun:shared:2": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun test app/tests-bun --parallel=2 --no-isolate",
-    "test:bun:shared:4": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun test app/tests-bun --parallel=4 --no-isolate",
-    "test:bun:smol:2": "DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && DATABASE_URL=postgres://blog:blog@127.0.0.1:5432/blog TZ=UTC bun --smol test app/tests-bun --parallel=2 --isolate",
+		"test": "bun run test:bun",
+		"test:local": "bun run test:bun",
+		"test:bun": "TZ=UTC bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=bun:test --runner-version=1.4.0 && TZ=UTC bun test --parallel=2 --isolate",
     "format": "biome format",
     "lint": "biome lint",
     "check": "biome check",
@@ -46,9 +35,7 @@
     "audit": "bun run audit:content && bun run audit:fe",
     "favicons": "bun run scripts/generate-favicons.ts",
     "bench": "bun run scripts/bench.ts",
-    "bench:vitest:workers": "bun run scripts/bench-vitest-workers.ts",
-    "bench:test:revalidation": "bun run scripts/bench-bun-test-revalidation.ts",
-    "bench:e2e:runtimes": "bun run scripts/bench-e2e-runtimes.ts"
+		"bench:e2e:runtimes": "bun run scripts/bench-e2e-runtimes.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",
@@ -102,7 +89,6 @@
     "@vitejs/plugin-react": "6.0.1",
     "conventional-changelog-cli": "5.0.0",
     "drizzle-kit": "0.31.10",
-    "jsdom": "28.1.0",
     "lefthook": "2.1.6",
     "remark-mdx": "3.1.1",
     "remark-parse": "11.0.0",
@@ -111,8 +97,7 @@
     "unified": "11.0.5",
     "unist-util-visit": "5.1.0",
     "vite": "8.0.10",
-    "vite-env-only": "3.0.3",
-    "vitest": "4.1.5"
+		"vite-env-only": "3.0.3"
   },
   "pnpm": {
     "onlyBuiltDependencies": [
