@@ -66,7 +66,7 @@
 - **Feature**: `.specs/features/browser-runtime-revalidation/`
 - **Phase / Task**: Execute remediation harness fixes complete; evidence rerun pending a quiet machine window.
 - **Completed**: Browser schema-2 runner now executes three-sample screening, retains exact route identities, records setup/provenance/lifecycle/contamination/cleanup fields, restarts cold WebView server/browser per sample, and reuses warm WebView sessions across passes. Process-group cleanup is verified and external browser activity is checked before, during and after samples. Focused tests cover boundaries, route parsing, contamination detection, and cleanup.
-- **Evidence**: Prior schema-1 runs remain audit-only. Schema-2 sensor-check run `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-24T23-21-37-689Z.json` retained as invalid because external automation was active.
-- **Next step**: Run approved quiet-machine matrix. Require one warm-up + three valid screening samples for every arm, then five valid interleaved confirmation samples for each non-dominated finalist. Update `validation.md` only after fresh verifier pass.
+- **Evidence**: Schema-2 full runs `run-2026-08-25T00-26-03-716Z`, `run-2026-08-25T00-56-23-164Z`, and targeted `run-2026-08-25T01-01-36-548Z` are committed as audit evidence. Screening produced valid worker-2 and several WebView arms, but external browser trees repeatedly reappeared during confirmation; no finalist is promoted.
+- **Next step**: Obtain a genuinely quiet machine window. Require one warm-up + three valid screening samples for every arm, then five valid interleaved confirmation samples for each non-dominated finalist. Update `validation.md` only after fresh verifier pass.
 - **Defaults / CI**: unchanged.
-- **Commits**: `846303b`, `a4d2e2d`, `a4e6054`, `22b2754`.
+- **Commits**: `846303b`, `a4d2e2d`, `a4e6054`, `22b2754`, `c7f389e`, `4407594`.
