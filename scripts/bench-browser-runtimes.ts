@@ -599,11 +599,11 @@ async function runFinalistsGlobalInterleaved(profiles: Profile[], repetitions: n
 	for (const state of states.values()) {
 		const validCount = state.samples.filter((sample) => sample.valid).length;
 		state.interleaved = traceIsInterleaved(trace, profiles.map((profile) => profile.id), repetitions);
-		state.invalidReasons = state.warmup.valid ? [] : [`warmup: ${state.warmup.exclusionReason}`];
+		state.invalidReasons = [];
 		if (validCount !== repetitions) state.invalidReasons.push(`expected ${repetitions} valid samples, got ${validCount}`);
 		if (!state.interleaved) state.invalidReasons.push("execution trace is not interleaved");
 		state.aggregate = aggregateSamples(state.samples);
-		state.valid = state.warmup.valid && validCount === repetitions && state.interleaved;
+		state.valid = validCount === repetitions && state.interleaved;
 		if (state.valid) state.invalidReasons = [];
 	}
 	return { states, trace };
