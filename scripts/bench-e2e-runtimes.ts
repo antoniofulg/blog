@@ -29,7 +29,7 @@ export const WARMUP_COUNT = 1;
 export const DEFAULT_WORKERS = 1;
 export const PLAYWRIGHT_WORKER_COUNTS = [1, 2] as const;
 export const BROWSER_SMOKE_GREP =
-	"en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200";
+	"en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,";
 export const LOAD_PER_CORE_LIMIT = 1;
 export const LOAD_GATE_POLL_INTERVAL_MS = 1_000;
 export const LOAD_GATE_TIMEOUT_MS = 5 * 60_000;

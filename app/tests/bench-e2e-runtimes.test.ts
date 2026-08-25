@@ -87,7 +87,7 @@ describe("Playwright runtime benchmark", () => {
 			"--workers=1",
 			"--retries=0",
 			"--grep",
-			"en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+			"en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
 			"--reporter=json",
 		]);
 		expect(commandForRuntime(RUNTIME_ARMS[1])).toEqual([
@@ -100,7 +100,7 @@ describe("Playwright runtime benchmark", () => {
 			"--workers=1",
 			"--retries=0",
 			"--grep",
-			"en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+			"en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
 			"--reporter=json",
 		]);
 		expect(commandEnvironment("/tmp/result.json")).toMatchObject({

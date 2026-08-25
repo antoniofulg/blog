@@ -1,3 +1,4 @@
+import { readFileSync } from "node:fs";
 import { describe, expect, test } from "vitest";
 import { BROWSER_SMOKE_ROUTE_IDS } from "#/lib/browser-bench/contract";
 import {
@@ -7,6 +8,7 @@ import {
 	detectBrowserContamination,
 	interleaveProfileIds,
 	parseSmokeOutput,
+	parseWebViewPassData,
 	parseWebViewPassOutcomes,
 	sampleBoundary,
 	selectNonDominated,
@@ -107,8 +109,8 @@ describe("browser finalist benchmark", () => {
 						"en post render: title",
 						"pt-br post render: title",
 						"404: missing",
-						"/ renders 200",
-						"/pt-br/ renders 200",
+						"/ renders 200, sets html[lang], and canonical contains expected path",
+						"/pt-br/ renders 200, sets html[lang], and canonical contains expected path",
 					].map((title) => ({
 						title,
 						tests: [{ results: [{ status: "passed" }] }],
@@ -127,6 +129,74 @@ describe("browser finalist benchmark", () => {
 		expect(webview).toHaveLength(1);
 		expect(webview[0]?.routes.map((route) => route.id)).toEqual(
 			BROWSER_SMOKE_ROUTE_IDS,
+		);
+	});
+
+	test("rejects locale alias and retains setup count/time separately", () => {
+		const report = JSON.stringify({
+			stats: { expected: 6, skipped: 0, unexpected: 0, flaky: 0 },
+			suites: [
+				{
+					specs: [
+						...[
+							"en post render: title",
+							"pt-br post render: title",
+							"404: missing",
+							"/ renders 200, sets html[lang], and canonical contains expected path",
+							"/pt-br/ renders 200, sets html[lang], and canonical contains expected path",
+						].map((title) => ({
+							title,
+							tests: [{ results: [{ status: "passed", duration: 11 }] }],
+						})),
+						{
+							title: "authenticate as admin",
+							tests: [{ results: [{ status: "passed", duration: 37 }] }],
+						},
+					],
+				},
+			],
+		});
+		const parsed = parseSmokeOutput(report, "playwright");
+		expect(parsed).toMatchObject({
+			inventory: 6,
+			routeCount: 5,
+			setupOverhead: 1,
+			setupOverheadMs: 37,
+		});
+		const withAlias = report.replace("/ renders 200,", "/en/ renders 200,");
+		expect(parseSmokeOutput(withAlias, "playwright")).toBeNull();
+	});
+
+	test("uses emitted WebView pass durations and provenance", () => {
+		const payload = {
+			passOutcomes: [
+				BROWSER_SMOKE_ROUTE_IDS.map((id) => ({ id, passed: true })),
+				BROWSER_SMOKE_ROUTE_IDS.map((id) => ({ id, passed: true })),
+			],
+			passDurationsMs: [91, 17],
+			runtimeVersion: "1.4.2",
+			backendVersion: "Mozilla/5.0 AppleWebKit/617.1",
+		};
+		const parsed = parseWebViewPassData(
+			`BROWSER_SMOKE_RESULT ${JSON.stringify(payload)}`,
+		);
+		expect(parsed.passDurationsMs).toEqual([91, 17]);
+		expect(parsed.runtimeVersion).toBe("1.4.2");
+		expect(parsed.backendVersion).toContain("AppleWebKit");
+	});
+
+	test("discriminates warm/cold guards and one-warmup coordinator", () => {
+		const source = readFileSync(
+			new URL("../../scripts/bench-browser-runtimes.ts", import.meta.url),
+			"utf8",
+		);
+		expect(source).toContain(
+			'profile.arm === "webview" && profile.phase === "warm"',
+		);
+		expect(source).toContain("data.passDurationsMs[index + 1]");
+		expect(source).not.toContain("result.measured.ms / (repetitions + 1)");
+		expect(source).not.toMatch(
+			/while \([^\n]*valid[^\n]*\)[\s\S]{0,700}runProfile\(profile, 1\)/,
 		);
 	});
 

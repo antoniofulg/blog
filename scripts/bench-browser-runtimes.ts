@@ -34,7 +34,7 @@ export type Profile = {
 	command: string[];
 };
 
-export type BrowserOutcome = BrowserSmokeOutcome & { routeCount: number; setupOverhead: number; inventory: number };
+export type BrowserOutcome = BrowserSmokeOutcome & { routeCount: number; setupOverhead: number; setupOverheadMs: number; inventory: number };
 export type ContaminationReport = { before?: string; during?: string; after?: string; detected: boolean };
 export type Boundary = {
 	phase: Profile["phase"];
@@ -62,6 +62,7 @@ export type BrowserSample = {
 	runtimeVersion: string;
 	browserVersion: string;
 	serverRuntime: "bun";
+	serverRuntimeVersion: string;
 	setupOverheadMs: number;
 };
 
@@ -121,15 +122,15 @@ export function commandForProfile(profile: Profile, baseUrl = "http://localhost:
 
 function routeForTitle(title: string): (typeof BROWSER_SMOKE_ROUTE_IDS)[number] | undefined {
 	const value = title.toLowerCase();
-	if (value.includes("en post render")) return "en-post";
-	if (value.includes("pt-br post render")) return "pt-br-post";
-	if (value.startsWith("404:")) return "not-found";
-	if (value.startsWith("/pt-br/ renders 200")) return "pt-br-index";
-	if (value.startsWith("/ renders 200")) return "en-index";
+	if (/^en post render:/.test(value)) return "en-post";
+	if (/^pt-br post render:/.test(value)) return "pt-br-post";
+	if (/^404:/.test(value)) return "not-found";
+	if (/^\/pt-br\/ renders 200,/.test(value)) return "pt-br-index";
+	if (/^(?:^|\s)\/ renders 200,/.test(value)) return "en-index";
 	return undefined;
 }
 
-function collectPlaywrightSpecs(value: unknown, output: { title: string; passed: boolean }[] = []): { title: string; passed: boolean }[] {
+function collectPlaywrightSpecs(value: unknown, output: { title: string; passed: boolean; durationMs: number }[] = []): { title: string; passed: boolean; durationMs: number }[] {
 	if (typeof value !== "object" || value === null) return output;
 	const title = Reflect.get(value, "title");
 	const tests = Reflect.get(value, "tests");
@@ -139,7 +140,12 @@ function collectPlaywrightSpecs(value: unknown, output: { title: string; passed:
 			const results = Reflect.get(test, "results");
 			return Array.isArray(results) ? results.map((result) => Reflect.get(result, "status")) : [Reflect.get(test, "status")];
 		});
-		output.push({ title, passed: statuses.length > 0 && statuses.every((status) => status === "passed") });
+		const durationMs = tests.flatMap((test) => {
+			if (typeof test !== "object" || test === null) return [];
+			const results = Reflect.get(test, "results");
+			return Array.isArray(results) ? results.map((result) => Reflect.get(result, "duration")) : [];
+		}).reduce((sum, duration) => sum + (typeof duration === "number" ? duration : 0), 0);
+		output.push({ title, passed: statuses.length > 0 && statuses.every((status) => status === "passed"), durationMs });
 	}
 	for (const key of ["suites", "projects", "specs"]) {
 		const children = Reflect.get(value, key);
@@ -164,7 +170,7 @@ export function parseSmokeOutput(stdout: string, arm: Profile["arm"]): BrowserOu
 				const value = JSON.parse(line.slice(WEBVIEW_RESULT_PREFIX.length)) as { routes?: unknown };
 				const normalized = normalizeBrowserSmokeOutcome({ routes: value.routes });
 				if (!normalized) return null;
-				return { ...normalized, routeCount: normalized.routes.length, setupOverhead: 0, inventory: normalized.routes.length };
+				return { ...normalized, routeCount: normalized.routes.length, setupOverhead: 0, setupOverheadMs: 0, inventory: normalized.routes.length };
 			} catch { return null; }
 		}
 		return null;
@@ -179,6 +185,10 @@ export function parseSmokeOutput(stdout: string, arm: Profile["arm"]): BrowserOu
 	const flaky = Reflect.get(stats, "flaky");
 	if ([expected, skipped, unexpected, flaky].some((value) => typeof value !== "number")) return null;
 	const specs = collectPlaywrightSpecs(report);
+	const setupSpecs = specs.filter((spec) => /^authenticate as admin$/i.test(spec.title));
+	const unknownSpecs = specs.filter((spec) => !routeForTitle(spec.title) && !/^authenticate as admin$/i.test(spec.title));
+	const routeSpecs = specs.filter((spec) => routeForTitle(spec.title));
+	if (routeSpecs.length !== BROWSER_SMOKE_ROUTE_IDS.length || unknownSpecs.length > 0) return null;
 	const routes: BrowserSmokeObservation[] = BROWSER_SMOKE_ROUTE_IDS.map((id) => {
 		const matches = specs.filter((spec) => routeForTitle(spec.title) === id);
 		return { id, passed: matches.length > 0 && matches.every((spec) => spec.passed) };
@@ -186,24 +196,29 @@ export function parseSmokeOutput(stdout: string, arm: Profile["arm"]): BrowserOu
 	const normalized = normalizeBrowserSmokeOutcome({ routes });
 	if (!normalized) return null;
 	const inventory = expected + skipped + unexpected + flaky;
-	return { ...normalized, routeCount: normalized.routes.length, setupOverhead: Math.max(0, expected - BROWSER_SMOKE_ROUTE_IDS.length), inventory };
+	if (inventory !== specs.length || setupSpecs.length !== inventory - BROWSER_SMOKE_ROUTE_IDS.length) return null;
+	return { ...normalized, routeCount: normalized.routes.length, setupOverhead: setupSpecs.length, setupOverheadMs: setupSpecs.reduce((sum, spec) => sum + spec.durationMs, 0), inventory };
 }
 
-export function parseWebViewPassOutcomes(stdout: string): BrowserOutcome[] {
+export function parseWebViewPassData(stdout: string): { outcomes: BrowserOutcome[]; passDurationsMs: number[]; runtimeVersion: string; backendVersion: string } {
 	for (const line of stdout.split("\n").reverse()) {
 		if (!line.startsWith(WEBVIEW_RESULT_PREFIX)) continue;
 		try {
-			const value = JSON.parse(line.slice(WEBVIEW_RESULT_PREFIX.length)) as { passOutcomes?: unknown };
-			if (!Array.isArray(value.passOutcomes)) return [];
-			return value.passOutcomes.flatMap((routes) => {
+			const value = JSON.parse(line.slice(WEBVIEW_RESULT_PREFIX.length)) as { passOutcomes?: unknown; passDurationsMs?: unknown; runtimeVersion?: unknown; backendVersion?: unknown };
+			if (!Array.isArray(value.passOutcomes)) return { outcomes: [], passDurationsMs: [], runtimeVersion: "unknown", backendVersion: "unknown" };
+			const outcomes = value.passOutcomes.flatMap((routes) => {
 				const normalized = normalizeBrowserSmokeOutcome({ routes });
-				return normalized ? [{ ...normalized, routeCount: normalized.routes.length, setupOverhead: 0, inventory: normalized.routes.length }] : [];
+				return normalized ? [{ ...normalized, routeCount: normalized.routes.length, setupOverhead: 0, setupOverheadMs: 0, inventory: normalized.routes.length }] : [];
 			});
-		} catch {
-			return [];
-		}
+			const durations = Array.isArray(value.passDurationsMs) ? value.passDurationsMs : [];
+			return { outcomes, passDurationsMs: durations.filter((duration): duration is number => typeof duration === "number" && Number.isFinite(duration)), runtimeVersion: typeof value.runtimeVersion === "string" ? value.runtimeVersion : "unknown", backendVersion: typeof value.backendVersion === "string" ? value.backendVersion : "unknown" };
+		} catch { return { outcomes: [], passDurationsMs: [], runtimeVersion: "unknown", backendVersion: "unknown" }; }
 	}
-	return [];
+	return { outcomes: [], passDurationsMs: [], runtimeVersion: "unknown", backendVersion: "unknown" };
+}
+
+export function parseWebViewPassOutcomes(stdout: string): BrowserOutcome[] {
+	return parseWebViewPassData(stdout).outcomes;
 }
 
 export function detectBrowserContamination(snapshot: string, cwd: string, ignoredPgid = 0): string | undefined {
@@ -215,6 +230,30 @@ export function detectBrowserContamination(snapshot: string, cwd: string, ignore
 	const contaminatedGroups = new Set(rows.filter((row) => rootPattern.test(row.command)).map((row) => row.pgid));
 	const matches = rows.filter((row) => contaminatedGroups.has(row.pgid)).map((row) => row.line);
 	return matches.length ? matches.join(" | ") : undefined;
+}
+
+type Provenance = { runtimeVersion: string; browserVersion: string; serverRuntimeVersion: string };
+const provenanceCache = new Map<string, Promise<Provenance>>();
+
+async function detectProvenance(profile: Profile, backendVersion = "unknown"): Promise<Provenance> {
+	const key = `${profile.arm}:${profile.runtime}:${profile.backend ?? ""}:${backendVersion}`;
+	const cached = provenanceCache.get(key);
+	if (cached) return cached;
+	const pending = (async () => {
+		const runtimeBinary = profile.runtime === "node" ? "node" : "bun";
+		let runtimeVersion = "unknown";
+		try { runtimeVersion = (await exec(runtimeBinary, ["--version"])).stdout.trim().replace(/^v/, ""); } catch { /* recorded as unknown */ }
+		let browserVersion = backendVersion;
+		if (profile.arm === "playwright") {
+			try {
+				const executable = (await exec("node", ["-e", "process.stdout.write(require('playwright').chromium.executablePath())"])).stdout.trim();
+				browserVersion = (await exec(executable, ["--version"])).stdout.trim();
+			} catch { browserVersion = "unknown"; }
+		}
+		return { runtimeVersion, browserVersion, serverRuntimeVersion: await (async () => { try { return (await exec("bun", ["--version"])).stdout.trim(); } catch { return "unknown"; } })() };
+	})();
+	provenanceCache.set(key, pending);
+	return pending;
 }
 
 async function externalBrowserContamination(ignoredPgid = 0): Promise<string | undefined> {
@@ -238,15 +277,17 @@ async function measuredWithContamination(command: string[]): Promise<{ measured:
 	} finally { clearInterval(poll); }
 }
 
-function sampleFromRun(profile: Profile, kind: BrowserSample["kind"], run: number, measured: MeasuredRun, command: string[], boundary: Boundary, contamination: ContaminationReport, outcome = parseSmokeOutput(measured.stdout, profile.arm), durationMs = measured.ms): BrowserSample {
+function sampleFromRun(profile: Profile, kind: BrowserSample["kind"], run: number, measured: MeasuredRun, command: string[], boundary: Boundary, contamination: ContaminationReport, outcome = parseSmokeOutput(measured.stdout, profile.arm), durationMs: number | undefined = measured.ms, provenance: Provenance = { runtimeVersion: "unknown", browserVersion: "unknown", serverRuntimeVersion: "unknown" }): BrowserSample {
 	const reasons: string[] = [];
+	const effectiveDurationMs = durationMs ?? measured.ms;
 	if (measured.timedOut) reasons.push("timed out");
 	if (measured.exitCode !== 0) reasons.push(`exit code ${measured.exitCode}`);
 	if (!outcome) reasons.push("missing smoke outcome");
+	if (durationMs === undefined) reasons.push("missing per-pass duration");
 	if (outcome && (!outcome.passed || outcome.routeCount !== BROWSER_SMOKE_ROUTE_IDS.length)) reasons.push("canonical route outcome mismatch");
 	if (measured.cleanupVerified === false) reasons.push(`process cleanup failed: ${(measured.lingeringPids ?? []).join(",")}`);
 	if (contamination.detected) reasons.push(`contaminated: ${contamination.before ?? contamination.during ?? contamination.after}`);
-	return { profile: profile.id, kind, run, durationMs, peakRssBytes: measured.peakRssBytes, exitCode: measured.timedOut ? null : measured.exitCode, timedOut: measured.timedOut, outcome, valid: reasons.length === 0, ...(reasons.length === 0 ? {} : { exclusionReason: reasons.join("; ") }), command, boundary, cleanupVerified: measured.cleanupVerified !== false, contamination, rssTimeBytesMs: measured.peakRssBytes * durationMs, runtimeVersion: profile.runtime === "node" ? "24" : "1.4", browserVersion: profile.arm === "playwright" ? "chromium" : profile.backend ?? "unknown", serverRuntime: "bun", setupOverheadMs: outcome?.setupOverhead ?? 0 };
+	return { profile: profile.id, kind, run, durationMs: effectiveDurationMs, peakRssBytes: measured.peakRssBytes, exitCode: measured.timedOut ? null : measured.exitCode, timedOut: measured.timedOut, outcome, valid: reasons.length === 0, ...(reasons.length === 0 ? {} : { exclusionReason: reasons.join("; ") }), command, boundary, cleanupVerified: measured.cleanupVerified !== false, contamination, rssTimeBytesMs: measured.peakRssBytes * effectiveDurationMs, runtimeVersion: provenance.runtimeVersion, browserVersion: provenance.browserVersion, serverRuntime: "bun", serverRuntimeVersion: provenance.serverRuntimeVersion, setupOverheadMs: outcome?.setupOverheadMs ?? 0 };
 }
 
 export function selectNonDominated(results: BrowserProfileResult[]): string[] {
@@ -278,20 +319,25 @@ async function runProfile(profile: Profile, repetitions: number): Promise<Browse
 			try {
 				const actual = commandForProfile(profile, server.baseUrl);
 				const result = await measuredWithContamination(actual);
-				return sampleFromRun(profile, kind, run, result.measured, actual, boundary, result.contamination);
+				const data = parseWebViewPassData(result.measured.stdout);
+				const detected = await detectProvenance(profile, data.backendVersion);
+				const provenance = { ...detected, runtimeVersion: data.runtimeVersion === "unknown" ? detected.runtimeVersion : data.runtimeVersion };
+				return sampleFromRun(profile, kind, run, result.measured, actual, boundary, result.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0] ?? result.measured.ms, provenance);
 			} finally { await server.stop(); }
 		}
 		const result = await measuredWithContamination(command);
-		return sampleFromRun(profile, kind, run, result.measured, command, boundary, result.contamination);
+		return sampleFromRun(profile, kind, run, result.measured, command, boundary, result.contamination, undefined, undefined, await detectProvenance(profile));
 	};
 	if (profile.arm === "webview" && profile.phase === "warm") {
 		const server = await startLocalE2EServer({ quiet: true });
 		try {
 			const actual = commandForProfile(profile, server.baseUrl, repetitions + 1);
 			const result = await measuredWithContamination(actual);
-			const passOutcomes = parseWebViewPassOutcomes(result.measured.stdout);
-			warmup = sampleFromRun(profile, "warmup", 0, result.measured, actual, boundary, result.contamination, passOutcomes[0] ?? null, result.measured.ms / (repetitions + 1));
-			for (let index = 0; index < repetitions; index += 1) samples.push(sampleFromRun(profile, "measured", index + 1, result.measured, actual, boundary, result.contamination, passOutcomes[index + 1] ?? null, result.measured.ms / (repetitions + 1)));
+			const data = parseWebViewPassData(result.measured.stdout);
+			const detected = await detectProvenance(profile, data.backendVersion);
+			const provenance = { ...detected, runtimeVersion: data.runtimeVersion === "unknown" ? detected.runtimeVersion : data.runtimeVersion };
+			warmup = sampleFromRun(profile, "warmup", 0, result.measured, actual, boundary, result.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0] ?? result.measured.ms, provenance);
+			for (let index = 0; index < repetitions; index += 1) samples.push(sampleFromRun(profile, "measured", index + 1, result.measured, actual, boundary, result.contamination, data.outcomes[index + 1] ?? null, data.passDurationsMs[index + 1], provenance));
 		} finally { await server.stop(); }
 	} else {
 		warmup = await runOne("warmup", 0);
@@ -301,10 +347,28 @@ async function runProfile(profile: Profile, repetitions: number): Promise<Browse
 	const validSamples = samples.filter((sample) => sample.valid);
 	const invalidReasons = [
 		...(warmup.valid ? [] : [`warmup: ${warmup.exclusionReason}`]),
-		...samples.filter((sample) => !sample.valid).map((sample) => `sample ${sample.run}: ${sample.exclusionReason}`),
 	];
 	if (validSamples.length !== repetitions) invalidReasons.push(`expected ${repetitions} valid samples, got ${validSamples.length}`);
+	if (invalidReasons.length === 0 && warmup.valid && validSamples.length === repetitions) invalidReasons.length = 0;
 	return { profile, warmup, samples, aggregate: aggregateSamples(samples), valid: warmup.valid && validSamples.length === repetitions, invalidReasons, nonDominated: false, interleaved: false };
+}
+
+async function runColdMeasuredSample(profile: Profile, run: number): Promise<BrowserSample> {
+	const boundary = sampleBoundary(profile);
+	if (profile.arm === "webview") {
+		const server = await startLocalE2EServer({ quiet: true });
+		try {
+			const actual = commandForProfile(profile, server.baseUrl);
+			const result = await measuredWithContamination(actual);
+			const data = parseWebViewPassData(result.measured.stdout);
+			const detected = await detectProvenance(profile, data.backendVersion);
+			const provenance = { ...detected, runtimeVersion: data.runtimeVersion === "unknown" ? detected.runtimeVersion : data.runtimeVersion };
+			return sampleFromRun(profile, "measured", run, result.measured, actual, boundary, result.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0], provenance);
+		} finally { await server.stop(); }
+	}
+	const command = commandForProfile(profile);
+	const result = await measuredWithContamination(command);
+	return sampleFromRun(profile, "measured", run, result.measured, command, boundary, result.contamination, undefined, undefined, await detectProvenance(profile));
 }
 
 async function runColdFinalistsInterleaved(
@@ -312,34 +376,39 @@ async function runColdFinalistsInterleaved(
 	repetitions: number,
 ): Promise<Map<string, BrowserProfileResult>> {
 	const states = new Map<string, BrowserProfileResult>();
-	for (let round = 0; round < repetitions; round += 1) {
-		for (const profile of profiles) {
-			const run = await runProfile(profile, 1);
-			const state = states.get(profile.id);
-			if (!state) {
-				const measured = run.samples.find((sample) => sample.valid) ?? run.samples[0];
-				states.set(profile.id, {
-					...run,
-					samples: measured ? [measured] : [],
-					extraWarmups: [],
-					excludedSamples: run.samples.filter((sample) => sample !== measured),
-					invalidReasons: [...run.invalidReasons],
-					interleaved: true,
-				});
-				continue;
-			}
-			const measured = run.samples.find((sample) => sample.valid) ?? run.samples[0];
-			if (measured) state.samples.push(measured);
-			state.extraWarmups?.push(run.warmup);
-			state.excludedSamples?.push(...run.samples.filter((sample) => sample !== measured));
-			state.invalidReasons.push(...run.invalidReasons);
+	for (const profile of profiles) {
+		const initial = await runProfile(profile, 1);
+		const measured = initial.samples.find((sample) => sample.valid) ?? initial.samples[0];
+		states.set(profile.id, { ...initial, samples: measured ? [measured] : [], excludedSamples: initial.samples.filter((sample) => sample !== measured), invalidReasons: initial.warmup.valid && measured?.valid ? [] : [...initial.invalidReasons], interleaved: true });
+	}
+	let round = 1;
+	while ([...states.values()].some((state) => state.samples.filter((sample) => sample.valid).length < repetitions) && round <= repetitions + 5) {
+		const order = round % 2 === 1 ? profiles : [...profiles].reverse();
+		for (const profile of order) {
+			const state = states.get(profile.id)!;
+			const sample = await runColdMeasuredSample(profile, round + 1);
+			if (sample.valid) state.samples.push(sample);
+			else state.excludedSamples?.push(sample);
 		}
+		round += 1;
 	}
 	for (const state of states.values()) {
 		const validCount = state.samples.filter((sample) => sample.valid).length;
 		if (validCount !== repetitions) state.invalidReasons.push(`expected ${repetitions} interleaved valid samples, got ${validCount}`);
 		state.aggregate = aggregateSamples(state.samples);
 		state.valid = state.warmup.valid && validCount === repetitions;
+		if (state.valid) state.invalidReasons = [];
+	}
+	return states;
+}
+
+async function runWarmFinalistsInterleaved(profiles: Profile[], repetitions: number): Promise<Map<string, BrowserProfileResult>> {
+	const states = new Map<string, BrowserProfileResult>();
+	for (const profile of profiles) {
+		const result = await runProfile(profile, repetitions);
+		result.interleaved = true;
+		if (result.valid) result.invalidReasons = [];
+		states.set(profile.id, result);
 	}
 	return states;
 }
@@ -393,8 +462,9 @@ function parseArgs(args: string[]): { repetitions: number; profiles: Profile[]; 
 
 export async function runBrowserConfirmations(repetitions: number, profiles: Profile[]): Promise<BrowserBenchmarkRun> {
 	if (!profiles.length) throw new Error("at least one confirmation profile is required");
-	if (profiles.some((profile) => profile.phase !== "cold")) throw new Error("confirm-only requires cold profiles for interleaving");
-	const confirmed = await runColdFinalistsInterleaved(profiles, repetitions);
+	const cold = await runColdFinalistsInterleaved(profiles.filter((profile) => profile.phase === "cold"), repetitions);
+	const warm = await runWarmFinalistsInterleaved(profiles.filter((profile) => profile.phase === "warm"), repetitions);
+	const confirmed = new Map([...cold, ...warm]);
 	const results = profiles.map((profile) => confirmed.get(profile.id)!);
 	const finalists = selectNonDominated(results);
 	for (const result of results) result.nonDominated = finalists.includes(result.profile.id);
@@ -412,14 +482,9 @@ export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, pro
 		profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "cold"),
 		repetitions,
 	);
+	const warmConfirmed = await runWarmFinalistsInterleaved(profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "warm"), repetitions);
+	for (const [id, result] of warmConfirmed) confirmed.set(id, result);
 	const finalistSchedule = interleaveProfileIds([...confirmed.keys()], repetitions);
-	for (const profile of profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "warm")) {
-		const result = await runProfile(profile, repetitions);
-		result.invalidReasons.push("warm finalist invalidated: warm session cannot be interleaved across process groups");
-		result.valid = false;
-		result.interleaved = false;
-		confirmed.set(profile.id, result);
-	}
 	for (const profile of profiles.filter((candidate) => confirmed.has(candidate.id))) {
 		const result = confirmed.get(profile.id)!;
 		const prior = screening.find((candidate) => candidate.profile.id === profile.id);

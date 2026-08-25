@@ -41,6 +41,9 @@ export type WebViewSmokeResult = {
 	passOutcomes: BrowserSmokeObservation[][];
 	/** Wall time for each pass, excluding browser construction. */
 	passDurationsMs: number[];
+	/** Runtime/backend identity obtained from Bun and the active WebView API. */
+	runtimeVersion: string;
+	backendVersion: string;
 	passed: boolean;
 };
 
@@ -200,9 +203,10 @@ async function runView(
 	view: Bun.WebView,
 	baseUrl: string,
 	passes: number,
-): Promise<{ outcomes: BrowserSmokeObservation[]; durationsMs: number[] }> {
+): Promise<{ outcomes: BrowserSmokeObservation[]; durationsMs: number[]; backendVersion: string }> {
 	const observations: BrowserSmokeObservation[] = [];
 	const durationsMs: number[] = [];
+	const backendVersion = String(await view.evaluate("navigator.userAgent"));
 	for (let pass = 0; pass < passes; pass += 1) {
 		const started = performance.now();
 		for (const route of BROWSER_SMOKE_ROUTES) {
@@ -222,7 +226,7 @@ async function runView(
 		}
 		durationsMs.push(performance.now() - started);
 	}
-	return { outcomes: observations, durationsMs };
+	return { outcomes: observations, durationsMs, backendVersion };
 }
 
 function aggregateObservations(
@@ -300,6 +304,8 @@ export async function runWebViewSmoke(
 			passDurationsMs: Array.from({ length: options.passes }, (_, pass) =>
 				Math.max(...outcomes.map((result) => result.durationsMs[pass] ?? 0)),
 			),
+			runtimeVersion: Bun.version,
+			backendVersion: outcomes[0]?.backendVersion ?? "unknown",
 			passed: normalized.passed,
 		};
 	} catch (error) {
