@@ -111,7 +111,7 @@ faster smoke harness is not mistaken for complete E2E coverage.
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
 | BTC-01 | Canonical Bun Test runner | Execute | Pending |
-| BTC-02 | Preserve test inventory | Execute | Pending |
+| BTC-02 | Preserve test inventory | Execute | Implementing |
 | BTC-03 | Remove obsolete Vitest surface | Execute | Pending |
 | BTC-04 | Preserve DOM behavior | Execute | Pending |
 | BTC-05 | Preserve browser boundary | Execute | Pending |
@@ -125,4 +125,3 @@ faster smoke harness is not mistaken for complete E2E coverage.
 - [ ] `bun run lint`, `bunx tsc --noEmit`, `bun run build`, and Chromium Playwright pass.
 - [ ] No Vitest or jsdom runtime/config/dependency remains.
 - [ ] Documentation names Bun Test as canonical and retains benchmark evidence.
-

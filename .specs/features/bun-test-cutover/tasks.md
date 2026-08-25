@@ -53,9 +53,9 @@ T3 -> T4 -> T5 -> T6
 **Requirement**: BTC-02, BTC-05
 **Tools**: Bun, filesystem
 **Done when**:
-- [ ] The candidate contains 133 test files.
-- [ ] Every active infrastructure test imports from `bun:test`.
-- [ ] Focused candidate suite passes with zero failures.
+- [x] The candidate contains 133 test files.
+- [x] Every active infrastructure test imports from `bun:test`.
+- [x] Focused candidate suite passes with zero failures (2,263 pass, 101 environmental/raw skips).
 **Tests**: unit
 **Gate**: quick
 **Commit**: `test(bun): port active infrastructure coverage`
@@ -181,4 +181,3 @@ T1 -> T2 -> T3 -> T4 -> T5 -> T6
 | T4 | CI/browser boundary | unit + e2e | unit + e2e | OK |
 | T5 | documented contracts | unit | unit | OK |
 | T6 | all changed layers | build gate | unit + integration + e2e | OK |
-
