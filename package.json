@@ -30,6 +30,7 @@
     "test:e2e:bun": "bunx --bun playwright test --project=chromium",
     "test:e2e:node": "node node_modules/@playwright/test/cli.js test --project=chromium",
     "test:e2e:all": "bunx --bun playwright test",
+    "test:e2e:webview:harness": "bunx --bun playwright test --config=playwright.webview.config.ts --project=bun-webview-webkit --workers=1",
     "audit:content": "bun run scripts/audit-content.ts",
     "audit:fe": "bun run scripts/audit-fe.ts",
     "audit": "bun run audit:content && bun run audit:fe",

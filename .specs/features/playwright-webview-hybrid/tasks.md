@@ -113,7 +113,7 @@ T4 -> T5 -> T6
 
 ### T4: Add explicit local routes
 
-**What**: Add opt-in package scripts for the WebView harness and hybrid benchmark.
+**What**: Add an opt-in package script for the WebView harness.
 **Where**: `package.json`
 **Depends on**: T3
 **Reuses**: isolated config and Bun-hosted Playwright CLI
@@ -124,9 +124,9 @@ T4 -> T5 -> T6
 - Skill: Bun, ponytail
 
 **Done when**:
-- [ ] New routes are local-only and do not replace existing `test:e2e*` routes.
-- [ ] Existing package-script contract tests still pass.
-- [ ] Focused unit gate passes.
+- [x] The new route is local-only and does not replace existing `test:e2e*` routes.
+- [x] Existing package-script contract tests still pass.
+- [x] Focused unit gate passes.
 
 **Tests**: unit in `app/tests/playwright-webview-hybrid.test.ts`
 **Gate**: quick

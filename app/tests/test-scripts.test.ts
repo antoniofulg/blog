@@ -68,6 +68,9 @@ describe("test scripts", () => {
 		);
 		expect(scripts["test:e2e:all"]).toBe("bunx --bun playwright test");
 		expect(scripts["test:e2e:webview"]).toBeUndefined();
+		expect(scripts["test:e2e:webview:harness"]).toBe(
+			"bunx --bun playwright test --config=playwright.webview.config.ts --project=bun-webview-webkit --workers=1",
+		);
 		expect(scripts["bench:e2e:webview"]).toBeUndefined();
 	});
 });
