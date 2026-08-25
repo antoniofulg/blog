@@ -148,7 +148,7 @@ is part of CI or a default test route.
 
 | Gate | Result |
 | --- | --- |
-| `bun run test:bun` | 2266 passed, 101 environmental skips, 0 failed across 134 files |
+| `bun run test:bun` | 2272 passed, 101 environmental skips, 0 failed; 2373 tests across 134 files |
 | Canonical `bun run test:e2e:bun -- --reporter=line` | 49/49 Chromium tests passed |
 | Hybrid functional config | 15/15 tests passed: five each for Page, WebView WebKit, and WebView Chrome |
 | TypeScript, Biome check/lint, lint-tests | Passed |

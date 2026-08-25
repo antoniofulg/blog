@@ -170,7 +170,7 @@ T4 -> T5 -> T6
 **Done when**:
 - [x] Latest raw JSON and Markdown contain five valid samples per profile/phase.
 - [x] README reports compatible comparisons, warmup-inclusive values, limitations, and cost breakdown.
-- [x] Canonical Bun Test passes with 2266 passes, 101 environmental skips, and zero failures.
+- [x] Canonical Bun Test passes with 2272 passes, 101 environmental skips, and zero failures (2373 tests across 134 files).
 - [x] Canonical Chromium Playwright passes 49/49.
 - [x] Typecheck, Biome, lint-tests, and pre-verifier build gates pass.
 
