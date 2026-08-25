@@ -1,6 +1,6 @@
 # Browser runtime revalidation
 
-Status: iteration-5 common-subset confirmation pending; Playwright remains
+Status: iteration-5 common-subset confirmation passed; Playwright remains
 reference and WebView remains experimental. No default or CI change.
 
 The canonical comparison is the five anonymous public outcomes shared by the
@@ -30,6 +30,7 @@ an isolated benchmark port; Playwright defaults remain on 4173.
 
 | Run | Scope | Result |
 | --- | --- | --- |
+| [clean iteration-5 common-subset JSON](runs/run-2026-08-25T06-17-36-513Z.json) / [Markdown](runs/run-2026-08-25T06-17-36-513Z.md) | Both self-acquired locks; Node 24/Bun 1/2 `--no-deps` Playwright smoke plus WebKit warm normal/`--smol`; one warm-up + five globally interleaved rounds | PASS: all six profiles 5/5 valid, exact five routes, trace 0..35, schedule equals measured trace order, no contamination or unresolved invalid reasons; Pareto selects WebKit warm 1-view `--smol` |
 | [iteration-5 smoke-only attempt JSON](runs/run-2026-08-25T06-00-49-516Z.json) / [Markdown](runs/run-2026-08-25T06-00-49-516Z.md) | Both self-acquired locks; Node 24/Bun 1/2 `--no-deps` Playwright smoke plus WebKit warm normal/`--smol`; one warm-up + five globally interleaved rounds | Invalidated: trace is 36 entries with sequence 0..35, but an external Antclips media workload contaminated measured samples; no finalist selected |
 | [iteration-5 prior attempt JSON](runs/run-2026-08-25T05-41-29-841Z.json) / [Markdown](runs/run-2026-08-25T05-41-29-841Z.md) | Same smoke-only six-profile global coordinator and lock provenance | Invalidated: external uncoordinated browser/media trees caused exclusions; raw trace and timestamps retained |
 | [post-remediation confirmations JSON](runs/run-2026-08-25T04-16-32-724Z.json) / [Markdown](runs/run-2026-08-25T04-16-32-724Z.md) | Both queued locks; Node 24/Bun Playwright workers 1/2 plus WebKit warm 1-view normal/`--smol`; one warm-up + five measured samples with persistent-session trace | All six profiles 5/5 valid, exact setup + five routes, no invalid reasons; raw Pareto selects only WebKit warm 1-view `--smol` |
@@ -60,28 +61,28 @@ that session.
 
 ## Fresh comparison
 
-Medians below come from the six-profile post-remediation confirmation JSON. RSS×time is
+Medians below come from the clean iteration-5 common-subset confirmation JSON. RSS×time is
 `medianPeakRssBytes × medianMs`, converted to GiB·s. Serialized throughput is
 `60000 / medianMs` samples/minute; it describes a serial queue, not parallel
 capacity.
 
 | Profile | Median time | Peak RSS | RSS×time | Throughput |
 | --- | ---: | ---: | ---: | ---: |
-| Playwright Node w1 | 6269.10 ms | 1236.5 MiB | 7.57 GiB·s | 9.57/min |
-| Playwright Bun w1 | 6904.48 ms | 1105.1 MiB | 7.45 GiB·s | 8.69/min |
-| Playwright Node w2 | 6971.18 ms | 1328.7 MiB | 9.05 GiB·s | 8.61/min |
-| Playwright Bun w2 | 4788.34 ms | 1195.0 MiB | 5.59 GiB·s | 12.53/min |
-| WebKit warm 1-view | 305.79 ms | 120.0 MiB | 0.04 GiB·s | 196.21/min |
-| WebKit warm 1-view `--smol` | 297.52 ms | 115.9 MiB | 0.03 GiB·s | 201.67/min |
+| Playwright Node w1 (`--no-deps`) | 4064.96 ms | 1747.2 MiB | 6.94 GiB·s | 14.76/min |
+| Playwright Bun w1 (`--no-deps`) | 2971.42 ms | 1332.0 MiB | 3.87 GiB·s | 20.19/min |
+| Playwright Node w2 (`--no-deps`) | 3700.97 ms | 1460.8 MiB | 5.28 GiB·s | 16.21/min |
+| Playwright Bun w2 (`--no-deps`) | 2857.40 ms | 1301.4 MiB | 3.63 GiB·s | 21.00/min |
+| WebKit warm 1-view | 331.31 ms | 97.5 MiB | 0.03 GiB·s | 181.10/min |
+| WebKit warm 1-view `--smol` | 308.41 ms | 97.1 MiB | 0.03 GiB·s | 194.55/min |
 
 ## Decision
 
-Playwright remains the E2E reference. The historical operational confirmation
-is retained for comparison, but the iteration-5 fair common-subset gate is not
-yet met because external uncoordinated activity contaminated repeated samples.
-No performance winner is claimed from the invalid attempts. WebView remains
-experimental and local-only, so no default, CI, or Playwright configuration
-changes follow.
+Playwright remains the E2E reference. The clean iteration-5 fair common-subset
+confirmation meets the local evidence gate; both warm profiles were confirmed,
+and only WebKit warm 1-view `--smol` is non-dominated because it is faster and
+lower RSS. Historical operational setup+five-route evidence remains separate.
+WebView remains experimental and local-only, so no default, CI, or Playwright
+configuration changes follow.
 
 The five-route smoke harness is useful as an opt-in diagnostic. It does not
 replace the 49-test Playwright suite, does not change `test:e2e*`, does not

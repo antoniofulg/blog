@@ -643,7 +643,7 @@ export function renderBrowserBenchmark(run: BrowserBenchmarkRun): string {
 		const aggregateResult = result.aggregate;
 		lines.push(`| ${result.profile.id} | ${result.valid ? "yes" : "no"} | ${aggregateResult ? `${aggregateResult.medianMs.toFixed(2)} ms` : "—"} | ${aggregateResult ? bytes(aggregateResult.medianPeakRssBytes) : "—"} | ${aggregateResult ? `${rssTimeGiBSeconds(aggregateResult.medianMs, aggregateResult.medianPeakRssBytes).toFixed(2)} GiB·s` : "—"} | ${result.samples.filter((sample) => sample.valid).length}/${run.repetitions} | ${run.finalists.includes(result.profile.id) ? "finalist" : result.invalidReasons.join("; ") || "discarded"} |`);
 	}
-	lines.push("", `Finalists: ${run.finalists.length ? run.finalists.join(", ") : "none"}.`, "", "Setup-project overhead is retained on each Playwright sample and excluded from the five-route outcome count.", "WebView remains experimental and local-only; Playwright retains full E2E coverage.", "");
+	lines.push("", `Finalists: ${run.finalists.length ? run.finalists.join(", ") : "none"}.`, "", "Common-subset Playwright samples use --no-deps and therefore have zero setup-project overhead; operational setup+five-route evidence is reported separately.", "WebView remains experimental and local-only; Playwright retains full E2E coverage.", "");
 	return lines.join("\n");
 }
 
