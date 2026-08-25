@@ -132,9 +132,9 @@ CI:
 
 | Fix | Scope | Status | Evidence |
 | --- | --- | --- | --- |
-| R1 | Real cold/warm WebView boundaries; one session for warm passes | ✅ | `scripts/bench-browser-runtimes.ts:319`, `scripts/run-e2e-webview.ts:206`; fresh confirmation JSON |
-| R2 | Three-sample screening, five-sample finalist confirmation metadata, round-robin schedule | ✅ | Fresh screening/confirmation JSON: `run-2026-08-25T02-31-40-880Z`, `run-2026-08-25T02-34-46-895Z` |
-| R3 | Exact route identities, Playwright setup overhead, runtime/backend provenance | ✅ | `scripts/bench-browser-runtimes.ts:122`, `scripts/bench-browser-runtimes.ts:185`; fresh raw provenance/setup fields |
-| R4 | Before/during/after contamination sensor and deterministic process-group cleanup | ✅ | `scripts/bench-browser-runtimes.ts:219`, `app/lib/bench/runner.server.ts:102` |
-| R5 | Raw/report protocol reconciliation and invalid evidence retention | ✅ | `docs/benchmarks/browser-runtime-revalidation/README.md:3`, fresh screening/confirmation links |
+| R1 | Real cold/warm WebView boundaries; one session for warm passes | ✅ | Persistent warm sessions and shared test server in `scripts/bench-browser-runtimes.ts`; `run-2026-08-25T04-16-32-724Z` |
+| R2 | Three-sample screening, five-sample finalist confirmation metadata, round-robin schedule | ✅ | Trace-derived schedule and 5/5 confirmation in `run-2026-08-25T04-16-32-724Z` |
+| R3 | Exact route identities, Playwright setup overhead, runtime/backend provenance | ✅ | Node 24.19.0/Bun 1.4.0 provenance, setup + exact five routes in fresh raw JSON |
+| R4 | Before/during/after contamination sensor and deterministic process-group cleanup | ✅ | `scripts/bench-browser-runtimes.ts`; all fresh samples cleanup-verified and uncontaminated |
+| R5 | Raw/report protocol reconciliation and invalid evidence retention | ✅ | Fresh JSON/Markdown pair and reconciled README; invalid historical attempts retained |
 | R6 | Focused behavior tests including contamination and cleanup discrimination | ✅ | `app/tests/bench-browser-runtimes.test.ts:79`, `app/tests/bench-runner.test.ts:113`; 18 focused tests |

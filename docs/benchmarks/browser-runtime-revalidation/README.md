@@ -24,6 +24,7 @@ cleanup status, and the cold/warm lifecycle boundary.
 
 | Run | Scope | Result |
 | --- | --- | --- |
+| [post-remediation confirmations JSON](runs/run-2026-08-25T04-16-32-724Z.json) / [Markdown](runs/run-2026-08-25T04-16-32-724Z.md) | Both queued locks; Node 24/Bun Playwright workers 1/2 plus WebKit warm 1-view normal/`--smol`; one warm-up + five measured samples with persistent-session trace | All six profiles 5/5 valid, exact setup + five routes, no invalid reasons; raw Pareto selects only WebKit warm 1-view `--smol` |
 | [post-fix screening JSON](runs/run-2026-08-25T02-31-40-880Z.json) / [Markdown](runs/run-2026-08-25T02-31-40-880Z.md) | Complete Node/Bun workers 1/2 + WebKit/Chrome cold/warm, 1/2-view, normal/`--smol`; one warm-up + three screening samples | Programmatic Pareto selected WebKit warm 1-view normal/`--smol`; invalid arms retained with reasons |
 | [post-fix confirmations JSON](runs/run-2026-08-25T02-34-46-895Z.json) / [Markdown](runs/run-2026-08-25T02-34-46-895Z.md) | Matched Playwright Node/Bun workers 1/2 plus both selected WebKit warm finalists; one warm-up + five interleaved valid samples | All six profiles 5/5 valid; no unresolved `invalidReasons` |
 | [previous screening JSON](runs/run-2026-08-24T22-49-36-109Z.json) / [Markdown](runs/run-2026-08-24T22-49-36-109Z.md) | Legacy schema-1 screening; one measured sample | Retained for audit only; invalid for finalist selection because it predates three-sample screening, lifecycle boundaries and exact route retention |
@@ -51,26 +52,27 @@ that session.
 
 ## Fresh comparison
 
-Medians below come from the six-profile post-fix confirmation JSON. RSS×time is
+Medians below come from the six-profile post-remediation confirmation JSON. RSS×time is
 `medianPeakRssBytes × medianMs`, converted to GiB·s. Serialized throughput is
 `60000 / medianMs` samples/minute; it describes a serial queue, not parallel
 capacity.
 
 | Profile | Median time | Peak RSS | RSS×time | Throughput |
 | --- | ---: | ---: | ---: | ---: |
-| Playwright Node w1 | 5947.36 ms | 1491.8 MiB | 8664.48 GiB·s | 10.09/min |
-| Playwright Bun w1 | 4720.70 ms | 1390.4 MiB | 6409.86 GiB·s | 12.71/min |
-| Playwright Node w2 | 5121.98 ms | 1439.4 MiB | 7199.90 GiB·s | 11.71/min |
-| Playwright Bun w2 | 4155.50 ms | 1444.9 MiB | 5863.64 GiB·s | 14.44/min |
-| WebKit warm 1-view | 315.41 ms | 129.8 MiB | 39.98 GiB·s | 190.23/min |
-| WebKit warm 1-view `--smol` | 295.10 ms | 128.9 MiB | 37.16 GiB·s | 203.32/min |
+| Playwright Node w1 | 6269.10 ms | 1236.5 MiB | 7.57 GiB·s | 9.57/min |
+| Playwright Bun w1 | 6904.48 ms | 1105.1 MiB | 7.45 GiB·s | 8.69/min |
+| Playwright Node w2 | 6971.18 ms | 1328.7 MiB | 9.05 GiB·s | 8.61/min |
+| Playwright Bun w2 | 4788.34 ms | 1195.0 MiB | 5.59 GiB·s | 12.53/min |
+| WebKit warm 1-view | 305.79 ms | 120.0 MiB | 0.04 GiB·s | 196.21/min |
+| WebKit warm 1-view `--smol` | 297.52 ms | 115.9 MiB | 0.03 GiB·s | 201.67/min |
 
 ## Decision
 
 Playwright remains the E2E reference. The fresh screening and confirmation
-meet the local benchmark gate; WebKit warm 1-view normal and `--smol` are the
-confirmed non-dominated diagnostic profiles. WebView is still experimental and
-local-only, so no default, CI, or Playwright configuration changes follow.
+meet the local benchmark gate; both warm profiles were confirmed, but the raw
+final Pareto set contains only WebKit warm 1-view `--smol` because it is faster
+and lower RSS. WebView is still experimental and local-only, so no default, CI,
+or Playwright configuration changes follow.
 
 The five-route smoke harness is useful as an opt-in diagnostic. It does not
 replace the 49-test Playwright suite, does not change `test:e2e*`, does not
