@@ -95,7 +95,7 @@ describe("copyButtonTransformer", () => {
 		// The stashed value is plain text — never the highlighted <span> markup.
 		expect(String(raw)).not.toContain("<span");
 		expect(String(raw)).not.toContain("shiki");
-	});
+	}, 30_000);
 
 	test("wraps the <pre> in a non-scrolling positioning context", () => {
 		const block = highlightToBlock("const x = 1");

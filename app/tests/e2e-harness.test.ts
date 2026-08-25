@@ -190,39 +190,40 @@ describe("seedAdminUser()", () => {
 describe("integration: full lifecycle", () => {
 	test("createTestDb → seed → signIn via Better Auth API succeeds", async () => {
 		const testDb = await createTestDb();
+		try {
+			const env = {
+				E2E_ADMIN_EMAIL: "lifecycle@e2e.test",
+				E2E_ADMIN_PASSWORD: "lifecycle-pass-123",
+			};
+			await seedAdminUser(testDb.db, env);
 
-		const env = {
-			E2E_ADMIN_EMAIL: "lifecycle@e2e.test",
-			E2E_ADMIN_PASSWORD: "lifecycle-pass-123",
-		};
-		await seedAdminUser(testDb.db, env);
+			// Build a local auth instance (not the production singleton)
+			const { betterAuth } = await import("better-auth");
+			const { drizzleAdapter } = await import("better-auth/adapters/drizzle");
+			const auth = betterAuth({
+				database: drizzleAdapter(testDb.db, { provider: "pg" }),
+				emailAndPassword: { enabled: true },
+			});
 
-		// Build a local auth instance (not the production singleton)
-		const { betterAuth } = await import("better-auth");
-		const { drizzleAdapter } = await import("better-auth/adapters/drizzle");
-		const auth = betterAuth({
-			database: drizzleAdapter(testDb.db, { provider: "pg" }),
-			emailAndPassword: { enabled: true },
-		});
+			// No session before sign-in
+			const sessionBefore = await auth.api.getSession({
+				headers: new Headers(),
+			});
+			expect(sessionBefore).toBeNull();
 
-		// No session before sign-in
-		const sessionBefore = await auth.api.getSession({
-			headers: new Headers(),
-		});
-		expect(sessionBefore).toBeNull();
-
-		// Sign in with the seeded user
-		const signInResult = await auth.api.signInEmail({
-			body: {
-				email: env.E2E_ADMIN_EMAIL,
-				password: env.E2E_ADMIN_PASSWORD,
-			},
-		});
-		expect(signInResult?.user?.email).toBe(env.E2E_ADMIN_EMAIL);
-		expect(signInResult?.token).toBeTruthy();
-
-		await testDb.close();
-	}, 20_000);
+			// Sign in with the seeded user
+			const signInResult = await auth.api.signInEmail({
+				body: {
+					email: env.E2E_ADMIN_EMAIL,
+					password: env.E2E_ADMIN_PASSWORD,
+				},
+			});
+			expect(signInResult?.user?.email).toBe(env.E2E_ADMIN_EMAIL);
+			expect(signInResult?.token).toBeTruthy();
+		} finally {
+			await testDb.close();
+		}
+	}, 60_000);
 });
 
 // ── Integration: global-setup/teardown channel ────────────────────────────

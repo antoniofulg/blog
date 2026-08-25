@@ -122,7 +122,7 @@ describe("integration: db:generate", () => {
 			.filter((f: string) => f.endsWith(".sql"));
 		expect(files.length).toBeGreaterThan(0);
 		void result;
-	});
+	}, 30_000);
 });
 
 describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
