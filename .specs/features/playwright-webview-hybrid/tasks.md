@@ -80,10 +80,10 @@ T4 -> T5 -> T6
 - Skill: Bun, e2e-coverage, ponytail
 
 **Done when**:
-- [ ] Config uses one worker, no retries, separate reports, and the Bun E2E server.
-- [ ] Benchmark mode can use an already-seeded external server.
-- [ ] Canonical config and CI remain byte-for-byte unchanged.
-- [ ] Typecheck and lint pass.
+- [x] Config uses one worker, no retries, separate reports, and the Bun E2E server.
+- [x] Benchmark mode can use an already-seeded external server.
+- [x] Canonical config and CI remain byte-for-byte unchanged.
+- [x] Typecheck and lint pass.
 
 **Tests**: none (config layer)
 **Gate**: build
