@@ -112,7 +112,7 @@ faster smoke harness is not mistaken for complete E2E coverage.
 | --- | --- | --- | --- |
 | BTC-01 | Canonical Bun Test runner | Execute | Pending |
 | BTC-02 | Preserve test inventory | Execute | Implementing |
-| BTC-03 | Remove obsolete Vitest surface | Execute | Pending |
+| BTC-03 | Remove obsolete Vitest surface | Execute | Implementing |
 | BTC-04 | Preserve DOM behavior | Execute | Pending |
 | BTC-05 | Preserve browser boundary | Execute | Pending |
 | BTC-06 | Document direct comparison | Execute | Pending |
