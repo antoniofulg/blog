@@ -46,6 +46,7 @@ describe("browser finalist benchmark", () => {
 			(profile) => profile.id === "webview:webkit:warm:2view:smol",
 		);
 		expect(commandForProfile(playwright!)).toContain("--grep");
+		expect(commandForProfile(playwright!)).toContain("--no-deps");
 		expect(commandForProfile(playwright!).join(" ")).toContain("--workers=2");
 		expect(commandForProfile(webview!).join(" ")).toContain(
 			"--external-server",

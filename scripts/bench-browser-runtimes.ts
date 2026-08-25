@@ -134,7 +134,7 @@ export function sampleBoundary(profile: Profile): Boundary {
 }
 
 export function commandForProfile(profile: Profile, baseUrl = "http://localhost:4173", passes = 1): string[] {
-	if (profile.arm === "playwright") return [...profile.command, "test", "--config=playwright.config.ts", "--project=chromium", `--workers=${profile.workers ?? DEFAULT_WORKERS}`, "--retries=0", "--grep", BROWSER_SMOKE_GREP, "--reporter=json"];
+	if (profile.arm === "playwright") return [...profile.command, "test", "--config=playwright.config.ts", "--project=chromium", "--no-deps", `--workers=${profile.workers ?? DEFAULT_WORKERS}`, "--retries=0", "--grep", BROWSER_SMOKE_GREP, "--reporter=json"];
 	return [...profile.command, "--external-server", `--backend=${profile.backend}`, `--views=${profile.views}`, `--passes=${passes}`, `--base-url=${baseUrl}`];
 }
 
