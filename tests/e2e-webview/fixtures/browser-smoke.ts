@@ -12,6 +12,8 @@ import type {
 import { assessWebViewRoute } from "../../../scripts/run-e2e-webview";
 
 export const HYBRID_VIEWPORT = { width: 1280, height: 720 } as const;
+export const HYBRID_RESULT_PREFIX = "HYBRID_BROWSER_RESULT ";
+export const HYBRID_TEARDOWN_PREFIX = "HYBRID_BROWSER_TEARDOWN ";
 
 export const HYBRID_DRIVER_PROFILES = [
 	{
@@ -107,9 +109,10 @@ export function failureNeedsScreenshot(
 	return status !== expectedStatus;
 }
 
-export async function initializeWebView(
-	view: Pick<Bun.WebView, "evaluate" | "navigate">,
-): Promise<string> {
+export async function initializeWebView(view: {
+	evaluate: (script: string) => Promise<unknown>;
+	navigate: (url: string) => Promise<void>;
+}): Promise<string> {
 	await view.navigate("about:blank");
 	return String(await view.evaluate("navigator.userAgent"));
 }
@@ -129,6 +132,25 @@ async function attachFailureScreenshot(
 			body: Buffer.from(error instanceof Error ? error.message : String(error)),
 			contentType: "text/plain",
 		});
+	}
+}
+
+async function teardownDriver(
+	testInfo: TestInfo,
+	profile: HybridDriverProfile,
+	screenshot: () => Promise<Buffer>,
+	close: () => Promise<void> | void,
+): Promise<void> {
+	await attachFailureScreenshot(testInfo, screenshot);
+	const startedAt = performance.now();
+	await close();
+	if (process.env.PLAYWRIGHT_WEBVIEW_BENCHMARK_PHASE) {
+		console.log(
+			`${HYBRID_TEARDOWN_PREFIX}${JSON.stringify({
+				profile: profile.project,
+				teardownMs: performance.now() - startedAt,
+			})}`,
+		);
 	}
 }
 
@@ -170,8 +192,12 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 					},
 				});
 			} finally {
-				await attachFailureScreenshot(testInfo, () => page.screenshot());
-				await browser.close();
+				await teardownDriver(
+					testInfo,
+					profile,
+					() => page.screenshot(),
+					() => browser.close(),
+				);
 			}
 			return;
 		}
@@ -210,10 +236,12 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 				},
 			});
 		} finally {
-			await attachFailureScreenshot(testInfo, () =>
-				view.screenshot({ encoding: "buffer" }),
+			await teardownDriver(
+				testInfo,
+				profile,
+				() => view.screenshot({ encoding: "buffer" }),
+				() => view.close(),
 			);
-			view.close();
 		}
 	},
 });

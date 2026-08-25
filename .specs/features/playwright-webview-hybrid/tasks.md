@@ -145,11 +145,11 @@ T4 -> T5 -> T6
 - Skill: Bun, no-workarounds, ponytail
 
 **Done when**:
-- [ ] Every profile/phase has one discarded command and five interleaved valid samples.
-- [ ] Warm samples retain internal warmup and measured action separately.
-- [ ] Invalid outcomes, runtime, timeout, exit, marker, and cleanup cases are rejected.
-- [ ] Raw JSON contains every metric and provenance field from the spec.
-- [ ] Parser/scheduler/report unit tests pass.
+- [x] Every profile/phase has one discarded command and five interleaved valid samples.
+- [x] Warm samples retain internal warmup and measured action separately.
+- [x] Invalid outcomes, runtime, timeout, exit, marker, and cleanup cases are rejected.
+- [x] Raw JSON contains every metric and provenance field from the spec.
+- [x] Parser/scheduler/report unit tests pass.
 
 **Tests**: unit in `app/tests/playwright-webview-hybrid.test.ts`
 **Gate**: quick

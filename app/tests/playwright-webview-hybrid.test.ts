@@ -1,6 +1,17 @@
 import { describe, expect, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { chromium } from "@playwright/test";
+import { BROWSER_SMOKE_ROUTE_IDS } from "#/lib/browser-bench/contract";
+import {
+	incrementViewCountFn,
+	shouldSuppressPostViewAnalytics,
+} from "#/routes/{-$locale}/$slug.server";
+import {
+	buildHybridSchedule,
+	commandForHybridProfile,
+	parseHybridHarnessOutput,
+	validateHybridHarnessResult,
+} from "../../scripts/bench-playwright-webview-hybrid";
 import {
 	driverProfileForProject,
 	failureNeedsScreenshot,
@@ -89,5 +100,83 @@ describe("Playwright Test WebView hybrid fixture", () => {
 			"evaluate:navigator.userAgent",
 		]);
 		expect(userAgent).toBe("Chrome for Testing");
+	});
+
+	test("rotates every profile through the interleaved sample order", () => {
+		expect(buildHybridSchedule(HYBRID_DRIVER_PROFILES, 2)).toEqual([
+			{ profile: "playwright-page", kind: "warmup", run: 0 },
+			{ profile: "bun-webview-webkit", kind: "warmup", run: 0 },
+			{ profile: "bun-webview-chrome", kind: "warmup", run: 0 },
+			{ profile: "playwright-page", kind: "measured", run: 1 },
+			{ profile: "bun-webview-webkit", kind: "measured", run: 1 },
+			{ profile: "bun-webview-chrome", kind: "measured", run: 1 },
+			{ profile: "bun-webview-webkit", kind: "measured", run: 2 },
+			{ profile: "bun-webview-chrome", kind: "measured", run: 2 },
+			{ profile: "playwright-page", kind: "measured", run: 2 },
+		]);
+	});
+
+	test("runs every benchmark profile through Bun-hosted Playwright Test", () => {
+		expect(commandForHybridProfile("bun-webview-chrome")).toEqual([
+			"bunx",
+			"--bun",
+			"playwright",
+			"test",
+			"--config=playwright.webview.config.ts",
+			"--project=bun-webview-chrome",
+			"--workers=1",
+			"--retries=0",
+			"--reporter=line",
+		]);
+	});
+
+	test("parses matched lifecycle markers and rejects route drift", () => {
+		const result = {
+			schemaVersion: 1,
+			profile: "bun-webview-webkit",
+			phase: "warm",
+			startupMs: 40,
+			driverSetupMs: 30,
+			warmupMs: 12,
+			actionMs: 10,
+			routes: BROWSER_SMOKE_ROUTE_IDS.map((id) => ({ id, passed: true })),
+			passed: true,
+			runtimeVersion: "1.4.0",
+			browserVersion: "AppleWebKit/620",
+		};
+		const output = parseHybridHarnessOutput(
+			`runner output\nHYBRID_BROWSER_RESULT ${JSON.stringify(result)}\nHYBRID_BROWSER_TEARDOWN ${JSON.stringify({ profile: result.profile, teardownMs: 3 })}\n`,
+		);
+		expect(output).toEqual({
+			result,
+			teardown: { profile: result.profile, teardownMs: 3 },
+		});
+		expect(
+			validateHybridHarnessResult(output, "bun-webview-webkit", "warm"),
+		).toEqual([]);
+		expect(
+			validateHybridHarnessResult(
+				{
+					...output,
+					result: { ...result, routes: result.routes.slice(1) },
+				},
+				"bun-webview-webkit",
+				"warm",
+			),
+		).toContain("invalid five-route outcome");
+	});
+
+	test("suppresses post analytics only in the isolated browser benchmark server", async () => {
+		expect(shouldSuppressPostViewAnalytics({ E2E_BROWSER_SMOKE: "true" })).toBe(
+			true,
+		);
+		expect(shouldSuppressPostViewAnalytics({})).toBe(false);
+		expect(shouldSuppressPostViewAnalytics({ E2E_TEST: "true" })).toBe(false);
+		await expect(
+			incrementViewCountFn(
+				{ id: -1, referrer: null, utmSource: null },
+				{ E2E_BROWSER_SMOKE: "true" },
+			),
+		).resolves.toBeUndefined();
 	});
 });

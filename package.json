@@ -35,8 +35,9 @@
     "audit:fe": "bun run scripts/audit-fe.ts",
     "audit": "bun run audit:content && bun run audit:fe",
     "favicons": "bun run scripts/generate-favicons.ts",
-    "bench": "bun run scripts/bench.ts",
-		"bench:e2e:runtimes": "bun run scripts/bench-e2e-runtimes.ts"
+		"bench": "bun run scripts/bench.ts",
+		"bench:e2e:runtimes": "bun run scripts/bench-e2e-runtimes.ts",
+		"bench:e2e:webview:harness": "bun run scripts/bench-playwright-webview-hybrid.ts"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

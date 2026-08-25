@@ -13,7 +13,8 @@ export default defineConfig({
 	workers: 1,
 	retries: 0,
 	timeout: 120_000,
-	outputDir: "test-results-webview",
+	outputDir:
+		process.env.PLAYWRIGHT_WEBVIEW_OUTPUT_DIR ?? "test-results-webview",
 	reporter: [
 		["html", { outputFolder: "playwright-report-webview", open: "never" }],
 		["json", { outputFile: "playwright-report-webview/results.json" }],

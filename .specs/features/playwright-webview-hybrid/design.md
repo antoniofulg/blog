@@ -59,6 +59,9 @@ Chromium. Both Chrome branches use Playwright's Chromium executable path.
 - **Location**: `scripts/bench-playwright-webview-hybrid.ts`
 - **Purpose**: Acquire shared benchmark locks, start one server, schedule samples, validate output, aggregate metrics, and persist evidence.
 - **Protocol**: cold and warm cohorts remain separate; each has one discarded command and five interleaved valid commands.
+- **Isolation**: its server alone sets `E2E_BROWSER_SMOKE=true`, which disables
+  post-view analytics outside the five-route contract. The functional hybrid
+  suite and canonical E2E server do not set it.
 
 ## Error Handling Strategy
 
@@ -80,6 +83,7 @@ Chromium. Both Chrome branches use Playwright's Chromium executable path.
 | Page and WebKit use different engines | benchmark profiles | Cross-engine delta can be misread as harness delta | Add WebView Chrome with the exact Playwright Chromium executable. |
 | Warm whole-command contains an extra pass | warm protocol | Warm wall cannot be compared to cold wall | Report in-session warmup separately; compare arms only within the same phase. |
 | Fixture startup excludes CLI time before worker module load | phase markers | Internal phases do not sum to all wall time | Record residual runner overhead and treat process wall as authoritative. |
+| Post-view analytics outlives page load | public post client effect | Async PGLite writes contaminate the next driver sample | Disable only that out-of-contract side effect on the benchmark server through an explicit tested environment gate. |
 
 ## Tech Decisions
 
@@ -90,4 +94,3 @@ Chromium. Both Chrome branches use Playwright's Chromium executable path.
 | Server | One external seeded Bun server per benchmark run | Removes application boot from driver comparison. |
 | Memory | Whole detached process-tree peak RSS and RSS×wall | Matches the existing worktree-oriented benchmark method. |
 | Scope | Local scripts and separate config only | Conforms to AD-005 and AD-006. |
-

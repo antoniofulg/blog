@@ -72,5 +72,8 @@ describe("test scripts", () => {
 			"bunx --bun playwright test --config=playwright.webview.config.ts --project=bun-webview-webkit --workers=1",
 		);
 		expect(scripts["bench:e2e:webview"]).toBeUndefined();
+		expect(scripts["bench:e2e:webview:harness"]).toBe(
+			"bun run scripts/bench-playwright-webview-hybrid.ts",
+		);
 	});
 });

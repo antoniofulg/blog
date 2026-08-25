@@ -50,6 +50,7 @@ export async function waitForLocalE2EServerRelease(port = DEFAULT_PORT): Promise
 }
 
 export async function startLocalE2EServer(options?: {
+	env?: NodeJS.ProcessEnv;
 	quiet?: boolean;
 	port?: number;
 }): Promise<LocalE2EServer> {
@@ -60,7 +61,13 @@ export async function startLocalE2EServer(options?: {
 	const child = spawn("bun", ["run", "scripts/e2e-server.ts"], {
 		cwd: process.cwd(),
 		detached: true,
-		env: { ...process.env, PORT: String(port), SITE_URL: baseUrl, BETTER_AUTH_URL: baseUrl },
+		env: {
+			...process.env,
+			...options?.env,
+			PORT: String(port),
+			SITE_URL: baseUrl,
+			BETTER_AUTH_URL: baseUrl,
+		},
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 	let output = "";

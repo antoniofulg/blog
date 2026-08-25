@@ -83,8 +83,8 @@ plus five valid samples for every profile/phase with exact route parity.
 | --- | --- | --- | --- |
 | HYBRID-01 | Matched Playwright Test drivers | Design | Implementing |
 | HYBRID-02 | Matched Playwright Test drivers | Design | Implementing |
-| HYBRID-03 | Controlled lifecycle benchmark | Design | In Tasks |
-| HYBRID-04 | Controlled lifecycle benchmark | Design | In Tasks |
+| HYBRID-03 | Controlled lifecycle benchmark | Design | Implementing |
+| HYBRID-04 | Controlled lifecycle benchmark | Design | Implementing |
 | HYBRID-05 | Preserve canonical E2E boundary | Design | In Tasks |
 
 **Coverage:** 5 total, 5 mapped to tasks, 0 unmapped.
