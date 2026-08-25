@@ -21,6 +21,7 @@ export const DEFAULT_REPETITIONS = FINALIST_REPETITIONS;
 export const WARMUP_COUNT = 1;
 export const BENCHMARK_DIR = resolve(process.cwd(), "docs/benchmarks/browser-runtime-revalidation/runs");
 const SAMPLE_TIMEOUT_MS = 15 * 60_000;
+const WARM_WEBVIEW_PORT = 49_173;
 export const CRM_LOCK_PATH = "/tmp/praxis-playwright.lock";
 export const ANTCLIPS_LOCK_PATH = join(tmpdir(), "creatista-test.lock");
 const LOCK_ENV = "BROWSER_BENCH_LOCKS_HELD";
@@ -561,7 +562,7 @@ async function runFinalistsGlobalInterleaved(profiles: Profile[], repetitions: n
 	let sequence = 0;
 	try {
 		const warmProfiles = profiles.filter((profile) => profile.arm === "webview" && profile.phase === "warm");
-		if (warmProfiles.length) sharedServer = await startLocalE2EServer({ quiet: true });
+		if (warmProfiles.length) sharedServer = await startLocalE2EServer({ quiet: true, port: WARM_WEBVIEW_PORT });
 		for (const profile of warmProfiles) sessions.set(profile.id, await startWarmWebViewSession(profile, sharedServer!.baseUrl));
 		for (const profile of profiles) {
 			const startedAt = new Date().toISOString();

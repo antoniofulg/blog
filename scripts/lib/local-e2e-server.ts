@@ -3,7 +3,7 @@ import { rm } from "node:fs/promises";
 import { promisify } from "node:util";
 import { E2E_STATE_FILE, default as seedE2E } from "../../tests/e2e/global-setup";
 
-const BASE_URL = "http://localhost:4173";
+const DEFAULT_PORT = 4173;
 const START_TIMEOUT_MS = 30_000;
 const STOP_TIMEOUT_MS = 5_000;
 const PORT_RELEASE_TIMEOUT_MS = 120_000;
@@ -28,12 +28,12 @@ async function waitForHttp(url: string, childExited: () => boolean): Promise<voi
 	throw new Error(`E2E server did not become ready within ${START_TIMEOUT_MS}ms`);
 }
 
-export async function waitForLocalE2EServerRelease(): Promise<void> {
+export async function waitForLocalE2EServerRelease(port = DEFAULT_PORT): Promise<void> {
 	const deadline = Date.now() + PORT_RELEASE_TIMEOUT_MS;
 	let freeSince: number | undefined;
 	while (Date.now() < deadline) {
 		try {
-			const { stdout } = await exec("lsof", ["-nP", "-iTCP:4173", "-sTCP:LISTEN", "-t"]);
+			const { stdout } = await exec("lsof", ["-nP", `-iTCP:${port}`, "-sTCP:LISTEN", "-t"]);
 			if (stdout.trim()) {
 				freeSince = undefined;
 			} else {
@@ -46,18 +46,21 @@ export async function waitForLocalE2EServerRelease(): Promise<void> {
 		}
 		await Bun.sleep(100);
 	}
-	throw new Error(`E2E server port remained occupied after ${PORT_RELEASE_TIMEOUT_MS}ms`);
+	throw new Error(`E2E server port ${port} remained occupied after ${PORT_RELEASE_TIMEOUT_MS}ms`);
 }
 
 export async function startLocalE2EServer(options?: {
 	quiet?: boolean;
+	port?: number;
 }): Promise<LocalE2EServer> {
-	await waitForLocalE2EServerRelease();
+	const port = options?.port ?? DEFAULT_PORT;
+	const baseUrl = `http://localhost:${port}`;
+	await waitForLocalE2EServerRelease(port);
 	await rm(E2E_STATE_FILE, { force: true });
 	const child = spawn("bun", ["run", "scripts/e2e-server.ts"], {
 		cwd: process.cwd(),
 		detached: true,
-		env: process.env,
+		env: { ...process.env, PORT: String(port), SITE_URL: baseUrl, BETTER_AUTH_URL: baseUrl },
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 	let output = "";
@@ -85,7 +88,7 @@ export async function startLocalE2EServer(options?: {
 				throw new Error(`E2E server exited with code ${code}\n${output}`);
 			}),
 		]);
-		await waitForHttp(BASE_URL, () => exited);
+		await waitForHttp(baseUrl, () => exited);
 	} catch (error) {
 		if (child.pid) {
 			try {
@@ -98,7 +101,7 @@ export async function startLocalE2EServer(options?: {
 	}
 	let stopped = false;
 	return {
-		baseUrl: BASE_URL,
+		baseUrl,
 		stop: async () => {
 			if (stopped) return;
 			stopped = true;
@@ -116,7 +119,7 @@ export async function startLocalE2EServer(options?: {
 				await exitPromise;
 			}
 			try {
-				await waitForLocalE2EServerRelease();
+				await waitForLocalE2EServerRelease(port);
 			} catch {
 				// A delayed listener is rechecked strictly by the next start.
 			}
