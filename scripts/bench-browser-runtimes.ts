@@ -89,6 +89,7 @@ export type BrowserBenchmarkRun = {
 	warmupsPerProfile: number;
 	canonicalRoutes: number;
 	profiles: BrowserProfileResult[];
+	screeningFinalists: string[];
 	finalists: string[];
 	finalistSchedule: string[][];
 	locks: string[];
@@ -387,6 +388,9 @@ export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, pro
 	const screening: BrowserProfileResult[] = [];
 	for (const profile of profiles) screening.push(await runProfile(profile, SCREENING_REPETITIONS));
 	const screeningFinalists = selectNonDominated(screening.map((result) => ({ ...result, interleaved: true })));
+	if (screeningFinalists.length === 0) {
+		screeningFinalists.push(...screening.filter((result) => result.valid && result.aggregate).map((result) => result.profile.id));
+	}
 	const confirmed = await runColdFinalistsInterleaved(
 		profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "cold"),
 		repetitions,
@@ -407,7 +411,7 @@ export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, pro
 	const results = profiles.map((profile) => confirmed.get(profile.id) ?? screening.find((result) => result.profile.id === profile.id)!);
 	const finalists = selectNonDominated(results);
 	for (const result of results) result.nonDominated = finalists.includes(result.profile.id);
-	return { schemaVersion: 2, commit: await commit(), timestamp: new Date().toISOString(), host: await collectHostMeta(), repetitions, screeningRepetitions: SCREENING_REPETITIONS, warmupsPerProfile: WARMUP_COUNT, canonicalRoutes: BROWSER_SMOKE_ROUTE_IDS.length, profiles: results, finalists, finalistSchedule, locks: ["/tmp/praxis-playwright.lock", join(tmpdir(), "creatista-test.lock")], serializedQueueThroughput: results.map((result) => ({ profile: result.profile.id, samplesPerMinute: result.aggregate?.medianMs ? 60_000 / result.aggregate.medianMs : 0 })) };
+	return { schemaVersion: 2, commit: await commit(), timestamp: new Date().toISOString(), host: await collectHostMeta(), repetitions, screeningRepetitions: SCREENING_REPETITIONS, warmupsPerProfile: WARMUP_COUNT, canonicalRoutes: BROWSER_SMOKE_ROUTE_IDS.length, profiles: results, screeningFinalists, finalists, finalistSchedule, locks: ["/tmp/praxis-playwright.lock", join(tmpdir(), "creatista-test.lock")], serializedQueueThroughput: results.map((result) => ({ profile: result.profile.id, samplesPerMinute: result.aggregate?.medianMs ? 60_000 / result.aggregate.medianMs : 0 })) };
 }
 
 export async function main(args = process.argv.slice(2)): Promise<void> {
