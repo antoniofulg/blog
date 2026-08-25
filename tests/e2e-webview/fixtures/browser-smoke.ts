@@ -95,11 +95,23 @@ function bunVersion(): string {
 	return Bun.version;
 }
 
-function chromiumPath(profile: HybridDriverProfile): string {
+export function requireChromiumPath(profile: HybridDriverProfile): string {
 	if (!profile.executablePath) {
 		throw new Error(`missing Chromium executable for ${profile.project}`);
 	}
 	return profile.executablePath;
+}
+
+export function assertBunWebViewAvailable(runtime: unknown): void {
+	if (
+		typeof runtime !== "object" ||
+		runtime === null ||
+		typeof Reflect.get(runtime, "WebView") !== "function"
+	) {
+		throw new Error(
+			"Bun.WebView is unavailable; hybrid WebView projects do not fall back to Playwright Page",
+		);
+	}
 }
 
 export function failureNeedsScreenshot(
@@ -117,8 +129,13 @@ export async function initializeWebView(view: {
 	return String(await view.evaluate("navigator.userAgent"));
 }
 
-async function attachFailureScreenshot(
-	testInfo: TestInfo,
+export type ScreenshotTestInfo = Pick<
+	TestInfo,
+	"attach" | "expectedStatus" | "status"
+>;
+
+export async function attachFailureScreenshot(
+	testInfo: ScreenshotTestInfo,
 	screenshot: () => Promise<Buffer>,
 ): Promise<void> {
 	if (!failureNeedsScreenshot(testInfo.status, testInfo.expectedStatus)) return;
@@ -163,7 +180,7 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 		if (profile.driver === "playwright-page") {
 			const browser = await chromium.launch({
 				headless: true,
-				executablePath: chromiumPath(profile),
+				executablePath: requireChromiumPath(profile),
 			});
 			const context = await browser.newContext({ viewport: HYBRID_VIEWPORT });
 			const page = await context.newPage();
@@ -202,6 +219,7 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 			return;
 		}
 
+		assertBunWebViewAvailable(typeof Bun === "undefined" ? undefined : Bun);
 		const view = new Bun.WebView({
 			width: HYBRID_VIEWPORT.width,
 			height: HYBRID_VIEWPORT.height,
@@ -209,7 +227,7 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 			backend:
 				profile.engine === "webkit"
 					? "webkit"
-					: { type: "chrome", path: chromiumPath(profile) },
+					: { type: "chrome", path: requireChromiumPath(profile) },
 		});
 		const browserVersion = await initializeWebView(view);
 		const readyAt = performance.now();

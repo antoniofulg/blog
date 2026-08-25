@@ -11,7 +11,7 @@ import {
 	type BrowserSmokeObservation,
 } from "#/lib/browser-bench/contract";
 import { collectHostMeta } from "#/lib/bench/host.server";
-import { spawnMeasured } from "#/lib/bench/runner.server";
+import { spawnMeasured, type MeasuredRun } from "#/lib/bench/runner.server";
 import { classifyDelta } from "#/lib/bench/stats";
 import type { Aggregate, HostMeta } from "#/lib/bench/types";
 import {
@@ -374,7 +374,9 @@ function summarize(
 	};
 }
 
-function comparisons(summaries: HybridProfileSummary[]): HybridComparison[] {
+export function buildHybridComparisons(
+	summaries: HybridProfileSummary[],
+): HybridComparison[] {
 	return HYBRID_PHASES.flatMap((phase) => {
 		const baseline = summaries.find(
 			(summary) => summary.phase === phase && summary.profile === "playwright-page",
@@ -435,6 +437,19 @@ function comparisons(summaries: HybridProfileSummary[]): HybridComparison[] {
 	});
 }
 
+export function measurementInvalidReasons(
+	measured: Pick<
+		MeasuredRun,
+		"cleanupVerified" | "exitCode" | "timedOut"
+	>,
+): string[] {
+	const reasons: string[] = [];
+	if (measured.exitCode !== 0) reasons.push(`exit code ${measured.exitCode}`);
+	if (measured.timedOut) reasons.push("timed out");
+	if (!measured.cleanupVerified) reasons.push("process group cleanup failed");
+	return reasons;
+}
+
 async function externalContamination(): Promise<string | undefined> {
 	try {
 		const { stdout } = await exec("ps", ["-axo", "pid=,pgid=,command="]);
@@ -487,9 +502,7 @@ async function sample(
 	const finishedAt = new Date().toISOString();
 	const output = parseHybridHarnessOutput(measured.stdout);
 	const invalidReasons = validateHybridHarnessResult(output, profile, phase);
-	if (measured.exitCode !== 0) invalidReasons.push(`exit code ${measured.exitCode}`);
-	if (measured.timedOut) invalidReasons.push("timed out");
-	if (!measured.cleanupVerified) invalidReasons.push("process group cleanup failed");
+	invalidReasons.push(...measurementInvalidReasons(measured));
 	const contamination = await externalContamination();
 	if (contamination) invalidReasons.push(`external browser contamination: ${contamination}`);
 
@@ -663,7 +676,7 @@ export async function runHybridBenchmark(
 		schedule,
 		samples,
 		summaries,
-		comparisons: comparisons(summaries),
+		comparisons: buildHybridComparisons(summaries),
 		locks: [CRM_LOCK_PATH, ANTCLIPS_LOCK_PATH],
 	};
 }

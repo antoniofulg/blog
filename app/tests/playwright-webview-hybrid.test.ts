@@ -7,17 +7,79 @@ import {
 	shouldSuppressPostViewAnalytics,
 } from "#/routes/{-$locale}/$slug.server";
 import {
+	buildHybridComparisons,
 	buildHybridSchedule,
 	commandForHybridProfile,
+	type HybridHarnessResult,
+	type HybridPhase,
+	type HybridProfile,
+	type HybridProfileSummary,
+	measurementInvalidReasons,
 	parseHybridHarnessOutput,
 	validateHybridHarnessResult,
 } from "../../scripts/bench-playwright-webview-hybrid";
 import {
+	assertBunWebViewAvailable,
+	attachFailureScreenshot,
 	driverProfileForProject,
 	failureNeedsScreenshot,
 	HYBRID_DRIVER_PROFILES,
+	type HybridDriverProfile,
 	initializeWebView,
+	requireChromiumPath,
+	type ScreenshotTestInfo,
 } from "../../tests/e2e-webview/fixtures/browser-smoke";
+
+function harnessResult(
+	profile: HybridProfile,
+	phase: HybridPhase,
+): HybridHarnessResult {
+	return {
+		schemaVersion: 1,
+		profile,
+		phase,
+		startupMs: 40,
+		driverSetupMs: 30,
+		warmupMs: phase === "warm" ? 12 : null,
+		actionMs: 10,
+		routes: BROWSER_SMOKE_ROUTE_IDS.map((id) => ({ id, passed: true })),
+		passed: true,
+		runtimeVersion: "1.4.0",
+		browserVersion: "browser/1",
+	};
+}
+
+function harnessOutput(result: HybridHarnessResult) {
+	return {
+		result,
+		teardown: { profile: result.profile, teardownMs: 3 },
+	};
+}
+
+const METRIC = { median: 10, min: 9, max: 11, sampleCount: 5 };
+
+function profileSummary(
+	profile: HybridProfile,
+	valid: boolean,
+): HybridProfileSummary {
+	return {
+		profile,
+		phase: "cold",
+		valid,
+		invalidReasons: valid ? [] : ["process group cleanup failed"],
+		warmupCommandWallMs: 10,
+		sampleCount: valid ? 5 : 0,
+		wall: METRIC,
+		startup: METRIC,
+		driverSetup: METRIC,
+		internalWarmup: null,
+		action: METRIC,
+		teardown: METRIC,
+		runnerOverhead: METRIC,
+		peakRss: METRIC,
+		rssTime: METRIC,
+	};
+}
 
 describe("Playwright Test WebView hybrid fixture", () => {
 	test("maps the Page and WebView projects to explicit browser drivers", () => {
@@ -67,9 +129,71 @@ describe("Playwright Test WebView hybrid fixture", () => {
 		);
 	});
 
-	test("captures screenshots only for unexpected test outcomes", () => {
+	test("captures screenshots only for unexpected test outcomes", async () => {
 		expect(failureNeedsScreenshot("failed", "passed")).toBe(true);
 		expect(failureNeedsScreenshot("passed", "passed")).toBe(false);
+
+		const attachments: Array<{
+			body?: Buffer | string;
+			contentType?: string;
+			name: string;
+		}> = [];
+		const failedInfo: ScreenshotTestInfo = {
+			status: "failed",
+			expectedStatus: "passed",
+			attach: async (name, options) => {
+				if (!options) throw new Error("attachment options are required");
+				attachments.push({
+					name,
+					...(options.body === undefined ? {} : { body: options.body }),
+					...(options.contentType === undefined
+						? {}
+						: { contentType: options.contentType }),
+				});
+			},
+		};
+		const png = Buffer.from([0x89, 0x50, 0x4e, 0x47]);
+		await attachFailureScreenshot(failedInfo, async () => png);
+		expect(attachments).toEqual([
+			{ name: "failure.png", body: png, contentType: "image/png" },
+		]);
+
+		await attachFailureScreenshot(
+			{ ...failedInfo, status: "passed" },
+			async () => png,
+		);
+		expect(attachments).toHaveLength(1);
+
+		attachments.length = 0;
+		await attachFailureScreenshot(failedInfo, async () => {
+			throw new Error("capture failed");
+		});
+		expect(attachments[0]?.name).toBe("failure-screenshot-error.txt");
+		expect(attachments[0]?.contentType).toBe("text/plain");
+		expect(attachments[0]?.body?.toString()).toContain("capture failed");
+	});
+
+	test("fails WebView projects instead of falling back when Bun.WebView is absent", () => {
+		expect(() => assertBunWebViewAvailable(undefined)).toThrow(
+			"Bun.WebView is unavailable; hybrid WebView projects do not fall back to Playwright Page",
+		);
+		expect(() => assertBunWebViewAvailable({ version: "1.4.0" })).toThrow(
+			"Bun.WebView is unavailable",
+		);
+		expect(() =>
+			assertBunWebViewAvailable({ WebView: Bun.WebView }),
+		).not.toThrow();
+	});
+
+	test("rejects a missing Chromium executable before launching its profile", () => {
+		const profile: HybridDriverProfile = {
+			project: "bun-webview-chrome",
+			driver: "bun-webview",
+			engine: "chromium",
+		};
+		expect(() => requireChromiumPath(profile)).toThrow(
+			"missing Chromium executable for bun-webview-chrome",
+		);
 	});
 
 	test("probes WebView status without replaying the route body", () => {
@@ -131,19 +255,7 @@ describe("Playwright Test WebView hybrid fixture", () => {
 	});
 
 	test("parses matched lifecycle markers and rejects route drift", () => {
-		const result = {
-			schemaVersion: 1,
-			profile: "bun-webview-webkit",
-			phase: "warm",
-			startupMs: 40,
-			driverSetupMs: 30,
-			warmupMs: 12,
-			actionMs: 10,
-			routes: BROWSER_SMOKE_ROUTE_IDS.map((id) => ({ id, passed: true })),
-			passed: true,
-			runtimeVersion: "1.4.0",
-			browserVersion: "AppleWebKit/620",
-		};
+		const result = harnessResult("bun-webview-webkit", "warm");
 		const output = parseHybridHarnessOutput(
 			`runner output\nHYBRID_BROWSER_RESULT ${JSON.stringify(result)}\nHYBRID_BROWSER_TEARDOWN ${JSON.stringify({ profile: result.profile, teardownMs: 3 })}\n`,
 		);
@@ -164,6 +276,78 @@ describe("Playwright Test WebView hybrid fixture", () => {
 				"warm",
 			),
 		).toContain("invalid five-route outcome");
+		expect(
+			validateHybridHarnessResult(
+				{ ...output, result: { ...result, warmupMs: null } },
+				"bun-webview-webkit",
+				"warm",
+			),
+		).toContain("warm sample is missing internal warmup");
+		expect(
+			validateHybridHarnessResult(
+				{ ...output, result: { ...result, runtimeVersion: "1.5.0" } },
+				"bun-webview-webkit",
+				"warm",
+			),
+		).toContain("runtime is not Bun 1.4");
+	});
+
+	test("keeps Page and WebKit valid when only the WebView Chrome harness fails", () => {
+		expect(
+			validateHybridHarnessResult(
+				harnessOutput(harnessResult("playwright-page", "cold")),
+				"playwright-page",
+				"cold",
+			),
+		).toEqual([]);
+		expect(
+			validateHybridHarnessResult(
+				harnessOutput(harnessResult("bun-webview-webkit", "cold")),
+				"bun-webview-webkit",
+				"cold",
+			),
+		).toEqual([]);
+		expect(
+			validateHybridHarnessResult(
+				{ result: undefined, teardown: undefined },
+				"bun-webview-chrome",
+				"cold",
+			),
+		).toEqual(["missing result marker"]);
+	});
+
+	test("invalidates timeout, exit, and process cleanup failures", () => {
+		expect(
+			measurementInvalidReasons({
+				exitCode: 3,
+				timedOut: true,
+				cleanupVerified: false,
+			}),
+		).toEqual(["exit code 3", "timed out", "process group cleanup failed"]);
+		expect(
+			measurementInvalidReasons({
+				exitCode: 0,
+				timedOut: false,
+				cleanupVerified: true,
+			}),
+		).toEqual([]);
+	});
+
+	test("produces no winner metrics for an invalid candidate cohort", () => {
+		const comparison = buildHybridComparisons([
+			profileSummary("playwright-page", true),
+			profileSummary("bun-webview-chrome", false),
+		]).find((entry) => entry.profile === "bun-webview-chrome");
+		expect(comparison).toEqual({
+			phase: "cold",
+			profile: "bun-webview-chrome",
+			scope: "engine-matched",
+			valid: false,
+			wall: null,
+			action: null,
+			peakRssDeltaPct: null,
+			rssTimeDeltaPct: null,
+		});
 	});
 
 	test("suppresses post analytics only in an isolated browser-smoke server", async () => {
