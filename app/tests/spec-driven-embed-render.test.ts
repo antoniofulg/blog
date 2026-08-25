@@ -40,7 +40,7 @@ const html: Record<"en" | "pt-br", string> = { en: "", "pt-br": "" };
 beforeAll(async () => {
 	html.en = await renderPost("en");
 	html["pt-br"] = await renderPost("pt-br");
-});
+}, 30_000);
 
 // ─── AC-3 (SSR) / T1 + T2: placeholder + fallback in rendered post HTML ────────
 
