@@ -1,184 +1,159 @@
-# Browser Runtime Revalidation Validation — Iteration 3
+# Browser Runtime Revalidation Validation — Iteration 4
 
 **Verdict**: FAIL
-**Date**: 2026-08-24
+**Date**: 2026-08-25
 **Spec**: `.specs/features/browser-runtime-revalidation/spec.md`
-**Diff range**: `68138dd^..85c71ce`
-**Iteration-3 commits**: `09c0ef7`, `fccd508`, `7fda7f2`, `85c71ce`
+**Diff range**: `68138dd^..c7c9cff`
+**Iteration-4 commits**: `261798d`, `c7c9cff`
 **Verifier**: independent sub-agent (author != verifier)
 
-Iteration 3 fixes the exact Playwright inventory, one-warm-up coordinator, per-pass WebView timing, empirical provenance, setup duration, fresh full screening, selected warm finalist confirmations, report links, and metric table. Three blockers remain:
+Iteration 4 closes Node 24, persistent warm sessions, one warm-up per profile, exact inventory, provenance, setup timing, corrected GiB·s units, Pareto wording, and fresh evidence. One protocol blocker remains: the 36-entry `executionTrace` does not show six-profile interleaving. It concatenates the complete Playwright trace and the complete WebView trace, resets `sequence` to zero between cohorts, then derives a mixed schedule by sorting duplicate sequence numbers. Timestamps prove all Playwright samples finished before the first warm WebView pass.
 
-1. The spec requires Node 24. Both fresh runs measured Node **22.23.1**.
-2. Warm finalist passes are not interleaved with other profiles. Code executes all cold confirmations first, then each warm profile's complete six-pass session sequentially, while raw metadata claims a six-profile round-robin schedule.
-3. Fresh confirmation marks only `webview:webkit:warm:1view:smol` non-dominated, but README/STATE say both warm profiles are confirmed non-dominated.
-
-Because BRR-02/BRR-05 and the final report are not closed, T2/T4/T5/T6 cannot pass.
+The report therefore cannot claim that all six confirmation profiles were run in the recorded round-robin schedule. BRR-05 remains failed, and T4/T5/T6 are not closed.
 
 ## Task Completion
 
 | Task | Status | Evidence |
 | --- | --- | --- |
-| T1 | PASS | Canonical five-route contract remains exact at `app/lib/browser-bench/contract.ts:1`. |
-| T2 | FAIL | Exact Node/Bun worker arms and inventory exist, but Node arms used 22.23.1 rather than required Node 24. |
-| T3 | PASS | WebKit/Chrome are screened separately; WebView exact outcomes, backend provenance, pass timing, view closure, and process cleanup are retained. Unavailable Chrome arms are invalidated with exit/missing-outcome reasons. |
-| T4 | FAIL | Screening/Pareto/cold-warm mechanics pass, but warm confirmations are labeled interleaved without being scheduled round-robin. |
-| T5 | FAIL | Raw counts/math are internally consistent, but runtime and schedule do not match the approved protocol. |
-| T6 | FAIL | Comparison table and links pass; decision misstates the final Pareto set and omits that “Node” evidence is Node 22 rather than Node 24. |
+| T1 | PASS | Canonical five-route contract and normalization are exact. |
+| T2 | PASS | Node 24.19.0/Bun 1.4.0, workers 1/2, exact setup + five-route inventory, one warm-up and 5/5 measured samples are retained. Playwright arms are interleaved with each other. |
+| T3 | PASS | WebKit/Chrome matrix was screened; exact WebKit outcomes, backend provenance, persistent sessions, view/process cleanup and local-only isolation pass. |
+| T4 | FAIL | Warm profiles are persistent and interleaved with each other, but not with the four Playwright profiles despite the six-profile schedule claim. |
+| T5 | FAIL | Raw samples are valid, but `executionTrace`/`finalistSchedule` misrepresent global execution order. Both-lock acquisition is asserted, not self-enforced by the benchmark entry point. |
+| T6 | FAIL | Metrics and Pareto decision are corrected, but README says the local benchmark gate is met using a false global interleaving claim. |
 
 ## BRR Requirement Verdicts
 
-| Requirement | Required outcome | Iteration-3 evidence | Result |
+| Requirement | Required outcome | Iteration-4 evidence | Result |
 | --- | --- | --- | --- |
-| BRR-01 | Same exact five-route Playwright inventory in every arm | Grep at `scripts/bench-e2e-runtimes.ts:31` excludes `/en/`; parser rejects unknown/duplicate inventory at `scripts/bench-browser-runtimes.ts:187`. Fresh locked smoke ran setup + exactly five public tests. Raw inventory is 6 with one setup. | PASS |
-| BRR-02 | Node 24/Bun 1.4 workers 1/2; one warm-up and five valid interleaved samples | All four arms have one warm-up + 5/5 valid measured samples. Bun is 1.4.0. Node samples record `runtimeVersion: "22.23.1"`, e.g. `run-2026-08-25T02-34-46-895Z.json:94`, contradicting `spec.md:35`. | FAIL |
-| BRR-03 | Equivalent WebKit/Chrome smoke with deterministic cleanup and local-only status | Full matrix contains every backend/session/view/`--smol` arm. WebKit exact outcomes pass; Chrome unavailability is retained as invalid evidence. All measured groups record cleanup verification; WebView closes views in `finally`. | PASS |
-| BRR-04 | Cold/warm/serial/two-view/`--smol` screening and non-dominated finalist selection | `run-2026-08-25T02-31-40-880Z.json` has one warm-up + three screening samples or bounded invalid attempts for all 20 arms. Programmatic screening selected WebKit cold 1-view plus warm 1-view normal/`--smol`; confirmation reduced final Pareto to the two warm profiles. | PASS |
-| BRR-05 | Controlled repeated process-tree benchmark, exact provenance, one warm-up, five interleaved samples, contamination/cleanup, time/RSS/RSS×time | Counts, exact outcomes, process-tree RSS, cleanup, contamination, pass durations, browser/Bun provenance, setup ms, and math pass. Node provenance fails. Actual warm execution is sequential despite `finalistSchedule` claiming interleaving. | FAIL |
-| BRR-06 | Coverage-aware local-only decision, correct time/RSS/RSS×time/throughput comparison, unchanged defaults/CI/config | Metric math/table and unchanged defaults pass. Final confirmation's `finalists` contains only warm `--smol`, while README/STATE call both warm profiles non-dominated. Node 22 evidence is presented as satisfying the Node comparison without qualification. | FAIL |
+| BRR-01 | Identical exact five-route Playwright inventory | Exact grep and parser reject `/en/`/unknown tests. Fresh locked Chromium smoke ran one setup + five public outcomes, 6/6 passed. Every raw Playwright sample has inventory 6, setup 1, routes 5. | PASS |
+| BRR-02 | Node 24/Bun 1.4 workers 1/2, one warm-up, five valid interleaved samples | Raw records Node 24.19.0 and Bun 1.4.0; each arm has one warm-up, 5/5 valid samples, zero exclusions/reasons. Four Playwright arms are round-robin within the cold cohort. | PASS |
+| BRR-03 | Equivalent WebKit/Chrome smoke, cleanup, local-only | Full screening covers WebKit/Chrome cold/warm, one/two views and `--smol`; unavailable/failed arms remain invalidated. Selected WebKit warm profiles retain exact five outcomes, AppleWebKit provenance and verified cleanup. | PASS |
+| BRR-04 | Cold/warm/parallel/`--smol` screening and non-dominated finalist confirmation | Fresh screening selected the WebKit one-view candidates. Iteration-4 confirmation has both warm profiles at 5/5; raw Pareto correctly contains only `webview:webkit:warm:1view:smol`. | PASS |
+| BRR-05 | Controlled repeated process-tree benchmark with one warm-up, five globally interleaved finalist samples, exact provenance/outcomes, contamination/cleanup and metrics | All fields/math pass except global interleaving. `runBrowserConfirmations()` awaits cold cohort, then warm cohort at `scripts/bench-browser-runtimes.ts:666`; raw timestamps show the same separation. | FAIL |
+| BRR-06 | Coverage-aware local-only decision, correct time/RSS/RSS×time/throughput, unchanged defaults/CI/config | Metrics, units, links, Pareto and unchanged defaults pass. README incorrectly concludes the benchmark gate is met while the trace contradicts its six-profile schedule. | FAIL |
 
-## Exact Inventory and Outcomes
+## Fresh Confirmation Evidence
 
-Fresh Chromium gate under CRM + Antclips locks:
+Artifact: `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-25T04-16-32-724Z.json`.
 
-- 1 setup test: `authenticate as admin`.
-- 5 canonical public tests: English post, Portuguese post, not-found, `/pt-br/`, `/`.
-- `/en/` no longer selected.
-- Result: 6/6 passed.
+| Profile | Provenance | Warm-ups | Valid samples | Cleanup | Contamination | Final Pareto |
+| --- | --- | ---: | ---: | --- | --- | --- |
+| Playwright Node w1 | Node 24.19.0 / Chromium 148.0.7778.96 | 1 | 5/5 | verified | none | no |
+| Playwright Bun w1 | Bun 1.4.0 / Chromium 148.0.7778.96 | 1 | 5/5 | verified | none | no |
+| Playwright Node w2 | Node 24.19.0 / Chromium 148.0.7778.96 | 1 | 5/5 | verified | none | no |
+| Playwright Bun w2 | Bun 1.4.0 / Chromium 148.0.7778.96 | 1 | 5/5 | verified | none | no |
+| WebKit warm 1-view | Bun 1.4.0 / AppleWebKit 605.1.15 | 1 | 5/5 | verified | none | no |
+| WebKit warm 1-view `--smol` | Bun 1.4.0 / AppleWebKit 605.1.15 | 1 | 5/5 | verified | none | yes |
 
-Every valid Playwright confirmation sample contains:
+All profile-level outcome evidence is sound:
 
-- `inventory: 6`
-- `setupOverhead: 1`
-- five route identities in canonical order, all passed
-- measured `setupOverheadMs`
+- exact canonical routes in stable order;
+- Playwright inventory 6 = setup 1 + public outcomes 5;
+- measured setup duration per Playwright sample;
+- no `extraWarmups`, exclusions, unresolved invalid reasons or contamination;
+- true warm WebView processes remain alive across warm-up + five passes;
+- process-tree peak RSS and cleanup verification are retained.
 
-Every valid WebKit confirmation sample contains the same five route identities. WebView additionally retains HTTP statuses, including 404 for the unknown post. The native Playwright tests assert route status/content at `tests/e2e/public-read.spec.ts:20`, `tests/e2e/public-read.spec.ts:47`, `tests/e2e/public-read.spec.ts:178`, and `tests/e2e/public-read.spec.ts:202`.
+## Execution Trace Blocker
 
-**Outcome status**: PASS.
+The raw contains 36 entries: six warm-ups and 30 measured samples. It is not a single global sequence:
 
-## Fresh Screening
+- `executionTrace[0..23]` contains every Playwright warm-up/sample.
+- `executionTrace[24..35]` contains every warm WebView warm-up/sample.
+- Cold trace sequences run `0..23`; warm trace restarts at `0..11` (`run-2026-08-25T04-16-32-724Z.json:2801` and `run-2026-08-25T04-16-32-724Z.json:2993`). Only 24 of 36 sequence values are unique.
+- Last Playwright timestamp: `2026-08-25T04:16:18.544Z`.
+- First warm WebView timestamp: `2026-08-25T04:16:21.822Z`.
 
-Artifact: `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-25T02-31-40-880Z.json`.
+Actual measured order is all 20 Playwright samples, followed by all 10 WebView samples. The declared `finalistSchedule` mixes Playwright and WebView within every round.
 
-- Schema 2, commit `fccd508`.
-- 20 requested profiles present.
-- `screeningRepetitions: 3`, `warmupsPerProfile: 1`.
-- Playwright Node/Bun workers 1/2: 3/3 valid screening samples each.
-- WebKit/Chrome cold/warm, 1/2 views, normal/`--smol`: all attempted.
-- Invalid profiles retain exit/outcome/sample-count reasons. Chrome profiles consistently exit 1 with missing smoke output and are excluded rather than ranked.
-- Screening finalists: WebKit cold 1-view, WebKit warm 1-view, WebKit warm 1-view `--smol`.
-- After five-sample confirmation inside the run, final non-dominated profiles are both warm variants.
-- Warm samples use actual varying `passDurationsMs`; cold samples restart server/browser/process.
-- No extra warm-ups.
+Root cause:
 
-**Screening status**: PASS.
+1. `runBrowserConfirmations()` completes `runColdFinalistsInterleaved()` before starting `runWarmFinalistsInterleaved()` at `scripts/bench-browser-runtimes.ts:664`.
+2. It concatenates two independently numbered traces at line 669.
+3. `deriveFinalistSchedule()` sorts by duplicated `sequence` values at line 333, creating an order that never occurred.
+4. `traceIsInterleaved()` validates only round membership, not chronological alternation or unique/monotonic global sequence at line 341.
+5. Cold `startedAt`/`finishedAt` timestamps are written after execution and are equal at `scripts/bench-browser-runtimes.ts:521`, so those entries are not real start/finish measurements.
 
-## Fresh Confirmation
+Warm profiles are genuinely persistent and alternate with each other. Playwright profiles genuinely alternate with each other. The combined six-profile schedule is not genuine.
 
-Artifact: `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-25T02-34-46-895Z.json`.
+**Trace status**: FAIL.
 
-| Profile | Runtime provenance | Warm-ups | Valid samples | Invalid reasons | Raw `interleaved` |
-| --- | --- | ---: | ---: | ---: | --- |
-| Playwright Node w1 | Node 22.23.1 | 1 | 5/5 | 0 | true |
-| Playwright Bun w1 | Bun 1.4.0 | 1 | 5/5 | 0 | true |
-| Playwright Node w2 | Node 22.23.1 | 1 | 5/5 | 0 | true |
-| Playwright Bun w2 | Bun 1.4.0 | 1 | 5/5 | 0 | true |
-| WebKit warm 1-view | Bun 1.4.0 / AppleWebKit 605.1.15 | 1 | 5/5 | 0 | true |
-| WebKit warm 1-view `--smol` | Bun 1.4.0 / AppleWebKit 605.1.15 | 1 | 5/5 | 0 | true |
-
-Counts, outcomes, contamination, cleanup, and provenance fields are internally consistent. `extraWarmups` is absent/empty.
-
-### Interleaving blocker
-
-Raw `finalistSchedule` declares each round in this order:
-
-`Node1 → Bun1 → Node2 → Bun2 → WebKit warm → WebKit warm smol`
-
-The implementation does not execute that order:
-
-1. `runBrowserConfirmations()` awaits all cold profiles through `runColdFinalistsInterleaved()` at `scripts/bench-browser-runtimes.ts:465`.
-2. Only after every cold round finishes does it call `runWarmFinalistsInterleaved()` at line 466.
-3. `runWarmFinalistsInterleaved()` loops profiles at line 405 and runs all warm-up + five passes for one profile before starting the next.
-4. It then assigns `result.interleaved = true` at line 409.
-5. `finalistSchedule` is generated independently from desired IDs at line 471; it is not an execution trace.
-
-Thus Playwright measured samples are interleaved with each other, but neither warm finalist is interleaved with Playwright or with the other warm finalist. This directly violates the finalist criterion at `spec.md:54`.
-
-**Confirmation status**: FAIL.
-
-## Cold/Warm, Provenance, Cleanup, and Contamination
+## Inventory, Lifecycle, Provenance, and Controls
 
 | Check | Result | Evidence |
 | --- | --- | --- |
-| Cold lifecycle | PASS | Cold WebView restarts server/browser/process per sample at `scripts/bench-browser-runtimes.ts:311` and `scripts/bench-browser-runtimes.ts:356`. |
-| Warm lifecycle | PASS | One server/process runs warm-up + passes at `scripts/bench-browser-runtimes.ts:331`. |
-| Actual warm pass durations | PASS | WebView emits them at `scripts/run-e2e-webview.ts:304`; runner consumes `data.passDurationsMs[index + 1]` at `scripts/bench-browser-runtimes.ts:340`. |
-| One warm-up/profile | PASS | Fresh raw has one `warmup`, no `extraWarmups`, and metadata 1. |
-| Node runtime | FAIL | Empirical provenance is 22.23.1; required version is 24. |
-| Bun/server runtime | PASS | 1.4.0 in every relevant sample. |
-| Chromium provenance | PASS | `Google Chrome for Testing 148.0.7778.96`. |
-| WebKit provenance | PASS | Runtime-emitted AppleWebKit user-agent string. |
-| Setup duration | PASS | Exact setup spec duration is summed at `scripts/bench-browser-runtimes.ts:188`; raw contains one setup and measured ms. |
-| Process-tree RSS | PASS | Parent/descendant sampling at `app/lib/bench/runner.server.ts:50`. |
-| Cleanup | PASS | Process group verification/TERM/KILL at `app/lib/bench/runner.server.ts:103`; valid samples all true. |
-| Contamination | PASS | Before/during/after sensor at `scripts/bench-browser-runtimes.ts:263`; valid samples all false for detection. |
+| Exact setup + five public tests | PASS | Fresh locked Chromium gate 6/6; parser at `scripts/bench-browser-runtimes.ts:166` |
+| Node runtime | PASS | Node command pins `mise exec node@24`; runtime validator at line 248; raw 24.19.0 |
+| Bun runtime | PASS | Raw 1.4.0 |
+| Cold boundaries | PASS | Server/browser/process restarted per sample |
+| Warm boundaries | PASS | Persistent stdin-driven sessions at `scripts/bench-browser-runtimes.ts:356`; pass loop at line 573 |
+| Actual per-pass timing | PASS | Persistent WebView emits one pass duration and coordinator measures each command round |
+| One warm-up/profile | PASS | Raw metadata 1 and exactly six warm-up trace entries |
+| Setup timing | PASS | Measured setup-spec duration retained |
+| Process-tree RSS | PASS | Descendant sampling via `groupRssBytes()` |
+| Cleanup | PASS | Cold and persistent warm process groups verified; raw all true |
+| Contamination | PASS | Before/during/after checks; raw all false |
+| Both shared locks | PARTIAL | Raw/README list CRM + Antclips. Entry point at `scripts/bench-browser-runtimes.ts:702` acquires only Antclips `lockf`; an outer CRM lock is required but not encoded or recorded as invocation evidence. |
 
-## Math and Report Consistency
+## Math, Units, Links, and Defaults
 
-Independent recomputation against both new JSON files found no arithmetic mismatch:
+Independent recomputation found no numeric mismatch:
 
-- Per-sample `rssTimeBytesMs = peakRssBytes × durationMs`.
-- Aggregate median time and median RSS match valid samples.
-- `samplesPerMinute = 60000 / medianMs`.
-- README time/RSS/RSS×time/throughput table matches confirmation aggregates after rounding.
-- Every README run link resolves.
-- `package.json`, `playwright.config.ts`, and `.github/**` are unchanged from the pre-feature baseline.
+- every per-sample `rssTimeBytesMs` equals `peakRssBytes × durationMs`;
+- aggregate median time and median peak RSS match valid samples;
+- GiB·s uses `(medianMs / 1000) × (bytes / 1024³)` at `scripts/bench-browser-runtimes.ts:630`;
+- all README GiB·s values now have correct units and rounding;
+- `samplesPerMinute = 60000 / medianMs` for all profiles;
+- README time/RSS/RSS×time/throughput values match raw aggregates;
+- every README link resolves;
+- `package.json`, `playwright.config.ts`, and `.github/**` have zero diff from the pre-feature baseline;
+- final Pareto wording correctly says both warm profiles were confirmed and only `--smol` remains non-dominated.
 
-Remaining decision mismatch:
-
-- Confirmation JSON `finalists` contains only `webview:webkit:warm:1view:smol` because it is faster and lower-RSS in the fresh confirmation.
-- README lines 71-72 and STATE AD-005 call both warm variants “confirmed non-dominated”. Both were confirmed, but only `--smol` remained non-dominated in the final comparison.
+**Math/report status excluding trace claim**: PASS.
 
 ## Fresh Gates
 
-- Focused browser/runner tests: PASS, 5 files / 40 tests, 0 failed, 0 skipped.
-- Full Vitest: PASS, 133 files passed + 3 skipped; 2,288 tests passed + 84 skipped; 0 failed.
-- Biome: exit 0 with six existing `noNonNullAssertion` warnings in `app/tests/bench-browser-runtimes.test.ts`.
+- Focused browser/runner tests: PASS, 5 files / 42 tests, 0 failed, 0 skipped.
+- Full Vitest: PASS, 133 files passed + 3 skipped; 2,290 tests passed + 84 skipped; 0 failed.
+- Biome: exit 0 with six `noNonNullAssertion` warnings in `app/tests/bench-browser-runtimes.test.ts`.
 - TypeScript: PASS.
 - Build: PASS.
 - Test annotation lint: PASS.
-- Fresh exact Chromium smoke: PASS, setup + five public outcomes, 6/6.
-- Defaults/CI/config: PASS, zero diff.
-- Evidence/finalist gate: FAIL due Node version and false warm interleaving claim.
+- Fresh exact Chromium smoke under both locks: PASS, setup + five public outcomes, 6/6.
+- Defaults/CI/config: PASS.
+- Evidence/finalist gate: FAIL due false combined execution trace/schedule.
 
-## Discrimination Sensor — Iteration 3
+## Discrimination Sensor — Iteration 4
 
-Sensor ran in one detached temporary worktree. Worktree was removed/pruned and real-tree porcelain exactly matched baseline, including pre-existing untracked reports.
+Five mutations ran in one detached temporary worktree. Worktree was removed/pruned and real-tree porcelain exactly matched baseline, including pre-existing untracked reports.
 
 | Mutation | Result |
 | --- | --- |
-| Disable Playwright/media-host contamination matcher | KILLED by `app/tests/bench-browser-runtimes.test.ts:203` |
-| Swap warm execution guard to cold | KILLED by `app/tests/bench-browser-runtimes.test.ts:188` |
-| Mark sequential warm confirmations `interleaved = false` | SURVIVED: benchmark/WebView focused files, 11 tests, still passed |
+| Disable external Playwright/media-host contamination matcher | KILLED |
+| Swap warm execution guard to cold | KILLED |
+| Remove per-round profile uniqueness from `traceIsInterleaved()` | SURVIVED: all 11 benchmark tests passed |
+| Accept Node 22 instead of Node 24 | KILLED |
+| Remove ms→s conversion from GiB·s | KILLED |
 
-**Sensor result**: FAIL, 2/3 killed. The surviving mutation targets the unresolved scheduling truth: tests check guard/source fragments and desired schedule formatting, not actual cross-profile execution order.
+**Sensor result**: FAIL, 4/5 killed. The surviving trace mutation confirms tests do not reject duplicate profiles/sequences or prove global chronological interleaving.
 
 ## Required Fix Tasks
 
-1. **Run the Node arms under Node 24.** Validate the executable before measurement and reject any profile whose empirical version does not match the approved runtime. Re-run screening and confirmation.
-2. **Implement or specify genuine warm-session interleaving.** Keep warm processes alive and alternate passes according to the round schedule, or amend the approved spec explicitly before claiming a different protocol. Do not set `interleaved: true` from intent alone.
-3. **Persist actual execution order.** Record timestamps/sequence as samples execute and derive `finalistSchedule` from that trace. Add a behavior test that kills the surviving interleaving mutation.
-4. **Reconcile final Pareto wording.** State that both warm variants were confirmed but only `--smol` is non-dominated in the final confirmation, unless a new run changes the result.
+1. **Create one global finalist coordinator.** Start persistent warm sessions, execute one warm-up per profile, then alternate all six profiles in each measured round. If cross-harness interleaving is intentionally out of scope, update the approved spec before claiming it.
+2. **Use one monotonic global sequence and real timestamps.** Record start before each cold command, finish afterward, and derive schedule from chronological trace order. Reject duplicate sequence IDs and a schedule that differs from timestamp order.
+3. **Strengthen trace discrimination.** Test duplicated profiles, duplicated/reset sequences, cohort-concatenated traces and out-of-order timestamps. The current membership-only predicate is insufficient.
+4. **Make both-lock acquisition reproducible.** Restore a non-deadlocking wrapper or record/validate the required outer CRM lock instead of merely listing both lock paths.
+5. **Re-run the six-profile confirmation and update report.** Preserve Node 24/Bun 1.4, exact outcomes, one warm-up, metrics and Pareto behavior already achieved.
 
 ## Requirement Traceability
 
-| Requirement | Iteration 2 | Iteration 3 |
+| Requirement | Iteration 3 | Iteration 4 |
 | --- | --- | --- |
-| BRR-01 | FAIL | PASS |
-| BRR-02 | FAIL | FAIL |
-| BRR-03 | PARTIAL | PASS |
-| BRR-04 | FAIL | PASS |
+| BRR-01 | PASS | PASS |
+| BRR-02 | FAIL | PASS |
+| BRR-03 | PASS | PASS |
+| BRR-04 | PASS | PASS |
 | BRR-05 | FAIL | FAIL |
 | BRR-06 | FAIL | FAIL |
 
@@ -186,9 +161,9 @@ Sensor ran in one detached temporary worktree. Worktree was removed/pruned and r
 
 **Overall**: NOT READY
 
-**Spec-anchored check**: 3/6 requirements verified; BRR-02, BRR-05, and BRR-06 remain failed.
-**Gates**: code/test/build/browser gates pass; runtime/evidence protocol gate fails.
-**Sensor**: 2/3 mutations killed; warm interleaving mutation survived.
+**Spec-anchored check**: 4/6 requirements verified; BRR-05 and BRR-06 remain failed.
+**Gates**: code/test/build/browser pass; evidence protocol gate fails.
+**Sensor**: 4/5 mutations killed; trace-integrity mutation survived.
 **Defaults/CI/config**: unchanged.
 
-Iteration 3 closes most prior blockers. PASS now requires a Node 24 rerun, genuine/persisted warm interleaving (or an approved spec change), and final Pareto wording consistent with raw evidence.
+Iteration 4 closes every prior measurement and provenance blocker. PASS now requires a genuine global execution trace/schedule (or an approved cohort-level interleaving spec) and reproducible proof of both locks.
