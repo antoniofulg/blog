@@ -114,7 +114,7 @@ faster smoke harness is not mistaken for complete E2E coverage.
 | BTC-02 | Preserve test inventory | Execute | Implementing |
 | BTC-03 | Remove obsolete Vitest surface | Execute | Implementing |
 | BTC-04 | Preserve DOM behavior | Execute | Implementing |
-| BTC-05 | Preserve browser boundary | Execute | Pending |
+| BTC-05 | Preserve browser boundary | Execute | Implementing |
 | BTC-06 | Document direct comparison | Execute | Pending |
 
 **Coverage:** 6 total, 6 mapped to tasks, 0 unmapped.

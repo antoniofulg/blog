@@ -83,7 +83,7 @@ preview: ## Run production image locally (validates build before deploy; require
 
 # -- Quality Gates -------------------------------------------------------------
 
-test: ## Run Vitest test suite
+test: ## Run native Bun Test suite
 	bun run test
 	@echo "Tests complete. Next: make lint | make check"
 

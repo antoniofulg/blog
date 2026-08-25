@@ -7,18 +7,19 @@ const ci = readFileSync(join(root, ".github/workflows/ci.yml"), "utf8");
 const playwright = readFileSync(join(root, "playwright.config.ts"), "utf8");
 
 describe("CI Bun runtime contract", () => {
-	it("runs blocking Vitest through pinned Bun", () => {
+	it("runs the blocking test gate through pinned Bun", () => {
 		expect(ci).toContain(
 			"check: [test, lint, check, build-js, e2e, lint-tests]",
 		);
 		expect(ci).toContain('bun-version: "1.4.0"');
 		expect(ci).not.toContain("uses: actions/setup-node@v4");
-		expect(ci).not.toContain("bun-test-shadow");
+		expect(ci).toContain("make $" + "{{ matrix.check }}");
+		expect(ci.toLowerCase()).not.toContain("vitest");
 	});
 
-	it("removes Bun Test candidate and parity routes", () => {
+	it("keeps retired candidate and parity routes out of CI", () => {
 		expect(ci).not.toContain("test:parity");
-		expect(ci).not.toContain("test:bun");
+		expect(ci).not.toContain("test:bun:parity");
 		expect(ci).not.toContain("write-shadow-result");
 	});
 

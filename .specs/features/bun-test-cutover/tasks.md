@@ -106,9 +106,9 @@ files and 20 active infrastructure files remain represented.
 **Requirement**: BTC-01, BTC-05
 **Tools**: Bun, filesystem
 **Done when**:
-- [ ] CI text and contract tests identify Bun Test as the blocking runner.
-- [ ] Playwright stays Bun-driven with the Node fallback.
-- [ ] Full gate passes.
+- [x] CI text and contract tests identify Bun Test as the blocking runner.
+- [x] Playwright stays Bun-driven with the Node fallback.
+- [x] Focused 20-test contract gate and Chromium Playwright 49/49 pass.
 **Tests**: unit + e2e
 **Gate**: full
 **Commit**: `ci(test): run native Bun Test by default`
