@@ -66,7 +66,7 @@
 - **Feature**: `.specs/features/browser-runtime-revalidation/`
 - **Phase / Task**: Execute remediation harness fixes complete; evidence rerun pending a quiet machine window.
 - **Completed**: Browser schema-2 runner now executes three-sample screening, retains exact route identities, records setup/provenance/lifecycle/contamination/cleanup fields, restarts cold WebView server/browser per sample, and reuses warm WebView sessions across passes. Process-group cleanup is verified and external browser activity is checked before, during and after samples. Focused tests cover boundaries, route parsing, contamination detection, and cleanup.
-- **Evidence**: Schema-2 full runs `run-2026-08-25T00-26-03-716Z`, `run-2026-08-25T00-56-23-164Z`, and targeted `run-2026-08-25T01-01-36-548Z` are committed as audit evidence. Screening produced valid worker-2 and several WebView arms, but external browser trees repeatedly reappeared during confirmation; no finalist is promoted.
-- **Next step**: Obtain a genuinely quiet machine window. Require one warm-up + three valid screening samples for every arm, then five valid interleaved confirmation samples for each non-dominated finalist. Update `validation.md` only after fresh verifier pass.
+- **Evidence**: Valid schema-2 confirmations are committed in `run-2026-08-25T01-23-51-905Z`, `run-2026-08-25T01-25-57-686Z`, `run-2026-08-25T01-37-23-067Z`, and `run-2026-08-25T01-43-21-673Z`. WebKit cold normal/`--smol` and every Playwright Node/Bun worker arm have five valid measured samples, exact five-route outcomes, cleanup/provenance/lifecycle fields, and interleaved schedules. Invalid attempts remain retained in earlier schema-2 runs.
+- **Next step**: Independent verifier must reconcile multi-run finalist evidence and update `validation.md`; defaults/CI remain unchanged.
 - **Defaults / CI**: unchanged.
-- **Commits**: `846303b`, `a4d2e2d`, `a4e6054`, `22b2754`, `c7f389e`, `4407594`.
+- **Commits**: `846303b`, `a4d2e2d`, `a4e6054`, `22b2754`, `c7f389e`, `4407594`, `1001bc2`, `0a69c95`.
