@@ -37,7 +37,7 @@
 
 ### AD-005
 - **Decision**: Keep Playwright as the E2E reference and keep Bun.WebView as an opt-in local five-route diagnostic only.
-- **Reason**: The controlled browser revalidation preserved the five-route outcome contract and process-tree measurements, but WebView remains experimental and lacks Playwright's full suite capabilities. Only Node Playwright worker-1 completed five uncontaminated finalist samples; external browser activity invalidated the remaining confirmation attempt.
+- **Reason**: Fresh schema-2 screening and confirmation preserved the five-route outcome contract and process-tree measurements. Playwright remains the reference because WebView lacks the full suite capabilities; WebKit warm 1-view normal/`--smol` are confirmed non-dominated diagnostic profiles, not replacements.
 - **Trade-off**: The WebView harness and raw profiles remain versioned for future local experiments, while no default, CI, or Playwright configuration changes are made.
 - **Scope**: Browser runtime revalidation feature under `.specs/features/browser-runtime-revalidation/`.
 - **Date**: 2026-08-24
@@ -64,9 +64,9 @@
 ## Browser Runtime Revalidation Handoff
 
 - **Feature**: `.specs/features/browser-runtime-revalidation/`
-- **Phase / Task**: Execute remediation harness fixes complete; evidence rerun pending a quiet machine window.
+- **Phase / Task**: Execute remediation, screening, confirmations, and decision complete.
 - **Completed**: Browser schema-2 runner now executes three-sample screening, retains exact route identities, records setup/provenance/lifecycle/contamination/cleanup fields, restarts cold WebView server/browser per sample, and reuses warm WebView sessions across passes. Process-group cleanup is verified and external browser activity is checked before, during and after samples. Focused tests cover boundaries, route parsing, contamination detection, and cleanup.
-- **Evidence**: Valid schema-2 confirmations are committed in `run-2026-08-25T01-23-51-905Z`, `run-2026-08-25T01-25-57-686Z`, `run-2026-08-25T01-37-23-067Z`, and `run-2026-08-25T01-43-21-673Z`. WebKit cold normal/`--smol` and every Playwright Node/Bun worker arm have five valid measured samples, exact five-route outcomes, cleanup/provenance/lifecycle fields, and interleaved schedules. Invalid attempts remain retained in earlier schema-2 runs.
-- **Next step**: Independent verifier must reconcile multi-run finalist evidence and update `validation.md`; defaults/CI remain unchanged.
+- **Evidence**: Fresh screening is `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-25T02-31-40-880Z.json` with one warmup + three samples per profile and programmatic Pareto selection. Fresh confirmation is `run-2026-08-25T02-34-46-895Z.json`; matched Playwright Node/Bun workers 1/2 plus WebKit warm 1-view normal/`--smol` each have five valid samples, exact five-route outcomes, actual pass durations/provenance, cleanup, and no unresolved invalid reasons.
+- **Next step**: Independent verifier may update `validation.md`; defaults/CI remain unchanged.
 - **Defaults / CI**: unchanged.
 - **Commits**: `846303b`, `a4d2e2d`, `a4e6054`, `22b2754`, `c7f389e`, `4407594`, `1001bc2`, `0a69c95`.
