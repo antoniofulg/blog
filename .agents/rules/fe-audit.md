@@ -11,7 +11,7 @@ a content-layer audit — for MDX source validation, use `content-audit` instead
 > translations). Run both independently — they cover different surfaces.
 
 > **app-audit ≠ a11y-testing**: `a11y-testing` targets component-level a11y in
-> Vitest + jest-axe. `app-audit`'s `a11y-violation` probe is route-level via direct
+> Bun Test + jest-axe. `app-audit`'s `a11y-violation` probe is route-level via direct
 > `AxeBuilder` calls. Both can coexist without conflict.
 
 ## Configuration

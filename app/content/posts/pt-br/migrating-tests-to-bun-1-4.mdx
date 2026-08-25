@@ -1,7 +1,7 @@
 ---
 title: "Migrando o toolchain de testes deste blog para o Bun 1.4: o que mudou"
 slug: migrating-tests-to-bun-1-4
-description: "Uma migração pequena, feita em uma máquina com ruído, de ferramentas baseadas em Node para Bun 1.4, com ganhos, medições inválidas, rollback e as evidências que levaram à aposentadoria do Bun Test."
+description: "Uma migração controlada de ferramentas baseadas em Node e Vitest para Bun 1.4, incluindo medições inválidas, memória, Bun Test nativo e a fronteira do Playwright."
 publishedAt: 2026-08-23
 category: tooling
 draft: true
@@ -15,7 +15,7 @@ Este blog já tinha uma configuração de testes que funcionava. Node, Vitest e 
 
 O motivo da mudança era mais estreito: Bun 1.4 já era o runtime usado nas instalações e em produção, enquanto alguns comandos de teste ainda voltavam para Node por causa dos shebangs dos pacotes. Eu queria que as ferramentas que executam os testes correspondessem ao runtime que enviamos, e queria saber se isso ajudava quando vários worktrees disputavam o mesmo laptop.
 
-A versão curta é mista. Bun deixou a instalação de dependências muito mais leve, e Bun com Vitest usou menos memória de pico do que Node com Vitest. O tempo de teste ficou efetivamente empatado. Playwright através do Bun foi mais rápido e usou menos memória em uma comparação persistida com cinco amostras, mas o resultado é limitado a uma máquina. Bun Test foi avaliado e aposentado: as execuções observadas foram mais lentas, enquanto a comparação de memória foi inconclusiva.
+A versão curta mudou quando a medição melhorou. Bun deixou a instalação muito mais leve, e Bun com Vitest usou menos memória de pico do que Node com Vitest enquanto o tempo ficou empatado. Uma matriz posterior, com suítes runner-first, corrigiu a configuração injusta do Bun Test: com dois workers isolados, Bun Test nativo foi 21,64% mais rápido, usou 3,24% mais RSS de pico e manteve a memória ocupada por 19,10% menos tempo do que Vitest hospedado no Bun. Bun Test nativo agora é o padrão. Playwright continua dono do E2E.
 
 ## Por que agora
 
@@ -24,8 +24,9 @@ A migração tinha três perguntas separadas, e juntá-las teria tornado o resul
 1. Bun 1.4 melhora a instalação que os desenvolvedores repetem com mais frequência?
 2. A mesma suíte Vitest se comporta de outra forma quando o runtime muda de Node 24 para Bun 1.4?
 3. Playwright consegue rodar a suíte de browser existente através do Bun sem mudar o que a suíte comprova?
+4. Bun Test nativo vence Vitest hospedado no Bun quando ambos executam o mesmo inventário com isolamento e workers equivalentes?
 
-Mantive as perguntas separadas porque um comando mais rápido não é evidência útil se ele executou menos testes. Também mantive Node 24 com Vitest, Node 24 com Playwright e os caminhos antigos de runner como fallbacks explícitos.
+Mantive as perguntas separadas porque um comando mais rápido não é evidência útil se ele executou menos testes. Os caminhos Node e Vitest ficaram disponíveis durante a medição; depois do cutover controlado, apenas o fallback Node com Playwright continua executável. A evidência dos runners antigos permanece no Git.
 
 ## A migração teve fases
 
@@ -59,7 +60,7 @@ A [documentação de paralelismo do Vitest](https://vitest.dev/guide/parallelism
 
 A matriz de workers usou Bun 1.4 com Vitest nos perfis de um, dois, quatro e quantidade padrão de workers. Cada perfil teve um aquecimento e cinco amostras medidas. A comparação de tempo é inválida porque a carga ambiente passou do limite de validade em várias amostras. O [relatório de workers](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/vitest-workers/workers-2026-08-23T07-55-28-315Z.md) mantém essas amostras como evidência diagnóstica em vez de transformá-las em uma afirmação de velocidade.
 
-O perfil dois teve a menor mediana de RSS de pico: 1.685,6 MiB contra 1.687,6 MiB do perfil um, diferença de 2,0 MiB, ou 0,12%. Uma execução nova com dois workers falhou em dois testes `bench-runtime` por causa de uma corrida de porta/PID 843. O perfil um é a escolha operacional de `test:local`: a serialização custa tempo, mas mantém a suíte confiável. A pequena vantagem de memória não compensou transformar uma corrida em porta compartilhada em parte do comando diário.
+O perfil dois teve a menor mediana de RSS de pico: 1.685,6 MiB contra 1.687,6 MiB do perfil um, diferença de 2,0 MiB, ou 0,12%. Uma execução nova com dois workers falhou em dois testes `bench-runtime` por causa de uma corrida de porta/PID 843. O perfil um virou a escolha temporária de `test:local`. A suíte Bun Test posterior removeu a asserção inválida por trás dessa corrida e escolheu isolated-2 numa matriz runner-first limpa.
 
 ### 4. Rodar Playwright através do Bun
 
@@ -75,23 +76,30 @@ A diferença medida foi de -12,63% na duração e -54,62% no RSS de pico. Inclui
 
 Também rodei a suíte completa de 49 resultados em todos os browsers configurados através do Bun. Chromium levou 10,892 s, Firefox 23,611 s e WebKit 24,591 s na duração reportada pelo Playwright. Cada browser executou 49 de 49 sem skips, resultados inesperados ou flakiness. O [resumo cross-browser](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/e2e-browsers/2026-08-23-summary.md) aponta para os JSONs de cada browser. A [documentação de browsers do Playwright](https://playwright.dev/docs/browsers) explica por que são projetos separados com binários específicos, não rótulos intercambiáveis para uma única execução.
 
-## Os experimentos que não promovi
+## O que a revalidação controlada mudou
 
-### Bun Test foi aposentado
+### Bun Test virou o padrão
 
-O runner embutido do Bun era um candidato razoável para avaliação, mas não conquistou um lugar no stack. A primeira comparação registrou 60,96 segundos para Bun com Vitest e 119,71 segundos para Bun Test, mas essa execução era inválida porque os inventários eram diferentes. Uma comparação posterior alinhou a contagem de testes aprovados e registrou 59,56 segundos para Node com Vitest e 127,88 segundos para Bun Test. Essa segunda execução ainda tinha uma diferença sintética na contagem de skips, então nenhum dos resultados é um benchmark controlado de performance do runner. Os dados de memória do Bun Test foram inconclusivos.
+As primeiras comparações do Bun Test eram inválidas. Elas misturavam inventários, isolamento, timeouts e quantidades de workers, então o resultado quase duas vezes mais lento media mais a nossa configuração do que o runner. A revalidação criou árvores Vitest-first e Bun-first independentes, alinhou 113 arquivos de produto e 2.057 resultados aprovados, normalizou 84 skips ambientais, descartou aquecimentos, intercalou cinco amostras válidas por braço e mediu toda a árvore de processos.
 
-A conclusão útil é mais estreita: Bun Test adicionou complexidade de compatibilidade e de contagem sem evidência de ganho de velocidade ou memória. Vitest continua sendo o runner permanente dos testes unitários, de componentes e de integração. Node 24 continua disponível como fallback, e a [documentação do test runner do Bun](https://bun.com/docs/test) permanece vinculada como contexto histórico da opção avaliada.
+| Perfil | Vitest hospedado no Bun | Bun Test nativo | Resultado do Bun |
+| --- | ---: | ---: | --- |
+| isolated-1 | 55,549 s / 2.278,6 MiB | 38,271 s / 2.777,5 MiB | 31,10% mais rápido; 21,90% mais RSS |
+| isolated-2 | 33,080 s / 2.751,9 MiB | 25,922 s / 2.841,1 MiB | 21,64% mais rápido; 3,24% mais RSS |
+| isolated-4 | 20,433 s / 3.394,8 MiB | 21,318 s / 3.031,2 MiB | 4,33% mais lento; 10,71% menos RSS |
+| `--smol`-2 | 38,190 s / 2.631,5 MiB | 32,916 s / 2.728,3 MiB | 13,81% mais rápido; 3,68% mais RSS |
 
-### Bun.WebView foi arquivado
+Isolated-2 combina com a fila deste repositório: libera memória 21,64% antes com penalidade de apenas 3,24% no RSS de pico, e o produto RSS×tempo fica 19,10% menor. Promovemos a árvore Bun-first, portamos 20 arquivos de infraestrutura ativos e removemos Vitest, jsdom e o harness de paridade. A suíte canônica agora tem 133 arquivos. O [relatório controlado](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/bun-test-revalidation/README.md) mantém todas as amostras brutas e tentativas excluídas por contaminação.
 
-Também comparei cinco cenários públicos de smoke em Bun.WebView e Bun com Playwright usando o mesmo executável Chromium e servidor. A mediana fria do WebView foi 70,84% mais lenta e usou 24,41% mais RSS de browser. Em uma sessão aquecida, foi 187,38% mais lenta e usou 14,30% mais RSS. Esses números não são uma comparação da suíte completa: WebView cobriu cinco cenários, enquanto Playwright é dono da suíte de 49 resultados, fixtures, estado de autenticação, locators, traces, reporters, permissões e inspeção de requests. Os relatórios [cold](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/e2e-webview/comparison-cold-2026-08-22T20-24-33-426Z.md) e [warm](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/e2e-webview/comparison-warm-session-2026-08-22T20-24-33-426Z.md) continuam arquivados como evidência, não como proposta de substituição.
+### Bun.WebView continua diagnóstico, não E2E
+
+A comparação mais recente do subconjunto comum faz WebView parecer espetacular: o perfil WebKit warm `--smol` levou 308,41 ms e 97,0 MiB em cinco rotas públicas, contra 2.857,40 ms e 1.301,1 MiB do Bun com Playwright e dois workers. A comparação é direta em rotas e asserções, mas não em lifecycle nem capacidade. WebView reutilizou uma sessão persistente aquecida; Playwright iniciou uma amostra medida de browser/processo e continua dono de 49 resultados Chromium, estado de autenticação, fixtures, locators, traces, reporters, permissões e projetos Firefox e WebKit. WebView permanece local e não bloqueante. A [revalidação de browser](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/browser-runtime-revalidation/README.md) preserva o contrato exato das cinco rotas.
 
 ## Disciplina de cutover e rollback
 
-O stack atual usa Bun 1.4 para instalação de dependências, Bun 1.4 com Vitest para testes unitários, de componentes e de integração, e Bun 1.4 com Playwright para E2E. O perfil local atual é Vitest serializado através de `test:local`. Node 24 com Vitest continua disponível em `test:vitest:node`; Node com Playwright continua disponível em `test:e2e:node`.
+O stack atual usa Bun 1.4 para instalação de dependências, Bun Test nativo para testes unitários, de componentes, de integração e infraestrutura, e Bun 1.4 com Playwright para E2E. `test` e `test:local` usam dois workers isolados do Bun Test. Node com Playwright continua disponível em `test:e2e:node`.
 
-O rollback é propositalmente sem graça. Se Bun com Vitest regredir, o comando bloqueante `test` pode voltar para `test:vitest:node` ou para a rota Vitest hospedada pelo Bun enquanto a evidência é investigada. Se Playwright através do Bun regredir, use `test:e2e:node`. O [registro da avaliação do Bun Test](https://github.com/antoniofulg/blog/blob/main/docs/benchmarks/bun-test/README.md) preserva a evidência histórica e a decisão final de aposentadoria.
+O rollback é propositalmente sem graça. A árvore e os comandos Vitest removidos continuam recuperáveis pelo histórico do Git junto com seus relatórios. Se Playwright através do Bun regredir, use `test:e2e:node`. A árvore atual não carrega dois runners apenas para deixar o rollback conveniente.
 
 ## O que eu faria diferente
 
@@ -101,8 +109,8 @@ Também agendaria a matriz de workers em uma máquina quieta. O harness registro
 
 Por fim, eu teria persistido a comparação Node contra Bun do Playwright antes de mudar o comando padrão. O relatório posterior de cinco amostras é boa evidência; tomar a decisão de runtime primeiro e medir a fronteira de browser depois deixou uma lacuna evitável no registro da migração.
 
-## Status em 2026-08-23
+## Status em 2026-08-25
 
-A migração de runtime terminou. As evidências sustentam Bun 1.4 para instalações, hospedagem do Vitest e execução do Playwright neste repositório. Bun Test foi aposentado, e WebView permanece arquivado em vez de substituir o Playwright. O stack antigo continua disponível onde é a referência útil.
+A migração de runtime terminou. Bun 1.4 agora cuida das instalações, dos testes unitários/de componentes/de integração nativos e da execução do Playwright. WebView continua como diagnóstico local de cinco rotas, não substituto do Playwright. A evidência histórica dos runners permanece versionada; o stack executável duplicado não.
 
-O trabalho restante é mais estreito: repetir a comparação de runtime do Playwright em uma máquina mais quieta e controlada apenas se o projeto precisar de uma decisão específica para CI. Até lá, o stack atual é a menor mudança que corresponde à produção e mantém um caminho reversível.
+O trabalho restante é mais estreito: observar flakiness e ocupação de memória nas filas locais reais e no CI quando os créditos do GitHub Actions voltarem. A decisão do runner já tem resultados equivalentes, amostras controladas e histórico reversível no Git.

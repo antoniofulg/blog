@@ -1,25 +1,30 @@
-# Bun Test revalidation — agent handoff
+# Bun Test revalidation and cutover — agent handoff
 
-> Final snapshot: 2026-08-24. The complete 1/2/4-worker and `--smol` matrix
+> Cutover update: 2026-08-25. AD-006 now makes native Bun Test 1.4 the
+> canonical runner. `app/tests/` contains 133 Bun Test files; `app/tests-bun/`,
+> Vitest, jsdom, and parity/revalidation executables are removed. The matrix
+> below remains the evidence that led to the cutover.
+
+> Historical revalidation snapshot: 2026-08-24. The complete 1/2/4-worker and `--smol` matrix
 > passed independent validation. Read the current Git status and newer commits
 > before changing defaults or CI.
 
-## Mission
+## Historical mission
 
 Determine whether the Blog should replace Bun-hosted Vitest with native Bun
 Test after giving both runners a fair, documentation-aligned configuration.
 Preserve behavior, prioritize the maintainer's multi-worktree workflow, and
 change neither the default runner nor CI until independent validation passes.
 
-## Repository state
+## Repository state after cutover
 
 - Branch: `test/bun-test-revalidation`.
 - Base: `origin/main` at `3849f93`.
-- Current default: `test` delegates to Bun 1.4 + Vitest 4.1.5.
+- Current default: `test` delegates to native Bun Test 1.4.0, isolated-2.
 - Current E2E: Playwright through Bun, Node fallback retained.
-- CI: unchanged by this experiment.
-- Candidate tree: `app/tests-bun/`.
-- Canonical tree: `app/tests/`.
+- CI: the existing `make test` quality entry now reaches Bun Test.
+- Canonical tree: `app/tests/` (113 product + 20 infrastructure files).
+- Removed runtime surface: Vitest, jsdom, duplicate tree, parity and runner-comparison scripts.
 - Feature artifacts: `.specs/features/bun-test-revalidation/`.
 - Evidence: `docs/benchmarks/bun-test-revalidation/`.
 - Independent validation iteration 2: PASS; see
@@ -78,8 +83,9 @@ Interpretation:
 - For queued worktrees, shorter occupancy may outweigh the higher peak.
 - For simultaneous uncoordinated worktrees, Bun's higher peak remains a risk.
 - Isolated-2 is the strongest throughput/peak-RSS compromise in this matrix.
-- The validated project decision still keeps Vitest as default because the
-  second independent tree has maintenance cost and the result is profile-dependent.
+- AD-006 selects isolated-2 as the default because shorter queue occupancy is
+  more useful for this repository's multi-worktree workflow; the second live
+  tree was removed to eliminate its maintenance cost.
 
 Raw evidence is linked from
 `docs/benchmarks/bun-test-revalidation/matrix-2026-08-24.md` and

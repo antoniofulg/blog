@@ -3,7 +3,41 @@
 This experiment compares Bun-hosted Vitest 4.1.5 with native Bun Test 1.4.0
 without changing the default runner, CI, Playwright, or production behavior.
 
-## Final decision
+## Adoption amendment — 2026-08-25
+
+AD-006 supersedes the experiment-close decision below. Native Bun Test is now
+the canonical unit, component, integration, and infrastructure runner. The
+repository promoted the validated 113-file product tree, ported 20 active
+infrastructure files, removed the duplicate Vitest tree and parity harness, and
+uses isolated-2 for `bun run test` and blocking CI.
+
+The operational reason is queue occupancy across local worktrees: in the
+controlled isolated-2 arm, Bun Test was 21.64% faster with 3.24% more peak RSS
+and 19.10% lower RSS×time. The raw matrix and the original conservative
+decision remain below unchanged as historical evidence.
+
+## Browser boundary — unchanged by the cutover
+
+Playwright still owns 49 complete Chromium E2E outcomes and retains Firefox
+and WebKit projects. Bun.WebView covers only the common anonymous subset:
+English post, Portuguese post, not-found route, English index, and Portuguese
+index.
+
+The clean five-route confirmation reported:
+
+| Profile | Median | Peak RSS | RSS×time | Throughput |
+| --- | ---: | ---: | ---: | ---: |
+| Node 24 + Playwright, worker 2 | 3,700.97 ms | 1,460.0 MiB | 5.28 GiB·s | 16.21/min |
+| Bun 1.4 + Playwright, worker 2 | 2,857.40 ms | 1,301.1 MiB | 3.63 GiB·s | 21.00/min |
+| Bun.WebView WebKit warm `--smol` | 308.41 ms | 97.0 MiB | 0.03 GiB·s | 194.55/min |
+
+This is a direct route/outcome comparison, not an equivalent lifecycle or
+capability comparison: Playwright starts a measured browser/process sample;
+the WebView finalist reuses a warm persistent session and lacks Playwright's
+auth state, fixtures, locators, traces, reporters, permissions, and full-suite
+coverage. Source: [`browser-runtime-revalidation`](../browser-runtime-revalidation/README.md).
+
+## Decision at experiment close — superseded by AD-006
 
 The complete finalist matrix is in
 [`matrix-2026-08-24.md`](./matrix-2026-08-24.md). All four pairs have one
@@ -11,7 +45,8 @@ discarded warm-up and five valid interleaved samples, process-tree RSS, and
 equivalent 113-file outcomes. The three DB integration files run in both arms;
 when local PostgreSQL is unavailable they produce intentional equal skips.
 
-Keep Bun-hosted Vitest as `test` and as the blocking CI runner. The evidence is
+At experiment close, the decision was to keep Bun-hosted Vitest as `test` and
+as the blocking CI runner. The evidence was
 profile-dependent: native Bun Test is materially faster at isolated-1,
 isolated-2, and `--smol`-2, while Vitest is 4.33% faster at isolated-4. Bun's
 isolated-4 profile uses 10.71% less peak RSS, but its lower speed and the
@@ -58,4 +93,5 @@ resource contention, and profile stability still govern safe concurrency.
 
 The no-isolate probes remain rejected for DOM, mocks/timers, and integration
 cohorts because those suites leak state or contend for resources. No CI or
-default-script change is authorized by this artifact.
+default-script change was authorized by the original artifact; AD-006 later
+authorized the isolated-2 cutover.

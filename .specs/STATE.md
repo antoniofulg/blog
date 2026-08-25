@@ -25,7 +25,7 @@
   `1` is the reliable operational choice; worker timing evidence is noisy.
 - **Scope**: Local multi-worktree test command.
 - **Date**: 2026-08-23
-- **Status**: active
+- **Status**: superseded by AD-006
 
 ### AD-004
 - **Decision**: Keep Bun 1.4 + Vitest as the permanent unit, component, and integration test runner; retire Bun Test and its shadow/cutover workflow.
@@ -33,7 +33,7 @@
 - **Trade-off**: Keep Vitest as the default and CI runner while retaining explicit Bun profiles as reversible local candidates. The complete raw matrix, parser fixes, sanitized environment, and skip normalization remain versioned for a future adoption decision.
 - **Scope**: Unit/component/integration runner, test scripts, CI shadowing, and migration documentation.
 - **Date**: 2026-08-24
-- **Status**: active
+- **Status**: superseded by AD-006
 
 ### AD-005
 - **Decision**: Keep Playwright as the E2E reference and keep Bun.WebView as an opt-in local five-route diagnostic only.
@@ -43,22 +43,23 @@
 - **Date**: 2026-08-24
 - **Status**: active
 
+### AD-006
+- **Decision**: Use native Bun Test 1.4 as the canonical unit, component, integration, and infrastructure runner with two isolated workers; remove Vitest and its duplicate tree.
+- **Reason**: The controlled isolated-2 matrix preserved identical 113-file product outcomes while Bun Test was 21.64% faster, used 3.24% more peak RSS, and reduced RSS×time by 19.10%. Shorter memory occupancy is the better operational fit for queued local worktrees, and the 20 active infrastructure files also pass natively.
+- **Trade-off**: Peak RSS is slightly higher than Bun-hosted Vitest at two workers, and the executable Vitest fallback is removed. The one-/four-worker and `--smol` measurements, raw reports, and prior decisions remain versioned for audit and reversal through Git history.
+- **Scope**: Default/local/CI unit, component, integration, and infrastructure tests. Playwright remains the full E2E runner; Bun.WebView remains a local five-route diagnostic.
+- **Date**: 2026-08-25
+- **Status**: active
+
 ## Handoff
 
-- **Feature**: Bun Test revalidation (`.specs/features/bun-test-revalidation/`)
-- **Phase / Task**: T9 complete; final matrix and decision artifacts are committed.
-- **Completed**: Bun 1.4 + Vitest remains the permanent `test` and blocking CI
-  runner under AD-004. The independent Bun-first product tree, parity gate,
-  matched `test:vitest:bun:1|2|4`, isolated Bun `test:bun:parallel:2|4`,
-  `test:bun:smol:2`, and final benchmark routes remain available as explicit
-  opt-in revalidation candidates. `test:e2e` remains Bun-driven Playwright and
-  `test:e2e:node` remains the fallback.
-- **In-progress** (file:line): none.
-- **Next step**: Any default or CI Bun Test adoption requires a separate,
-  explicit decision using the versioned matrix evidence; no automatic cutover.
-- **Blockers**: none for the approved revalidation scope.
-- **Repository state**: Operational defaults are unchanged; experimental parity,
-  profile, and benchmark routes are executable but opt-in only.
+- **Feature**: Bun Test cutover (`.specs/features/bun-test-cutover/`)
+- **Phase / Task**: Phase 2 / T5 - documentation reconciliation.
+- **Completed**: T1-T4. The canonical `app/tests/` tree contains 133 native Bun Test files; Vitest/jsdom, the duplicate tree, and comparison harness are removed. `bun run test` uses Bun 1.4 with two isolated workers. Chromium Playwright remains Bun-driven and passed 49/49.
+- **In-progress** (file:line): living rules, benchmark amendments, and migration posts.
+- **Next step**: Run the complete local CI gate, commit fresh evidence, then dispatch the independent verifier.
+- **Blockers**: none.
+- **Uncommitted files**: documentation reconciliation only; `docs/_reports/` remains intentionally local.
 - **Branch**: test/bun-test-revalidation (merge target: main)
 
 ## Browser Runtime Revalidation Handoff

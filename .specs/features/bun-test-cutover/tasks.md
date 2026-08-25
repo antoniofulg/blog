@@ -122,10 +122,10 @@ files and 20 active infrastructure files remain represented.
 **Requirement**: BTC-06
 **Tools**: filesystem
 **Done when**:
-- [ ] AD-003 and AD-004 are superseded by a new active decision.
-- [ ] Living docs call Bun Test canonical and preserve historical numbers.
-- [ ] Direct five-route WebView/Playwright comparison discloses scope and lifecycle differences.
-- [ ] Documentation checks pass.
+- [x] AD-003 and AD-004 are superseded by active AD-006.
+- [x] Living docs call Bun Test canonical and preserve historical numbers.
+- [x] Direct five-route WebView/Playwright comparison discloses scope and lifecycle differences.
+- [x] Filesystem-only documentation/content checks pass (59 tests); the CLI audit is environmentally blocked by credentials of the shared local PostgreSQL instance.
 **Tests**: unit
 **Gate**: quick
 **Commit**: `docs(test): record native Bun Test cutover`

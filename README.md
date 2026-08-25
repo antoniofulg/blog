@@ -38,7 +38,7 @@ make help          # List all targets with descriptions
 
 | Command | Description |
 |---------|-------------|
-| `make test` | Run Vitest test suite |
+| `make test` | Run native Bun Test suite |
 | `make lint` | Run Biome linter |
 | `make format` | Run Biome formatter |
 | `make check` | TypeScript type check (`tsc --noEmit`) |
@@ -104,7 +104,7 @@ make test && make lint && make check
 
 | Check | What it validates |
 |-------|-------------------|
-| `make test` | Vitest test suite |
+| `make test` | Native Bun Test suite |
 | `make lint` | Biome linter |
 | `make check` | TypeScript type check |
 | commitlint | All commits follow Conventional Commits |

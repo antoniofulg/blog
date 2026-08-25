@@ -41,20 +41,14 @@ All nine jobs must be green before a PR can merge.
 
 ### Test runner decision
 
-The `quality` matrix `test` job runs the permanent Bun 1.4 + Vitest default.
-`test:vitest:node` remains the explicit Node 24 reference and rollback route.
-Bun Test was retired on 2026-08-24 after two local full-suite signals were
-roughly twice as slow (60.96 vs 119.71 s and 59.56 vs 127.88 s).
-Inventory/skip differences and shared-runner conditions made both uncontrolled
-rather than valid performance benchmarks; memory evidence was inconclusive,
-and the evidence did not justify maintaining the candidate. Historical
-benchmark artifacts remain versioned, but no Bun Test shadow job or future
-cutover gate exists.
+The `quality` matrix `test` job runs native Bun Test 1.4 through `make test` and
+the package `test` alias. The canonical profile uses `TZ=UTC` and two isolated
+workers. Vitest and its Node/Bun comparison routes are removed; historical
+benchmark artifacts remain versioned. This is AD-006.
 
 The canonical Playwright command is forced through Bun while its web server also
 runs through Bun. `test:e2e:node` remains the explicit local fallback. The
-retired Bun.WebView experiment is preserved as documentation and does not run
-in CI.
+Bun.WebView five-route diagnostic remains local and does not run in CI.
 
 ### E2E gate behavior
 
