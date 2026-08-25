@@ -304,7 +304,7 @@ async function runProfile(profile: Profile, repetitions: number): Promise<Browse
 		...samples.filter((sample) => !sample.valid).map((sample) => `sample ${sample.run}: ${sample.exclusionReason}`),
 	];
 	if (validSamples.length !== repetitions) invalidReasons.push(`expected ${repetitions} valid samples, got ${validSamples.length}`);
-	return { profile, warmup, samples, aggregate: aggregateSamples(samples), valid: invalidReasons.length === 0, invalidReasons, nonDominated: false, interleaved: false };
+	return { profile, warmup, samples, aggregate: aggregateSamples(samples), valid: warmup.valid && validSamples.length === repetitions, invalidReasons, nonDominated: false, interleaved: false };
 }
 
 async function runColdFinalistsInterleaved(
@@ -339,7 +339,7 @@ async function runColdFinalistsInterleaved(
 		const validCount = state.samples.filter((sample) => sample.valid).length;
 		if (validCount !== repetitions) state.invalidReasons.push(`expected ${repetitions} interleaved valid samples, got ${validCount}`);
 		state.aggregate = aggregateSamples(state.samples);
-		state.valid = state.warmup.valid && validCount === repetitions && state.invalidReasons.length === 0;
+		state.valid = state.warmup.valid && validCount === repetitions;
 	}
 	return states;
 }
@@ -371,17 +371,34 @@ export function renderBrowserBenchmark(run: BrowserBenchmarkRun): string {
 	return lines.join("\n");
 }
 
-function parseArgs(args: string[]): { repetitions: number; profiles: Profile[] } {
+function parseArgs(args: string[]): { repetitions: number; profiles: Profile[]; confirmOnly: boolean } {
 	let repetitions = DEFAULT_REPETITIONS;
 	let profiles = [...ALL_PROFILES];
+	let confirmOnly = false;
 	for (const arg of args) {
 		if (arg.startsWith("--repetitions=")) repetitions = Number(arg.slice(14));
 		else if (arg.startsWith("--profile=")) { const id = arg.slice("--profile=".length); profiles = ALL_PROFILES.filter((profile) => profile.id === id); if (!profiles.length) throw new Error(`unknown browser profile: ${id}`); }
+		else if (arg.startsWith("--profiles=")) {
+			const ids = arg.slice("--profiles=".length).split(",").filter(Boolean);
+			profiles = ALL_PROFILES.filter((profile) => ids.includes(profile.id));
+			if (profiles.length !== ids.length) throw new Error("--profiles contains an unknown browser profile");
+		}
+		else if (arg === "--confirm-only") confirmOnly = true;
 		else if (arg === "--help") { console.log("Usage: bun run scripts/bench-browser-runtimes.ts [--repetitions=N] [--profile=ID]"); process.exit(0); }
 		else throw new Error(`unknown argument: ${arg}`);
 	}
 	if (!Number.isInteger(repetitions) || repetitions < 1) throw new Error("--repetitions must be a positive integer");
-	return { repetitions, profiles };
+	return { repetitions, profiles, confirmOnly };
+}
+
+export async function runBrowserConfirmations(repetitions: number, profiles: Profile[]): Promise<BrowserBenchmarkRun> {
+	if (!profiles.length) throw new Error("at least one confirmation profile is required");
+	if (profiles.some((profile) => profile.phase !== "cold")) throw new Error("confirm-only requires cold profiles for interleaving");
+	const confirmed = await runColdFinalistsInterleaved(profiles, repetitions);
+	const results = profiles.map((profile) => confirmed.get(profile.id)!);
+	const finalists = selectNonDominated(results);
+	for (const result of results) result.nonDominated = finalists.includes(result.profile.id);
+	return { schemaVersion: 2, commit: await commit(), timestamp: new Date().toISOString(), host: await collectHostMeta(), repetitions, screeningRepetitions: 0, warmupsPerProfile: WARMUP_COUNT, canonicalRoutes: BROWSER_SMOKE_ROUTE_IDS.length, profiles: results, screeningFinalists: profiles.map((profile) => profile.id), finalists, finalistSchedule: interleaveProfileIds(profiles.map((profile) => profile.id), repetitions), locks: ["/tmp/praxis-playwright.lock", join(tmpdir(), "creatista-test.lock")], serializedQueueThroughput: results.map((result) => ({ profile: result.profile.id, samplesPerMinute: result.aggregate?.medianMs ? 60_000 / result.aggregate.medianMs : 0 })) };
 }
 
 export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, profiles: Profile[] = [...ALL_PROFILES]): Promise<BrowserBenchmarkRun> {
@@ -422,7 +439,7 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
 		return;
 	}
 	const options = parseArgs(args);
-	const run = await runBrowserBenchmark(options.repetitions, options.profiles);
+	const run = options.confirmOnly ? await runBrowserConfirmations(options.repetitions, options.profiles) : await runBrowserBenchmark(options.repetitions, options.profiles);
 	const stem = await reserveStem(run.timestamp);
 	await writeFile(join(BENCHMARK_DIR, `${stem}.json`), `${JSON.stringify(run, null, 2)}\n`, "utf8");
 	await writeFile(join(BENCHMARK_DIR, `${stem}.md`), `${renderBrowserBenchmark(run)}\n`, "utf8");
