@@ -99,12 +99,12 @@ let testDb: TestDb;
 beforeAll(async () => {
 	testDb = await createTestDb();
 	dbHolder.set(testDb.db);
-}, 30_000);
+}, 60_000);
 
 afterAll(async () => {
 	dbHolder.clear();
 	await testDb?.close();
-});
+}, 60_000);
 
 // ── Integration tests ─────────────────────────────────────────────────────────
 
