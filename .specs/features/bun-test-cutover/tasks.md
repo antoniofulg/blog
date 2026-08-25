@@ -6,7 +6,7 @@ Implement these tasks with the `tlc-spec-driven` skill: activate it by name and
 follow its Execute flow and Critical Rules.
 
 **Design**: `.specs/features/bun-test-cutover/design.md`
-**Status**: Approved
+**Status**: Done
 
 ## Test Coverage Matrix
 
@@ -139,9 +139,9 @@ files and 20 active infrastructure files remain represented.
 **Requirement**: BTC-01, BTC-02, BTC-03, BTC-04, BTC-05, BTC-06
 **Tools**: Bun, Playwright
 **Done when**:
-- [ ] Lint, typecheck, 133-file Bun Test, build, annotation lint, and Chromium E2E pass.
-- [ ] Test counts/skips are recorded with justification.
-- [ ] Independent verifier returns PASS.
+- [x] Lint, typecheck, 133-file Bun Test, build, annotation lint, and Chromium E2E pass.
+- [x] Test counts/skips are recorded with justification in `validation.md`.
+- [x] Independent Sol-medium verifier returns PASS with 3/3 mutations killed.
 **Tests**: unit + integration + e2e
 **Gate**: build
 **Commit**: `docs(test): record Bun Test cutover validation`

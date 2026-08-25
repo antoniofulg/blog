@@ -9,10 +9,10 @@ runner is the better operational fit for the two-worker local queue.
 
 ## Goals
 
-- [ ] Make native Bun Test the default unit, component, and integration runner.
-- [ ] Preserve every product test and every still-useful infrastructure test.
-- [ ] Remove Vitest, jsdom, and runner-comparison machinery that has no purpose after cutover.
-- [ ] Keep Playwright as the complete E2E suite and Bun.WebView as a local five-route diagnostic.
+- [x] Make native Bun Test the default unit, component, and integration runner.
+- [x] Preserve every product test and every still-useful infrastructure test.
+- [x] Remove Vitest, jsdom, and runner-comparison machinery that has no purpose after cutover.
+- [x] Keep Playwright as the complete E2E suite and Bun.WebView as a local five-route diagnostic.
 
 ## Out of Scope
 
@@ -110,18 +110,18 @@ faster smoke harness is not mistaken for complete E2E coverage.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| BTC-01 | Canonical Bun Test runner | Execute | Implementing |
-| BTC-02 | Preserve test inventory | Execute | Implementing |
-| BTC-03 | Remove obsolete Vitest surface | Execute | Implementing |
-| BTC-04 | Preserve DOM behavior | Execute | Implementing |
-| BTC-05 | Preserve browser boundary | Execute | Implementing |
-| BTC-06 | Document direct comparison | Execute | Implementing |
+| BTC-01 | Canonical Bun Test runner | Execute | Verified |
+| BTC-02 | Preserve test inventory | Execute | Verified |
+| BTC-03 | Remove obsolete Vitest surface | Execute | Verified |
+| BTC-04 | Preserve DOM behavior | Execute | Verified |
+| BTC-05 | Preserve browser boundary | Execute | Verified |
+| BTC-06 | Document direct comparison | Execute | Verified |
 
 **Coverage:** 6 total, 6 mapped to tasks, 0 unmapped.
 
 ## Success Criteria
 
-- [ ] `bun run test` passes 133 files with zero failures.
-- [ ] `bun run lint`, `bunx tsc --noEmit`, `bun run build`, and Chromium Playwright pass.
-- [ ] No Vitest or jsdom runtime/config/dependency remains.
-- [ ] Documentation names Bun Test as canonical and retains benchmark evidence.
+- [x] `bun run test` passes 133 files with zero failures.
+- [x] `bun run lint`, `bunx tsc --noEmit`, `bun run build`, and Chromium Playwright pass.
+- [x] No Vitest or jsdom runtime/config/dependency remains.
+- [x] Documentation names Bun Test as canonical and retains benchmark evidence.

@@ -54,12 +54,12 @@
 ## Handoff
 
 - **Feature**: Bun Test cutover (`.specs/features/bun-test-cutover/`)
-- **Phase / Task**: Phase 2 / T5 - documentation reconciliation.
-- **Completed**: T1-T4. The canonical `app/tests/` tree contains 133 native Bun Test files; Vitest/jsdom, the duplicate tree, and comparison harness are removed. `bun run test` uses Bun 1.4 with two isolated workers. Chromium Playwright remains Bun-driven and passed 49/49.
-- **In-progress** (file:line): living rules, benchmark amendments, and migration posts.
-- **Next step**: Run the complete local CI gate, commit fresh evidence, then dispatch the independent verifier.
+- **Phase / Task**: Complete; T1-T6 and independent validation passed.
+- **Completed**: Native Bun Test 1.4 is canonical for 133 files (113 product + 20 infrastructure) with two isolated workers. Vitest/jsdom, the duplicate tree, and comparison harness are removed. Fresh local gates passed 2,256 tests with 101 environmental/raw skips and zero failures; Chromium Playwright passed 49/49; the sensor killed 3/3 mutations.
+- **In-progress** (file:line): none.
+- **Next step**: Review/merge the local commits when authorized; GitHub Actions remains unavailable for credits.
 - **Blockers**: none.
-- **Uncommitted files**: documentation reconciliation only; `docs/_reports/` remains intentionally local.
+- **Uncommitted files**: `docs/_reports/` remains intentionally local and untracked.
 - **Branch**: test/bun-test-revalidation (merge target: main)
 
 ## Browser Runtime Revalidation Handoff
