@@ -241,22 +241,123 @@ describe("browser finalist benchmark", () => {
 			["node#2", "bun#2"],
 			["node#3", "bun#3"],
 		]);
-		const trace = [1, 2, 3, 4].map((sequence) => ({
-			profile: sequence % 2 ? "node" : "bun",
-			kind: "measured" as const,
-			run: Math.ceil(sequence / 2),
+		const trace = (
+			[
+				["node", "warmup", 0],
+				["bun", "warmup", 0],
+				["node", "measured", 1],
+				["bun", "measured", 1],
+				["bun", "measured", 2],
+				["node", "measured", 2],
+			] as [string, string, number][]
+		).map(([profile, kind, run], sequence) => ({
+			profile,
+			kind: kind as "warmup" | "measured",
+			run: Number(run),
 			sequence,
-			startedAt: "2026-01-01T00:00:00.000Z",
-			finishedAt: "2026-01-01T00:00:00.001Z",
+			startedAt: `2026-01-01T00:00:0${sequence}.000Z`,
+			finishedAt: `2026-01-01T00:00:0${sequence}.001Z`,
 		}));
 		expect(deriveFinalistSchedule(trace, 2)).toEqual([
 			["node#1", "bun#1"],
-			["node#2", "bun#2"],
+			["bun#2", "node#2"],
 		]);
+		expect(deriveFinalistSchedule(trace, 2).flat()).toEqual(
+			trace
+				.filter((entry) => entry.kind === "measured")
+				.map((entry) => `${entry.profile}#${entry.run}`),
+		);
 		expect(traceIsInterleaved(trace, ["node", "bun"], 2)).toBe(true);
 		expect(traceIsInterleaved(trace.slice(0, 1), ["node", "bun"], 2)).toBe(
 			false,
 		);
+	});
+
+	test("rejects reset sequences, duplicate profiles, cohort concatenation, and invalid timestamps", () => {
+		const entry = (
+			profile: string,
+			run: number,
+			sequence: number,
+			second: number,
+		) => ({
+			profile,
+			kind: run === 0 ? ("warmup" as const) : ("measured" as const),
+			run,
+			sequence,
+			startedAt: `2026-01-01T00:00:${String(second).padStart(2, "0")}.000Z`,
+			finishedAt: `2026-01-01T00:00:${String(second).padStart(2, "0")}.001Z`,
+		});
+		const valid = [
+			entry("node", 0, 0, 0),
+			entry("bun", 0, 1, 1),
+			entry("node", 1, 2, 2),
+			entry("bun", 1, 3, 3),
+			entry("bun", 2, 4, 4),
+			entry("node", 2, 5, 5),
+		];
+		expect(traceIsInterleaved(valid, ["node", "bun"], 2)).toBe(true);
+		expect(
+			traceIsInterleaved(
+				valid.map((item, index) => ({
+					...item,
+					sequence: index < 2 ? index : index - 2,
+				})),
+				["node", "bun"],
+				2,
+			),
+		).toBe(false);
+		expect(
+			traceIsInterleaved(
+				valid.map((item, index) =>
+					index === 3 ? { ...item, profile: "node" } : item,
+				),
+				["node", "bun"],
+				2,
+			),
+		).toBe(false);
+		expect(
+			traceIsInterleaved(
+				valid.map((item) => ({ ...item, startedAt: item.finishedAt })),
+				["node", "bun"],
+				2,
+			),
+		).toBe(false);
+		const cohortConcatenated = [
+			valid[0],
+			valid[1],
+			valid[2],
+			valid[3],
+			{ ...valid[4], sequence: 4, profile: "node" },
+			{ ...valid[5], sequence: 5, profile: "bun" },
+		];
+		expect(traceIsInterleaved(cohortConcatenated, ["node", "bun"], 2)).toBe(
+			false,
+		);
+		const reversed = [
+			valid[0],
+			valid[1],
+			valid[2],
+			valid[3],
+			valid[5],
+			valid[4],
+		];
+		expect(deriveFinalistSchedule(reversed, 2)).toEqual([
+			["node#1", "bun#1"],
+			["node#2", "bun#2"],
+		]);
+		expect(traceIsInterleaved(reversed, ["node", "bun"], 2)).toBe(false);
+	});
+
+	test("entry point self-acquires both shared locks with bounded queue and reentry marker", () => {
+		const source = readFileSync(
+			new URL("../../scripts/bench-browser-runtimes.ts", import.meta.url),
+			"utf8",
+		);
+		expect(source).toContain('const LOCK_MARKER = "crm+antclips"');
+		expect(source).toContain('CRM_LOCK_PATH, "lockf"');
+		expect(source).toContain("ANTCLIPS_LOCK_PATH, process.execPath");
+		expect(source).toContain("const LOCK_WAIT_SECONDS = 3 * 60 * 60");
+		expect(source).toContain("lockProvenance");
 	});
 
 	test("reports RSS-time in GiB seconds, not GiB milliseconds", () => {

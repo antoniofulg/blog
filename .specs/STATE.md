@@ -64,9 +64,9 @@
 ## Browser Runtime Revalidation Handoff
 
 - **Feature**: `.specs/features/browser-runtime-revalidation/`
-- **Phase / Task**: Execute remediation, screening, confirmations, and decision complete.
-- **Completed**: Browser schema-2 runner now executes three-sample screening, retains exact route identities, records setup/provenance/lifecycle/contamination/cleanup fields, restarts cold WebView server/browser per sample, and reuses warm WebView sessions across passes. Process-group cleanup is verified and external browser activity is checked before, during and after samples. Focused tests cover boundaries, route parsing, contamination detection, and cleanup.
+- **Phase / Task**: Execute iteration-5 coordinator/lock remediation; fresh confirmation pending.
+- **Completed**: Browser schema-2 runner now executes three-sample screening, retains exact route identities, records setup/provenance/lifecycle/contamination/cleanup fields, restarts cold WebView server/browser per sample, and coordinates one global six-profile confirmation with persistent warm sessions, one warm-up per profile, append-only sequence/timestamp trace, and both-lock provenance. Focused tests cover boundaries, route parsing, contamination detection, cleanup, trace discrimination, and lock entrypoint controls.
 - **Evidence**: Screening is `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-25T02-31-40-880Z.json` with one warmup + three samples per profile and programmatic Pareto selection. Post-remediation confirmation is `docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-25T04-16-32-724Z.json`; matched Node 24/Bun Playwright workers 1/2 plus WebKit warm 1-view normal/`--smol` each have one warmup and five valid samples, exact setup + five-route outcomes, trace-derived interleaving, provenance, cleanup, and no unresolved invalid reasons.
-- **Next step**: Independent verifier may update `validation.md`; defaults/CI remain unchanged.
+- **Next step**: Run fresh six-profile confirmation after CRM/Antclips locks drain, then update evidence/decision and independent validation; defaults/CI remain unchanged.
 - **Defaults / CI**: unchanged.
 - **Commits**: `846303b`, `a4d2e2d`, `a4e6054`, `22b2754`, `c7f389e`, `4407594`, `1001bc2`, `0a69c95`, `261798d`, `4683923`.

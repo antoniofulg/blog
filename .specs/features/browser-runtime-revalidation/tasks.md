@@ -138,3 +138,12 @@ CI:
 | R4 | Before/during/after contamination sensor and deterministic process-group cleanup | ✅ | `scripts/bench-browser-runtimes.ts`; all fresh samples cleanup-verified and uncontaminated |
 | R5 | Raw/report protocol reconciliation and invalid evidence retention | ✅ | Fresh JSON/Markdown pair and reconciled README; invalid historical attempts retained |
 | R6 | Focused behavior tests including contamination and cleanup discrimination | ✅ | `app/tests/bench-browser-runtimes.test.ts:79`, `app/tests/bench-runner.test.ts:113`; 18 focused tests |
+
+## Iteration-5 Remediation Tasks
+
+| Fix | Scope | Status | Evidence |
+| --- | --- | --- | --- |
+| R7 | One global six-profile coordinator with persistent warm finalists, one warm-up per profile, and five rotated measured rounds | ✅ | `scripts/bench-browser-runtimes.ts:555`; focused benchmark tests pass |
+| R8 | Trace integrity: append-only execution order, exact sequences, real timestamps, and schedule identity checks | ✅ | `scripts/bench-browser-runtimes.ts:340`; `app/tests/bench-browser-runtimes.test.ts:268` |
+| R9 | Entry point acquires both shared locks with bounded wait, explicit reentry marker, and raw lock provenance | ✅ | `scripts/bench-browser-runtimes.ts:614`; focused lock contract test |
+| R10 | Run six-profile confirmation under both locks and replace report/decision evidence | ⏳ | Pending CRM/Antclips lock availability |

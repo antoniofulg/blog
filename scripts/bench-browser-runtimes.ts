@@ -21,6 +21,12 @@ export const DEFAULT_REPETITIONS = FINALIST_REPETITIONS;
 export const WARMUP_COUNT = 1;
 export const BENCHMARK_DIR = resolve(process.cwd(), "docs/benchmarks/browser-runtime-revalidation/runs");
 const SAMPLE_TIMEOUT_MS = 15 * 60_000;
+export const CRM_LOCK_PATH = "/tmp/praxis-playwright.lock";
+export const ANTCLIPS_LOCK_PATH = join(tmpdir(), "creatista-test.lock");
+const LOCK_ENV = "BROWSER_BENCH_LOCKS_HELD";
+const LOCK_MARKER = "crm+antclips";
+const LOCK_WAIT_SECONDS = 3 * 60 * 60;
+const LOCK_ACQUIRED_AT = process.env[LOCK_ENV] === LOCK_MARKER ? new Date().toISOString() : undefined;
 
 export type Profile = {
 	id: string;
@@ -104,6 +110,7 @@ export type BrowserBenchmarkRun = {
 	finalistSchedule: string[][];
 	executionTrace: BrowserExecutionTraceEntry[];
 	locks: string[];
+	lockProvenance: { identity: string; acquired: boolean; mechanism: "lockf"; marker: string; acquiredAt?: string }[];
 	serializedQueueThroughput: { profile: string; samplesPerMinute: number }[];
 };
 
@@ -334,17 +341,42 @@ export function deriveFinalistSchedule(trace: BrowserExecutionTraceEntry[], repe
 	const measured = trace.filter((entry) => entry.kind === "measured");
 	return Array.from({ length: repetitions }, (_, index) => measured
 		.filter((entry) => entry.run === index + 1)
-		.sort((a, b) => a.sequence - b.sequence)
 		.map((entry) => `${entry.profile}#${entry.run}`));
 }
 
 export function traceIsInterleaved(trace: BrowserExecutionTraceEntry[], profileIds: string[], repetitions: number): boolean {
+	if (profileIds.length === 0 || repetitions < 1) return false;
+	if (trace.length !== (repetitions + 1) * profileIds.length) return false;
+	if (trace.some((entry, index) => entry.sequence !== index)) return false;
+	const profileSet = new Set(profileIds);
+	if (profileSet.size !== profileIds.length) return false;
+	for (let index = 0; index < trace.length; index += 1) {
+		const entry = trace[index];
+		if (!profileSet.has(entry.profile)) return false;
+		const startedAt = Date.parse(entry.startedAt);
+		const finishedAt = Date.parse(entry.finishedAt);
+		if (!Number.isFinite(startedAt) || !Number.isFinite(finishedAt) || startedAt >= finishedAt) return false;
+		const previous = trace[index - 1];
+		if (previous && Date.parse(previous.finishedAt) > startedAt) return false;
+	}
+	const warmups = trace.filter((entry) => entry.kind === "warmup");
+	if (warmups.length !== profileIds.length || warmups.some((entry) => entry.run !== 0)) return false;
+	if (new Set(warmups.map((entry) => entry.profile)).size !== profileIds.length) return false;
 	const schedule = deriveFinalistSchedule(trace, repetitions);
-	return schedule.length === repetitions && schedule.every((round) => round.length === profileIds.length && new Set(round.map((entry) => entry.split("#")[0])).size === profileIds.length);
+	return schedule.length === repetitions && schedule.every((round, index) => {
+		const ids = round.map((entry) => entry.slice(0, entry.lastIndexOf("#")));
+		const expected = [...profileIds.slice(index % profileIds.length), ...profileIds.slice(0, index % profileIds.length)];
+		return round.length === profileIds.length && ids.every((profile, position) => profile === expected[position]) && round.every((entry) => entry.endsWith(`#${index + 1}`));
+	});
 }
 
 function aggregateSamples(samples: BrowserSample[]): Aggregate | null {
 	return aggregate(samples.filter((sample) => sample.valid).map((sample) => ({ ms: sample.durationMs, peakRssBytes: sample.peakRssBytes, exitCode: sample.exitCode ?? -1, loadAvg1: 0 })));
+}
+
+function finalistOrder(profiles: Profile[], round: number): Profile[] {
+	const offset = (round - 1) % profiles.length;
+	return [...profiles.slice(offset), ...profiles.slice(0, offset)];
 }
 
 type WarmPass = { measured: MeasuredRun; backendVersion: string; runtimeVersion: string; contamination: ContaminationReport };
@@ -489,7 +521,7 @@ async function runProfile(profile: Profile, repetitions: number): Promise<Browse
 	return { profile, warmup, samples, aggregate: aggregateSamples(samples), valid: warmup.valid && validSamples.length === repetitions, invalidReasons, nonDominated: false, interleaved: false };
 }
 
-async function runColdMeasuredSample(profile: Profile, run: number): Promise<BrowserSample> {
+async function runColdSample(profile: Profile, kind: BrowserSample["kind"], run: number): Promise<BrowserSample> {
 	const boundary = sampleBoundary(profile);
 	if (profile.arm === "webview") {
 		const server = await startLocalE2EServer({ quiet: true });
@@ -499,90 +531,55 @@ async function runColdMeasuredSample(profile: Profile, run: number): Promise<Bro
 			const data = parseWebViewPassData(result.measured.stdout);
 			const detected = await detectProvenance(profile, data.backendVersion);
 			const provenance = { ...detected, runtimeVersion: data.runtimeVersion === "unknown" ? detected.runtimeVersion : data.runtimeVersion };
-			return sampleFromRun(profile, "measured", run, result.measured, actual, boundary, result.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0], provenance);
+			return sampleFromRun(profile, kind, run, result.measured, actual, boundary, result.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0], provenance);
 		} finally { await server.stop(); }
 	}
 	const command = commandForProfile(profile);
 	const result = await measuredWithContamination(command, true);
-	return sampleFromRun(profile, "measured", run, result.measured, command, boundary, result.contamination, undefined, undefined, await detectProvenance(profile));
+	return sampleFromRun(profile, kind, run, result.measured, command, boundary, result.contamination, undefined, undefined, await detectProvenance(profile));
 }
 
-async function runColdFinalistsInterleaved(
-	profiles: Profile[],
-	repetitions: number,
-): Promise<{ states: Map<string, BrowserProfileResult>; trace: BrowserExecutionTraceEntry[] }> {
-	const states = new Map<string, BrowserProfileResult>();
-	const trace: BrowserExecutionTraceEntry[] = [];
-	let sequence = 0;
-	for (const profile of profiles) {
-		const initial = await runProfile(profile, 1);
-		const measured = initial.samples.find((sample) => sample.valid) ?? initial.samples[0];
-		states.set(profile.id, { ...initial, samples: measured ? [measured] : [], excludedSamples: initial.samples.filter((sample) => sample !== measured), invalidReasons: initial.warmup.valid && measured?.valid ? [] : [...initial.invalidReasons], interleaved: true });
-		trace.push({ profile: profile.id, kind: "warmup", run: 0, sequence: sequence++, startedAt: new Date().toISOString(), finishedAt: new Date().toISOString() });
-		if (measured) trace.push({ profile: profile.id, kind: "measured", run: 1, sequence: sequence++, startedAt: new Date().toISOString(), finishedAt: new Date().toISOString() });
-	}
-	let round = 1;
-	while ([...states.values()].some((state) => state.samples.filter((sample) => sample.valid).length < repetitions) && round <= repetitions + 5) {
-		const order = round % 2 === 1 ? profiles : [...profiles].reverse();
-		for (const profile of order) {
-			const state = states.get(profile.id)!;
-			const sample = await runColdMeasuredSample(profile, round + 1);
-			trace.push({ profile: profile.id, kind: "measured", run: round + 1, sequence: sequence++, startedAt: new Date().toISOString(), finishedAt: new Date().toISOString() });
-			if (sample.valid) state.samples.push(sample);
-			else state.excludedSamples?.push(sample);
-		}
-		round += 1;
-	}
-	for (const state of states.values()) {
-		const validCount = state.samples.filter((sample) => sample.valid).length;
-		if (validCount !== repetitions) state.invalidReasons.push(`expected ${repetitions} interleaved valid samples, got ${validCount}`);
-		state.aggregate = aggregateSamples(state.samples);
-		state.valid = state.warmup.valid && validCount === repetitions;
-		if (state.valid) state.invalidReasons = [];
-	}
-	for (const state of states.values()) state.interleaved = traceIsInterleaved(trace, profiles.map((profile) => profile.id), repetitions);
-	return { states, trace };
+async function runWarmSample(profile: Profile, session: Awaited<ReturnType<typeof startWarmWebViewSession>>, server: Awaited<ReturnType<typeof startLocalE2EServer>>, kind: BrowserSample["kind"], run: number): Promise<BrowserSample> {
+	const pass = await session.runPass();
+	const data = parseWebViewPassData(pass.measured.stdout);
+	if (!runtimeVersionMatches(profile, pass.runtimeVersion)) throw new Error(`${profile.runtime} runtime mismatch: expected 1.4.x, got ${pass.runtimeVersion}`);
+	const detected = await detectProvenance(profile, pass.backendVersion);
+	const provenance = { ...detected, runtimeVersion: pass.runtimeVersion };
+	return sampleFromRun(profile, kind, run, pass.measured, warmWebViewCommand(profile, server.baseUrl), sampleBoundary(profile), pass.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0] ?? pass.measured.ms, provenance);
 }
 
-async function runWarmFinalistsInterleaved(profiles: Profile[], repetitions: number): Promise<{ states: Map<string, BrowserProfileResult>; trace: BrowserExecutionTraceEntry[] }> {
+function traceEntry(profile: Profile, kind: BrowserSample["kind"], run: number, sequence: number, startedAt: string): BrowserExecutionTraceEntry {
+	const finishedAt = new Date().toISOString();
+	return { profile: profile.id, kind, run, sequence, startedAt, finishedAt };
+}
+
+async function runFinalistsGlobalInterleaved(profiles: Profile[], repetitions: number): Promise<{ states: Map<string, BrowserProfileResult>; trace: BrowserExecutionTraceEntry[] }> {
 	const states = new Map<string, BrowserProfileResult>();
 	const sessions = new Map<string, Awaited<ReturnType<typeof startWarmWebViewSession>>>();
-	const servers = new Map<string, Awaited<ReturnType<typeof startLocalE2EServer>>>();
 	let sharedServer: Awaited<ReturnType<typeof startLocalE2EServer>> | undefined;
 	const trace: BrowserExecutionTraceEntry[] = [];
 	let sequence = 0;
 	try {
-		sharedServer = await startLocalE2EServer({ quiet: true });
+		const warmProfiles = profiles.filter((profile) => profile.arm === "webview" && profile.phase === "warm");
+		if (warmProfiles.length) sharedServer = await startLocalE2EServer({ quiet: true });
+		for (const profile of warmProfiles) sessions.set(profile.id, await startWarmWebViewSession(profile, sharedServer!.baseUrl));
 		for (const profile of profiles) {
-			servers.set(profile.id, sharedServer);
-			const session = await startWarmWebViewSession(profile, sharedServer.baseUrl);
-			sessions.set(profile.id, session);
-		}
-		for (const profile of profiles) {
-			const session = sessions.get(profile.id)!;
 			const startedAt = new Date().toISOString();
-			const pass = await session.runPass();
-			const data = parseWebViewPassData(pass.measured.stdout);
-			if (!runtimeVersionMatches(profile, pass.runtimeVersion)) throw new Error(`${profile.runtime} runtime mismatch: expected 1.4.x, got ${pass.runtimeVersion}`);
-			const detected = await detectProvenance(profile, pass.backendVersion);
-			const provenance = { ...detected, runtimeVersion: pass.runtimeVersion };
-			const warmup = sampleFromRun(profile, "warmup", 0, pass.measured, warmWebViewCommand(profile, servers.get(profile.id)!.baseUrl), sampleBoundary(profile), pass.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0] ?? pass.measured.ms, provenance);
-			trace.push({ profile: profile.id, kind: "warmup", run: 0, sequence: sequence++, startedAt, finishedAt: new Date().toISOString() });
-			states.set(profile.id, { profile, warmup, samples: [], aggregate: null, valid: false, invalidReasons: [], nonDominated: false, interleaved: false });
+			const sample = profile.arm === "webview" && profile.phase === "warm"
+				? await runWarmSample(profile, sessions.get(profile.id)!, sharedServer!, "warmup", 0)
+				: await runColdSample(profile, "warmup", 0);
+			trace.push(traceEntry(profile, "warmup", 0, sequence++, startedAt));
+			states.set(profile.id, { profile, warmup: sample, samples: [], aggregate: null, valid: false, invalidReasons: [], nonDominated: false, interleaved: false, excludedSamples: [] });
 		}
 		for (let round = 1; round <= repetitions; round += 1) {
-			const order = round % 2 === 1 ? profiles : [...profiles].reverse();
+			const order = finalistOrder(profiles, round);
 			for (const profile of order) {
-				const session = sessions.get(profile.id)!;
 				const startedAt = new Date().toISOString();
-				const pass = await session.runPass();
-				const data = parseWebViewPassData(pass.measured.stdout);
-				if (!runtimeVersionMatches(profile, pass.runtimeVersion)) throw new Error(`${profile.runtime} runtime mismatch: expected 1.4.x, got ${pass.runtimeVersion}`);
-				const detected = await detectProvenance(profile, pass.backendVersion);
-				const provenance = { ...detected, runtimeVersion: pass.runtimeVersion };
-				const sample = sampleFromRun(profile, "measured", round, pass.measured, warmWebViewCommand(profile, servers.get(profile.id)!.baseUrl), sampleBoundary(profile), pass.contamination, data.outcomes[0] ?? null, data.passDurationsMs[0] ?? pass.measured.ms, provenance);
+				const sample = profile.arm === "webview" && profile.phase === "warm"
+					? await runWarmSample(profile, sessions.get(profile.id)!, sharedServer!, "measured", round)
+					: await runColdSample(profile, "measured", round);
 				states.get(profile.id)!.samples.push(sample);
-				trace.push({ profile: profile.id, kind: "measured", run: round, sequence: sequence++, startedAt, finishedAt: new Date().toISOString() });
+				trace.push(traceEntry(profile, "measured", round, sequence++, startedAt));
 			}
 		}
 	} finally {
@@ -613,6 +610,14 @@ async function runWarmFinalistsInterleaved(profiles: Profile[], repetitions: num
 
 async function commit(): Promise<string> {
 	try { return (await exec("git", ["rev-parse", "HEAD"])).stdout.trim(); } catch { return "unknown"; }
+}
+
+function lockProvenance(): BrowserBenchmarkRun["lockProvenance"] {
+	const acquired = process.env[LOCK_ENV] === LOCK_MARKER;
+	return [
+		{ identity: CRM_LOCK_PATH, acquired, mechanism: "lockf", marker: LOCK_MARKER, ...(LOCK_ACQUIRED_AT ? { acquiredAt: LOCK_ACQUIRED_AT } : {}) },
+		{ identity: ANTCLIPS_LOCK_PATH, acquired, mechanism: "lockf", marker: LOCK_MARKER, ...(LOCK_ACQUIRED_AT ? { acquiredAt: LOCK_ACQUIRED_AT } : {}) },
+	];
 }
 
 async function reserveStem(timestamp: string): Promise<string> {
@@ -663,14 +668,13 @@ function parseArgs(args: string[]): { repetitions: number; profiles: Profile[]; 
 
 export async function runBrowserConfirmations(repetitions: number, profiles: Profile[]): Promise<BrowserBenchmarkRun> {
 	if (!profiles.length) throw new Error("at least one confirmation profile is required");
-	const coldResult = await runColdFinalistsInterleaved(profiles.filter((profile) => profile.phase === "cold"), repetitions);
-	const warmResult = await runWarmFinalistsInterleaved(profiles.filter((profile) => profile.phase === "warm"), repetitions);
-	const confirmed = new Map([...coldResult.states, ...warmResult.states]);
-	const executionTrace = [...coldResult.trace, ...warmResult.trace];
+	const result = await runFinalistsGlobalInterleaved(profiles, repetitions);
+	const confirmed = result.states;
+	const executionTrace = result.trace;
 	const results = profiles.map((profile) => confirmed.get(profile.id)!);
 	const finalists = selectNonDominated(results);
 	for (const result of results) result.nonDominated = finalists.includes(result.profile.id);
-	return { schemaVersion: 2, commit: await commit(), timestamp: new Date().toISOString(), host: await collectHostMeta(), repetitions, screeningRepetitions: 0, warmupsPerProfile: WARMUP_COUNT, canonicalRoutes: BROWSER_SMOKE_ROUTE_IDS.length, profiles: results, screeningFinalists: profiles.map((profile) => profile.id), finalists, finalistSchedule: deriveFinalistSchedule(executionTrace, repetitions), executionTrace, locks: ["/tmp/praxis-playwright.lock", join(tmpdir(), "creatista-test.lock")], serializedQueueThroughput: results.map((result) => ({ profile: result.profile.id, samplesPerMinute: result.aggregate?.medianMs ? 60_000 / result.aggregate.medianMs : 0 })) };
+	return { schemaVersion: 2, commit: await commit(), timestamp: new Date().toISOString(), host: await collectHostMeta(), repetitions, screeningRepetitions: 0, warmupsPerProfile: WARMUP_COUNT, canonicalRoutes: BROWSER_SMOKE_ROUTE_IDS.length, profiles: results, screeningFinalists: profiles.map((profile) => profile.id), finalists, finalistSchedule: deriveFinalistSchedule(executionTrace, repetitions), executionTrace, locks: [CRM_LOCK_PATH, ANTCLIPS_LOCK_PATH], lockProvenance: lockProvenance(), serializedQueueThroughput: results.map((result) => ({ profile: result.profile.id, samplesPerMinute: result.aggregate?.medianMs ? 60_000 / result.aggregate.medianMs : 0 })) };
 }
 
 export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, profiles: Profile[] = [...ALL_PROFILES]): Promise<BrowserBenchmarkRun> {
@@ -680,13 +684,10 @@ export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, pro
 	if (screeningFinalists.length === 0) {
 		screeningFinalists.push(...screening.filter((result) => result.valid && result.aggregate).map((result) => result.profile.id));
 	}
-	const coldResult = await runColdFinalistsInterleaved(
-		profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "cold"),
-		repetitions,
-	);
-	const warmConfirmed = await runWarmFinalistsInterleaved(profiles.filter((candidate) => screeningFinalists.includes(candidate.id) && candidate.phase === "warm"), repetitions);
-	const confirmed = new Map([...coldResult.states, ...warmConfirmed.states]);
-	const executionTrace = [...coldResult.trace, ...warmConfirmed.trace];
+	const finalistProfiles = profiles.filter((candidate) => screeningFinalists.includes(candidate.id));
+	const confirmation = await runFinalistsGlobalInterleaved(finalistProfiles, repetitions);
+	const confirmed = confirmation.states;
+	const executionTrace = confirmation.trace;
 	const finalistSchedule = deriveFinalistSchedule(executionTrace, repetitions);
 	for (const profile of profiles.filter((candidate) => confirmed.has(candidate.id))) {
 		const result = confirmed.get(profile.id)!;
@@ -696,16 +697,16 @@ export async function runBrowserBenchmark(repetitions = DEFAULT_REPETITIONS, pro
 	const results = profiles.map((profile) => confirmed.get(profile.id) ?? screening.find((result) => result.profile.id === profile.id)!);
 	const finalists = selectNonDominated(results);
 	for (const result of results) result.nonDominated = finalists.includes(result.profile.id);
-	return { schemaVersion: 2, commit: await commit(), timestamp: new Date().toISOString(), host: await collectHostMeta(), repetitions, screeningRepetitions: SCREENING_REPETITIONS, warmupsPerProfile: WARMUP_COUNT, canonicalRoutes: BROWSER_SMOKE_ROUTE_IDS.length, profiles: results, screeningFinalists, finalists, finalistSchedule, executionTrace, locks: ["/tmp/praxis-playwright.lock", join(tmpdir(), "creatista-test.lock")], serializedQueueThroughput: results.map((result) => ({ profile: result.profile.id, samplesPerMinute: result.aggregate?.medianMs ? 60_000 / result.aggregate.medianMs : 0 })) };
+	return { schemaVersion: 2, commit: await commit(), timestamp: new Date().toISOString(), host: await collectHostMeta(), repetitions, screeningRepetitions: SCREENING_REPETITIONS, warmupsPerProfile: WARMUP_COUNT, canonicalRoutes: BROWSER_SMOKE_ROUTE_IDS.length, profiles: results, screeningFinalists, finalists, finalistSchedule, executionTrace, locks: [CRM_LOCK_PATH, ANTCLIPS_LOCK_PATH], lockProvenance: lockProvenance(), serializedQueueThroughput: results.map((result) => ({ profile: result.profile.id, samplesPerMinute: result.aggregate?.medianMs ? 60_000 / result.aggregate.medianMs : 0 })) };
 }
 
 export async function main(args = process.argv.slice(2)): Promise<void> {
-	if (!process.env.BROWSER_BENCH_LOCKED) {
-		const antclipsLock = join(tmpdir(), "creatista-test.lock");
+	if (process.env[LOCK_ENV] !== LOCK_MARKER) {
 		const scriptPath = fileURLToPath(import.meta.url);
-		await exec("lockf", ["-ks", antclipsLock, process.execPath, scriptPath, ...args], { env: { ...process.env, BROWSER_BENCH_LOCKED: "1" } });
+		await exec("lockf", ["-ks", "-t", String(LOCK_WAIT_SECONDS), CRM_LOCK_PATH, "lockf", "-ks", "-t", String(LOCK_WAIT_SECONDS), ANTCLIPS_LOCK_PATH, process.execPath, scriptPath, ...args], { env: { ...process.env, [LOCK_ENV]: LOCK_MARKER } });
 		return;
 	}
+	if (process.env[LOCK_ENV] !== LOCK_MARKER) throw new Error("browser benchmark requires both shared locks");
 	const options = parseArgs(args);
 	const run = options.confirmOnly ? await runBrowserConfirmations(options.repetitions, options.profiles) : await runBrowserBenchmark(options.repetitions, options.profiles);
 	const stem = await reserveStem(run.timestamp);
