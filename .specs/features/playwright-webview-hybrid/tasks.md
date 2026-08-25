@@ -7,7 +7,7 @@ follow its Execute flow and Critical Rules. The final task is followed by a
 fresh independent Verifier.
 
 **Design**: `.specs/features/playwright-webview-hybrid/design.md`
-**Status**: In Progress
+**Status**: Done
 
 ## Test Coverage Matrix
 
@@ -168,11 +168,11 @@ T4 -> T5 -> T6
 - Skill: Bun, tlc-spec-driven
 
 **Done when**:
-- [ ] Latest raw JSON and Markdown contain five valid samples per profile/phase.
-- [ ] README reports compatible comparisons, warmup-inclusive values, limitations, and cost breakdown.
-- [ ] Canonical Bun Test passes with its unchanged count.
-- [ ] Canonical Chromium Playwright passes 49/49.
-- [ ] Typecheck, Biome, lint-tests, and feature validation pass.
+- [x] Latest raw JSON and Markdown contain five valid samples per profile/phase.
+- [x] README reports compatible comparisons, warmup-inclusive values, limitations, and cost breakdown.
+- [x] Canonical Bun Test passes with 2266 passes, 101 environmental skips, and zero failures.
+- [x] Canonical Chromium Playwright passes 49/49.
+- [x] Typecheck, Biome, lint-tests, and pre-verifier build gates pass.
 
 **Tests**: none (evidence layer; all source tests run in Build gate)
 **Gate**: build

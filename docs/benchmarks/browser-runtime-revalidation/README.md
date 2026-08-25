@@ -3,6 +3,11 @@
 Status: iteration-5 common-subset confirmation passed; Playwright remains
 reference and WebView remains experimental. No default or CI change.
 
+Follow-up evidence now holds Playwright Test constant and swaps only the driver:
+[Playwright Test with Bun.WebView hybrid evaluation](../playwright-webview-hybrid/README.md).
+That engine-matched run found WebView Chrome slower than Playwright Page; WebKit
+kept its wall/RSS advantage only as cross-engine evidence.
+
 The canonical comparison is the five anonymous public outcomes shared by the
 Playwright profile filter and the Bun.WebView harness:
 

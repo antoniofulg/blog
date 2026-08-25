@@ -1,0 +1,3031 @@
+{
+  "schemaVersion": 1,
+  "commit": "47f1f17d6226405440dc6a7531d87329ed21cd52",
+  "timestamp": "2026-08-25T18:23:45.236Z",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 22.55078125,
+    "powerSource": "ac",
+    "startedAt": "2026-08-25T18:23:45.255Z"
+  },
+  "repetitions": 5,
+  "warmupCommandsPerProfilePhase": 1,
+  "internalWarmupPassesPerWarmSample": 1,
+  "serverExcludedFromSamples": true,
+  "routeIds": [
+    "en-post",
+    "pt-br-post",
+    "not-found",
+    "en-index",
+    "pt-br-index"
+  ],
+  "profiles": [
+    "playwright-page",
+    "bun-webview-webkit",
+    "bun-webview-chrome"
+  ],
+  "phases": [
+    "cold",
+    "warm"
+  ],
+  "schedule": [
+    {
+      "profile": "playwright-page",
+      "kind": "warmup",
+      "run": 0,
+      "phase": "cold",
+      "sequence": 0
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "warmup",
+      "run": 0,
+      "phase": "cold",
+      "sequence": 1
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "warmup",
+      "run": 0,
+      "phase": "cold",
+      "sequence": 2
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 1,
+      "phase": "cold",
+      "sequence": 3
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 1,
+      "phase": "cold",
+      "sequence": 4
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 1,
+      "phase": "cold",
+      "sequence": 5
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 2,
+      "phase": "cold",
+      "sequence": 6
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 2,
+      "phase": "cold",
+      "sequence": 7
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 2,
+      "phase": "cold",
+      "sequence": 8
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 3,
+      "phase": "cold",
+      "sequence": 9
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 3,
+      "phase": "cold",
+      "sequence": 10
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 3,
+      "phase": "cold",
+      "sequence": 11
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 4,
+      "phase": "cold",
+      "sequence": 12
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 4,
+      "phase": "cold",
+      "sequence": 13
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 4,
+      "phase": "cold",
+      "sequence": 14
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 5,
+      "phase": "cold",
+      "sequence": 15
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 5,
+      "phase": "cold",
+      "sequence": 16
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 5,
+      "phase": "cold",
+      "sequence": 17
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "warmup",
+      "run": 0,
+      "phase": "warm",
+      "sequence": 18
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "warmup",
+      "run": 0,
+      "phase": "warm",
+      "sequence": 19
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "warmup",
+      "run": 0,
+      "phase": "warm",
+      "sequence": 20
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 1,
+      "phase": "warm",
+      "sequence": 21
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 1,
+      "phase": "warm",
+      "sequence": 22
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 1,
+      "phase": "warm",
+      "sequence": 23
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 2,
+      "phase": "warm",
+      "sequence": 24
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 2,
+      "phase": "warm",
+      "sequence": 25
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 2,
+      "phase": "warm",
+      "sequence": 26
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 3,
+      "phase": "warm",
+      "sequence": 27
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 3,
+      "phase": "warm",
+      "sequence": 28
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 3,
+      "phase": "warm",
+      "sequence": 29
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 4,
+      "phase": "warm",
+      "sequence": 30
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 4,
+      "phase": "warm",
+      "sequence": 31
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 4,
+      "phase": "warm",
+      "sequence": 32
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "kind": "measured",
+      "run": 5,
+      "phase": "warm",
+      "sequence": 33
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "kind": "measured",
+      "run": 5,
+      "phase": "warm",
+      "sequence": 34
+    },
+    {
+      "profile": "playwright-page",
+      "kind": "measured",
+      "run": 5,
+      "phase": "warm",
+      "sequence": 35
+    }
+  ],
+  "samples": [
+    {
+      "profile": "playwright-page",
+      "phase": "cold",
+      "kind": "warmup",
+      "run": 0,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:24.630Z",
+      "finishedAt": "2026-08-25T18:21:30.835Z",
+      "wallMs": 6206.79025,
+      "peakRssBytes": 879591424,
+      "rssTimeGiBSeconds": 5.08449922731781,
+      "loadAvg1": 30.0400390625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 3422.761833,
+      "driverSetupMs": 3406.3780420000003,
+      "internalWarmupMs": null,
+      "actionMs": 1520.7788330000003,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 96.40270800000053,
+      "runnerOverheadMs": 1166.8468759999992,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:28978) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "cold",
+      "kind": "warmup",
+      "run": 0,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:30.880Z",
+      "finishedAt": "2026-08-25T18:21:33.428Z",
+      "wallMs": 2548.8221250000006,
+      "peakRssBytes": 306741248,
+      "rssTimeGiBSeconds": 0.7281348850135805,
+      "loadAvg1": 29.23583984375,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 797.5307079999999,
+      "driverSetupMs": 778.6022909999999,
+      "internalWarmupMs": null,
+      "actionMs": 787.841625,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.11566700000003038,
+      "runnerOverheadMs": 963.3341250000008,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:29520) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "cold",
+      "kind": "warmup",
+      "run": 0,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:33.479Z",
+      "finishedAt": "2026-08-25T18:21:37.470Z",
+      "wallMs": 3977.665499999999,
+      "peakRssBytes": 1089454080,
+      "rssTimeGiBSeconds": 4.0358713901138294,
+      "loadAvg1": 29.23583984375,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1381.856667,
+      "driverSetupMs": 1363.6725,
+      "internalWarmupMs": null,
+      "actionMs": 1827.355667,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.08383299999968585,
+      "runnerOverheadMs": 768.3693329999994,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:29584) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 1,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:37.509Z",
+      "finishedAt": "2026-08-25T18:21:39.913Z",
+      "wallMs": 2404.4905,
+      "peakRssBytes": 993460224,
+      "rssTimeGiBSeconds": 2.224711394622803,
+      "loadAvg1": 27.455078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 742.672084,
+      "driverSetupMs": 714.992625,
+      "internalWarmupMs": null,
+      "actionMs": 824.18175,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 109.00070900000014,
+      "runnerOverheadMs": 728.6359569999997,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:29841) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 1,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:39.948Z",
+      "finishedAt": "2026-08-25T18:21:41.648Z",
+      "wallMs": 1699.4288339999985,
+      "peakRssBytes": 331661312,
+      "rssTimeGiBSeconds": 0.5249258100381771,
+      "loadAvg1": 25.97705078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 404.3790829999999,
+      "driverSetupMs": 384.3869169999999,
+      "internalWarmupMs": null,
+      "actionMs": 564.1959999999999,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.027124999999841748,
+      "runnerOverheadMs": 730.8266259999989,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:29914) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 1,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:41.708Z",
+      "finishedAt": "2026-08-25T18:21:46.204Z",
+      "wallMs": 4496.194833000001,
+      "peakRssBytes": 1001324544,
+      "rssTimeGiBSeconds": 4.192954153650331,
+      "loadAvg1": 25.97705078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1588.579291,
+      "driverSetupMs": 1572.512958,
+      "internalWarmupMs": null,
+      "actionMs": 1925.431875,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.30962499999986903,
+      "runnerOverheadMs": 981.8740420000015,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:30193) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 2,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:46.244Z",
+      "finishedAt": "2026-08-25T18:21:47.979Z",
+      "wallMs": 1729.4318329999987,
+      "peakRssBytes": 320815104,
+      "rssTimeGiBSeconds": 0.5167237048640896,
+      "loadAvg1": 24.13671875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 353.12658300000004,
+      "driverSetupMs": 341.201,
+      "internalWarmupMs": null,
+      "actionMs": 629.164708,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.08733400000005531,
+      "runnerOverheadMs": 747.0532079999987,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:30445) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 2,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:48.044Z",
+      "finishedAt": "2026-08-25T18:21:52.609Z",
+      "wallMs": 4565.123041999999,
+      "peakRssBytes": 1006354432,
+      "rssTimeGiBSeconds": 4.278618661632781,
+      "loadAvg1": 24.13671875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1584.7832500000002,
+      "driverSetupMs": 1565.766708,
+      "internalWarmupMs": null,
+      "actionMs": 1914.104625,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.10625000000027285,
+      "runnerOverheadMs": 1066.1289169999986,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:30657) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n\u001b[1A\u001b[2K(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 2,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:52.651Z",
+      "finishedAt": "2026-08-25T18:21:55.292Z",
+      "wallMs": 2639.5859579999997,
+      "peakRssBytes": 967491584,
+      "rssTimeGiBSeconds": 2.378390356534698,
+      "loadAvg1": 24.36572265625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1011.4460419999998,
+      "driverSetupMs": 910.513708,
+      "internalWarmupMs": null,
+      "actionMs": 728.690875,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 93.49837500000012,
+      "runnerOverheadMs": 805.9506659999997,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:30987) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 3,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:55.334Z",
+      "finishedAt": "2026-08-25T18:21:59.598Z",
+      "wallMs": 4263.928957999997,
+      "peakRssBytes": 1043054592,
+      "rssTimeGiBSeconds": 4.142067096758328,
+      "loadAvg1": 24.09619140625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1354.693375,
+      "driverSetupMs": 1325.008458,
+      "internalWarmupMs": null,
+      "actionMs": 1924.9089170000002,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.4362909999999829,
+      "runnerOverheadMs": 983.8903749999968,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:31147) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 3,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:21:59.642Z",
+      "finishedAt": "2026-08-25T18:22:02.399Z",
+      "wallMs": 2746.6747079999986,
+      "peakRssBytes": 943276032,
+      "rssTimeGiBSeconds": 2.4129379724683218,
+      "loadAvg1": 23.04736328125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1147.731166,
+      "driverSetupMs": 1130.564916,
+      "internalWarmupMs": null,
+      "actionMs": 669.3304579999999,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 91.25279200000023,
+      "runnerOverheadMs": 838.3602919999985,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:31450) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 3,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:02.437Z",
+      "finishedAt": "2026-08-25T18:22:04.296Z",
+      "wallMs": 1856.939833000004,
+      "peakRssBytes": 339476480,
+      "rssTimeGiBSeconds": 0.5870940145837414,
+      "loadAvg1": 23.04736328125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 348.696166,
+      "driverSetupMs": 335.153,
+      "internalWarmupMs": null,
+      "actionMs": 630.125417,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.06870800000001509,
+      "runnerOverheadMs": 878.0495420000041,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:31567) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 4,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:04.383Z",
+      "finishedAt": "2026-08-25T18:22:06.960Z",
+      "wallMs": 2575.986874999995,
+      "peakRssBytes": 1023967232,
+      "rssTimeGiBSeconds": 2.4565739092063854,
+      "loadAvg1": 23.92431640625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 786.285875,
+      "driverSetupMs": 768.5721250000001,
+      "internalWarmupMs": null,
+      "actionMs": 741.823208,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 93.88799999999992,
+      "runnerOverheadMs": 953.9897919999951,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:31649) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 4,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:06.999Z",
+      "finishedAt": "2026-08-25T18:22:08.591Z",
+      "wallMs": 1591.3862079999963,
+      "peakRssBytes": 367509504,
+      "rssTimeGiBSeconds": 0.5446835942329089,
+      "loadAvg1": 23.92431640625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 343.38687500000003,
+      "driverSetupMs": 318.09291700000006,
+      "internalWarmupMs": null,
+      "actionMs": 485.933666,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.07016700000008314,
+      "runnerOverheadMs": 761.995499999996,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:31734) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 4,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:08.639Z",
+      "finishedAt": "2026-08-25T18:22:12.930Z",
+      "wallMs": 4290.783334000007,
+      "peakRssBytes": 1116028928,
+      "rssTimeGiBSeconds": 4.459766973298317,
+      "loadAvg1": 23.92431640625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1450.618541,
+      "driverSetupMs": 1433.5028750000001,
+      "internalWarmupMs": null,
+      "actionMs": 1923.5426669999997,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.15537499999982174,
+      "runnerOverheadMs": 916.4667510000077,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:31828) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 5,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:12.977Z",
+      "finishedAt": "2026-08-25T18:22:14.988Z",
+      "wallMs": 2010.4683330000043,
+      "peakRssBytes": 329662464,
+      "rssTimeGiBSeconds": 0.6172581989790815,
+      "loadAvg1": 22.64892578125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 433.560416,
+      "driverSetupMs": 416.19591599999995,
+      "internalWarmupMs": null,
+      "actionMs": 655.9522919999999,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.03899999999998727,
+      "runnerOverheadMs": 920.9166250000044,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:32043) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 5,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:15.065Z",
+      "finishedAt": "2026-08-25T18:22:19.089Z",
+      "wallMs": 4023.5701249999984,
+      "peakRssBytes": 1123254272,
+      "rssTimeGiBSeconds": 4.209105234218596,
+      "loadAvg1": 22.1162109375,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1296.891458,
+      "driverSetupMs": 1281.093333,
+      "internalWarmupMs": null,
+      "actionMs": 1758.4867499999998,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.13095800000019153,
+      "runnerOverheadMs": 968.0609589999983,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:32106) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "cold",
+      "kind": "measured",
+      "run": 5,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:19.127Z",
+      "finishedAt": "2026-08-25T18:22:21.874Z",
+      "wallMs": 2745.0648749999964,
+      "peakRssBytes": 977977344,
+      "rssTimeGiBSeconds": 2.500239066370007,
+      "loadAvg1": 20.9853515625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 841.3277909999999,
+      "driverSetupMs": 814.751958,
+      "internalWarmupMs": null,
+      "actionMs": 833.8824159999999,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 99.49862499999972,
+      "runnerOverheadMs": 970.3560429999968,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:32282) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "warm",
+      "kind": "warmup",
+      "run": 0,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:21.908Z",
+      "finishedAt": "2026-08-25T18:22:24.946Z",
+      "wallMs": 3020.7075420000037,
+      "peakRssBytes": 1013923840,
+      "rssTimeGiBSeconds": 2.8524244115702855,
+      "loadAvg1": 20.9853515625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 769.7793750000001,
+      "driverSetupMs": 746.8057080000001,
+      "internalWarmupMs": 656.161625,
+      "actionMs": 550.3557919999998,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 248.72312499999998,
+      "runnerOverheadMs": 795.6876250000039,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:32455) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "warm",
+      "kind": "warmup",
+      "run": 0,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:24.985Z",
+      "finishedAt": "2026-08-25T18:22:27.381Z",
+      "wallMs": 2394.1773750000066,
+      "peakRssBytes": 310968320,
+      "rssTimeGiBSeconds": 0.6933820583724994,
+      "loadAvg1": 20.10546875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 502.33983300000006,
+      "driverSetupMs": 479.31245800000005,
+      "internalWarmupMs": 527.25125,
+      "actionMs": 403.2367919999999,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.0863329999999678,
+      "runnerOverheadMs": 961.2631670000067,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:32552) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "warm",
+      "kind": "warmup",
+      "run": 0,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:27.434Z",
+      "finishedAt": "2026-08-25T18:22:34.739Z",
+      "wallMs": 7304.028292000003,
+      "peakRssBytes": 985563136,
+      "rssTimeGiBSeconds": 6.704201017409792,
+      "loadAvg1": 20.10546875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1805.179166,
+      "driverSetupMs": 1788.4992909999999,
+      "internalWarmupMs": 2895.3366670000005,
+      "actionMs": 1704.6437910000004,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.12312500000007276,
+      "runnerOverheadMs": 898.7455430000018,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:32686) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 1,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:34.780Z",
+      "finishedAt": "2026-08-25T18:22:39.030Z",
+      "wallMs": 4248.580084000001,
+      "peakRssBytes": 925302784,
+      "rssTimeGiBSeconds": 3.6612367069089364,
+      "loadAvg1": 19.30078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1360.987959,
+      "driverSetupMs": 1340.4899169999999,
+      "internalWarmupMs": 958.2474169999998,
+      "actionMs": 615.1022499999999,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 210.51745800000026,
+      "runnerOverheadMs": 1103.725000000001,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:33074) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 1,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:39.066Z",
+      "finishedAt": "2026-08-25T18:22:41.116Z",
+      "wallMs": 2049.693916000004,
+      "peakRssBytes": 333463552,
+      "rssTimeGiBSeconds": 0.6365573161674206,
+      "loadAvg1": 18.3955078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 375.264208,
+      "driverSetupMs": 359.066166,
+      "internalWarmupMs": 497.988834,
+      "actionMs": 383.360541,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.03700000000003456,
+      "runnerOverheadMs": 793.0433330000037,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:33187) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 1,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:41.181Z",
+      "finishedAt": "2026-08-25T18:22:47.721Z",
+      "wallMs": 6539.486708000011,
+      "peakRssBytes": 1007665152,
+      "rssTimeGiBSeconds": 6.137055221590038,
+      "loadAvg1": 18.3955078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1576.119333,
+      "driverSetupMs": 1555.0310410000002,
+      "internalWarmupMs": 1935.5422089999997,
+      "actionMs": 2019.6835,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 1.5704590000004828,
+      "runnerOverheadMs": 1006.5712070000104,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:33333) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 2,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:47.761Z",
+      "finishedAt": "2026-08-25T18:22:50.018Z",
+      "wallMs": 2255.515333000003,
+      "peakRssBytes": 311902208,
+      "rssTimeGiBSeconds": 0.6551856291858071,
+      "loadAvg1": 17.96337890625,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 383.2269999999999,
+      "driverSetupMs": 371.40545899999995,
+      "internalWarmupMs": 480.16150000000005,
+      "actionMs": 340.4170409999999,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.6977500000000418,
+      "runnerOverheadMs": 1051.012042000003,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:33706) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 2,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:50.068Z",
+      "finishedAt": "2026-08-25T18:22:56.058Z",
+      "wallMs": 5989.534125000006,
+      "peakRssBytes": 1079721984,
+      "rssTimeGiBSeconds": 6.022892583795553,
+      "loadAvg1": 25.41357421875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1491.389291,
+      "driverSetupMs": 1479.291541,
+      "internalWarmupMs": 2059.720834,
+      "actionMs": 1716.261125,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.2727499999991778,
+      "runnerOverheadMs": 721.8901250000067,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:33771) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 2,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:56.096Z",
+      "finishedAt": "2026-08-25T18:22:59.733Z",
+      "wallMs": 3625.764916,
+      "peakRssBytes": 917962752,
+      "rssTimeGiBSeconds": 3.0997368883308107,
+      "loadAvg1": 24.41943359375,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1127.497709,
+      "driverSetupMs": 1111.1374999999998,
+      "internalWarmupMs": 878.753291,
+      "actionMs": 621.1825840000001,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 171.58433300000024,
+      "runnerOverheadMs": 826.7469989999995,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:34054) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 3,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:22:59.788Z",
+      "finishedAt": "2026-08-25T18:23:05.683Z",
+      "wallMs": 5894.672665999999,
+      "peakRssBytes": 1040908288,
+      "rssTimeGiBSeconds": 5.714421750126829,
+      "loadAvg1": 23.7451171875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1389.6496659999998,
+      "driverSetupMs": 1371.5253329999998,
+      "internalWarmupMs": 1877.8981669999998,
+      "actionMs": 1667.4006669999994,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.06520799999998417,
+      "runnerOverheadMs": 959.658958,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:34410) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 3,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:05.730Z",
+      "finishedAt": "2026-08-25T18:23:09.228Z",
+      "wallMs": 3497.028084000005,
+      "peakRssBytes": 1001586688,
+      "rssTimeGiBSeconds": 3.262028821275151,
+      "loadAvg1": 23.60498046875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 927.982666,
+      "driverSetupMs": 912.907583,
+      "internalWarmupMs": 770.7530409999999,
+      "actionMs": 746.1635410000001,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 126.62125000000015,
+      "runnerOverheadMs": 925.507586000005,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:34586) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 3,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:09.267Z",
+      "finishedAt": "2026-08-25T18:23:12.475Z",
+      "wallMs": 3203.2082079999964,
+      "peakRssBytes": 316702720,
+      "rssTimeGiBSeconds": 0.9447939248754872,
+      "loadAvg1": 22.75537109375,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 848.561291,
+      "driverSetupMs": 833.7925,
+      "internalWarmupMs": 1140.719,
+      "actionMs": 288.5114159999998,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.11716599999999744,
+      "runnerOverheadMs": 925.2993349999965,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:34788) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 4,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:12.518Z",
+      "finishedAt": "2026-08-25T18:23:16.787Z",
+      "wallMs": 4267.689207999996,
+      "peakRssBytes": 905117696,
+      "rssTimeGiBSeconds": 3.5974765412407192,
+      "loadAvg1": 22.75537109375,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1931.314834,
+      "driverSetupMs": 1918.578667,
+      "internalWarmupMs": 810.3640420000002,
+      "actionMs": 580.6702919999998,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 97.88466600000038,
+      "runnerOverheadMs": 847.455373999996,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:34911) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 4,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:16.828Z",
+      "finishedAt": "2026-08-25T18:23:19.010Z",
+      "wallMs": 2180.530291999996,
+      "peakRssBytes": 343687168,
+      "rssTimeGiBSeconds": 0.6979520253796984,
+      "loadAvg1": 21.65380859375,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 362.297834,
+      "driverSetupMs": 350.20250000000004,
+      "internalWarmupMs": 482.1195419999999,
+      "actionMs": 420.6817920000001,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.03237500000000182,
+      "runnerOverheadMs": 915.3987489999959,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:35108) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 4,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:19.062Z",
+      "finishedAt": "2026-08-25T18:23:25.098Z",
+      "wallMs": 6035.9935419999965,
+      "peakRssBytes": 1072480256,
+      "rssTimeGiBSeconds": 6.028901691677517,
+      "loadAvg1": 21.76123046875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1446.992667,
+      "driverSetupMs": 1430.78925,
+      "internalWarmupMs": 1789.01175,
+      "actionMs": 1952.593167,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 2.255416000000878,
+      "runnerOverheadMs": 845.1405419999955,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:35160) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 5,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-webkit",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:25.142Z",
+      "finishedAt": "2026-08-25T18:23:27.607Z",
+      "wallMs": 2463.591916999998,
+      "peakRssBytes": 316309504,
+      "rssTimeGiBSeconds": 0.7257401359497369,
+      "loadAvg1": 22.2607421875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 415.2492500000001,
+      "driverSetupMs": 398.457417,
+      "internalWarmupMs": 620.007625,
+      "actionMs": 414.8826670000001,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 1.6782920000000559,
+      "runnerOverheadMs": 1011.774082999998,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:35470) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 5,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=bun-webview-chrome",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:27.685Z",
+      "finishedAt": "2026-08-25T18:23:34.886Z",
+      "wallMs": 7198.292292000013,
+      "peakRssBytes": 990150656,
+      "rssTimeGiBSeconds": 6.637902776714001,
+      "loadAvg1": 22.2607421875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1621.9613749999999,
+      "driverSetupMs": 1593.4331659999998,
+      "internalWarmupMs": 1951.9208330000001,
+      "actionMs": 1896.4025410000004,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) HeadlessChrome/148.0.0.0 Safari/537.36",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 0.4717500000006112,
+      "runnerOverheadMs": 1727.5357930000118,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:35581) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "warm",
+      "kind": "measured",
+      "run": 5,
+      "command": [
+        "bunx",
+        "--bun",
+        "playwright",
+        "test",
+        "--config=playwright.webview.config.ts",
+        "--project=playwright-page",
+        "--workers=1",
+        "--retries=0",
+        "--reporter=line"
+      ],
+      "startedAt": "2026-08-25T18:23:34.957Z",
+      "finishedAt": "2026-08-25T18:23:39.525Z",
+      "wallMs": 4567.114750000008,
+      "peakRssBytes": 906067968,
+      "rssTimeGiBSeconds": 3.853921202156074,
+      "loadAvg1": 22.9091796875,
+      "exitCode": 0,
+      "timedOut": false,
+      "cleanupVerified": true,
+      "startupMs": 1301.4540000000002,
+      "driverSetupMs": 1282.823625,
+      "internalWarmupMs": 843.6370000000002,
+      "actionMs": 888.684209,
+      "runtimeVersion": "1.4.0",
+      "browserVersion": "148.0.7778.96",
+      "routes": [
+        {
+          "id": "en-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-post",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "not-found",
+          "passed": true,
+          "status": 404
+        },
+        {
+          "id": "en-index",
+          "passed": true,
+          "status": 200
+        },
+        {
+          "id": "pt-br-index",
+          "passed": true,
+          "status": 200
+        }
+      ],
+      "teardownMs": 143.9354589999998,
+      "runnerOverheadMs": 1389.4040820000077,
+      "valid": true,
+      "invalidReasons": [],
+      "stderrTail": "\u001b[1A\u001b[2K(node:36077) Warning: The 'NO_COLOR' env is ignored due to the 'FORCE_COLOR' env being set.\n(Use `bun --trace-warnings ...` to show where the warning was created)\n"
+    }
+  ],
+  "summaries": [
+    {
+      "profile": "playwright-page",
+      "phase": "cold",
+      "valid": true,
+      "invalidReasons": [],
+      "warmupCommandWallMs": 6206.79025,
+      "sampleCount": 5,
+      "wall": {
+        "median": 2639.5859579999997,
+        "min": 2404.4905,
+        "max": 2746.6747079999986,
+        "sampleCount": 5
+      },
+      "startup": {
+        "median": 841.3277909999999,
+        "min": 742.672084,
+        "max": 1147.731166,
+        "sampleCount": 5
+      },
+      "driverSetup": {
+        "median": 814.751958,
+        "min": 714.992625,
+        "max": 1130.564916,
+        "sampleCount": 5
+      },
+      "internalWarmup": null,
+      "action": {
+        "median": 741.823208,
+        "min": 669.3304579999999,
+        "max": 833.8824159999999,
+        "sampleCount": 5
+      },
+      "teardown": {
+        "median": 93.88799999999992,
+        "min": 91.25279200000023,
+        "max": 109.00070900000014,
+        "sampleCount": 5
+      },
+      "runnerOverhead": {
+        "median": 838.3602919999985,
+        "min": 728.6359569999997,
+        "max": 970.3560429999968,
+        "sampleCount": 5
+      },
+      "peakRss": {
+        "median": 977977344,
+        "min": 943276032,
+        "max": 1023967232,
+        "sampleCount": 5
+      },
+      "rssTime": {
+        "median": 2.4129379724683218,
+        "min": 2.224711394622803,
+        "max": 2.500239066370007,
+        "sampleCount": 5
+      }
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "cold",
+      "valid": true,
+      "invalidReasons": [],
+      "warmupCommandWallMs": 2548.8221250000006,
+      "sampleCount": 5,
+      "wall": {
+        "median": 1729.4318329999987,
+        "min": 1591.3862079999963,
+        "max": 2010.4683330000043,
+        "sampleCount": 5
+      },
+      "startup": {
+        "median": 353.12658300000004,
+        "min": 343.38687500000003,
+        "max": 433.560416,
+        "sampleCount": 5
+      },
+      "driverSetup": {
+        "median": 341.201,
+        "min": 318.09291700000006,
+        "max": 416.19591599999995,
+        "sampleCount": 5
+      },
+      "internalWarmup": null,
+      "action": {
+        "median": 629.164708,
+        "min": 485.933666,
+        "max": 655.9522919999999,
+        "sampleCount": 5
+      },
+      "teardown": {
+        "median": 0.06870800000001509,
+        "min": 0.027124999999841748,
+        "max": 0.08733400000005531,
+        "sampleCount": 5
+      },
+      "runnerOverhead": {
+        "median": 761.995499999996,
+        "min": 730.8266259999989,
+        "max": 920.9166250000044,
+        "sampleCount": 5
+      },
+      "peakRss": {
+        "median": 331661312,
+        "min": 320815104,
+        "max": 367509504,
+        "sampleCount": 5
+      },
+      "rssTime": {
+        "median": 0.5446835942329089,
+        "min": 0.5167237048640896,
+        "max": 0.6172581989790815,
+        "sampleCount": 5
+      }
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "cold",
+      "valid": true,
+      "invalidReasons": [],
+      "warmupCommandWallMs": 3977.665499999999,
+      "sampleCount": 5,
+      "wall": {
+        "median": 4290.783334000007,
+        "min": 4023.5701249999984,
+        "max": 4565.123041999999,
+        "sampleCount": 5
+      },
+      "startup": {
+        "median": 1450.618541,
+        "min": 1296.891458,
+        "max": 1588.579291,
+        "sampleCount": 5
+      },
+      "driverSetup": {
+        "median": 1433.5028750000001,
+        "min": 1281.093333,
+        "max": 1572.512958,
+        "sampleCount": 5
+      },
+      "internalWarmup": null,
+      "action": {
+        "median": 1923.5426669999997,
+        "min": 1758.4867499999998,
+        "max": 1925.431875,
+        "sampleCount": 5
+      },
+      "teardown": {
+        "median": 0.15537499999982174,
+        "min": 0.10625000000027285,
+        "max": 0.4362909999999829,
+        "sampleCount": 5
+      },
+      "runnerOverhead": {
+        "median": 981.8740420000015,
+        "min": 916.4667510000077,
+        "max": 1066.1289169999986,
+        "sampleCount": 5
+      },
+      "peakRss": {
+        "median": 1043054592,
+        "min": 1001324544,
+        "max": 1123254272,
+        "sampleCount": 5
+      },
+      "rssTime": {
+        "median": 4.209105234218596,
+        "min": 4.142067096758328,
+        "max": 4.459766973298317,
+        "sampleCount": 5
+      }
+    },
+    {
+      "profile": "playwright-page",
+      "phase": "warm",
+      "valid": true,
+      "invalidReasons": [],
+      "warmupCommandWallMs": 3020.7075420000037,
+      "sampleCount": 5,
+      "wall": {
+        "median": 4248.580084000001,
+        "min": 3497.028084000005,
+        "max": 4567.114750000008,
+        "sampleCount": 5
+      },
+      "startup": {
+        "median": 1301.4540000000002,
+        "min": 927.982666,
+        "max": 1931.314834,
+        "sampleCount": 5
+      },
+      "driverSetup": {
+        "median": 1282.823625,
+        "min": 912.907583,
+        "max": 1918.578667,
+        "sampleCount": 5
+      },
+      "internalWarmup": {
+        "median": 843.6370000000002,
+        "min": 770.7530409999999,
+        "max": 958.2474169999998,
+        "sampleCount": 5
+      },
+      "action": {
+        "median": 621.1825840000001,
+        "min": 580.6702919999998,
+        "max": 888.684209,
+        "sampleCount": 5
+      },
+      "teardown": {
+        "median": 143.9354589999998,
+        "min": 97.88466600000038,
+        "max": 210.51745800000026,
+        "sampleCount": 5
+      },
+      "runnerOverhead": {
+        "median": 925.507586000005,
+        "min": 826.7469989999995,
+        "max": 1389.4040820000077,
+        "sampleCount": 5
+      },
+      "peakRss": {
+        "median": 917962752,
+        "min": 905117696,
+        "max": 1001586688,
+        "sampleCount": 5
+      },
+      "rssTime": {
+        "median": 3.5974765412407192,
+        "min": 3.0997368883308107,
+        "max": 3.853921202156074,
+        "sampleCount": 5
+      }
+    },
+    {
+      "profile": "bun-webview-webkit",
+      "phase": "warm",
+      "valid": true,
+      "invalidReasons": [],
+      "warmupCommandWallMs": 2394.1773750000066,
+      "sampleCount": 5,
+      "wall": {
+        "median": 2255.515333000003,
+        "min": 2049.693916000004,
+        "max": 3203.2082079999964,
+        "sampleCount": 5
+      },
+      "startup": {
+        "median": 383.2269999999999,
+        "min": 362.297834,
+        "max": 848.561291,
+        "sampleCount": 5
+      },
+      "driverSetup": {
+        "median": 371.40545899999995,
+        "min": 350.20250000000004,
+        "max": 833.7925,
+        "sampleCount": 5
+      },
+      "internalWarmup": {
+        "median": 497.988834,
+        "min": 480.16150000000005,
+        "max": 1140.719,
+        "sampleCount": 5
+      },
+      "action": {
+        "median": 383.360541,
+        "min": 288.5114159999998,
+        "max": 420.6817920000001,
+        "sampleCount": 5
+      },
+      "teardown": {
+        "median": 0.11716599999999744,
+        "min": 0.03237500000000182,
+        "max": 1.6782920000000559,
+        "sampleCount": 5
+      },
+      "runnerOverhead": {
+        "median": 925.2993349999965,
+        "min": 793.0433330000037,
+        "max": 1051.012042000003,
+        "sampleCount": 5
+      },
+      "peakRss": {
+        "median": 316702720,
+        "min": 311902208,
+        "max": 343687168,
+        "sampleCount": 5
+      },
+      "rssTime": {
+        "median": 0.6979520253796984,
+        "min": 0.6365573161674206,
+        "max": 0.9447939248754872,
+        "sampleCount": 5
+      }
+    },
+    {
+      "profile": "bun-webview-chrome",
+      "phase": "warm",
+      "valid": true,
+      "invalidReasons": [],
+      "warmupCommandWallMs": 7304.028292000003,
+      "sampleCount": 5,
+      "wall": {
+        "median": 6035.9935419999965,
+        "min": 5894.672665999999,
+        "max": 7198.292292000013,
+        "sampleCount": 5
+      },
+      "startup": {
+        "median": 1491.389291,
+        "min": 1389.6496659999998,
+        "max": 1621.9613749999999,
+        "sampleCount": 5
+      },
+      "driverSetup": {
+        "median": 1479.291541,
+        "min": 1371.5253329999998,
+        "max": 1593.4331659999998,
+        "sampleCount": 5
+      },
+      "internalWarmup": {
+        "median": 1935.5422089999997,
+        "min": 1789.01175,
+        "max": 2059.720834,
+        "sampleCount": 5
+      },
+      "action": {
+        "median": 1896.4025410000004,
+        "min": 1667.4006669999994,
+        "max": 2019.6835,
+        "sampleCount": 5
+      },
+      "teardown": {
+        "median": 0.4717500000006112,
+        "min": 0.06520799999998417,
+        "max": 2.255416000000878,
+        "sampleCount": 5
+      },
+      "runnerOverhead": {
+        "median": 959.658958,
+        "min": 721.8901250000067,
+        "max": 1727.5357930000118,
+        "sampleCount": 5
+      },
+      "peakRss": {
+        "median": 1040908288,
+        "min": 990150656,
+        "max": 1079721984,
+        "sampleCount": 5
+      },
+      "rssTime": {
+        "median": 6.028901691677517,
+        "min": 5.714421750126829,
+        "max": 6.637902776714001,
+        "sampleCount": 5
+      }
+    }
+  ],
+  "comparisons": [
+    {
+      "phase": "cold",
+      "profile": "bun-webview-webkit",
+      "scope": "cross-engine",
+      "valid": true,
+      "wall": {
+        "deltaMs": -910.1541250000009,
+        "deltaPct": -34.48094282520051,
+        "verdict": "faster"
+      },
+      "action": {
+        "deltaMs": -112.6585,
+        "deltaPct": -15.186704700670406,
+        "verdict": "within-noise"
+      },
+      "peakRssDeltaPct": -66.08701479284984,
+      "rssTimeDeltaPct": -77.42653974334354
+    },
+    {
+      "phase": "cold",
+      "profile": "bun-webview-chrome",
+      "scope": "engine-matched",
+      "valid": true,
+      "wall": {
+        "deltaMs": 1651.1973760000074,
+        "deltaPct": 62.55516593409638,
+        "verdict": "slower"
+      },
+      "action": {
+        "deltaMs": 1181.7194589999997,
+        "deltaPct": 159.2993379360544,
+        "verdict": "slower"
+      },
+      "peakRssDeltaPct": 6.654269487862492,
+      "rssTimeDeltaPct": 74.43901510294025
+    },
+    {
+      "phase": "warm",
+      "profile": "bun-webview-webkit",
+      "scope": "cross-engine",
+      "valid": true,
+      "wall": {
+        "deltaMs": -1993.064750999998,
+        "deltaPct": -46.911314170722775,
+        "verdict": "faster"
+      },
+      "action": {
+        "deltaMs": -237.82204300000012,
+        "deltaPct": -38.28536876687452,
+        "verdict": "within-noise"
+      },
+      "peakRssDeltaPct": -65.49939316056258,
+      "rssTimeDeltaPct": -80.59884429047634
+    },
+    {
+      "phase": "warm",
+      "profile": "bun-webview-chrome",
+      "scope": "engine-matched",
+      "valid": true,
+      "wall": {
+        "deltaMs": 1787.4134579999954,
+        "deltaPct": 42.070843026622704,
+        "verdict": "slower"
+      },
+      "action": {
+        "deltaMs": 1275.2199570000002,
+        "deltaPct": 205.2890711758912,
+        "verdict": "slower"
+      },
+      "peakRssDeltaPct": 13.393303348325839,
+      "rssTimeDeltaPct": 67.58696332174647
+    }
+  ],
+  "locks": [
+    "/tmp/praxis-playwright.lock",
+    "/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/creatista-test.lock"
+  ]
+}

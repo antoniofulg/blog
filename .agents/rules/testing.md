@@ -50,6 +50,10 @@ tests/e2e/      — Playwright E2E specs
 - `bun run test:e2e:webview:harness` runs the local Playwright Test harness with
   Bun.WebView WebKit. It covers exactly the five routes in
   `app/lib/browser-bench/contract.ts` and remains outside CI/default discovery.
+- `bun run bench:e2e:webview:harness` compares Playwright Page, WebView WebKit,
+  and WebView Chrome under the same Playwright Test harness. Evidence lives in
+  `docs/benchmarks/playwright-webview-hybrid/`; the Chrome-matched result does
+  not justify replacing Playwright Page.
 
 ## Selector Hierarchy
 
