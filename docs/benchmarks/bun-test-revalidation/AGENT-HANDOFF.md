@@ -49,12 +49,13 @@ Finalized:
 4. STATE and testing rules agree with the opt-in candidate state.
 5. Sol-medium validation iteration 2 returned PASS.
 
-Queued after Bun Test validation:
+Browser follow-up completed:
 
-1. Revalidate Node + Playwright versus Bun + Playwright with the same benchmark
-   discipline and workers 1/2.
-2. Restore a local Bun.WebView smoke harness and retest only the equivalent
-   five-route subset. Keep it out of CI/defaults.
+1. Node 24 + Playwright versus Bun + Playwright, workers 1/2.
+2. Fair `--no-deps` common subset with exactly five routes.
+3. Bun.WebView WebKit/Chrome cold/warm/parallel/`--smol` screening.
+4. Clean six-profile global confirmation with one warm-up and 5/5 samples.
+5. Independent validation PASS; defaults and CI unchanged.
 
 ## Final matrix
 
@@ -267,6 +268,29 @@ Current static classification:
 See `docs/benchmarks/bun-test-revalidation/cohort-screening.md` and its linked
 JSON artifacts.
 
+## Final browser common-subset result
+
+Source:
+`docs/benchmarks/browser-runtime-revalidation/runs/run-2026-08-25T06-17-36-513Z.json`.
+Independent validation: PASS.
+
+All profiles execute the same five anonymous routes. Playwright uses
+`--no-deps`, so the auth setup project is excluded and setup count is zero.
+
+| Profile | Median | Peak RSS | RSS×time | Throughput |
+| --- | ---: | ---: | ---: | ---: |
+| Playwright Node 24 w1 | 4.065 s | 1,747.7 MiB | 6.94 GiB·s | 14.76/min |
+| Playwright Bun w1 | 2.971 s | 1,332.1 MiB | 3.87 GiB·s | 20.19/min |
+| Playwright Node 24 w2 | 3.701 s | 1,460.0 MiB | 5.28 GiB·s | 16.21/min |
+| Playwright Bun w2 | 2.857 s | 1,301.1 MiB | 3.63 GiB·s | 21.00/min |
+| WebView WebKit warm | 0.331 s | 97.5 MiB | 0.03 GiB·s | 181.10/min |
+| WebView WebKit warm `--smol` | 0.308 s | 97.0 MiB | 0.03 GiB·s | 194.55/min |
+
+For the common subset, Bun + Playwright is faster and lower-RSS than Node in
+both worker profiles. WebView `--smol` is the raw Pareto smoke profile, but it
+remains experimental/local-only and does not replace Playwright's 49-test,
+multi-browser E2E coverage.
+
 ## Independent verifier findings
 
 The first Sol-medium verifier returned FAIL. Blockers were:
@@ -314,8 +338,9 @@ Read newer commits before assuming this list is current.
 3. Treat the complete matrix and validation PASS as the current evidence.
 4. Keep `test`, CI, Playwright, and Bun.WebView defaults unchanged until the
    maintainer explicitly approves a separate cutover.
-5. The next approved experiment is Playwright Node/Bun workers 1/2 followed by
-   a local-only equivalent Bun.WebView smoke revalidation.
+5. Browser revalidation is complete; read
+   `.specs/features/browser-runtime-revalidation/validation.md` and its final
+   report before proposing any browser change.
 
 Completion criterion for any cutover: make a separate explicit decision that
 accounts for the maintenance cost of the second suite and the profile-dependent
