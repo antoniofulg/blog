@@ -31,7 +31,8 @@ export default defineConfig({
 				globalSetup: "./tests/e2e/global-setup.ts",
 				globalTeardown: "./tests/e2e/global-teardown.ts",
 				webServer: {
-					command: "bun run scripts/e2e-server.ts",
+					command:
+						"E2E_BROWSER_SMOKE=true bun run scripts/e2e-server.ts",
 					url: baseURL,
 					reuseExistingServer: false,
 					stdout: "pipe" as const,

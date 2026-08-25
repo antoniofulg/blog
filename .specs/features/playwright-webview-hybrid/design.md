@@ -59,9 +59,9 @@ Chromium. Both Chrome branches use Playwright's Chromium executable path.
 - **Location**: `scripts/bench-playwright-webview-hybrid.ts`
 - **Purpose**: Acquire shared benchmark locks, start one server, schedule samples, validate output, aggregate metrics, and persist evidence.
 - **Protocol**: cold and warm cohorts remain separate; each has one discarded command and five interleaved valid commands.
-- **Isolation**: its server alone sets `E2E_BROWSER_SMOKE=true`, which disables
-  post-view analytics outside the five-route contract. The functional hybrid
-  suite and canonical E2E server do not set it.
+- **Isolation**: every server owned by the hybrid config sets
+  `E2E_BROWSER_SMOKE=true`, which disables post-view analytics outside the
+  five-route contract. The canonical E2E server does not set it.
 
 ## Error Handling Strategy
 

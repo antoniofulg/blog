@@ -166,7 +166,7 @@ describe("Playwright Test WebView hybrid fixture", () => {
 		).toContain("invalid five-route outcome");
 	});
 
-	test("suppresses post analytics only in the isolated browser benchmark server", async () => {
+	test("suppresses post analytics only in an isolated browser-smoke server", async () => {
 		expect(shouldSuppressPostViewAnalytics({ E2E_BROWSER_SMOKE: "true" })).toBe(
 			true,
 		);
@@ -178,5 +178,18 @@ describe("Playwright Test WebView hybrid fixture", () => {
 				{ E2E_BROWSER_SMOKE: "true" },
 			),
 		).resolves.toBeUndefined();
+	});
+
+	test("isolates analytics only in the hybrid config, never the canonical E2E config", () => {
+		const hybrid = readFileSync(
+			new URL("../../playwright.webview.config.ts", import.meta.url),
+			"utf8",
+		);
+		const canonical = readFileSync(
+			new URL("../../playwright.config.ts", import.meta.url),
+			"utf8",
+		);
+		expect(hybrid).toContain("E2E_BROWSER_SMOKE=true");
+		expect(canonical).not.toContain("E2E_BROWSER_SMOKE");
 	});
 });
