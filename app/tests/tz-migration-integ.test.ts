@@ -26,11 +26,11 @@ describe("integration: timestamptz round-trip (PGLite)", () => {
 
 	beforeAll(async () => {
 		testDb = await createTestDb();
-	});
+	}, 30_000);
 
 	afterAll(async () => {
 		await testDb.close();
-	});
+	}, 30_000);
 
 	test("insert Date('2025-01-15T10:00:00Z') and read back same UTC instant", async () => {
 		const utcDate = new Date("2025-01-15T10:00:00Z");
@@ -122,11 +122,11 @@ describe("integration: TZ migration SQL against old schema (PGLite)", () => {
         );
       `);
 		}
-	});
+	}, 30_000);
 
 	afterAll(async () => {
 		await client.close();
-	});
+	}, 30_000);
 
 	test("10 rows exist before migration", async () => {
 		const result = await client.query<{ count: string }>(
