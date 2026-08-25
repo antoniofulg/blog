@@ -500,7 +500,7 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
 	if (!process.env.BROWSER_BENCH_LOCKED) {
 		const antclipsLock = join(tmpdir(), "creatista-test.lock");
 		const scriptPath = fileURLToPath(import.meta.url);
-		await exec("python3", ["/Users/antoniofulg/Projects/crm/tools/machine-lock.py", "lockf", "-ks", antclipsLock, process.execPath, scriptPath, ...args], { env: { ...process.env, BROWSER_BENCH_LOCKED: "1" } });
+		await exec("lockf", ["-ks", antclipsLock, process.execPath, scriptPath, ...args], { env: { ...process.env, BROWSER_BENCH_LOCKED: "1" } });
 		return;
 	}
 	const options = parseArgs(args);
