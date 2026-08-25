@@ -53,9 +53,9 @@
 
 ## Handoff
 
-- **Feature**: Bun Test cutover (`.specs/features/bun-test-cutover/`)
+- **Feature**: Playwright WebView hybrid (`.specs/features/playwright-webview-hybrid/`)
 - **Phase / Task**: Complete; T1-T6 and independent validation passed.
-- **Completed**: Native Bun Test 1.4 is canonical for 133 files (113 product + 20 infrastructure) with two isolated workers. Vitest/jsdom, the duplicate tree, and comparison harness are removed. Fresh local gates passed 2,256 tests with 101 environmental/raw skips and zero failures; Chromium Playwright passed 49/49; the sensor killed 3/3 mutations.
+- **Completed**: Playwright Test hosts matched Page, Bun.WebView WebKit, and Bun.WebView Chrome drivers for the same five-route contract. Fresh gates passed 2,272 Bun tests with 101 environmental skips and zero failures, canonical Chromium 49/49, hybrid 15/15, raw benchmark audit 36/36, and sensor 3/3. Same-engine WebView Chrome was slower than Playwright Page, so canonical Playwright remains unchanged; WebKit remains an opt-in local diagnostic.
 - **In-progress** (file:line): none.
 - **Next step**: Review/merge the local commits when authorized; GitHub Actions remains unavailable for credits.
 - **Blockers**: none.

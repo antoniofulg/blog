@@ -9,9 +9,9 @@ for the same five-route workload.
 
 ## Goals
 
-- [ ] Prove whether Bun.WebView can run inside a Bun-hosted Playwright Test worker without launching a Playwright browser.
-- [ ] Compare matched cold lifecycle and warm action costs with reproducible time and memory evidence.
-- [ ] Preserve the complete Playwright suite and all default/CI behavior.
+- [x] Prove whether Bun.WebView can run inside a Bun-hosted Playwright Test worker without launching a Playwright browser.
+- [x] Compare matched cold lifecycle and warm action costs with reproducible time and memory evidence.
+- [x] Preserve the complete Playwright suite and all default/CI behavior.
 
 ## Out of Scope
 
@@ -81,17 +81,17 @@ plus five valid samples for every profile/phase with exact route parity.
 
 | Requirement ID | Story | Phase | Status |
 | --- | --- | --- | --- |
-| HYBRID-01 | Matched Playwright Test drivers | Design | Implementing |
-| HYBRID-02 | Matched Playwright Test drivers | Design | Implementing |
-| HYBRID-03 | Controlled lifecycle benchmark | Design | Implementing |
-| HYBRID-04 | Controlled lifecycle benchmark | Design | Implementing |
-| HYBRID-05 | Preserve canonical E2E boundary | Design | In Tasks |
+| HYBRID-01 | Matched Playwright Test drivers | Design | ✅ Verified |
+| HYBRID-02 | Matched Playwright Test drivers | Design | ✅ Verified |
+| HYBRID-03 | Controlled lifecycle benchmark | Design | ✅ Verified |
+| HYBRID-04 | Controlled lifecycle benchmark | Design | ✅ Verified |
+| HYBRID-05 | Preserve canonical E2E boundary | Design | ✅ Verified |
 
 **Coverage:** 5 total, 5 mapped to tasks, 0 unmapped.
 
 ## Success Criteria
 
-- [ ] All three local projects produce the same five passing route outcomes.
-- [ ] Cold and warm cohorts each retain five valid samples per profile.
-- [ ] The canonical Chromium suite still passes 49/49.
-- [ ] The report states where measured cost lives without comparing incompatible lifecycles.
+- [x] All three local projects produce the same five passing route outcomes.
+- [x] Cold and warm cohorts each retain five valid samples per profile.
+- [x] The canonical Chromium suite still passes 49/49.
+- [x] The report states where measured cost lives without comparing incompatible lifecycles.
