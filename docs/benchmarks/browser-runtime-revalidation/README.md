@@ -68,12 +68,12 @@ capacity.
 
 | Profile | Median time | Peak RSS | RSS×time | Throughput |
 | --- | ---: | ---: | ---: | ---: |
-| Playwright Node w1 (`--no-deps`) | 4064.96 ms | 1747.2 MiB | 6.94 GiB·s | 14.76/min |
-| Playwright Bun w1 (`--no-deps`) | 2971.42 ms | 1332.0 MiB | 3.87 GiB·s | 20.19/min |
-| Playwright Node w2 (`--no-deps`) | 3700.97 ms | 1460.8 MiB | 5.28 GiB·s | 16.21/min |
-| Playwright Bun w2 (`--no-deps`) | 2857.40 ms | 1301.4 MiB | 3.63 GiB·s | 21.00/min |
+| Playwright Node w1 (`--no-deps`) | 4064.96 ms | 1747.7 MiB | 6.94 GiB·s | 14.76/min |
+| Playwright Bun w1 (`--no-deps`) | 2971.42 ms | 1332.1 MiB | 3.87 GiB·s | 20.19/min |
+| Playwright Node w2 (`--no-deps`) | 3700.97 ms | 1460.0 MiB | 5.28 GiB·s | 16.21/min |
+| Playwright Bun w2 (`--no-deps`) | 2857.40 ms | 1301.1 MiB | 3.63 GiB·s | 21.00/min |
 | WebKit warm 1-view | 331.31 ms | 97.5 MiB | 0.03 GiB·s | 181.10/min |
-| WebKit warm 1-view `--smol` | 308.41 ms | 97.1 MiB | 0.03 GiB·s | 194.55/min |
+| WebKit warm 1-view `--smol` | 308.41 ms | 97.0 MiB | 0.03 GiB·s | 194.55/min |
 
 ## Decision
 
