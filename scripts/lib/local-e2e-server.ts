@@ -1,10 +1,13 @@
-import { spawn } from "node:child_process";
+import { execFile, spawn } from "node:child_process";
 import { rm } from "node:fs/promises";
+import { promisify } from "node:util";
 import { E2E_STATE_FILE, default as seedE2E } from "../../tests/e2e/global-setup";
 
 const BASE_URL = "http://localhost:4173";
 const START_TIMEOUT_MS = 30_000;
 const STOP_TIMEOUT_MS = 5_000;
+const PORT_RELEASE_TIMEOUT_MS = 120_000;
+const exec = promisify(execFile);
 
 export type LocalE2EServer = {
 	baseUrl: string;
@@ -25,9 +28,31 @@ async function waitForHttp(url: string, childExited: () => boolean): Promise<voi
 	throw new Error(`E2E server did not become ready within ${START_TIMEOUT_MS}ms`);
 }
 
+export async function waitForLocalE2EServerRelease(): Promise<void> {
+	const deadline = Date.now() + PORT_RELEASE_TIMEOUT_MS;
+	let freeSince: number | undefined;
+	while (Date.now() < deadline) {
+		try {
+			const { stdout } = await exec("lsof", ["-nP", "-iTCP:4173", "-sTCP:LISTEN", "-t"]);
+			if (stdout.trim()) {
+				freeSince = undefined;
+			} else {
+				freeSince ??= Date.now();
+				if (Date.now() - freeSince >= 500) return;
+			}
+		} catch {
+			freeSince ??= Date.now();
+			if (Date.now() - freeSince >= 500) return;
+		}
+		await Bun.sleep(100);
+	}
+	throw new Error(`E2E server port remained occupied after ${PORT_RELEASE_TIMEOUT_MS}ms`);
+}
+
 export async function startLocalE2EServer(options?: {
 	quiet?: boolean;
 }): Promise<LocalE2EServer> {
+	await waitForLocalE2EServerRelease();
 	await rm(E2E_STATE_FILE, { force: true });
 	const child = spawn("bun", ["run", "scripts/e2e-server.ts"], {
 		cwd: process.cwd(),
@@ -89,6 +114,11 @@ export async function startLocalE2EServer(options?: {
 					// Process group already exited.
 				}
 				await exitPromise;
+			}
+			try {
+				await waitForLocalE2EServerRelease();
+			} catch {
+				// A delayed listener is rechecked strictly by the next start.
 			}
 		},
 	};

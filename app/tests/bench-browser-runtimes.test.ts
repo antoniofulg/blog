@@ -5,13 +5,17 @@ import {
 	ALL_PROFILES,
 	type BrowserProfileResult,
 	commandForProfile,
+	deriveFinalistSchedule,
 	detectBrowserContamination,
 	interleaveProfileIds,
 	parseSmokeOutput,
 	parseWebViewPassData,
 	parseWebViewPassOutcomes,
+	rssTimeGiBSeconds,
+	runtimeVersionMatches,
 	sampleBoundary,
 	selectNonDominated,
+	traceIsInterleaved,
 } from "../../scripts/bench-browser-runtimes";
 
 describe("browser finalist benchmark", () => {
@@ -47,6 +51,13 @@ describe("browser finalist benchmark", () => {
 			"--external-server",
 		);
 		expect(commandForProfile(webview!).join(" ")).toContain("--views=2");
+		const nodePlaywright = ALL_PROFILES.find(
+			(profile) => profile.id === "playwright:node:1",
+		);
+		expect(nodePlaywright).toBeDefined();
+		expect(
+			commandForProfile(nodePlaywright ?? ALL_PROFILES[0]).slice(0, 4),
+		).toEqual(["mise", "exec", "node@24", "--"]);
 	});
 
 	test("selects only valid non-dominated finalists by median time and RSS", () => {
@@ -219,10 +230,46 @@ describe("browser finalist benchmark", () => {
 				"/worktree",
 			),
 		).toBeUndefined();
+		expect(
+			detectBrowserContamination(
+				"123 456 /bin/zsh -c pgrep -f 'vitest|playwright test'",
+				"/worktree",
+			),
+		).toBeUndefined();
 		expect(interleaveProfileIds(["node", "bun"], 3)).toEqual([
 			["node#1", "bun#1"],
 			["node#2", "bun#2"],
 			["node#3", "bun#3"],
 		]);
+		const trace = [1, 2, 3, 4].map((sequence) => ({
+			profile: sequence % 2 ? "node" : "bun",
+			kind: "measured" as const,
+			run: Math.ceil(sequence / 2),
+			sequence,
+			startedAt: "2026-01-01T00:00:00.000Z",
+			finishedAt: "2026-01-01T00:00:00.001Z",
+		}));
+		expect(deriveFinalistSchedule(trace, 2)).toEqual([
+			["node#1", "bun#1"],
+			["node#2", "bun#2"],
+		]);
+		expect(traceIsInterleaved(trace, ["node", "bun"], 2)).toBe(true);
+		expect(traceIsInterleaved(trace.slice(0, 1), ["node", "bun"], 2)).toBe(
+			false,
+		);
+	});
+
+	test("reports RSS-time in GiB seconds, not GiB milliseconds", () => {
+		expect(rssTimeGiBSeconds(2_000, 2 ** 31)).toBe(4);
+	});
+
+	test("rejects Node 22 provenance for the Node 24 arm", () => {
+		const node = ALL_PROFILES.find(
+			(profile) => profile.id === "playwright:node:1",
+		);
+		expect(node).toBeDefined();
+		const profile = node ?? ALL_PROFILES[0];
+		expect(runtimeVersionMatches(profile, "22.23.1")).toBe(false);
+		expect(runtimeVersionMatches(profile, "24.19.0")).toBe(true);
 	});
 });

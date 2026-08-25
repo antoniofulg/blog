@@ -5,6 +5,7 @@ import {
 	type BrowserSmokeObservation,
 	type BrowserSmokeRoute,
 } from "#/lib/browser-bench/contract";
+import { createInterface } from "node:readline";
 import { startLocalE2EServer } from "./lib/local-e2e-server";
 
 export const WEBVIEW_RESULT_PREFIX = "BROWSER_SMOKE_RESULT ";
@@ -19,6 +20,7 @@ export type WebViewCliOptions = {
 	passes: number;
 	smol: boolean;
 	externalServer: boolean;
+	persistent: boolean;
 };
 
 type PageSnapshot = {
@@ -62,6 +64,7 @@ export function parseWebViewArgs(args: string[]): WebViewCliOptions {
 		passes: 1,
 		smol: false,
 		externalServer: false,
+		persistent: false,
 	};
 	for (let index = 0; index < args.length; index += 1) {
 		const arg = args[index];
@@ -71,6 +74,10 @@ export function parseWebViewArgs(args: string[]): WebViewCliOptions {
 		}
 		if (arg === "--external-server") {
 			parsed.externalServer = true;
+			continue;
+		}
+		if (arg === "--persistent") {
+			parsed.persistent = true;
 			continue;
 		}
 		if (arg === "--backend") {
@@ -186,6 +193,9 @@ const PAGE_SNAPSHOT_EXPRESSION = `(() => ({
 
 async function pageSnapshot(view: Bun.WebView, url: string): Promise<PageSnapshot> {
 	await view.navigate(url);
+	// Navigation can resolve before SSR hydration replaces the previous
+	// document. Let one render turn settle before reading locale-specific text.
+	await Bun.sleep(25);
 	const snapshot = (await view.evaluate(PAGE_SNAPSHOT_EXPRESSION)) as PageSnapshot;
 	const status = (await view.evaluate(
 		"fetch(location.href, {cache: 'no-store'}).then((response) => response.status)",
@@ -316,8 +326,51 @@ export async function runWebViewSmoke(
 	}
 }
 
+/**
+ * Keep WebView instances alive while the benchmark coordinator alternates
+ * profiles. One request performs one measured five-route pass and emits the
+ * same structured payload as the one-shot harness.
+ */
+async function runPersistentWebViewSmoke(options: WebViewCliOptions): Promise<void> {
+	const views: Bun.WebView[] = [];
+	try {
+		for (let index = 0; index < options.views; index += 1) {
+			views.push(new Bun.WebView({
+				...backendConfig(options.backend),
+				width: WEBVIEW_VIEWPORT.width,
+				height: WEBVIEW_VIEWPORT.height,
+				dataStore: "ephemeral",
+			}));
+		}
+		const backendVersion = String(await views[0]?.evaluate("navigator.userAgent"));
+		console.log(`BROWSER_SMOKE_READY ${JSON.stringify({ runtimeVersion: Bun.version, backendVersion })}`);
+		const input = createInterface({ input: process.stdin });
+		for await (const line of input) {
+			if (line.trim() !== "pass") continue;
+			const results = await Promise.all(views.map((view) => runView(view, options.baseUrl, 1)));
+			const viewOutcomes = results.map((result) => result.outcomes);
+			const routes = aggregateObservations(viewOutcomes, 1);
+			const normalized = normalizeBrowserSmokeOutcome({ routes });
+			if (!normalized) throw new Error("WebView smoke produced an invalid route inventory");
+			const perPass = passObservations(viewOutcomes, 1);
+			console.log(`${WEBVIEW_RESULT_PREFIX}${JSON.stringify({
+				passOutcomes: perPass,
+				passDurationsMs: [Math.max(...results.map((result) => result.durationsMs[0] ?? 0))],
+				runtimeVersion: Bun.version,
+				backendVersion,
+			})}`);
+		}
+	} finally {
+		for (const view of views) view.close();
+	}
+}
+
 export async function main(args = process.argv.slice(2)): Promise<void> {
 	const options = parseWebViewArgs(args);
+	if (options.persistent) {
+		await runPersistentWebViewSmoke(options);
+		return;
+	}
 	const server = options.externalServer
 		? null
 		: await startLocalE2EServer({ quiet: false });

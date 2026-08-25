@@ -20,6 +20,7 @@ describe("local WebView smoke harness", () => {
 			baseUrl: "http://localhost:4173/",
 			views: 2,
 			passes: 5,
+			persistent: false,
 			smol: true,
 			externalServer: false,
 		});
