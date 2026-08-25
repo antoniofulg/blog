@@ -41,16 +41,24 @@ export type BrowserSmokeFixture = {
 	browserVersion: string;
 	startupMs: number;
 	driverSetupMs: number;
-	observe: (route: BrowserSmokeRoute, baseUrl: string) => Promise<BrowserSmokeObservation>;
+	observe: (
+		route: BrowserSmokeRoute,
+		baseUrl: string,
+	) => Promise<BrowserSmokeRouteResult>;
 };
 
-type PageSnapshot = {
+export type BrowserSmokePageSnapshot = {
 	readyState: string;
 	status: number;
 	lang: string;
 	headings: string[];
 	bodyText: string;
 	canonical: string | null;
+};
+
+export type BrowserSmokeRouteResult = {
+	observation: BrowserSmokeObservation;
+	snapshot: BrowserSmokePageSnapshot;
 };
 
 const MODULE_STARTED_AT = performance.now();
@@ -99,6 +107,13 @@ export function failureNeedsScreenshot(
 	return status !== expectedStatus;
 }
 
+export async function initializeWebView(
+	view: Pick<Bun.WebView, "evaluate" | "navigate">,
+): Promise<string> {
+	await view.navigate("about:blank");
+	return String(await view.evaluate("navigator.userAgent"));
+}
+
 async function attachFailureScreenshot(
 	testInfo: TestInfo,
 	screenshot: () => Promise<Buffer>,
@@ -141,13 +156,17 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 					observe: async (route, baseUrl) => {
 						const response = await page.goto(new URL(route.path, baseUrl).href);
 						await page.waitForLoadState("load");
-						const snapshot = await page.evaluate<PageSnapshot>(
+						const snapshot = await page.evaluate<BrowserSmokePageSnapshot>(
 							PAGE_SNAPSHOT_EXPRESSION,
 						);
-						return assessWebViewRoute(route, {
+						const completeSnapshot = {
 							...snapshot,
 							status: response?.status() ?? 0,
-						});
+						};
+						return {
+							observation: assessWebViewRoute(route, completeSnapshot),
+							snapshot: completeSnapshot,
+						};
 					},
 				});
 			} finally {
@@ -166,7 +185,7 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 					? "webkit"
 					: { type: "chrome", path: chromiumPath(profile) },
 		});
-		const browserVersion = String(await view.evaluate("navigator.userAgent"));
+		const browserVersion = await initializeWebView(view);
 		const readyAt = performance.now();
 		try {
 			await use({
@@ -177,13 +196,17 @@ export const test = base.extend<{ browserSmoke: BrowserSmokeFixture }>({
 				driverSetupMs: readyAt - driverStartedAt,
 				observe: async (route, baseUrl) => {
 					await view.navigate(new URL(route.path, baseUrl).href);
-					const snapshot = await view.evaluate<PageSnapshot>(
+					const snapshot = await view.evaluate<BrowserSmokePageSnapshot>(
 						PAGE_SNAPSHOT_EXPRESSION,
 					);
 					const status = await view.evaluate<number>(
-						"fetch(location.href, { cache: 'no-store' }).then((response) => response.status)",
+						"fetch(location.href, { method: 'HEAD', cache: 'no-store' }).then((response) => response.status)",
 					);
-					return assessWebViewRoute(route, { ...snapshot, status });
+					const completeSnapshot = { ...snapshot, status };
+					return {
+						observation: assessWebViewRoute(route, completeSnapshot),
+						snapshot: completeSnapshot,
+					};
 				},
 			});
 		} finally {

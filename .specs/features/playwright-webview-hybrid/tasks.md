@@ -102,10 +102,10 @@ T4 -> T5 -> T6
 - Skill: Bun, e2e-coverage, ponytail
 
 **Done when**:
-- [ ] Each project lists exactly five functional tests in contract order.
-- [ ] Every expected route field maps to an assertion.
-- [ ] Page and both WebView projects pass locally.
-- [ ] No fixed sleep, retry, skip, or weakened assertion is added.
+- [x] Each project lists exactly five functional tests in contract order.
+- [x] Every expected route field maps to an assertion.
+- [x] Page and both WebView projects pass locally.
+- [x] No fixed sleep, retry, skip, or weakened assertion is added.
 
 **Tests**: e2e
 **Gate**: full

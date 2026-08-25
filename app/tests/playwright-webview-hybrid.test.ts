@@ -5,6 +5,7 @@ import {
 	driverProfileForProject,
 	failureNeedsScreenshot,
 	HYBRID_DRIVER_PROFILES,
+	initializeWebView,
 } from "../../tests/e2e-webview/fixtures/browser-smoke";
 
 describe("Playwright Test WebView hybrid fixture", () => {
@@ -58,5 +59,35 @@ describe("Playwright Test WebView hybrid fixture", () => {
 	test("captures screenshots only for unexpected test outcomes", () => {
 		expect(failureNeedsScreenshot("failed", "passed")).toBe(true);
 		expect(failureNeedsScreenshot("passed", "passed")).toBe(false);
+	});
+
+	test("probes WebView status without replaying the route body", () => {
+		const source = readFileSync(
+			new URL(
+				"../../tests/e2e-webview/fixtures/browser-smoke.ts",
+				import.meta.url,
+			),
+			"utf8",
+		);
+		expect(source).toContain("method: 'HEAD'");
+		expect(source).not.toContain("fetch(location.href, { cache: 'no-store' })");
+	});
+
+	test("navigates before evaluating Chrome WebView runtime data", async () => {
+		const calls: string[] = [];
+		const userAgent = await initializeWebView({
+			navigate: async (url) => {
+				calls.push(`navigate:${url}`);
+			},
+			evaluate: async (expression) => {
+				calls.push(`evaluate:${expression}`);
+				return "Chrome for Testing";
+			},
+		});
+		expect(calls).toEqual([
+			"navigate:about:blank",
+			"evaluate:navigator.userAgent",
+		]);
+		expect(userAgent).toBe("Chrome for Testing");
 	});
 });
