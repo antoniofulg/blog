@@ -8,6 +8,11 @@ import {
 
 const ENV = process.env;
 const MB = 1024 * 1024;
+const INCOMPRESSIBLE_ALLOCATION_COMMAND = [
+	"bash",
+	"-c",
+	"bun -e 'import { randomFillSync } from \"node:crypto\";const b=randomFillSync(Buffer.allocUnsafe(300*1024*1024));const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)'",
+] as const;
 
 describe("bench spawn measurement", () => {
 	it("measures wall-clock duration of the spawned command", async () => {
@@ -23,11 +28,7 @@ describe("bench spawn measurement", () => {
 			timeoutMs: 30_000,
 		});
 		const heavy = await spawnMeasured(
-			[
-				"bash",
-				"-c",
-				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)'",
-			],
+			[...INCOMPRESSIBLE_ALLOCATION_COMMAND],
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
@@ -46,11 +47,7 @@ describe("bench spawn measurement", () => {
 			{ timeoutMs: 30_000 },
 		);
 		const heavy = await spawnMeasured(
-			[
-				"bash",
-				"-c",
-				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)' | cat",
-			],
+			["bash", "-c", `${INCOMPRESSIBLE_ALLOCATION_COMMAND[2]} | cat`],
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
