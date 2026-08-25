@@ -2,6 +2,8 @@ import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import * as net from "node:net";
 import { createTestDb, type TestDb } from "../../tests/e2e/db";
 
+const PGLITE_HOOK_TIMEOUT_MS = 30_000;
+
 // ---- lock-acquire timer-cleanup tests (round-016 issue-001) ----
 // Verifies that the happy-path acquireUnnamedSlotLock clears its setTimeout
 // so no orphan timer fires after the acquire resolves.
@@ -12,12 +14,12 @@ describe("PGLite proxy: lock-acquire timer cleanup", () => {
 	beforeAll(async () => {
 		process.env.PGLITE_LOCK_TIMEOUT_MS = "50";
 		testDb = await createTestDb();
-	});
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	afterAll(async () => {
 		delete process.env.PGLITE_LOCK_TIMEOUT_MS;
-		await testDb.close();
-	});
+		await testDb?.close();
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	test("100 fast acquires: no unhandledRejection fires after acquire resolves", async () => {
 		const port = Number(new URL(testDb.connectionString).port);
@@ -75,12 +77,12 @@ describe("PGLite proxy: lock acquire timeout", () => {
 	beforeAll(async () => {
 		process.env.PGLITE_LOCK_TIMEOUT_MS = "500";
 		testDb = await createTestDb();
-	});
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	afterAll(async () => {
 		delete process.env.PGLITE_LOCK_TIMEOUT_MS;
-		await testDb.close();
-	});
+		await testDb?.close();
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	test("stall: second connection gets a wire response within 2 s when first holds lock without Bind", async () => {
 		const port = Number(new URL(testDb.connectionString).port);
@@ -129,12 +131,12 @@ describe("PGLite proxy: stalled holder eviction", () => {
 	beforeAll(async () => {
 		process.env.PGLITE_LOCK_TIMEOUT_MS = "500";
 		testDb = await createTestDb();
-	});
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	afterAll(async () => {
 		delete process.env.PGLITE_LOCK_TIMEOUT_MS;
-		await testDb.close();
-	});
+		await testDb?.close();
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	test("stalled holder is evicted and the queued connection binds its own statement", async () => {
 		const port = Number(new URL(testDb.connectionString).port);
@@ -305,11 +307,11 @@ describe("PGLite proxy: unnamed prepared statement isolation across connections"
 
 	beforeAll(async () => {
 		testDb = await createTestDb();
-	});
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	afterAll(async () => {
-		await testDb.close();
-	});
+		await testDb?.close();
+	}, PGLITE_HOOK_TIMEOUT_MS);
 
 	test("concurrent connections do not corrupt unnamed prepared statement state (08P01 regression)", async () => {
 		const port = Number(new URL(testDb.connectionString).port);
