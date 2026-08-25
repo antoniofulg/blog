@@ -7,7 +7,7 @@ follow its Execute flow and Critical Rules. The final task is followed by a
 fresh independent Verifier.
 
 **Design**: `.specs/features/playwright-webview-hybrid/design.md`
-**Status**: Approved
+**Status**: In Progress
 
 ## Test Coverage Matrix
 
@@ -57,11 +57,11 @@ T4 -> T5 -> T6
 - Skill: Bun, e2e-coverage, no-workarounds, ponytail
 
 **Done when**:
-- [ ] Page, WebKit, and Chrome drivers expose one observation contract.
-- [ ] WebView branches do not request Playwright built-in browser fixtures.
-- [ ] Chrome drivers resolve the same Chromium executable.
-- [ ] Failure teardown can attach a screenshot.
-- [ ] Focused unit gate passes with no skipped/deleted tests.
+- [x] Page, WebKit, and Chrome drivers expose one observation contract.
+- [x] WebView branches do not request Playwright built-in browser fixtures.
+- [x] Chrome drivers resolve the same Chromium executable.
+- [x] Failure teardown can attach a screenshot.
+- [x] Focused unit gate passes with no skipped/deleted tests.
 
 **Tests**: unit in `app/tests/playwright-webview-hybrid.test.ts`
 **Gate**: quick
@@ -217,4 +217,3 @@ T1 -> T2 -> T3 -> T4 -> T5 -> T6
 | T4 | Package route | unit | unit | OK |
 | T5 | Benchmark logic | unit | unit | OK |
 | T6 | Evidence | none | none | OK |
-
