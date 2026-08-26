@@ -49,6 +49,14 @@ describe("unit: .dockerignore", () => {
 		expect(content).toMatch(/^\.git$/m);
 	});
 
+	test("excludes local benchmark and test artifacts", () => {
+		content = readFileSync(dockerignorePath, "utf8");
+		expect(content).toMatch(/^\.bench$/m);
+		expect(content).toMatch(/^docs\/_reports$/m);
+		expect(content).toMatch(/^playwright-report$/m);
+		expect(content).toMatch(/^test-results$/m);
+	});
+
 	test("negation rule !.env.example appears after .env.* exclusion", () => {
 		content = readFileSync(dockerignorePath, "utf8");
 		const envStarIdx = content.indexOf(".env.*");

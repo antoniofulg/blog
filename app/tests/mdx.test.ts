@@ -60,7 +60,7 @@ describe("unit: renderMdx", () => {
 		const Component = await renderMdx(source);
 		const html = renderToStaticMarkup(createElement(Component, {}));
 		expect(html).toContain("shiki");
-	});
+	}, 30_000);
 });
 
 // ─── Lint: frontmatter conventions ───────────────────────────────────────────

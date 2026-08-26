@@ -8,10 +8,12 @@ import {
 
 const ENV = process.env;
 const MB = 1024 * 1024;
+const IDLE_BUN_COMMAND =
+	"bun -e 'const t=Date.now();while(Date.now()-t<3500){}'";
 const INCOMPRESSIBLE_ALLOCATION_COMMAND = [
 	"bash",
 	"-c",
-	"bun -e 'import { randomFillSync } from \"node:crypto\";const b=randomFillSync(Buffer.allocUnsafe(300*1024*1024));const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)'",
+	"bun -e 'import { randomFillSync } from \"node:crypto\";const b=randomFillSync(Buffer.allocUnsafe(300*1024*1024));let checksum=0;let i=0;const t=Date.now();while(Date.now()-t<3500){checksum^=b[i];i=(i+4096)%b.length}console.log(checksum)'",
 ] as const;
 
 describe("bench spawn measurement", () => {
@@ -24,7 +26,7 @@ describe("bench spawn measurement", () => {
 	});
 
 	it("reports higher peak RSS for a child that allocates than one that does not", async () => {
-		const idle = await spawnMeasured(["bash", "-c", "sleep 3.5"], ENV, {
+		const idle = await spawnMeasured(["bash", "-c", IDLE_BUN_COMMAND], ENV, {
 			timeoutMs: 30_000,
 		});
 		const heavy = await spawnMeasured(
@@ -38,11 +40,7 @@ describe("bench spawn measurement", () => {
 
 	it("counts a descendant's memory, not only the direct child's", async () => {
 		const idle = await spawnMeasured(
-			[
-				"bash",
-				"-c",
-				"bun -e 'const t=Date.now();while(Date.now()-t<3500){}' | cat",
-			],
+			["bash", "-c", `${IDLE_BUN_COMMAND} | cat`],
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
