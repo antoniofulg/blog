@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit tests for AnalyticsDashboardSkeleton component.
  *
@@ -7,11 +8,14 @@
  * and carry aria-busy for accessibility.
  *
  * All component tests use React.createElement (no JSX) and .ts extension
- * to match the project's vitest include pattern (`app/tests/**\/*.test.ts`).
+ * to match the project's test discovery pattern (`app/tests/**\/*.test.ts`).
  */
-import { cleanup, render, screen } from "@testing-library/react";
+
+import { afterEach, describe, expect, test } from "bun:test";
+
+const { cleanup, render, screen } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
 
 // ── SUT import ────────────────────────────────────────────────────────────────
 
@@ -24,24 +28,24 @@ afterEach(cleanup);
 // ── Skeleton rendering ────────────────────────────────────────────────────────
 
 describe("AnalyticsDashboardSkeleton — loading state", () => {
-	it("renders wrapper with data-testid='analytics-skeleton'", () => {
+	test("renders wrapper with data-testid='analytics-skeleton'", () => {
 		render(React.createElement(AnalyticsDashboardSkeleton));
 		expect(screen.getByTestId("analytics-skeleton")).toBeDefined();
 	});
 
-	it("skeleton wrapper carries aria-busy='true'", () => {
+	test("skeleton wrapper carries aria-busy='true'", () => {
 		render(React.createElement(AnalyticsDashboardSkeleton));
 		const skeleton = screen.getByTestId("analytics-skeleton");
 		expect(skeleton.getAttribute("aria-busy")).toBe("true");
 	});
 
-	it("skeleton wrapper has an accessible label for screen readers", () => {
+	test("skeleton wrapper has an accessible label for screen readers", () => {
 		render(React.createElement(AnalyticsDashboardSkeleton));
 		const skeleton = screen.getByTestId("analytics-skeleton");
 		expect(skeleton.getAttribute("aria-label")).toBeTruthy();
 	});
 
-	it("renders skeleton boxes (animate-pulse elements)", () => {
+	test("renders skeleton boxes (animate-pulse elements)", () => {
 		const { container } = render(
 			React.createElement(AnalyticsDashboardSkeleton),
 		);
@@ -51,7 +55,7 @@ describe("AnalyticsDashboardSkeleton — loading state", () => {
 		expect(skeletonBoxes.length).toBeGreaterThanOrEqual(10);
 	});
 
-	it("renders 4 summary card skeletons", () => {
+	test("renders 4 summary card skeletons", () => {
 		const { container } = render(
 			React.createElement(AnalyticsDashboardSkeleton),
 		);

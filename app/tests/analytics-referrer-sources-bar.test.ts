@@ -1,21 +1,25 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit tests for ReferrerSourcesBar component and pivotReferrerByDay helper.
  *
  * Tests verify: pivot logic (long → wide), missing-source handling, legend
  * rendering, empty-data behaviour, and locale-driven widget title.
  *
- * Recharts is fully mocked — jsdom has no ResizeObserver or SVG layout.
+ * Recharts is fully mocked — HappyDOM has no ResizeObserver or SVG layout.
  * All component tests use React.createElement (no JSX) and .ts extension
- * to match the project's vitest include pattern.
+ * to match the project's test discovery pattern.
  */
-import { cleanup, render, screen } from "@testing-library/react";
+
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+
+const { cleanup, render, screen } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
+const mocks = (() => {
 	let locale: "en" | "pt-br" = "en";
 	return {
 		setLocale: (l: "en" | "pt-br") => {
@@ -23,21 +27,21 @@ const mocks = vi.hoisted(() => {
 		},
 		getLocale: () => locale,
 	};
-});
+})();
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 // Provide LOCALES so strings.ts module-level validation loop works.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	useLocale: () => ({ locale: mocks.getLocale() }),
 	LOCALES: ["en", "pt-br"],
 }));
 
-// Stub Recharts — jsdom has no ResizeObserver / SVG layout support.
+// Stub Recharts — HappyDOM has no ResizeObserver / SVG layout support.
 // BarChart exposes data length via data-count.
 // Bar exposes dataKey and stackId for assertion.
 // Legend renders a div so we can assert its presence.
-vi.mock("recharts", () => ({
+mock.module("recharts", () => ({
 	ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
 		children,
 	BarChart: ({
@@ -73,7 +77,8 @@ import {
 	ReferrerSourcesBar,
 	SOURCE_COLOR_MAP,
 } from "#/components/admin/analytics/referrer-sources-bar";
-import { strings } from "#/lib/i18n/strings";
+
+const { strings } = await import("#/lib/i18n/strings");
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
@@ -104,11 +109,11 @@ afterEach(cleanup);
 // ── pivotReferrerByDay unit tests ─────────────────────────────────────────────
 
 describe("pivotReferrerByDay", () => {
-	it("returns an empty array for empty input", () => {
+	test("returns an empty array for empty input", () => {
 		expect(pivotReferrerByDay([])).toEqual([]);
 	});
 
-	it("converts a single row to a wide entry", () => {
+	test("converts a single row to a wide entry", () => {
 		const input = [makeEntry("2025-01-01", "google", 5)];
 		const result = pivotReferrerByDay(input);
 		expect(result).toHaveLength(1);
@@ -116,7 +121,7 @@ describe("pivotReferrerByDay", () => {
 		expect(result[0].google).toBe(5);
 	});
 
-	it("groups multiple sources on the same date into one wide entry", () => {
+	test("groups multiple sources on the same date into one wide entry", () => {
 		const input = [
 			makeEntry("2025-01-01", "google", 5),
 			makeEntry("2025-01-01", "linkedin", 3),
@@ -129,7 +134,7 @@ describe("pivotReferrerByDay", () => {
 		expect(result[0].direct).toBe(7);
 	});
 
-	it("produces one wide entry per unique date", () => {
+	test("produces one wide entry per unique date", () => {
 		const input = [
 			makeEntry("2025-01-01", "google", 5),
 			makeEntry("2025-01-02", "github", 2),
@@ -141,7 +146,7 @@ describe("pivotReferrerByDay", () => {
 		expect(dates).toEqual(["2025-01-01", "2025-01-02", "2025-01-03"]);
 	});
 
-	it("handles missing sources for a given date — key is absent (Recharts treats undefined as 0)", () => {
+	test("handles missing sources for a given date — key is absent (Recharts treats undefined as 0)", () => {
 		// date "2025-01-01" has google but not linkedin
 		// date "2025-01-02" has linkedin but not google
 		const input = [
@@ -158,7 +163,7 @@ describe("pivotReferrerByDay", () => {
 		expect(day2?.google).toBeUndefined();
 	});
 
-	it("sums multiple rows for the same (date, source) pair", () => {
+	test("sums multiple rows for the same (date, source) pair", () => {
 		const input = [
 			makeEntry("2025-01-01", "google", 3),
 			makeEntry("2025-01-01", "google", 7),
@@ -168,7 +173,7 @@ describe("pivotReferrerByDay", () => {
 		expect(result[0].google).toBe(10);
 	});
 
-	it("preserves insertion order of dates", () => {
+	test("preserves insertion order of dates", () => {
 		const input = [
 			makeEntry("2025-01-03", "google", 1),
 			makeEntry("2025-01-01", "github", 2),
@@ -189,7 +194,7 @@ describe("SOURCE_COLOR_MAP", () => {
 	const CSS_VAR_RE = /^var\(--color-[\w-]+\)$/;
 	const SOURCE_VAR_RE = /^var\(--color-source-[\w-]+\)$/;
 
-	it("maps all 14 ReferrerSource buckets to a CSS custom property", () => {
+	test("maps all 14 ReferrerSource buckets to a CSS custom property", () => {
 		const expectedSources = [
 			"linkedin",
 			"google",
@@ -211,13 +216,13 @@ describe("SOURCE_COLOR_MAP", () => {
 		}
 	});
 
-	it("maps every bucket to a CSS custom property reference", () => {
+	test("maps every bucket to a CSS custom property reference", () => {
 		for (const [, color] of Object.entries(SOURCE_COLOR_MAP)) {
 			expect(color).toMatch(CSS_VAR_RE);
 		}
 	});
 
-	it("named platforms use their brand-source color tokens", () => {
+	test("named platforms use their brand-source color tokens", () => {
 		const namedSources = [
 			"linkedin",
 			"google",
@@ -237,7 +242,7 @@ describe("SOURCE_COLOR_MAP", () => {
 		}
 	});
 
-	it("every named platform maps to a DISTINCT brand color (no collisions)", () => {
+	test("every named platform maps to a DISTINCT brand color (no collisions)", () => {
 		const named = [
 			"linkedin",
 			"google",
@@ -256,7 +261,7 @@ describe("SOURCE_COLOR_MAP", () => {
 		expect(new Set(colors).size).toBe(named.length);
 	});
 
-	it("catch-all buckets (direct, other) use distinct semantic tokens, not brand tokens", () => {
+	test("catch-all buckets (direct, other) use distinct semantic tokens, not brand tokens", () => {
 		// Catch-all buckets must NOT share colors with named sources —
 		// they use muted semantic tokens so author/unknown traffic recedes.
 		expect(SOURCE_COLOR_MAP.direct).not.toMatch(SOURCE_VAR_RE);
@@ -268,12 +273,12 @@ describe("SOURCE_COLOR_MAP", () => {
 // ── ReferrerSourcesBar — rendering ───────────────────────────────────────────
 
 describe("ReferrerSourcesBar — rendering", () => {
-	it("renders wrapper with data-testid='referrer-sources-bar'", () => {
+	test("renders wrapper with data-testid='referrer-sources-bar'", () => {
 		renderBar([makeEntry("2025-01-01", "google", 5)]);
 		expect(screen.getByTestId("referrer-sources-bar")).toBeDefined();
 	});
 
-	it("passes correct number of wide entries (days) to BarChart", () => {
+	test("passes correct number of wide entries (days) to BarChart", () => {
 		const input = [
 			makeEntry("2025-01-01", "google", 5),
 			makeEntry("2025-01-01", "linkedin", 2),
@@ -286,7 +291,7 @@ describe("ReferrerSourcesBar — rendering", () => {
 		expect(chart.getAttribute("data-count")).toBe("3");
 	});
 
-	it("renders one Bar per active source (sources present in data)", () => {
+	test("renders one Bar per active source (sources present in data)", () => {
 		const input = [
 			makeEntry("2025-01-01", "google", 5),
 			makeEntry("2025-01-01", "linkedin", 2),
@@ -298,7 +303,7 @@ describe("ReferrerSourcesBar — rendering", () => {
 		expect(bars).toHaveLength(3);
 	});
 
-	it("renders bars with the correct dataKey attributes", () => {
+	test("renders bars with the correct dataKey attributes", () => {
 		const input = [
 			makeEntry("2025-01-01", "google", 5),
 			makeEntry("2025-01-02", "linkedin", 3),
@@ -309,7 +314,7 @@ describe("ReferrerSourcesBar — rendering", () => {
 		expect(keys).toEqual(["google", "linkedin"].sort());
 	});
 
-	it("renders all bars with the same stackId (stacked chart)", () => {
+	test("renders all bars with the same stackId (stacked chart)", () => {
 		const input = [
 			makeEntry("2025-01-01", "google", 5),
 			makeEntry("2025-01-01", "linkedin", 3),
@@ -323,18 +328,18 @@ describe("ReferrerSourcesBar — rendering", () => {
 		);
 	});
 
-	it("renders the Legend component", () => {
+	test("renders the Legend component", () => {
 		renderBar([makeEntry("2025-01-01", "google", 5)]);
 		expect(screen.getByTestId("recharts-legend")).toBeDefined();
 	});
 
-	it("produces no Bar elements for empty input", () => {
+	test("produces no Bar elements for empty input", () => {
 		renderBar([]);
 		const bars = screen.queryAllByTestId("bar");
 		expect(bars).toHaveLength(0);
 	});
 
-	it("renders EmptyState (not BarChart) for empty input", () => {
+	test("renders EmptyState (not BarChart) for empty input", () => {
 		renderBar([]);
 		expect(screen.queryByTestId("bar-chart")).toBeNull();
 		expect(
@@ -342,7 +347,7 @@ describe("ReferrerSourcesBar — rendering", () => {
 		).toBeDefined();
 	});
 
-	it("shows filter-empty message when postId is set and referrerByDay is empty", () => {
+	test("shows filter-empty message when postId is set and referrerByDay is empty", () => {
 		mocks.setLocale("en");
 		render(
 			React.createElement(ReferrerSourcesBar, {
@@ -360,14 +365,14 @@ describe("ReferrerSourcesBar — rendering", () => {
 // ── Widget title (locale) ─────────────────────────────────────────────────────
 
 describe("ReferrerSourcesBar — widget title", () => {
-	it("renders widget title from en strings", () => {
+	test("renders widget title from en strings", () => {
 		renderBar([makeEntry("2025-01-01", "google", 5)]);
 		expect(
 			screen.getByText(strings.en.admin.analytics.widgets.referrerSources),
 		).toBeDefined();
 	});
 
-	it("renders widget title from pt-br strings", () => {
+	test("renders widget title from pt-br strings", () => {
 		renderBar([makeEntry("2025-01-01", "google", 5)], "pt-br");
 		expect(
 			screen.getByText(
@@ -376,7 +381,7 @@ describe("ReferrerSourcesBar — widget title", () => {
 		).toBeDefined();
 	});
 
-	it("widget title differs between en and pt-br", () => {
+	test("widget title differs between en and pt-br", () => {
 		expect(strings.en.admin.analytics.widgets.referrerSources).not.toBe(
 			strings["pt-br"].admin.analytics.widgets.referrerSources,
 		);

@@ -1,0 +1,3166 @@
+{
+  "schemaVersion": 2,
+  "commit": "186ba1304d8934fa108735a934cfe21af2cc4115",
+  "timestamp": "2026-08-25T05:34:31.755Z",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 20.96337890625,
+    "powerSource": "ac",
+    "startedAt": "2026-08-25T05:34:31.769Z"
+  },
+  "repetitions": 5,
+  "screeningRepetitions": 0,
+  "warmupsPerProfile": 1,
+  "canonicalRoutes": 5,
+  "profiles": [
+    {
+      "profile": {
+        "id": "playwright:node:1",
+        "arm": "playwright",
+        "runtime": "node",
+        "workers": 1,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "mise",
+          "exec",
+          "node@24",
+          "--",
+          "node",
+          "node_modules/@playwright/test/cli.js"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:node:1",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 16537.365584,
+        "peakRssBytes": 745799680,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "routes": [
+            {
+              "id": "en-post",
+              "passed": true
+            },
+            {
+              "id": "pt-br-post",
+              "passed": true
+            },
+            {
+              "id": "not-found",
+              "passed": true
+            },
+            {
+              "id": "en-index",
+              "passed": true
+            },
+            {
+              "id": "pt-br-index",
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "routeCount": 5,
+          "setupOverhead": 0,
+          "setupOverheadMs": 0,
+          "inventory": 5
+        },
+        "valid": true,
+        "command": [
+          "mise",
+          "exec",
+          "node@24",
+          "--",
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--no-deps",
+          "--workers=1",
+          "--retries=0",
+          "--grep",
+          "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+          "--reporter=json"
+        ],
+        "boundary": {
+          "phase": "cold",
+          "server": "external",
+          "browser": "playwright-managed",
+          "process": "restarted-per-sample"
+        },
+        "cleanupVerified": true,
+        "contamination": {
+          "detected": false
+        },
+        "rssTimeBytesMs": 12333561960590.213,
+        "runtimeVersion": "24.19.0",
+        "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+        "serverRuntime": "bun",
+        "serverRuntimeVersion": "1.4.0",
+        "setupOverheadMs": 0
+      },
+      "samples": [
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 13776.944457999998,
+          "peakRssBytes": 741277696,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 10212541645746.207,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 2,
+          "durationMs": 9209.464999999997,
+          "peakRssBytes": 962658304,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 8865567957647.357,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 3,
+          "durationMs": 13798.974291999999,
+          "peakRssBytes": 771604480,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 10647350383112.027,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 4,
+          "durationMs": 7561.736959000002,
+          "peakRssBytes": 1156628480,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 8746120325047.994,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 5,
+          "durationMs": 6250.231083000021,
+          "peakRssBytes": 1343799296,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 8399056129172.745,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 9209.464999999997,
+        "minMs": 6250.231083000021,
+        "maxMs": 13798.974291999999,
+        "medianPeakRssBytes": 962658304,
+        "sampleCount": 5,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false,
+      "interleaved": true,
+      "excludedSamples": []
+    },
+    {
+      "profile": {
+        "id": "playwright:bun:1",
+        "arm": "playwright",
+        "runtime": "bun",
+        "workers": 1,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:bun:1",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 4557.2723750000005,
+        "peakRssBytes": 1096761344,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "routes": [
+            {
+              "id": "en-post",
+              "passed": true
+            },
+            {
+              "id": "pt-br-post",
+              "passed": true
+            },
+            {
+              "id": "not-found",
+              "passed": true
+            },
+            {
+              "id": "en-index",
+              "passed": true
+            },
+            {
+              "id": "pt-br-index",
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "routeCount": 5,
+          "setupOverhead": 0,
+          "setupOverheadMs": 0,
+          "inventory": 5
+        },
+        "valid": true,
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--no-deps",
+          "--workers=1",
+          "--retries=0",
+          "--grep",
+          "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+          "--reporter=json"
+        ],
+        "boundary": {
+          "phase": "cold",
+          "server": "external",
+          "browser": "playwright-managed",
+          "process": "restarted-per-sample"
+        },
+        "cleanupVerified": true,
+        "contamination": {
+          "detected": false
+        },
+        "rssTimeBytesMs": 4998240174979.072,
+        "runtimeVersion": "1.4.0",
+        "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+        "serverRuntime": "bun",
+        "serverRuntimeVersion": "1.4.0",
+        "setupOverheadMs": 0
+      },
+      "samples": [
+        {
+          "profile": "playwright:bun:1",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 7640.873416999995,
+          "peakRssBytes": 874053632,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 6678533161781.097,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:1",
+          "kind": "measured",
+          "run": 2,
+          "durationMs": 7544.546666000009,
+          "peakRssBytes": 875003904,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 6601507786660.192,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:1",
+          "kind": "measured",
+          "run": 3,
+          "durationMs": 5472.88287500001,
+          "peakRssBytes": 921747456,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 5044615867017.226,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:1",
+          "kind": "measured",
+          "run": 4,
+          "durationMs": 4854.169500000018,
+          "peakRssBytes": 1097121792,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 5325615140511.764,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:1",
+          "kind": "measured",
+          "run": 5,
+          "durationMs": 4521.323207999987,
+          "peakRssBytes": 1559969792,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 7053127624348.513,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 5472.88287500001,
+        "minMs": 4521.323207999987,
+        "maxMs": 7640.873416999995,
+        "medianPeakRssBytes": 921747456,
+        "sampleCount": 5,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": true,
+      "interleaved": true,
+      "excludedSamples": []
+    },
+    {
+      "profile": {
+        "id": "playwright:node:2",
+        "arm": "playwright",
+        "runtime": "node",
+        "workers": 2,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "mise",
+          "exec",
+          "node@24",
+          "--",
+          "node",
+          "node_modules/@playwright/test/cli.js"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:node:2",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 20299.841834,
+        "peakRssBytes": 760250368,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "routes": [
+            {
+              "id": "en-post",
+              "passed": true
+            },
+            {
+              "id": "pt-br-post",
+              "passed": true
+            },
+            {
+              "id": "not-found",
+              "passed": true
+            },
+            {
+              "id": "en-index",
+              "passed": true
+            },
+            {
+              "id": "pt-br-index",
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "routeCount": 5,
+          "setupOverhead": 0,
+          "setupOverheadMs": 0,
+          "inventory": 5
+        },
+        "valid": true,
+        "command": [
+          "mise",
+          "exec",
+          "node@24",
+          "--",
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--no-deps",
+          "--workers=2",
+          "--retries=0",
+          "--grep",
+          "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+          "--reporter=json"
+        ],
+        "boundary": {
+          "phase": "cold",
+          "server": "external",
+          "browser": "playwright-managed",
+          "process": "restarted-per-sample"
+        },
+        "cleanupVerified": true,
+        "contamination": {
+          "detected": false
+        },
+        "rssTimeBytesMs": 15432962224640.295,
+        "runtimeVersion": "24.19.0",
+        "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+        "serverRuntime": "bun",
+        "serverRuntimeVersion": "1.4.0",
+        "setupOverheadMs": 0
+      },
+      "samples": [
+        {
+          "profile": "playwright:node:2",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 9991.610417000004,
+          "peakRssBytes": 1188855808,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 11878584075523.756,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:2",
+          "kind": "measured",
+          "run": 2,
+          "durationMs": 9608.330625000002,
+          "peakRssBytes": 985563136,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 9469616462499.842,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:2",
+          "kind": "measured",
+          "run": 3,
+          "durationMs": 9953.237541999988,
+          "peakRssBytes": 1113473024,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 11082661504481.053,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:2",
+          "kind": "measured",
+          "run": 4,
+          "durationMs": 15652.796625000017,
+          "peakRssBytes": 847691776,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 13268746970413.07,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:node:2",
+          "kind": "measured",
+          "run": 5,
+          "durationMs": 5976.747415999998,
+          "peakRssBytes": 1475756032,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "mise",
+            "exec",
+            "node@24",
+            "--",
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 8820221050902.41,
+          "runtimeVersion": "24.19.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 9953.237541999988,
+        "minMs": 5976.747415999998,
+        "maxMs": 15652.796625000017,
+        "medianPeakRssBytes": 1113473024,
+        "sampleCount": 5,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false,
+      "interleaved": true,
+      "excludedSamples": []
+    },
+    {
+      "profile": {
+        "id": "playwright:bun:2",
+        "arm": "playwright",
+        "runtime": "bun",
+        "workers": 2,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:bun:2",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 18314.065292000007,
+        "peakRssBytes": 741457920,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "routes": [
+            {
+              "id": "en-post",
+              "passed": true
+            },
+            {
+              "id": "pt-br-post",
+              "passed": true
+            },
+            {
+              "id": "not-found",
+              "passed": true
+            },
+            {
+              "id": "en-index",
+              "passed": true
+            },
+            {
+              "id": "pt-br-index",
+              "passed": true
+            }
+          ],
+          "passed": true,
+          "routeCount": 5,
+          "setupOverhead": 0,
+          "setupOverheadMs": 0,
+          "inventory": 5
+        },
+        "valid": true,
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--no-deps",
+          "--workers=2",
+          "--retries=0",
+          "--grep",
+          "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+          "--reporter=json"
+        ],
+        "boundary": {
+          "phase": "cold",
+          "server": "external",
+          "browser": "playwright-managed",
+          "process": "restarted-per-sample"
+        },
+        "cleanupVerified": true,
+        "contamination": {
+          "detected": false
+        },
+        "rssTimeBytesMs": 13579108758150.518,
+        "runtimeVersion": "1.4.0",
+        "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+        "serverRuntime": "bun",
+        "serverRuntimeVersion": "1.4.0",
+        "setupOverheadMs": 0
+      },
+      "samples": [
+        {
+          "profile": "playwright:bun:2",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 7296.566749999998,
+          "peakRssBytes": 1103675392,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 8053041168060.414,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:2",
+          "kind": "measured",
+          "run": 2,
+          "durationMs": 6178.761999999988,
+          "peakRssBytes": 975159296,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 6025277202071.54,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:2",
+          "kind": "measured",
+          "run": 3,
+          "durationMs": 9312.926874999976,
+          "peakRssBytes": 800817152,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 7457951576821.74,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:2",
+          "kind": "measured",
+          "run": 4,
+          "durationMs": 6156.065582999989,
+          "peakRssBytes": 867385344,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 5339681063397.006,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "playwright:bun:2",
+          "kind": "measured",
+          "run": 5,
+          "durationMs": 2949.484416000021,
+          "peakRssBytes": 1391607808,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true
+              },
+              {
+                "id": "not-found",
+                "passed": true
+              },
+              {
+                "id": "en-index",
+                "passed": true
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--no-deps",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,",
+            "--reporter=json"
+          ],
+          "boundary": {
+            "phase": "cold",
+            "server": "external",
+            "browser": "playwright-managed",
+            "process": "restarted-per-sample"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 4104525542879.9497,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Google Chrome for Testing 148.0.7778.96",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 6178.761999999988,
+        "minMs": 2949.484416000021,
+        "maxMs": 9312.926874999976,
+        "medianPeakRssBytes": 975159296,
+        "sampleCount": 5,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false,
+      "interleaved": true,
+      "excludedSamples": []
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:warm:1view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "warm",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:warm:1view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 6761.895625000005,
+        "peakRssBytes": 97206272,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "routes": [
+            {
+              "id": "en-post",
+              "passed": true,
+              "status": 200
+            },
+            {
+              "id": "pt-br-post",
+              "passed": false,
+              "status": 500,
+              "error": "status expected 200, got 500"
+            },
+            {
+              "id": "not-found",
+              "passed": true,
+              "status": 404
+            },
+            {
+              "id": "en-index",
+              "passed": true,
+              "status": 200
+            },
+            {
+              "id": "pt-br-index",
+              "passed": true,
+              "status": 200
+            }
+          ],
+          "passed": false,
+          "routeCount": 5,
+          "setupOverhead": 0,
+          "setupOverheadMs": 0,
+          "inventory": 5
+        },
+        "valid": false,
+        "exclusionReason": "canonical route outcome mismatch",
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:49173",
+          "--persistent"
+        ],
+        "boundary": {
+          "phase": "warm",
+          "server": "reused-arm",
+          "browser": "reused-arm",
+          "process": "reused-arm"
+        },
+        "cleanupVerified": true,
+        "contamination": {
+          "detected": false
+        },
+        "rssTimeBytesMs": 657298665359.3605,
+        "runtimeVersion": "1.4.0",
+        "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+        "serverRuntime": "bun",
+        "serverRuntimeVersion": "1.4.0",
+        "setupOverheadMs": 0
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:warm:1view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 759.5757920000033,
+          "peakRssBytes": 77299712,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 58714989963.772156,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view",
+          "kind": "measured",
+          "run": 2,
+          "durationMs": 519.8714999999793,
+          "peakRssBytes": 80625664,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 41914984882.17433,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view",
+          "kind": "measured",
+          "run": 3,
+          "durationMs": 843.7632079999894,
+          "peakRssBytes": 79151104,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 66784789427.78079,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view",
+          "kind": "measured",
+          "run": 4,
+          "durationMs": 508.9504580000066,
+          "peakRssBytes": 81002496,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 41226257438.343704,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view",
+          "kind": "measured",
+          "run": 5,
+          "durationMs": 591.9748329999857,
+          "peakRssBytes": 71254016,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 42180584222.17831,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 591.9748329999857,
+        "minMs": 508.9504580000066,
+        "maxMs": 843.7632079999894,
+        "medianPeakRssBytes": 79151104,
+        "sampleCount": 5,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": false,
+      "invalidReasons": [
+        "warmup: canonical route outcome mismatch"
+      ],
+      "nonDominated": false,
+      "interleaved": true,
+      "excludedSamples": []
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:warm:1view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "warm",
+        "views": 1,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:warm:1view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 6044.038457999995,
+        "peakRssBytes": 92225536,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "routes": [
+            {
+              "id": "en-post",
+              "passed": true,
+              "status": 200
+            },
+            {
+              "id": "pt-br-post",
+              "passed": false,
+              "status": 500,
+              "error": "status expected 200, got 500"
+            },
+            {
+              "id": "not-found",
+              "passed": true,
+              "status": 404
+            },
+            {
+              "id": "en-index",
+              "passed": true,
+              "status": 200
+            },
+            {
+              "id": "pt-br-index",
+              "passed": true,
+              "status": 200
+            }
+          ],
+          "passed": false,
+          "routeCount": 5,
+          "setupOverhead": 0,
+          "setupOverheadMs": 0,
+          "inventory": 5
+        },
+        "valid": false,
+        "exclusionReason": "canonical route outcome mismatch",
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:49173",
+          "--persistent"
+        ],
+        "boundary": {
+          "phase": "warm",
+          "server": "reused-arm",
+          "browser": "reused-arm",
+          "process": "reused-arm"
+        },
+        "cleanupVerified": true,
+        "contamination": {
+          "detected": false
+        },
+        "rssTimeBytesMs": 557414686393.6631,
+        "runtimeVersion": "1.4.0",
+        "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+        "serverRuntime": "bun",
+        "serverRuntimeVersion": "1.4.0",
+        "setupOverheadMs": 0
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:warm:1view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 589.9388330000074,
+          "peakRssBytes": 76611584,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 45196148459.24204,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view:smol",
+          "kind": "measured",
+          "run": 2,
+          "durationMs": 784.6452920000011,
+          "peakRssBytes": 79937536,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 62722611276.4806,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view:smol",
+          "kind": "measured",
+          "run": 3,
+          "durationMs": 785.6244170000136,
+          "peakRssBytes": 74612736,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 58617587220.77593,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view:smol",
+          "kind": "measured",
+          "run": 4,
+          "durationMs": 541.4580420000129,
+          "peakRssBytes": 80527360,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 43602186673.03016,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        },
+        {
+          "profile": "webview:webkit:warm:1view:smol",
+          "kind": "measured",
+          "run": 5,
+          "durationMs": 897.0814170000376,
+          "peakRssBytes": 71335936,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "routes": [
+              {
+                "id": "en-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-post",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "not-found",
+                "passed": true,
+                "status": 404
+              },
+              {
+                "id": "en-index",
+                "passed": true,
+                "status": 200
+              },
+              {
+                "id": "pt-br-index",
+                "passed": true,
+                "status": 200
+              }
+            ],
+            "passed": true,
+            "routeCount": 5,
+            "setupOverhead": 0,
+            "setupOverheadMs": 0,
+            "inventory": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:49173",
+            "--persistent"
+          ],
+          "boundary": {
+            "phase": "warm",
+            "server": "reused-arm",
+            "browser": "reused-arm",
+            "process": "reused-arm"
+          },
+          "cleanupVerified": true,
+          "contamination": {
+            "detected": false
+          },
+          "rssTimeBytesMs": 63994142549.90399,
+          "runtimeVersion": "1.4.0",
+          "browserVersion": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/605.1.15 (KHTML, like Gecko)",
+          "serverRuntime": "bun",
+          "serverRuntimeVersion": "1.4.0",
+          "setupOverheadMs": 0
+        }
+      ],
+      "aggregate": {
+        "medianMs": 784.6452920000011,
+        "minMs": 541.4580420000129,
+        "maxMs": 897.0814170000376,
+        "medianPeakRssBytes": 76611584,
+        "sampleCount": 5,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": false,
+      "invalidReasons": [
+        "warmup: canonical route outcome mismatch"
+      ],
+      "nonDominated": false,
+      "interleaved": true,
+      "excludedSamples": []
+    }
+  ],
+  "screeningFinalists": [
+    "playwright:node:1",
+    "playwright:bun:1",
+    "playwright:node:2",
+    "playwright:bun:2",
+    "webview:webkit:warm:1view",
+    "webview:webkit:warm:1view:smol"
+  ],
+  "finalists": [
+    "playwright:bun:1"
+  ],
+  "finalistSchedule": [
+    [
+      "playwright:node:1#1",
+      "playwright:bun:1#1",
+      "playwright:node:2#1",
+      "playwright:bun:2#1",
+      "webview:webkit:warm:1view#1",
+      "webview:webkit:warm:1view:smol#1"
+    ],
+    [
+      "playwright:bun:1#2",
+      "playwright:node:2#2",
+      "playwright:bun:2#2",
+      "webview:webkit:warm:1view#2",
+      "webview:webkit:warm:1view:smol#2",
+      "playwright:node:1#2"
+    ],
+    [
+      "playwright:node:2#3",
+      "playwright:bun:2#3",
+      "webview:webkit:warm:1view#3",
+      "webview:webkit:warm:1view:smol#3",
+      "playwright:node:1#3",
+      "playwright:bun:1#3"
+    ],
+    [
+      "playwright:bun:2#4",
+      "webview:webkit:warm:1view#4",
+      "webview:webkit:warm:1view:smol#4",
+      "playwright:node:1#4",
+      "playwright:bun:1#4",
+      "playwright:node:2#4"
+    ],
+    [
+      "webview:webkit:warm:1view#5",
+      "webview:webkit:warm:1view:smol#5",
+      "playwright:node:1#5",
+      "playwright:bun:1#5",
+      "playwright:node:2#5",
+      "playwright:bun:2#5"
+    ]
+  ],
+  "executionTrace": [
+    {
+      "profile": "playwright:node:1",
+      "kind": "warmup",
+      "run": 0,
+      "sequence": 0,
+      "startedAt": "2026-08-25T05:29:11.364Z",
+      "finishedAt": "2026-08-25T05:29:30.321Z"
+    },
+    {
+      "profile": "playwright:bun:1",
+      "kind": "warmup",
+      "run": 0,
+      "sequence": 1,
+      "startedAt": "2026-08-25T05:29:30.321Z",
+      "finishedAt": "2026-08-25T05:29:35.847Z"
+    },
+    {
+      "profile": "playwright:node:2",
+      "kind": "warmup",
+      "run": 0,
+      "sequence": 2,
+      "startedAt": "2026-08-25T05:29:35.847Z",
+      "finishedAt": "2026-08-25T05:29:56.836Z"
+    },
+    {
+      "profile": "playwright:bun:2",
+      "kind": "warmup",
+      "run": 0,
+      "sequence": 3,
+      "startedAt": "2026-08-25T05:29:56.836Z",
+      "finishedAt": "2026-08-25T05:30:15.974Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view",
+      "kind": "warmup",
+      "run": 0,
+      "sequence": 4,
+      "startedAt": "2026-08-25T05:30:15.974Z",
+      "finishedAt": "2026-08-25T05:30:23.173Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view:smol",
+      "kind": "warmup",
+      "run": 0,
+      "sequence": 5,
+      "startedAt": "2026-08-25T05:30:23.173Z",
+      "finishedAt": "2026-08-25T05:30:29.491Z"
+    },
+    {
+      "profile": "playwright:node:1",
+      "kind": "measured",
+      "run": 1,
+      "sequence": 6,
+      "startedAt": "2026-08-25T05:30:29.491Z",
+      "finishedAt": "2026-08-25T05:30:44.104Z"
+    },
+    {
+      "profile": "playwright:bun:1",
+      "kind": "measured",
+      "run": 1,
+      "sequence": 7,
+      "startedAt": "2026-08-25T05:30:44.104Z",
+      "finishedAt": "2026-08-25T05:30:52.486Z"
+    },
+    {
+      "profile": "playwright:node:2",
+      "kind": "measured",
+      "run": 1,
+      "sequence": 8,
+      "startedAt": "2026-08-25T05:30:52.486Z",
+      "finishedAt": "2026-08-25T05:31:03.283Z"
+    },
+    {
+      "profile": "playwright:bun:2",
+      "kind": "measured",
+      "run": 1,
+      "sequence": 9,
+      "startedAt": "2026-08-25T05:31:03.283Z",
+      "finishedAt": "2026-08-25T05:31:11.310Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view",
+      "kind": "measured",
+      "run": 1,
+      "sequence": 10,
+      "startedAt": "2026-08-25T05:31:11.310Z",
+      "finishedAt": "2026-08-25T05:31:12.268Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view:smol",
+      "kind": "measured",
+      "run": 1,
+      "sequence": 11,
+      "startedAt": "2026-08-25T05:31:12.268Z",
+      "finishedAt": "2026-08-25T05:31:13.107Z"
+    },
+    {
+      "profile": "playwright:bun:1",
+      "kind": "measured",
+      "run": 2,
+      "sequence": 12,
+      "startedAt": "2026-08-25T05:31:13.107Z",
+      "finishedAt": "2026-08-25T05:31:21.448Z"
+    },
+    {
+      "profile": "playwright:node:2",
+      "kind": "measured",
+      "run": 2,
+      "sequence": 13,
+      "startedAt": "2026-08-25T05:31:21.448Z",
+      "finishedAt": "2026-08-25T05:31:31.763Z"
+    },
+    {
+      "profile": "playwright:bun:2",
+      "kind": "measured",
+      "run": 2,
+      "sequence": 14,
+      "startedAt": "2026-08-25T05:31:31.763Z",
+      "finishedAt": "2026-08-25T05:31:38.647Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view",
+      "kind": "measured",
+      "run": 2,
+      "sequence": 15,
+      "startedAt": "2026-08-25T05:31:38.647Z",
+      "finishedAt": "2026-08-25T05:31:39.283Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view:smol",
+      "kind": "measured",
+      "run": 2,
+      "sequence": 16,
+      "startedAt": "2026-08-25T05:31:39.283Z",
+      "finishedAt": "2026-08-25T05:31:40.324Z"
+    },
+    {
+      "profile": "playwright:node:1",
+      "kind": "measured",
+      "run": 2,
+      "sequence": 17,
+      "startedAt": "2026-08-25T05:31:40.324Z",
+      "finishedAt": "2026-08-25T05:31:50.384Z"
+    },
+    {
+      "profile": "playwright:node:2",
+      "kind": "measured",
+      "run": 3,
+      "sequence": 18,
+      "startedAt": "2026-08-25T05:31:50.384Z",
+      "finishedAt": "2026-08-25T05:32:01.230Z"
+    },
+    {
+      "profile": "playwright:bun:2",
+      "kind": "measured",
+      "run": 3,
+      "sequence": 19,
+      "startedAt": "2026-08-25T05:32:01.230Z",
+      "finishedAt": "2026-08-25T05:32:11.473Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view",
+      "kind": "measured",
+      "run": 3,
+      "sequence": 20,
+      "startedAt": "2026-08-25T05:32:11.473Z",
+      "finishedAt": "2026-08-25T05:32:12.642Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view:smol",
+      "kind": "measured",
+      "run": 3,
+      "sequence": 21,
+      "startedAt": "2026-08-25T05:32:12.642Z",
+      "finishedAt": "2026-08-25T05:32:13.640Z"
+    },
+    {
+      "profile": "playwright:node:1",
+      "kind": "measured",
+      "run": 3,
+      "sequence": 22,
+      "startedAt": "2026-08-25T05:32:13.640Z",
+      "finishedAt": "2026-08-25T05:32:28.186Z"
+    },
+    {
+      "profile": "playwright:bun:1",
+      "kind": "measured",
+      "run": 3,
+      "sequence": 23,
+      "startedAt": "2026-08-25T05:32:28.186Z",
+      "finishedAt": "2026-08-25T05:32:34.376Z"
+    },
+    {
+      "profile": "playwright:bun:2",
+      "kind": "measured",
+      "run": 4,
+      "sequence": 24,
+      "startedAt": "2026-08-25T05:32:34.376Z",
+      "finishedAt": "2026-08-25T05:32:41.201Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view",
+      "kind": "measured",
+      "run": 4,
+      "sequence": 25,
+      "startedAt": "2026-08-25T05:32:41.201Z",
+      "finishedAt": "2026-08-25T05:32:41.851Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view:smol",
+      "kind": "measured",
+      "run": 4,
+      "sequence": 26,
+      "startedAt": "2026-08-25T05:32:41.851Z",
+      "finishedAt": "2026-08-25T05:32:42.544Z"
+    },
+    {
+      "profile": "playwright:node:1",
+      "kind": "measured",
+      "run": 4,
+      "sequence": 27,
+      "startedAt": "2026-08-25T05:32:42.544Z",
+      "finishedAt": "2026-08-25T05:32:50.786Z"
+    },
+    {
+      "profile": "playwright:bun:1",
+      "kind": "measured",
+      "run": 4,
+      "sequence": 28,
+      "startedAt": "2026-08-25T05:32:50.786Z",
+      "finishedAt": "2026-08-25T05:33:45.721Z"
+    },
+    {
+      "profile": "playwright:node:2",
+      "kind": "measured",
+      "run": 4,
+      "sequence": 29,
+      "startedAt": "2026-08-25T05:33:45.721Z",
+      "finishedAt": "2026-08-25T05:34:02.081Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view",
+      "kind": "measured",
+      "run": 5,
+      "sequence": 30,
+      "startedAt": "2026-08-25T05:34:02.081Z",
+      "finishedAt": "2026-08-25T05:34:02.795Z"
+    },
+    {
+      "profile": "webview:webkit:warm:1view:smol",
+      "kind": "measured",
+      "run": 5,
+      "sequence": 31,
+      "startedAt": "2026-08-25T05:34:02.795Z",
+      "finishedAt": "2026-08-25T05:34:03.824Z"
+    },
+    {
+      "profile": "playwright:node:1",
+      "kind": "measured",
+      "run": 5,
+      "sequence": 32,
+      "startedAt": "2026-08-25T05:34:03.824Z",
+      "finishedAt": "2026-08-25T05:34:10.770Z"
+    },
+    {
+      "profile": "playwright:bun:1",
+      "kind": "measured",
+      "run": 5,
+      "sequence": 33,
+      "startedAt": "2026-08-25T05:34:10.770Z",
+      "finishedAt": "2026-08-25T05:34:15.954Z"
+    },
+    {
+      "profile": "playwright:node:2",
+      "kind": "measured",
+      "run": 5,
+      "sequence": 34,
+      "startedAt": "2026-08-25T05:34:15.954Z",
+      "finishedAt": "2026-08-25T05:34:22.555Z"
+    },
+    {
+      "profile": "playwright:bun:2",
+      "kind": "measured",
+      "run": 5,
+      "sequence": 35,
+      "startedAt": "2026-08-25T05:34:22.555Z",
+      "finishedAt": "2026-08-25T05:34:26.108Z"
+    }
+  ],
+  "locks": [
+    "/tmp/praxis-playwright.lock",
+    "/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/creatista-test.lock"
+  ],
+  "lockProvenance": [
+    {
+      "identity": "/tmp/praxis-playwright.lock",
+      "acquired": true,
+      "mechanism": "lockf",
+      "marker": "crm+antclips",
+      "acquiredAt": "2026-08-25T05:28:58.178Z"
+    },
+    {
+      "identity": "/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/creatista-test.lock",
+      "acquired": true,
+      "mechanism": "lockf",
+      "marker": "crm+antclips",
+      "acquiredAt": "2026-08-25T05:28:58.178Z"
+    }
+  ],
+  "serializedQueueThroughput": [
+    {
+      "profile": "playwright:node:1",
+      "samplesPerMinute": 6.515036432626653
+    },
+    {
+      "profile": "playwright:bun:1",
+      "samplesPerMinute": 10.963143442020014
+    },
+    {
+      "profile": "playwright:node:2",
+      "samplesPerMinute": 6.028189294871757
+    },
+    {
+      "profile": "playwright:bun:2",
+      "samplesPerMinute": 9.710683143322257
+    },
+    {
+      "profile": "webview:webkit:warm:1view",
+      "samplesPerMinute": 101.35566016537304
+    },
+    {
+      "profile": "webview:webkit:warm:1view:smol",
+      "samplesPerMinute": 76.46767349749155
+    }
+  ]
+}

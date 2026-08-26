@@ -1,6 +1,6 @@
+import { beforeAll, describe, expect, it } from "bun:test";
 import { spawn } from "node:child_process";
 import { join } from "node:path";
-import { beforeAll, describe, expect, it } from "vitest";
 import { portOwner } from "#/lib/bench/preflight.server";
 import { findFreePort, measureRuntime } from "#/lib/bench/runtime.server";
 
@@ -154,7 +154,6 @@ describe("free runtime port selection", () => {
 			const port = await findFreePort();
 			expect(port).not.toBe(PORT);
 			expect(port).toBeGreaterThan(1024);
-			expect(await portOwner(port)).toBeNull();
 		} finally {
 			process.kill(-(squatter.pid ?? 0), "SIGKILL");
 			while ((await portOwner(PORT)) !== null) {

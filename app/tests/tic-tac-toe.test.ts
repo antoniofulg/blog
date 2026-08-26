@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Tests for app/components/posts/tic-tac-toe.tsx — the interactive demo embedded
  * at the end of the Spec-Driven Development post.
@@ -11,9 +12,13 @@
  * File is .ts (not .tsx) per project convention — React.createElement throughout.
  */
 
-import { cleanup, fireEvent, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, test } from "bun:test";
+
+const { cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
 import { calculateWinner, TicTacToe } from "#/components/posts/tic-tac-toe";
 
 afterEach(cleanup);
@@ -27,7 +32,7 @@ function statusText() {
 }
 
 describe("calculateWinner", () => {
-	it("detects the anti-diagonal [2,4,6] — the bug the post's review caught", () => {
+	test("detects the anti-diagonal [2,4,6] — the bug the post's review caught", () => {
 		const board: ("X" | "O" | null)[] = [
 			null,
 			null,
@@ -42,19 +47,19 @@ describe("calculateWinner", () => {
 		expect(calculateWinner(board)).toBe("X");
 	});
 
-	it("returns null on an empty board", () => {
+	test("returns null on an empty board", () => {
 		expect(calculateWinner(Array<"X" | "O" | null>(9).fill(null))).toBeNull();
 	});
 });
 
 describe("TicTacToe", () => {
-	it("renders a 3x3 grid and the starting turn status", () => {
+	test("renders a 3x3 grid and the starting turn status", () => {
 		render(React.createElement(TicTacToe, { locale: "en" }));
 		expect(squares()).toHaveLength(9);
 		expect(statusText()).toBe("Turn: X");
 	});
 
-	it("alternates turns, detects a win, then ignores further clicks", () => {
+	test("alternates turns, detects a win, then ignores further clicks", () => {
 		render(React.createElement(TicTacToe, { locale: "en" }));
 		const s = squares();
 		fireEvent.click(s[0]); // X
@@ -68,7 +73,7 @@ describe("TicTacToe", () => {
 		expect(statusText()).toBe("Winner: X");
 	});
 
-	it("detects a draw when the board fills with no winner", () => {
+	test("detects a draw when the board fills with no winner", () => {
 		render(React.createElement(TicTacToe, { locale: "en" }));
 		const s = squares();
 		// Fills to X O X / X O O / O X X — full, no line, no premature win.
@@ -78,7 +83,7 @@ describe("TicTacToe", () => {
 		expect(statusText()).toBe("Draw, nobody wins");
 	});
 
-	it("reset clears the board back to X's turn", () => {
+	test("reset clears the board back to X's turn", () => {
 		render(React.createElement(TicTacToe, { locale: "en" }));
 		const s = squares();
 		fireEvent.click(s[0]);
@@ -87,7 +92,7 @@ describe("TicTacToe", () => {
 		expect(statusText()).toBe("Turn: X");
 	});
 
-	it("renders pt-br copy", () => {
+	test("renders pt-br copy", () => {
 		render(React.createElement(TicTacToe, { locale: "pt-br" }));
 		expect(statusText()).toBe("Vez de: X");
 	});

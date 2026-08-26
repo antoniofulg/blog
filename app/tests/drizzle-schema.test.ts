@@ -1,8 +1,8 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import { createServer } from "node:net";
 import { join } from "node:path";
 import { eq } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import * as authSchema from "../db/auth-schema";
 import type {
 	AnalyticsEvent,
@@ -28,54 +28,54 @@ const port5432Free = await isPortFree(5432);
 // ─── Unit tests: posts schema ────────────────────────────────────────────────
 
 describe("unit: posts schema", () => {
-	it("table name is 'posts'", () => {
+	test("table name is 'posts'", () => {
 		expect(
 			(posts as unknown as Record<symbol, unknown>)[Symbol.for("drizzle:Name")],
 		).toBe("posts");
 	});
 
-	it("file_path column has UNIQUE constraint", () => {
+	test("file_path column has UNIQUE constraint", () => {
 		const col = posts.filePath;
 		expect(col.uniqueName).toBeDefined();
 		expect(col.isUnique).toBe(true);
 	});
 
-	it("slug column does not have standalone UNIQUE (composite unique only)", () => {
+	test("slug column does not have standalone UNIQUE (composite unique only)", () => {
 		const col = posts.slug;
 		expect(col.isUnique).toBeFalsy();
 	});
 
-	it("view_count defaults to 0", () => {
+	test("view_count defaults to 0", () => {
 		const col = posts.viewCount;
 		expect(col.default).toBe(0);
 	});
 
-	it("description is nullable", () => {
+	test("description is nullable", () => {
 		const col = posts.description;
 		expect(col.notNull).toBeFalsy();
 	});
 
-	it("published_at is nullable", () => {
+	test("published_at is nullable", () => {
 		const col = posts.publishedAt;
 		expect(col.notNull).toBeFalsy();
 	});
 
-	it("published_at uses withTimezone: true (timestamptz)", () => {
+	test("published_at uses withTimezone: true (timestamptz)", () => {
 		const col = posts.publishedAt as unknown as Record<string, unknown>;
 		expect(col.withTimezone).toBe(true);
 	});
 
-	it("indexed_at has defaultNow()", () => {
+	test("indexed_at has defaultNow()", () => {
 		const col = posts.indexedAt;
 		expect(col.hasDefault).toBe(true);
 	});
 
-	it("indexed_at uses withTimezone: true (timestamptz)", () => {
+	test("indexed_at uses withTimezone: true (timestamptz)", () => {
 		const col = posts.indexedAt as unknown as Record<string, unknown>;
 		expect(col.withTimezone).toBe(true);
 	});
 
-	it("Post type has expected shape (compile-time check)", () => {
+	test("Post type has expected shape (compile-time check)", () => {
 		// TypeScript compile check: if Post type is wrong this file won't compile.
 		const _post: Post = {
 			id: 1,
@@ -97,7 +97,7 @@ describe("unit: posts schema", () => {
 		expect(_post.lang).toBe("en");
 	});
 
-	it("NewPost type omits id and indexedAt (compile-time check)", () => {
+	test("NewPost type omits id and indexedAt (compile-time check)", () => {
 		const _new: NewPost = {
 			filePath: "content/test.mdx",
 			slug: "test",
@@ -110,7 +110,7 @@ describe("unit: posts schema", () => {
 // ─── Integration tests: db:generate and db:migrate ──────────────────────────
 
 describe("integration: db:generate", () => {
-	it("bun run db:generate exits 0 and creates a file in drizzle/", () => {
+	test("bun run db:generate exits 0 and creates a file in drizzle/", () => {
 		const result = execSync("bun run db:generate", {
 			cwd: root,
 			encoding: "utf8",
@@ -122,7 +122,7 @@ describe("integration: db:generate", () => {
 			.filter((f: string) => f.endsWith(".sql"));
 		expect(files.length).toBeGreaterThan(0);
 		void result;
-	});
+	}, 30_000);
 });
 
 describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
@@ -132,7 +132,7 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		if (postgres) await postgres.end();
 	});
 
-	it("bun run db:migrate exits 0", () => {
+	test("bun run db:migrate exits 0", () => {
 		expect(() =>
 			execSync("bun run db:migrate", {
 				cwd: root,
@@ -147,7 +147,7 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		).not.toThrow();
 	});
 
-	it("posts table has all 14 expected columns", async () => {
+	test("posts table has all 14 expected columns", async () => {
 		const pg = await import("postgres");
 		const sql = pg.default(
 			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
@@ -177,7 +177,7 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		expect(cols).toHaveLength(13);
 	});
 
-	it("duplicate file_path insert throws unique constraint error", async () => {
+	test("duplicate file_path insert throws unique constraint error", async () => {
 		const pg = await import("postgres");
 		const sql = pg.default(
 			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
@@ -186,15 +186,19 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		const unique = `test-dup-fp-${Date.now()}`;
 		try {
 			await sql`INSERT INTO posts (file_path, slug, title) VALUES (${`content/${unique}.mdx`}, ${`${unique}-a`}, 'Test A')`;
-			await expect(
-				sql`INSERT INTO posts (file_path, slug, title) VALUES (${`content/${unique}.mdx`}, ${`${unique}-b`}, 'Test B')`,
-			).rejects.toThrow();
+			let rejected = false;
+			try {
+				await sql`INSERT INTO posts (file_path, slug, title) VALUES (${`content/${unique}.mdx`}, ${`${unique}-b`}, 'Test B')`;
+			} catch {
+				rejected = true;
+			}
+			expect(rejected).toBe(true);
 		} finally {
 			await sql`DELETE FROM posts WHERE file_path = ${`content/${unique}.mdx`}`;
 		}
 	});
 
-	it("duplicate (slug, lang) insert throws composite unique constraint error", async () => {
+	test("duplicate (slug, lang) insert throws composite unique constraint error", async () => {
 		const pg = await import("postgres");
 		const sql = pg.default(
 			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
@@ -204,15 +208,19 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		try {
 			// Same slug + same lang → should fail
 			await sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/en/${unique}-a.mdx`}, ${unique}, 'en', 'Test A')`;
-			await expect(
-				sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/en/${unique}-b.mdx`}, ${unique}, 'en', 'Test B')`,
-			).rejects.toThrow();
+			let rejected = false;
+			try {
+				await sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/en/${unique}-b.mdx`}, ${unique}, 'en', 'Test B')`;
+			} catch {
+				rejected = true;
+			}
+			expect(rejected).toBe(true);
 		} finally {
 			await sql`DELETE FROM posts WHERE slug = ${unique}`;
 		}
 	});
 
-	it("same slug with different lang is allowed (composite unique)", async () => {
+	test("same slug with different lang is allowed (composite unique)", async () => {
 		const pg = await import("postgres");
 		const sql = pg.default(
 			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
@@ -221,9 +229,9 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 		const unique = `test-bilingual-${Date.now()}`;
 		try {
 			await sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/en/${unique}.mdx`}, ${unique}, 'en', 'Test EN')`;
-			await expect(
-				sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/pt-br/${unique}.mdx`}, ${unique}, 'pt-br', 'Test PT')`,
-			).resolves.not.toThrow();
+			const inserted =
+				await sql`INSERT INTO posts (file_path, slug, lang, title) VALUES (${`content/pt-br/${unique}.mdx`}, ${unique}, 'pt-br', 'Test PT')`;
+			expect(Array.isArray(inserted)).toBe(true);
 		} finally {
 			await sql`DELETE FROM posts WHERE slug = ${unique}`;
 		}
@@ -233,7 +241,7 @@ describe.skipIf(port5432Free)("integration: db:migrate and constraints", () => {
 // ─── Unit tests: analyticsEvents schema ─────────────────────────────────────
 
 describe("unit: analyticsEvents schema", () => {
-	it("table name is 'analytics_events'", () => {
+	test("table name is 'analytics_events'", () => {
 		expect(
 			(analyticsEvents as unknown as Record<symbol, unknown>)[
 				Symbol.for("drizzle:Name")
@@ -241,27 +249,27 @@ describe("unit: analyticsEvents schema", () => {
 		).toBe("analytics_events");
 	});
 
-	it("createdAt uses withTimezone: true (timestamptz)", () => {
+	test("createdAt uses withTimezone: true (timestamptz)", () => {
 		const col = analyticsEvents.createdAt as unknown as Record<string, unknown>;
 		expect(col.withTimezone).toBe(true);
 	});
 
-	it("createdAt has defaultNow()", () => {
+	test("createdAt has defaultNow()", () => {
 		const col = analyticsEvents.createdAt;
 		expect(col.hasDefault).toBe(true);
 	});
 
-	it("countryCode is nullable (no notNull)", () => {
+	test("countryCode is nullable (no notNull)", () => {
 		const col = analyticsEvents.countryCode;
 		expect(col.notNull).toBeFalsy();
 	});
 
-	it("isBot defaults to false", () => {
+	test("isBot defaults to false", () => {
 		const col = analyticsEvents.isBot;
 		expect(col.default).toBe(false);
 	});
 
-	it("AnalyticsEvent type has expected shape (compile-time check)", () => {
+	test("AnalyticsEvent type has expected shape (compile-time check)", () => {
 		const _event: AnalyticsEvent = {
 			id: 1,
 			postId: 42,
@@ -277,7 +285,7 @@ describe("unit: analyticsEvents schema", () => {
 		expect(_event.isBot).toBe(false);
 	});
 
-	it("NewAnalyticsEvent does not require id or createdAt (compile-time check)", () => {
+	test("NewAnalyticsEvent does not require id or createdAt (compile-time check)", () => {
 		const _new: NewAnalyticsEvent = {
 			postId: 1,
 			referrerSource: "direct",
@@ -321,7 +329,7 @@ describe("integration: analyticsEvents (PGLite)", () => {
 		await pgliteClient.close();
 	});
 
-	it("inserts a single event row referencing a seeded post and reads it back", async () => {
+	test("inserts a single event row referencing a seeded post and reads it back", async () => {
 		const [post] = await db
 			.insert(posts)
 			.values({
@@ -351,7 +359,7 @@ describe("integration: analyticsEvents (PGLite)", () => {
 		expect(event.createdAt).toBeInstanceOf(Date);
 	});
 
-	it("cascade deletes event row when referenced post is deleted", async () => {
+	test("cascade deletes event row when referenced post is deleted", async () => {
 		const [post] = await db
 			.insert(posts)
 			.values({

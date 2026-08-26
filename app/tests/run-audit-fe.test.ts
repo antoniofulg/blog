@@ -1,6 +1,6 @@
+import { describe, expect, test } from "bun:test";
 import { type ChildProcess, spawn } from "node:child_process";
 import { once } from "node:events";
-import { describe, expect, it } from "vitest";
 import {
 	buildPreviewEnv,
 	resolveAuditBaseUrl,
@@ -14,7 +14,7 @@ async function stop(child: ChildProcess): Promise<void> {
 }
 
 describe("app-audit preview readiness", () => {
-	it("forces SITE_URL to the preview origin", () => {
+	test("forces SITE_URL to the preview origin", () => {
 		const env = buildPreviewEnv(
 			{ SITE_URL: "http://localhost:3000" },
 			"http://localhost:49173",
@@ -23,7 +23,7 @@ describe("app-audit preview readiness", () => {
 		expect(env.SITE_URL).toBe("http://localhost:49173");
 	});
 
-	it("resolves CLI, env, then local preview origins", () => {
+	test("resolves CLI, env, then local preview origins", () => {
 		expect(
 			resolveAuditBaseUrl(["--baseUrl=http://staging:8080"], {
 				AUDIT_BASE_URL: "http://env:3000",
@@ -35,7 +35,7 @@ describe("app-audit preview readiness", () => {
 		expect(resolveAuditBaseUrl([], {})).toBe("http://localhost:4173");
 	});
 
-	it("waits for the spawned child listening message", async () => {
+	test("waits for the spawned child listening message", async () => {
 		const child = spawn(
 			process.execPath,
 			[
@@ -57,7 +57,7 @@ describe("app-audit preview readiness", () => {
 		}
 	});
 
-	it("rejects when the spawned child exits before listening", async () => {
+	test("rejects when the spawned child exits before listening", async () => {
 		const child = spawn(process.execPath, ["-e", "process.exit(7)"], {
 			stdio: ["ignore", "pipe", "pipe"],
 		});
@@ -70,7 +70,7 @@ describe("app-audit preview readiness", () => {
 		).rejects.toThrow("exited before becoming ready (code=7)");
 	});
 
-	it("rejects when the preview process cannot spawn", async () => {
+	test("rejects when the preview process cannot spawn", async () => {
 		const child = spawn("/definitely-missing-app-audit-command", [], {
 			stdio: ["ignore", "pipe", "pipe"],
 		});

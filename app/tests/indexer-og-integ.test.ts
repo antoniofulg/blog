@@ -9,35 +9,40 @@
  * Allow up to 30 s per test — real satori renders are slow.
  */
 
-import { existsSync } from "node:fs";
-import { mkdtemp, rm } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import {
 	afterAll,
 	beforeAll,
 	beforeEach,
 	describe,
 	expect,
-	it,
-	vi,
-} from "vitest";
+	jest,
+	mock,
+	test,
+} from "bun:test";
+import { existsSync } from "node:fs";
+import { mkdtemp, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 // ─── Hoisted mocks for DB only (OG generator NOT mocked) ────────────────────
 
-const mocks = vi.hoisted(() => {
-	const onConflictDoUpdate = vi.fn().mockResolvedValue([]);
-	const values = vi.fn().mockReturnValue({ onConflictDoUpdate });
-	const insert = vi.fn().mockReturnValue({ values });
+const mocks = (() => {
+	const onConflictDoUpdate = jest.fn().mockResolvedValue([]);
+	const values = jest.fn().mockReturnValue({ onConflictDoUpdate });
+	const insert = jest.fn().mockReturnValue({ values });
 	return { insert, values, onConflictDoUpdate };
-});
+})();
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: {
 		insert: mocks.insert,
-		delete: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }),
-		select: vi.fn().mockReturnValue({
-			from: vi.fn().mockReturnValue({ where: vi.fn().mockResolvedValue([]) }),
+		delete: jest
+			.fn()
+			.mockReturnValue({ where: jest.fn().mockResolvedValue([]) }),
+		select: jest.fn().mockReturnValue({
+			from: jest
+				.fn()
+				.mockReturnValue({ where: jest.fn().mockResolvedValue([]) }),
 		}),
 	},
 }));
@@ -45,10 +50,10 @@ vi.mock("#/db/client", () => ({
 // #/lib/og/generate and #/lib/mdx/code-blocks.server are intentionally
 // NOT mocked so the real implementations run.
 
-import { upsertPost } from "#/db/indexer";
-import { posts } from "#/db/schema";
+const { upsertPost } = await import("#/db/indexer");
+const { posts } = await import("#/db/schema");
 
-const FIXTURES = join(import.meta.dirname, "fixtures");
+const FIXTURES = join(process.cwd(), "app/tests/fixtures");
 const TIMEOUT = 30_000;
 
 const TEST_SLUG = "with-code";
@@ -75,7 +80,7 @@ afterAll(async () => {
 });
 
 function resetMocks() {
-	vi.clearAllMocks();
+	jest.clearAllMocks();
 	mocks.onConflictDoUpdate.mockResolvedValue([]);
 	mocks.values.mockReturnValue({
 		onConflictDoUpdate: mocks.onConflictDoUpdate,
@@ -86,7 +91,7 @@ function resetMocks() {
 describe("integration: upsertPost OG generation", () => {
 	beforeEach(resetMocks);
 
-	it(
+	test(
 		"writes a PNG to public/og/en/<slug>.png AND upserts the DB row",
 		async () => {
 			const fixturePath = join(FIXTURES, "en", "with-code.mdx");

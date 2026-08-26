@@ -1,7 +1,7 @@
+import { describe, expect, it } from "bun:test";
 import { mkdtemp, readFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 import {
 	formatBytes,
 	renderReport,
@@ -140,7 +140,7 @@ describe("bench report rendering", () => {
 	});
 
 	it("prefers the stdout excerpt, where the test runners print their failures", () => {
-		// Playwright and Vitest write their failure summary to stdout; stderr
+		// Playwright and Bun Test write their failure summary to stdout; stderr
 		// holds server log noise. Rendering stderr made a passing negative-path
 		// test ("Invalid password") read as the cause of a compat finding.
 		const md = renderReport(

@@ -1,50 +1,52 @@
-import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { join } from "node:path";
 import {
 	afterAll,
 	beforeAll,
 	beforeEach,
 	describe,
 	expect,
-	it,
-	vi,
-} from "vitest";
+	jest,
+	mock,
+	test,
+} from "bun:test";
+import * as realFs from "node:fs";
+import * as realPromises from "node:fs/promises";
+import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+
+const realReadFile = realPromises.readFile;
+const realReaddir = realPromises.readdir;
+const realExistsSync = realFs.existsSync;
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
-	const readFile = vi.fn().mockResolvedValue("");
-	const readdir = vi.fn<() => Promise<string[]>>().mockResolvedValue([]);
-	const existsSync = vi.fn().mockReturnValue(false);
-	const renderMdx = vi.fn().mockResolvedValue(() => null);
+const mocks = (() => {
+	const readFile = jest.fn().mockResolvedValue("");
+	const readdir = jest.fn<() => Promise<string[]>>().mockResolvedValue([]);
+	const existsSync = jest.fn().mockReturnValue(false);
+	const renderMdx = jest.fn().mockResolvedValue(() => null);
 	return { readFile, readdir, existsSync, renderMdx };
-});
+})();
 
-vi.mock("node:fs/promises", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("node:fs/promises")>();
-	return {
-		...actual,
-		readFile: mocks.readFile,
-		readdir: mocks.readdir,
-	};
-});
-
-vi.mock("node:fs", () => ({
+mock.module("node:fs", () => ({
+	...realFs,
 	existsSync: mocks.existsSync,
 }));
 
-vi.mock("#/lib/mdx/renderer.server", () => ({
+mock.module("node:fs/promises", () => ({
+	...realPromises,
+	readFile: mocks.readFile,
+	readdir: mocks.readdir,
+}));
+
+mock.module("#/lib/mdx/renderer.server", () => ({
 	renderMdx: mocks.renderMdx,
 }));
 
-import {
-	enumerateStaticPages,
-	loadStaticPage,
-	type PageEntry,
-	type PageFrontmatter,
-	staticPageHasTwin,
-} from "#/lib/mdx/pages.server";
+const { enumerateStaticPages, loadStaticPage, staticPageHasTwin } =
+	await import("#/lib/mdx/pages.server");
+
+import type { PageEntry, PageFrontmatter } from "#/lib/mdx/pages.server";
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
 
@@ -67,9 +69,9 @@ Body.
 
 describe("unit: loadStaticPage", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
-	it("happy path: returns entry and html for a fixture page", async () => {
+	test("happy path: returns entry and html for a fixture page", async () => {
 		mocks.readFile.mockResolvedValue(ABOUT_MDX);
 		mocks.renderMdx.mockResolvedValue(() => null);
 
@@ -84,7 +86,7 @@ describe("unit: loadStaticPage", () => {
 		expect(result?.entry.filePath).toContain("about.mdx");
 	});
 
-	it("happy path: omits description when not present in frontmatter", async () => {
+	test("happy path: omits description when not present in frontmatter", async () => {
 		mocks.readFile.mockResolvedValue(`---\ntitle: Minimal\n---\nBody.`);
 
 		const result = await loadStaticPage("minimal", "en");
@@ -93,7 +95,7 @@ describe("unit: loadStaticPage", () => {
 		expect(result?.entry.frontmatter.description).toBeUndefined();
 	});
 
-	it("missing file: returns null without throwing", async () => {
+	test("missing file: returns null without throwing", async () => {
 		mocks.readFile.mockRejectedValue(
 			Object.assign(new Error("ENOENT: no such file"), { code: "ENOENT" }),
 		);
@@ -103,43 +105,43 @@ describe("unit: loadStaticPage", () => {
 		expect(result).toBeNull();
 	});
 
-	it("missing title: throws (Zod parse error)", async () => {
+	test("missing title: throws (Zod parse error)", async () => {
 		mocks.readFile.mockResolvedValue(NO_TITLE_MDX);
 
 		await expect(loadStaticPage("no-title", "en")).rejects.toThrow();
 	});
 
-	it("path traversal '../etc/forbidden.txt': returns null", async () => {
+	test("path traversal '../etc/forbidden.txt': returns null", async () => {
 		const result = await loadStaticPage("../etc/forbidden.txt", "en");
 		expect(result).toBeNull();
 		expect(mocks.readFile).not.toHaveBeenCalled();
 	});
 
-	it("path traversal '/etc/forbidden.txt': returns null", async () => {
+	test("path traversal '/etc/forbidden.txt': returns null", async () => {
 		const result = await loadStaticPage("/etc/forbidden.txt", "en");
 		expect(result).toBeNull();
 		expect(mocks.readFile).not.toHaveBeenCalled();
 	});
 
-	it("path traversal slug with null byte: returns null", async () => {
+	test("path traversal slug with null byte: returns null", async () => {
 		const result = await loadStaticPage("valid\x00bad", "en");
 		expect(result).toBeNull();
 		expect(mocks.readFile).not.toHaveBeenCalled();
 	});
 
-	it("path traversal slug with backslash: returns null", async () => {
+	test("path traversal slug with backslash: returns null", async () => {
 		const result = await loadStaticPage("a\\b", "en");
 		expect(result).toBeNull();
 		expect(mocks.readFile).not.toHaveBeenCalled();
 	});
 
-	it("path traversal slug with double dot only: returns null", async () => {
+	test("path traversal slug with double dot only: returns null", async () => {
 		const result = await loadStaticPage("..", "en");
 		expect(result).toBeNull();
 		expect(mocks.readFile).not.toHaveBeenCalled();
 	});
 
-	it("pt-br locale: resolves to pt-br path", async () => {
+	test("pt-br locale: resolves to pt-br path", async () => {
 		mocks.readFile.mockResolvedValue(ABOUT_MDX);
 
 		const result = await loadStaticPage("about", "pt-br");
@@ -154,9 +156,9 @@ describe("unit: loadStaticPage", () => {
 
 describe("unit: staticPageHasTwin", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
-	it("returns true when twin file exists", () => {
+	test("returns true when twin file exists", () => {
 		mocks.existsSync.mockReturnValue(true);
 
 		const result = staticPageHasTwin("about", "pt-br");
@@ -165,7 +167,7 @@ describe("unit: staticPageHasTwin", () => {
 		expect(mocks.existsSync).toHaveBeenCalled();
 	});
 
-	it("returns false when twin file does not exist", () => {
+	test("returns false when twin file does not exist", () => {
 		mocks.existsSync.mockReturnValue(false);
 
 		const result = staticPageHasTwin("only-en", "pt-br");
@@ -173,7 +175,7 @@ describe("unit: staticPageHasTwin", () => {
 		expect(result).toBe(false);
 	});
 
-	it("checks the target locale path, not current locale", () => {
+	test("checks the target locale path, not current locale", () => {
 		mocks.existsSync.mockReturnValue(false);
 
 		staticPageHasTwin("about", "pt-br");
@@ -182,7 +184,7 @@ describe("unit: staticPageHasTwin", () => {
 		expect(calledPath).toContain("pt-br");
 	});
 
-	it("returns false for unsafe slugs without calling existsSync", () => {
+	test("returns false for unsafe slugs without calling existsSync", () => {
 		mocks.existsSync.mockClear();
 
 		const result = staticPageHasTwin("../etc/forbidden.txt", "pt-br");
@@ -196,9 +198,9 @@ describe("unit: staticPageHasTwin", () => {
 
 describe("unit: enumerateStaticPages", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
-	it("returns one PageEntry per .mdx file", async () => {
+	test("returns one PageEntry per .mdx file", async () => {
 		mocks.readdir.mockResolvedValue(["about.mdx", "uses.mdx"]);
 		mocks.readFile.mockImplementation(async (path: unknown) => {
 			if ((path as string).includes("about"))
@@ -214,7 +216,7 @@ describe("unit: enumerateStaticPages", () => {
 		expect(entries[1].frontmatter.description).toBe("What I use");
 	});
 
-	it("skips non-mdx files", async () => {
+	test("skips non-mdx files", async () => {
 		mocks.readdir.mockResolvedValue(["about.mdx", "README.md", ".DS_Store"]);
 		mocks.readFile.mockResolvedValue(`---\ntitle: About\n---\nBody.`);
 
@@ -224,7 +226,7 @@ describe("unit: enumerateStaticPages", () => {
 		expect(entries[0].slug).toBe("about");
 	});
 
-	it("skips files with missing title", async () => {
+	test("skips files with missing title", async () => {
 		mocks.readdir.mockResolvedValue(["valid.mdx", "no-title.mdx"]);
 		mocks.readFile.mockImplementation(async (path: unknown) => {
 			if ((path as string).includes("valid"))
@@ -238,7 +240,7 @@ describe("unit: enumerateStaticPages", () => {
 		expect(entries[0].slug).toBe("valid");
 	});
 
-	it("returns empty array when directory does not exist", async () => {
+	test("returns empty array when directory does not exist", async () => {
 		mocks.readdir.mockRejectedValue(
 			Object.assign(new Error("ENOENT"), { code: "ENOENT" }),
 		);
@@ -248,7 +250,7 @@ describe("unit: enumerateStaticPages", () => {
 		expect(entries).toEqual([]);
 	});
 
-	it("returns empty array when directory is empty", async () => {
+	test("returns empty array when directory is empty", async () => {
 		mocks.readdir.mockResolvedValue([]);
 
 		const entries = await enumerateStaticPages("pt-br");
@@ -256,7 +258,7 @@ describe("unit: enumerateStaticPages", () => {
 		expect(entries).toEqual([]);
 	});
 
-	it("includes the locale and filePath in each entry", async () => {
+	test("includes the locale and filePath in each entry", async () => {
 		mocks.readdir.mockResolvedValue(["about.mdx"]);
 		mocks.readFile.mockResolvedValue(`---\ntitle: About\n---\nBody.`);
 
@@ -272,7 +274,7 @@ describe("unit: enumerateStaticPages", () => {
 
 describe("integration: loadStaticPage round-trip", () => {
 	let tmpDir: string;
-	let cwdSpy: ReturnType<typeof vi.spyOn>;
+	let cwdSpy: ReturnType<typeof jest.spyOn>;
 
 	beforeAll(async () => {
 		// Create a tmpdir and lay down the expected directory structure.
@@ -289,26 +291,22 @@ describe("integration: loadStaticPage round-trip", () => {
 		);
 
 		// Redirect process.cwd() to tmpDir so the module resolves paths there.
-		cwdSpy = vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+		cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 
 		// Use real fs implementations for this describe block.
-		const realFs =
-			await vi.importActual<typeof import("node:fs/promises")>(
-				"node:fs/promises",
-			);
-		vi.mocked(mocks.readFile).mockImplementation(realFs.readFile as never);
-		vi.mocked(mocks.readdir).mockImplementation(realFs.readdir as never);
+		mocks.readFile.mockImplementation(realReadFile as never);
+		mocks.readdir.mockImplementation(realReaddir as never);
 	});
 
 	afterAll(async () => {
 		cwdSpy?.mockRestore();
 		// Restore unit-test defaults.
-		vi.mocked(mocks.readFile).mockResolvedValue("");
-		vi.mocked(mocks.readdir).mockResolvedValue([]);
+		mocks.readFile.mockResolvedValue("");
+		mocks.readdir.mockResolvedValue([]);
 		await rm(tmpDir, { recursive: true, force: true });
 	});
 
-	it("reads a real .mdx file and returns entry with parsed frontmatter", async () => {
+	test("reads a real .mdx file and returns entry with parsed frontmatter", async () => {
 		const result = await loadStaticPage("test", "en");
 
 		expect(result).not.toBeNull();
@@ -318,30 +316,29 @@ describe("integration: loadStaticPage round-trip", () => {
 		expect(result?.entry.frontmatter.description).toBe("Test description");
 	});
 
-	it("returns html string (renderMdx mocked to null component produces empty string)", async () => {
+	test("returns html string (renderMdx mocked to null component produces empty string)", async () => {
 		const result = await loadStaticPage("test", "en");
 
 		expect(typeof result?.html).toBe("string");
 	});
 
-	it("returns null for a slug that has no file in tmpDir", async () => {
+	test("returns null for a slug that has no file in tmpDir", async () => {
 		const result = await loadStaticPage("nonexistent", "en");
 
 		expect(result).toBeNull();
 	});
 
-	it("staticPageHasTwin returns false when pt-br twin does not exist in tmpDir", async () => {
-		const realFs = await vi.importActual<typeof import("node:fs")>("node:fs");
-		vi.mocked(mocks.existsSync).mockImplementation(realFs.existsSync);
+	test("staticPageHasTwin returns false when pt-br twin does not exist in tmpDir", async () => {
+		mocks.existsSync.mockImplementation(realExistsSync);
 
 		const result = staticPageHasTwin("test", "pt-br");
 
 		expect(result).toBe(false); // no file written to pt-br dir
 
-		vi.mocked(mocks.existsSync).mockReturnValue(false);
+		mocks.existsSync.mockReturnValue(false);
 	});
 
-	it("enumerateStaticPages lists real files in tmpDir", async () => {
+	test("enumerateStaticPages lists real files in tmpDir", async () => {
 		const entries = await enumerateStaticPages("en");
 
 		expect(entries).toHaveLength(1);
@@ -353,7 +350,7 @@ describe("integration: loadStaticPage round-trip", () => {
 // ─── Type exports ────────────────────────────────────────────────────────────
 
 describe("unit: exported types are structurally correct", () => {
-	it("PageEntry shape satisfies expected fields", () => {
+	test("PageEntry shape satisfies expected fields", () => {
 		const entry: PageEntry = {
 			slug: "about",
 			locale: "en",
@@ -363,7 +360,7 @@ describe("unit: exported types are structurally correct", () => {
 		expect(entry.slug).toBe("about");
 	});
 
-	it("PageFrontmatter allows optional description", () => {
+	test("PageFrontmatter allows optional description", () => {
 		const fm: PageFrontmatter = { title: "Title" };
 		expect(fm.description).toBeUndefined();
 	});

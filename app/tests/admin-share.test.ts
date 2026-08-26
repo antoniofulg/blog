@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit / component tests for the admin posts list Share column (task 10).
  *
@@ -9,9 +10,11 @@
  *   AC-4: Canonical URL for en post is /<slug> (no /en/ prefix)
  */
 
-import { act, cleanup, render, screen } from "@testing-library/react";
+import { afterEach, describe, expect, test } from "bun:test";
+
+const { act, cleanup, render, screen } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, describe, expect, it } from "vitest";
 
 // ── JSDOM polyfills for Radix UI ──────────────────────────────────────────────
 
@@ -25,12 +28,12 @@ global.ResizeObserver = class ResizeObserver {
 
 // ── Mocks (hoisted before all imports) ────────────────────────────────────────
 
-import { vi } from "vitest";
+import { jest, mock } from "bun:test";
 
 // #/lib/locale is mocked to avoid pulling in @tanstack/react-router (which
 // uses useRouterState internally). The localeHref mock mirrors the real
 // implementation exactly so URL computation tests are authoritative.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	LOCALES: ["en", "pt-br"],
 	DEFAULT_LOCALE: "en",
 	localeHref: (locale: string, slug?: string): string => {
@@ -42,16 +45,18 @@ vi.mock("#/lib/locale", () => ({
 }));
 
 // Mock site-origin for predictable absolute URLs in tests.
-// getSiteOrigin() returns "" in vitest Node env — override to a known value.
-vi.mock("#/lib/site-origin", () => ({
+// getSiteOrigin() returns "" in Bun Test environment — override to a known value.
+mock.module("#/lib/site-origin", () => ({
 	getSiteOrigin: () => "https://blog.example",
 }));
 
-import { PostShare } from "#/components/ui/post-share";
+const { PostShare } = await import("#/components/ui/post-share");
+
 import type { Locale } from "#/lib/locale";
+
 // Import under test — AFTER mocks
-import { localeHref } from "#/lib/locale";
-import { getSiteOrigin } from "#/lib/site-origin";
+const { localeHref } = await import("#/lib/locale");
+const { getSiteOrigin } = await import("#/lib/site-origin");
 
 // ── Type ──────────────────────────────────────────────────────────────────────
 
@@ -114,30 +119,30 @@ const THREE_POSTS: PostFixture[] = [
 
 afterEach(() => {
 	cleanup();
-	vi.restoreAllMocks();
+	jest.restoreAllMocks();
 });
 
 // ── Unit: canonical URL computation ──────────────────────────────────────────
 
 describe("unit: admin share column — canonical URL computation", () => {
-	it("pt-br post canonical URL includes the /pt-br/ prefix", () => {
+	test("pt-br post canonical URL includes the /pt-br/ prefix", () => {
 		const url = buildAdminPostUrl("pt-br", "meu-post");
 		expect(url).toBe("https://blog.example/pt-br/meu-post");
 		expect(url).toContain("/pt-br/");
 	});
 
-	it("en post canonical URL is /<slug> with no /en/ prefix (DEFAULT_LOCALE convention)", () => {
+	test("en post canonical URL is /<slug> with no /en/ prefix (DEFAULT_LOCALE convention)", () => {
 		const url = buildAdminPostUrl("en", "my-post");
 		expect(url).toBe("https://blog.example/my-post");
 		expect(url).not.toContain("/en/");
 	});
 
-	it("en canonical URL ends with the slug directly after origin", () => {
+	test("en canonical URL ends with the slug directly after origin", () => {
 		const url = buildAdminPostUrl("en", "tanstack-router-guide");
 		expect(url).toBe("https://blog.example/tanstack-router-guide");
 	});
 
-	it("pt-br canonical URL embeds locale between origin and slug", () => {
+	test("pt-br canonical URL embeds locale between origin and slug", () => {
 		const url = buildAdminPostUrl("pt-br", "guia-do-roteador");
 		expect(url).toBe("https://blog.example/pt-br/guia-do-roteador");
 	});
@@ -146,14 +151,14 @@ describe("unit: admin share column — canonical URL computation", () => {
 // ── Component: PostShare dropdown per row (AC-1, AC-2) ───────────────────────
 
 describe("component: admin share column — PostShare dropdown trigger per row", () => {
-	it("renders exactly 3 PostShare dropdown triggers for 3 posts (AC-1)", async () => {
+	test("renders exactly 3 PostShare dropdown triggers for 3 posts (AC-1)", async () => {
 		renderAdminShareRows(THREE_POSTS);
 		await act(async () => {});
 		const triggers = screen.getAllByRole("button", { name: "Share post" });
 		expect(triggers).toHaveLength(3);
 	});
 
-	it("each trigger has accessible label 'Share post' (AC-2)", async () => {
+	test("each trigger has accessible label 'Share post' (AC-2)", async () => {
 		renderAdminShareRows(THREE_POSTS);
 		await act(async () => {});
 		const triggers = screen.getAllByRole("button", { name: "Share post" });
@@ -162,14 +167,14 @@ describe("component: admin share column — PostShare dropdown trigger per row",
 		}
 	});
 
-	it("renders 1 trigger for a single post (table of 1 row)", async () => {
+	test("renders 1 trigger for a single post (table of 1 row)", async () => {
 		renderAdminShareRows([THREE_POSTS[0]]);
 		await act(async () => {});
 		const triggers = screen.getAllByRole("button", { name: "Share post" });
 		expect(triggers).toHaveLength(1);
 	});
 
-	it("renders 0 triggers when posts array is empty (no JS error)", async () => {
+	test("renders 0 triggers when posts array is empty (no JS error)", async () => {
 		renderAdminShareRows([]);
 		await act(async () => {});
 		const triggers = screen.queryAllByRole("button", { name: "Share post" });

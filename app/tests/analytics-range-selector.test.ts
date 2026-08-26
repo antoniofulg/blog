@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit tests for RangeSelector component.
  *
@@ -6,19 +7,26 @@
  * keyboard navigation (ArrowDown moves focusedIdx, Enter commits selection),
  * and that the functional updater pattern preserves postId (ADR-006).
  */
+
 import {
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-	within,
-} from "@testing-library/react";
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { cleanup, fireEvent, render, screen, within } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
+const mocks = (() => {
 	let locale: "en" | "pt-br" = "en";
 	return {
 		setLocale: (l: "en" | "pt-br") => {
@@ -26,12 +34,12 @@ const mocks = vi.hoisted(() => {
 		},
 		getLocale: () => locale,
 	};
-});
+})();
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 // Provide LOCALES so strings.ts module-level validation loop works.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	useLocale: () => ({ locale: mocks.getLocale() }),
 	LOCALES: ["en", "pt-br"],
 }));
@@ -43,14 +51,15 @@ import {
 	RangeSelector,
 } from "#/components/admin/analytics/range-selector";
 import type { AnalyticsRange } from "#/db/analytics-queries";
-import { strings } from "#/lib/i18n/strings";
+
+const { strings } = await import("#/lib/i18n/strings");
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
 function renderSelector(
 	value: AnalyticsRange = "30d",
 	locale: "en" | "pt-br" = "en",
-	onSelect = vi.fn(),
+	onSelect = jest.fn(),
 ) {
 	mocks.setLocale(locale);
 	return {
@@ -70,7 +79,7 @@ afterEach(cleanup);
 // ── AC: all 6 preset labels render ───────────────────────────────────────────
 
 describe("RangeSelector — preset labels (AC-3)", () => {
-	it("renders all 6 en preset labels after opening", () => {
+	test("renders all 6 en preset labels after opening", () => {
 		renderSelector("30d", "en");
 		// Open the dropdown
 		fireEvent.click(screen.getByRole("button"));
@@ -82,7 +91,7 @@ describe("RangeSelector — preset labels (AC-3)", () => {
 		}
 	});
 
-	it("renders all 6 pt-br preset labels after opening", () => {
+	test("renders all 6 pt-br preset labels after opening", () => {
 		renderSelector("30d", "pt-br");
 		fireEvent.click(screen.getByRole("button"));
 		const list = screen.getByRole("listbox");
@@ -92,13 +101,13 @@ describe("RangeSelector — preset labels (AC-3)", () => {
 		}
 	});
 
-	it("shows the current value label on the trigger button", () => {
+	test("shows the current value label on the trigger button", () => {
 		renderSelector("90d", "en");
 		const t = strings.en.admin.analytics.range;
 		expect(screen.getByRole("button").textContent).toContain(t["90d"]);
 	});
 
-	it("shows the correct pt-br label for current value on trigger", () => {
+	test("shows the correct pt-br label for current value on trigger", () => {
 		renderSelector("ytd", "pt-br");
 		const t = strings["pt-br"].admin.analytics.range;
 		expect(screen.getByRole("button").textContent).toContain(t.ytd);
@@ -108,7 +117,7 @@ describe("RangeSelector — preset labels (AC-3)", () => {
 // ── AC: click selection fires onSelect ───────────────────────────────────────
 
 describe("RangeSelector — click selection", () => {
-	it("calls onSelect with the clicked range", () => {
+	test("calls onSelect with the clicked range", () => {
 		const { onSelect } = renderSelector("30d", "en");
 		fireEvent.click(screen.getByRole("button"));
 		const list = screen.getByRole("listbox");
@@ -117,7 +126,7 @@ describe("RangeSelector — click selection", () => {
 		expect(onSelect).toHaveBeenCalledWith("7d");
 	});
 
-	it("calls onSelect with '90d' when 90d option is clicked", () => {
+	test("calls onSelect with '90d' when 90d option is clicked", () => {
 		const { onSelect } = renderSelector("30d", "en");
 		fireEvent.click(screen.getByRole("button"));
 		const list = screen.getByRole("listbox");
@@ -126,7 +135,7 @@ describe("RangeSelector — click selection", () => {
 		expect(onSelect).toHaveBeenCalledWith("90d");
 	});
 
-	it("closes the dropdown after selection", () => {
+	test("closes the dropdown after selection", () => {
 		renderSelector("30d", "en");
 		fireEvent.click(screen.getByRole("button"));
 		expect(screen.getByRole("listbox")).toBeDefined();
@@ -136,7 +145,7 @@ describe("RangeSelector — click selection", () => {
 		expect(screen.queryByRole("listbox")).toBeNull();
 	});
 
-	it("calls onSelect exactly once per click", () => {
+	test("calls onSelect exactly once per click", () => {
 		const { onSelect } = renderSelector("30d", "en");
 		fireEvent.click(screen.getByRole("button"));
 		const list = screen.getByRole("listbox");
@@ -149,19 +158,19 @@ describe("RangeSelector — click selection", () => {
 // ── AC: keyboard navigation ───────────────────────────────────────────────────
 
 describe("RangeSelector — keyboard navigation (AC-6)", () => {
-	it("opens the dropdown on Enter key from the trigger button", () => {
+	test("opens the dropdown on Enter key from the trigger button", () => {
 		renderSelector("30d", "en");
 		fireEvent.keyDown(screen.getByRole("button"), { key: "Enter" });
 		expect(screen.getByRole("listbox")).toBeDefined();
 	});
 
-	it("opens the dropdown on ArrowDown key from the trigger button", () => {
+	test("opens the dropdown on ArrowDown key from the trigger button", () => {
 		renderSelector("30d", "en");
 		fireEvent.keyDown(screen.getByRole("button"), { key: "ArrowDown" });
 		expect(screen.getByRole("listbox")).toBeDefined();
 	});
 
-	it("ArrowDown on list moves focused option to the next index", () => {
+	test("ArrowDown on list moves focused option to the next index", () => {
 		// value="7d" → RANGE_OPTIONS.indexOf("7d") === 0 → focusedIdx starts at 0.
 		renderSelector("7d", "en");
 		fireEvent.click(screen.getByRole("button"));
@@ -172,7 +181,7 @@ describe("RangeSelector — keyboard navigation (AC-6)", () => {
 		expect(options[1].getAttribute("data-focused")).toBe("true");
 	});
 
-	it("ArrowUp on list moves focused option to the previous index", () => {
+	test("ArrowUp on list moves focused option to the previous index", () => {
 		// value="90d" → idx 2 → ArrowDown → idx 3 → ArrowUp → idx 2.
 		renderSelector("90d", "en");
 		fireEvent.click(screen.getByRole("button"));
@@ -183,7 +192,7 @@ describe("RangeSelector — keyboard navigation (AC-6)", () => {
 		expect(options[2].getAttribute("data-focused")).toBe("true");
 	});
 
-	it("Enter on list commits the focused option", () => {
+	test("Enter on list commits the focused option", () => {
 		const { onSelect } = renderSelector("7d", "en");
 		// Open (focusedIdx=0) → ArrowDown (focusedIdx=1, "30d") → Enter.
 		fireEvent.click(screen.getByRole("button"));
@@ -193,7 +202,7 @@ describe("RangeSelector — keyboard navigation (AC-6)", () => {
 		expect(onSelect).toHaveBeenCalledWith("30d");
 	});
 
-	it("Escape closes dropdown without calling onSelect", () => {
+	test("Escape closes dropdown without calling onSelect", () => {
 		const { onSelect } = renderSelector("30d", "en");
 		fireEvent.click(screen.getByRole("button"));
 		expect(screen.getByRole("listbox")).toBeDefined();
@@ -202,7 +211,7 @@ describe("RangeSelector — keyboard navigation (AC-6)", () => {
 		expect(onSelect).not.toHaveBeenCalled();
 	});
 
-	it("ArrowDown does not go past the last option", () => {
+	test("ArrowDown does not go past the last option", () => {
 		// value="all" → idx 5 (last); pressing ArrowDown should stay at 5.
 		renderSelector("all", "en");
 		fireEvent.click(screen.getByRole("button"));
@@ -215,7 +224,7 @@ describe("RangeSelector — keyboard navigation (AC-6)", () => {
 		expect(options[5].getAttribute("data-focused")).toBe("true");
 	});
 
-	it("ArrowUp does not go before the first option", () => {
+	test("ArrowUp does not go before the first option", () => {
 		// value="7d" → idx 0; pressing ArrowUp should stay at 0.
 		renderSelector("7d", "en");
 		fireEvent.click(screen.getByRole("button"));
@@ -236,7 +245,7 @@ describe("RangeSelector — keyboard navigation (AC-6)", () => {
 describe("RangeSelector — functional updater preserves postId (AC-5 / ADR-006)", () => {
 	type AnalyticsSearch = { range: AnalyticsRange; postId?: number };
 
-	it("spread updater preserves postId when changing range", () => {
+	test("spread updater preserves postId when changing range", () => {
 		// Simulate what AnalyticsDashboard does when onSelect fires:
 		//   void navigate({ search: (prev) => ({ ...prev, range: newRange }) })
 		const prev: AnalyticsSearch = { range: "30d", postId: 42 };
@@ -248,7 +257,7 @@ describe("RangeSelector — functional updater preserves postId (AC-5 / ADR-006)
 		expect(result).toEqual({ range: "90d", postId: 42 });
 	});
 
-	it("spread updater preserves postId=undefined when not set", () => {
+	test("spread updater preserves postId=undefined when not set", () => {
 		const prev: AnalyticsSearch = { range: "7d" };
 		const updater = (p: AnalyticsSearch): AnalyticsSearch => ({
 			...p,
@@ -259,7 +268,7 @@ describe("RangeSelector — functional updater preserves postId (AC-5 / ADR-006)
 		expect(result.postId).toBeUndefined();
 	});
 
-	it("selecting '90d' with postId=42 active preserves postId in result", () => {
+	test("selecting '90d' with postId=42 active preserves postId in result", () => {
 		const prev: AnalyticsSearch = { range: "30d", postId: 42 };
 		// Simulate handleRangeSelect("90d") from AnalyticsDashboard
 		const newRange: AnalyticsRange = "90d";
@@ -270,7 +279,7 @@ describe("RangeSelector — functional updater preserves postId (AC-5 / ADR-006)
 		expect(updater(prev)).toEqual({ range: "90d", postId: 42 });
 	});
 
-	it("RANGE_OPTIONS contains exactly 6 items in correct order", () => {
+	test("RANGE_OPTIONS contains exactly 6 items in correct order", () => {
 		expect(RANGE_OPTIONS).toEqual(["7d", "30d", "90d", "mtd", "ytd", "all"]);
 	});
 });
@@ -278,20 +287,20 @@ describe("RangeSelector — functional updater preserves postId (AC-5 / ADR-006)
 // ── AC: ARIA attributes ───────────────────────────────────────────────────────
 
 describe("RangeSelector — ARIA attributes", () => {
-	it("trigger button has aria-haspopup='listbox'", () => {
+	test("trigger button has aria-haspopup='listbox'", () => {
 		renderSelector();
 		const btn = screen.getByRole("button");
 		expect(btn.getAttribute("aria-haspopup")).toBe("listbox");
 	});
 
-	it("trigger button has aria-expanded=false when closed", () => {
+	test("trigger button has aria-expanded=false when closed", () => {
 		renderSelector();
 		expect(screen.getByRole("button").getAttribute("aria-expanded")).toBe(
 			"false",
 		);
 	});
 
-	it("trigger button has aria-expanded=true when open", () => {
+	test("trigger button has aria-expanded=true when open", () => {
 		renderSelector();
 		fireEvent.click(screen.getByRole("button"));
 		expect(screen.getByRole("button").getAttribute("aria-expanded")).toBe(
@@ -299,19 +308,19 @@ describe("RangeSelector — ARIA attributes", () => {
 		);
 	});
 
-	it("listbox is not rendered when dropdown is closed", () => {
+	test("listbox is not rendered when dropdown is closed", () => {
 		renderSelector();
 		expect(screen.queryByRole("listbox")).toBeNull();
 	});
 
-	it("listbox renders 6 options with role='option'", () => {
+	test("listbox renders 6 options with role='option'", () => {
 		renderSelector();
 		fireEvent.click(screen.getByRole("button"));
 		const options = screen.getAllByRole("option");
 		expect(options).toHaveLength(6);
 	});
 
-	it("current value option has aria-selected=true", () => {
+	test("current value option has aria-selected=true", () => {
 		renderSelector("90d");
 		fireEvent.click(screen.getByRole("button"));
 		const options = screen.getAllByRole("option");
@@ -319,7 +328,7 @@ describe("RangeSelector — ARIA attributes", () => {
 		expect(options[2].getAttribute("aria-selected")).toBe("true");
 	});
 
-	it("non-selected options have aria-selected=false", () => {
+	test("non-selected options have aria-selected=false", () => {
 		renderSelector("90d");
 		fireEvent.click(screen.getByRole("button"));
 		const options = screen.getAllByRole("option");
@@ -329,7 +338,7 @@ describe("RangeSelector — ARIA attributes", () => {
 		}
 	});
 
-	it("each option has a stable id matching range-opt-<range>", () => {
+	test("each option has a stable id matching range-opt-<range>", () => {
 		renderSelector("30d");
 		fireEvent.click(screen.getByRole("button"));
 		const options = screen.getAllByRole("option");
@@ -338,7 +347,7 @@ describe("RangeSelector — ARIA attributes", () => {
 		}
 	});
 
-	it("listbox has aria-activedescendant pointing to the focused option id", () => {
+	test("listbox has aria-activedescendant pointing to the focused option id", () => {
 		// value="7d" → focusedIdx=0 on open. ArrowDown → focusedIdx=1 ("30d").
 		renderSelector("7d", "en");
 		fireEvent.click(screen.getByRole("button"));

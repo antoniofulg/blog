@@ -1,0 +1,3 @@
+# Canonical unit, component, integration, and infrastructure test tree.
+[test]
+root = "app/tests"

@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
 import {
 	buildLocalePath,
 	normalizeRoutePath,
@@ -7,73 +15,74 @@ import type { RouteEntry } from "#/lib/site-model.server";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const siteModelMocks = vi.hoisted(() => ({
-	getRouteInventory: vi.fn<() => Promise<RouteEntry[]>>(),
-	resolveRoutePath: vi.fn((route: RouteEntry) => route.path),
-}));
+const siteModelMocks = (() => ({
+	getRouteInventory: jest.fn<() => Promise<RouteEntry[]>>(),
+	resolveRoutePath: jest.fn((route: RouteEntry) => route.path),
+}))();
 
-const fetchMock = vi.hoisted(() =>
-	vi.fn<typeof fetch>().mockResolvedValue(new Response("ok", { status: 200 })),
-);
+const fetchMock = jest
+	.fn<typeof fetch>()
+	.mockResolvedValue(new Response("ok", { status: 200 }));
+const nativeFetch = globalThis.fetch;
 
-const probeMocks = vi.hoisted(() => ({
-	sweepRoute: vi.fn().mockResolvedValue([]),
-	analyzeA11y: vi.fn().mockResolvedValue([]),
-	runLighthouse: vi.fn().mockResolvedValue({
+const probeMocks = (() => ({
+	sweepRoute: jest.fn().mockResolvedValue([]),
+	analyzeA11y: jest.fn().mockResolvedValue([]),
+	runLighthouse: jest.fn().mockResolvedValue({
 		performance: 0.9,
 		accessibility: 0.9,
 		bestPractices: 0.9,
 		seo: 0.95,
 	}),
-	lighthouseToFindings: vi.fn().mockReturnValue([]),
-}));
+	lighthouseToFindings: jest.fn().mockReturnValue([]),
+}))();
 
-const playwrightMocks = vi.hoisted(() => {
-	const mockPage = { close: vi.fn().mockResolvedValue(undefined) };
+const playwrightMocks = (() => {
+	const mockPage = { close: jest.fn().mockResolvedValue(undefined) };
 	const mockContext = {
-		newPage: vi.fn().mockResolvedValue(mockPage),
-		close: vi.fn().mockResolvedValue(undefined),
+		newPage: jest.fn().mockResolvedValue(mockPage),
+		close: jest.fn().mockResolvedValue(undefined),
 	};
 	const mockBrowser = {
-		newContext: vi.fn().mockResolvedValue(mockContext),
-		close: vi.fn().mockResolvedValue(undefined),
+		newContext: jest.fn().mockResolvedValue(mockContext),
+		close: jest.fn().mockResolvedValue(undefined),
 	};
 	return { mockPage, mockContext, mockBrowser };
-});
+})();
 
-vi.mock("#/lib/site-model.server", () => ({
+mock.module("#/lib/site-model.server", () => ({
 	getRouteInventory: siteModelMocks.getRouteInventory,
 	resolveRoutePath: siteModelMocks.resolveRoutePath,
 }));
 
-vi.stubGlobal("fetch", fetchMock);
-
-vi.mock("#/lib/app-audit/browser-sweep.server", () => ({
+mock.module("#/lib/app-audit/browser-sweep.server", () => ({
 	sweepRoute: probeMocks.sweepRoute,
 }));
 
-vi.mock("#/lib/app-audit/a11y-adapter.server", () => ({
+mock.module("#/lib/app-audit/a11y-adapter.server", () => ({
 	analyzeA11y: probeMocks.analyzeA11y,
 }));
 
-vi.mock("#/lib/app-audit/lighthouse.server", () => ({
+mock.module("#/lib/app-audit/lighthouse.server", () => ({
 	runLighthouse: probeMocks.runLighthouse,
 	lighthouseToFindings: probeMocks.lighthouseToFindings,
 }));
 
-vi.mock("@playwright/test", () => ({
+mock.module("@playwright/test", () => ({
 	chromium: {
-		launch: vi.fn().mockImplementation(async () => playwrightMocks.mockBrowser),
-		executablePath: vi.fn().mockReturnValue("/fake/chromium"),
+		launch: jest
+			.fn()
+			.mockImplementation(async () => playwrightMocks.mockBrowser),
+		executablePath: jest.fn().mockReturnValue("/fake/chromium"),
 	},
 }));
 
 // Admin json not found → fallback to anon context
-vi.mock("node:fs/promises", () => ({
-	readFile: vi
+mock.module("node:fs/promises", () => ({
+	readFile: jest
 		.fn()
 		.mockRejectedValue(Object.assign(new Error("ENOENT"), { code: "ENOENT" })),
-	join: vi.fn(),
+	join: jest.fn(),
 }));
 
 // ─── Fixtures ─────────────────────────────────────────────────────────────────
@@ -97,11 +106,12 @@ const FIXTURE_ROUTES: RouteEntry[] = [
 
 // ─── Tests ────────────────────────────────────────────────────────────────────
 
-import { runAppAudit } from "#/lib/app-audit/checks.server";
+const { runAppAudit } = await import("#/lib/app-audit/checks.server");
 
 describe("runAppAudit orchestrator", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
+		globalThis.fetch = fetchMock as unknown as typeof fetch;
 		fetchMock.mockResolvedValue(new Response("ok", { status: 200 }));
 		siteModelMocks.getRouteInventory.mockResolvedValue(FIXTURE_ROUTES);
 		siteModelMocks.resolveRoutePath.mockImplementation(
@@ -125,31 +135,32 @@ describe("runAppAudit orchestrator", () => {
 	});
 
 	afterEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
+		globalThis.fetch = nativeFetch;
 	});
 
-	it("2 routes × 2 locales × 2 auth-states → sweepRoute called 8 times", async () => {
+	test("2 routes × 2 locales × 2 auth-states → sweepRoute called 8 times", async () => {
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(8);
 	});
 
-	it("2 routes × 2 locales × 2 auth-states → analyzeA11y called 8 times", async () => {
+	test("2 routes × 2 locales × 2 auth-states → analyzeA11y called 8 times", async () => {
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 		expect(probeMocks.analyzeA11y).toHaveBeenCalledTimes(8);
 	});
 
-	it("lighthouse: false → runLighthouse not called", async () => {
+	test("lighthouse: false → runLighthouse not called", async () => {
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 		expect(probeMocks.runLighthouse).not.toHaveBeenCalled();
 	});
 
-	it("lighthouse: true → runLighthouse called once per route×locale (4 times)", async () => {
+	test("lighthouse: true → runLighthouse called once per route×locale (4 times)", async () => {
 		await runAppAudit({ lighthouse: true, baseUrl: "http://test:3000" });
 		// 2 routes × 2 locales = 4 (Lighthouse is URL-based, not auth-state-based)
 		expect(probeMocks.runLighthouse).toHaveBeenCalledTimes(4);
 	});
 
-	it("sweep-error forwarded without aborting remaining inspections", async () => {
+	test("sweep-error forwarded without aborting remaining inspections", async () => {
 		probeMocks.sweepRoute.mockResolvedValueOnce([
 			{
 				category: "sweep-error",
@@ -169,7 +180,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(8);
 	});
 
-	it("findings from all probes are collected and returned flat", async () => {
+	test("findings from all probes are collected and returned flat", async () => {
 		const fixture = {
 			category: "console-error" as const,
 			severity: "blocker" as const,
@@ -188,7 +199,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(findings[0].category).toBe("console-error");
 	});
 
-	it("lighthouse findings included when lighthouse: true", async () => {
+	test("lighthouse findings included when lighthouse: true", async () => {
 		probeMocks.lighthouseToFindings.mockReturnValue([
 			{
 				category: "perf-budget-breach" as const,
@@ -210,7 +221,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(lhFindings).toHaveLength(4);
 	});
 
-	it("locale path: pt-br routes use /pt-br prefix", async () => {
+	test("locale path: pt-br routes use /pt-br prefix", async () => {
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 
 		const calls = probeMocks.sweepRoute.mock.calls.map(
@@ -222,7 +233,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(calls).toContain("/about");
 	});
 
-	it("locale path: root en route stays /", async () => {
+	test("locale path: root en route stays /", async () => {
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 
 		const calls = probeMocks.sweepRoute.mock.calls.map(
@@ -231,7 +242,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(calls).toContain("/");
 	});
 
-	it("page.close called for every inspection", async () => {
+	test("page.close called for every inspection", async () => {
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 		// 8 inspections × 1 close = 8
 		expect(playwrightMocks.mockPage.close).toHaveBeenCalledTimes(8);
@@ -239,7 +250,7 @@ describe("runAppAudit orchestrator", () => {
 
 	// ─── routes filter (issue 001) ────────────────────────────────────────────
 
-	it("routes filter: only matching routes swept when routes provided", async () => {
+	test("routes filter: only matching routes swept when routes provided", async () => {
 		// inventory has 2 routes: / and /about; filter to / only
 		await runAppAudit({
 			lighthouse: false,
@@ -255,7 +266,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(paths.every((p) => p === "/" || p === "/pt-br/")).toBe(true);
 	});
 
-	it("routes filter: empty routes array sweeps all routes", async () => {
+	test("routes filter: empty routes array sweeps all routes", async () => {
 		await runAppAudit({
 			lighthouse: false,
 			baseUrl: "http://test:3000",
@@ -265,7 +276,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(8);
 	});
 
-	it("routes filter: undefined routes sweeps all routes", async () => {
+	test("routes filter: undefined routes sweeps all routes", async () => {
 		await runAppAudit({
 			lighthouse: false,
 			baseUrl: "http://test:3000",
@@ -274,7 +285,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(8);
 	});
 
-	it("routes filter: trailing slash normalized → matches inventory path without trailing slash", async () => {
+	test("routes filter: trailing slash normalized → matches inventory path without trailing slash", async () => {
 		// inventory has /about; user passes /about/
 		await runAppAudit({
 			lighthouse: false,
@@ -285,7 +296,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(4);
 	});
 
-	it("routes filter: missing leading slash normalized → matches inventory path", async () => {
+	test("routes filter: missing leading slash normalized → matches inventory path", async () => {
 		// inventory has /about; user passes about
 		await runAppAudit({
 			lighthouse: false,
@@ -295,7 +306,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(4);
 	});
 
-	it("routes filter: case mismatch normalized → matches inventory path", async () => {
+	test("routes filter: case mismatch normalized → matches inventory path", async () => {
 		// inventory has /about; user passes /About
 		await runAppAudit({
 			lighthouse: false,
@@ -305,7 +316,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).toHaveBeenCalledTimes(4);
 	});
 
-	it("routes filter: no match → sweep-error finding returned, no inspections run", async () => {
+	test("routes filter: no match → sweep-error finding returned, no inspections run", async () => {
 		const findings = await runAppAudit({
 			lighthouse: false,
 			baseUrl: "http://test:3000",
@@ -323,7 +334,7 @@ describe("runAppAudit orchestrator", () => {
 
 	// ─── preflight check (issue 002) ─────────────────────────────────────────
 
-	it("preflight: unreachable baseUrl returns single preflight-error blocker", async () => {
+	test("preflight: unreachable baseUrl returns single preflight-error blocker", async () => {
 		fetchMock.mockRejectedValue(
 			Object.assign(new Error("fetch failed"), { code: "ECONNREFUSED" }),
 		);
@@ -341,7 +352,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.sweepRoute).not.toHaveBeenCalled();
 	});
 
-	it("preflight: message includes baseUrl and orchestration hint", async () => {
+	test("preflight: message includes baseUrl and orchestration hint", async () => {
 		fetchMock.mockRejectedValue(new Error("fetch failed"));
 		const findings = await runAppAudit({
 			lighthouse: false,
@@ -356,7 +367,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(findings[0].message).toContain(".output/server/index.mjs");
 	});
 
-	it("preflight: reachable baseUrl proceeds to route sweep", async () => {
+	test("preflight: reachable baseUrl proceeds to route sweep", async () => {
 		fetchMock.mockResolvedValue(new Response("ok", { status: 200 }));
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 		expect(probeMocks.sweepRoute).toHaveBeenCalled();
@@ -364,7 +375,7 @@ describe("runAppAudit orchestrator", () => {
 
 	// ─── analyzeA11y skip on sweep-error (issue 003) ─────────────────────────
 
-	it("sweep-error from sweepRoute → analyzeA11y NOT called for that page", async () => {
+	test("sweep-error from sweepRoute → analyzeA11y NOT called for that page", async () => {
 		probeMocks.sweepRoute.mockResolvedValueOnce([
 			{
 				category: "sweep-error" as const,
@@ -379,7 +390,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(probeMocks.analyzeA11y).toHaveBeenCalledTimes(7);
 	});
 
-	it("sweep-error route produces exactly one finding (no cascading axe error)", async () => {
+	test("sweep-error route produces exactly one finding (no cascading axe error)", async () => {
 		probeMocks.sweepRoute.mockResolvedValue([
 			{
 				category: "sweep-error" as const,
@@ -400,13 +411,13 @@ describe("runAppAudit orchestrator", () => {
 
 	// ─── resolveRoutePath usage (issue 004) ──────────────────────────────────
 
-	it("resolveRoutePath called for each route before locale expansion", async () => {
+	test("resolveRoutePath called for each route before locale expansion", async () => {
 		await runAppAudit({ lighthouse: false, baseUrl: "http://test:3000" });
 		// 2 routes × 2 locales = 4 calls to resolveRoutePath
 		expect(siteModelMocks.resolveRoutePath).toHaveBeenCalledTimes(4);
 	});
 
-	it(":slug route expanded to sampleSlug before page.goto", async () => {
+	test(":slug route expanded to sampleSlug before page.goto", async () => {
 		siteModelMocks.getRouteInventory.mockResolvedValue([
 			{
 				path: "/:slug",
@@ -434,7 +445,7 @@ describe("runAppAudit orchestrator", () => {
 
 	// ─── shim route double-prefix guard (round-014 issue 001) ───────────────────
 
-	it("shim route path='/pt-br/' locale='pt-br' walked exactly once — no double-prefix /pt-br/pt-br/", async () => {
+	test("shim route path='/pt-br/' locale='pt-br' walked exactly once — no double-prefix /pt-br/pt-br/", async () => {
 		siteModelMocks.getRouteInventory.mockResolvedValue([
 			{
 				path: "/pt-br/",
@@ -455,7 +466,7 @@ describe("runAppAudit orchestrator", () => {
 		expect(paths).not.toContain("/pt-br/pt-br/");
 	});
 
-	it("shim route path='/en/' locale='en' walked exactly once — no /pt-br/en/ produced", async () => {
+	test("shim route path='/en/' locale='en' walked exactly once — no /pt-br/en/ produced", async () => {
 		siteModelMocks.getRouteInventory.mockResolvedValue([
 			{
 				path: "/en/",
@@ -477,7 +488,7 @@ describe("runAppAudit orchestrator", () => {
 
 	// ─── locale:null walk restriction (round-012 issue 001) ──────────────────────
 
-	it("locale:null route walks only DEFAULT_LOCALE, locale:en route walks all locales", async () => {
+	test("locale:null route walks only DEFAULT_LOCALE, locale:en route walks all locales", async () => {
 		// 1 global route (locale:null) + 1 locale-scoped route (locale:"en")
 		siteModelMocks.getRouteInventory.mockResolvedValue([
 			{
@@ -516,31 +527,31 @@ describe("runAppAudit orchestrator", () => {
 // ─── normalizeRoutePath unit tests (issue 001) ───────────────────────────────
 
 describe("normalizeRoutePath", () => {
-	it("adds leading slash when missing", () => {
+	test("adds leading slash when missing", () => {
 		expect(normalizeRoutePath("about")).toBe("/about");
 	});
 
-	it("removes trailing slash when path length > 1", () => {
+	test("removes trailing slash when path length > 1", () => {
 		expect(normalizeRoutePath("/about/")).toBe("/about");
 	});
 
-	it("keeps root / unchanged", () => {
+	test("keeps root / unchanged", () => {
 		expect(normalizeRoutePath("/")).toBe("/");
 	});
 
-	it("lowercases the path", () => {
+	test("lowercases the path", () => {
 		expect(normalizeRoutePath("/About")).toBe("/about");
 	});
 
-	it("trims whitespace", () => {
+	test("trims whitespace", () => {
 		expect(normalizeRoutePath("  /about  ")).toBe("/about");
 	});
 
-	it("handles missing slash + trailing slash together", () => {
+	test("handles missing slash + trailing slash together", () => {
 		expect(normalizeRoutePath("about/")).toBe("/about");
 	});
 
-	it("root with trailing slash → /", () => {
+	test("root with trailing slash → /", () => {
 		expect(normalizeRoutePath("//")).toBe("/");
 	});
 });
@@ -548,27 +559,27 @@ describe("normalizeRoutePath", () => {
 // ─── buildLocalePath unit tests (round-015 issue 002) ────────────────────────
 
 describe("buildLocalePath", () => {
-	it("en locale: path returned as-is regardless of prefix", () => {
+	test("en locale: path returned as-is regardless of prefix", () => {
 		expect(buildLocalePath("/", "en")).toBe("/");
 		expect(buildLocalePath("/about", "en")).toBe("/about");
 		expect(buildLocalePath("/pt-br/", "en")).toBe("/pt-br/");
 		expect(buildLocalePath("/en/", "en")).toBe("/en/");
 	});
 
-	it("pt-br locale: non-prefixed root mapped to /pt-br/", () => {
+	test("pt-br locale: non-prefixed root mapped to /pt-br/", () => {
 		expect(buildLocalePath("/", "pt-br")).toBe("/pt-br/");
 	});
 
-	it("pt-br locale: non-prefixed path prefixed with /pt-br", () => {
+	test("pt-br locale: non-prefixed path prefixed with /pt-br", () => {
 		expect(buildLocalePath("/about", "pt-br")).toBe("/pt-br/about");
 	});
 
-	it("idempotent for /pt-br/ prefix — no double-prefix /pt-br/pt-br/", () => {
+	test("idempotent for /pt-br/ prefix — no double-prefix /pt-br/pt-br/", () => {
 		expect(buildLocalePath("/pt-br/", "pt-br")).toBe("/pt-br/");
 		expect(buildLocalePath("/pt-br", "pt-br")).toBe("/pt-br");
 	});
 
-	it("idempotent for /en/ prefix when locale is pt-br — no /pt-br/en/ produced", () => {
+	test("idempotent for /en/ prefix when locale is pt-br — no /pt-br/en/ produced", () => {
 		// This is the bug fixed in round-015: the old hardcoded /pt-br/ check
 		// would silently produce /pt-br/en/ for an already-prefixed /en/ path.
 		expect(buildLocalePath("/en/", "pt-br")).toBe("/en/");

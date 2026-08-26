@@ -2,11 +2,12 @@
  * Tests for bilingual /privacy MDX pages.
  * Covers: frontmatter validity and required topic markers in en + pt-br.
  *
- * Footer Privacy link render tests live in footer.test.ts (jsdom environment).
+ * Footer Privacy link render tests live in footer.test.ts (HappyDOM environment).
  */
+
+import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -40,24 +41,24 @@ function parseFrontmatter(raw: string): Record<string, string> {
 // ─── en/privacy.mdx — frontmatter ────────────────────────────────────────────
 
 describe("unit: en/privacy.mdx frontmatter", () => {
-	it("file exists and is readable", async () => {
+	test("file exists and is readable", async () => {
 		const content = await readPrivacyMdx("en");
 		expect(content.length).toBeGreaterThan(0);
 	});
 
-	it("starts with frontmatter delimiter", async () => {
+	test("starts with frontmatter delimiter", async () => {
 		const content = await readPrivacyMdx("en");
 		expect(content.startsWith("---")).toBe(true);
 	});
 
-	it("has non-empty title field", async () => {
+	test("has non-empty title field", async () => {
 		const content = await readPrivacyMdx("en");
 		const fm = parseFrontmatter(content);
 		expect(typeof fm.title).toBe("string");
 		expect(fm.title.length).toBeGreaterThan(0);
 	});
 
-	it("has description field", async () => {
+	test("has description field", async () => {
 		const content = await readPrivacyMdx("en");
 		const fm = parseFrontmatter(content);
 		expect(typeof fm.description).toBe("string");
@@ -68,33 +69,33 @@ describe("unit: en/privacy.mdx frontmatter", () => {
 // ─── en/privacy.mdx — required topic markers ─────────────────────────────────
 
 describe("unit: en/privacy.mdx required topic markers", () => {
-	it("mentions cookieless tracking", async () => {
+	test("mentions cookieless tracking", async () => {
 		const content = await readPrivacyMdx("en");
 		expect(content.toLowerCase()).toContain("cookieless");
 	});
 
-	it("mentions no IP storage", async () => {
+	test("mentions no IP storage", async () => {
 		const content = await readPrivacyMdx("en");
 		const lower = content.toLowerCase();
 		expect(lower.includes("no ip") || lower.includes("ip address")).toBe(true);
 	});
 
-	it("mentions bot filtering", async () => {
+	test("mentions bot filtering", async () => {
 		const content = await readPrivacyMdx("en");
 		expect(content.toLowerCase()).toContain("bot");
 	});
 
-	it("mentions no cookies", async () => {
+	test("mentions no cookies", async () => {
 		const content = await readPrivacyMdx("en");
 		expect(content.toLowerCase()).toContain("no cookies");
 	});
 
-	it("mentions fingerprint", async () => {
+	test("mentions fingerprint", async () => {
 		const content = await readPrivacyMdx("en");
 		expect(content.toLowerCase()).toContain("fingerprint");
 	});
 
-	it("mentions public view counter behavior", async () => {
+	test("mentions public view counter behavior", async () => {
 		const content = await readPrivacyMdx("en");
 		const lower = content.toLowerCase();
 		expect(
@@ -109,24 +110,24 @@ describe("unit: en/privacy.mdx required topic markers", () => {
 // ─── pt-br/privacy.mdx — frontmatter ─────────────────────────────────────────
 
 describe("unit: pt-br/privacy.mdx frontmatter", () => {
-	it("file exists and is readable", async () => {
+	test("file exists and is readable", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		expect(content.length).toBeGreaterThan(0);
 	});
 
-	it("starts with frontmatter delimiter", async () => {
+	test("starts with frontmatter delimiter", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		expect(content.startsWith("---")).toBe(true);
 	});
 
-	it("has non-empty title field", async () => {
+	test("has non-empty title field", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		const fm = parseFrontmatter(content);
 		expect(typeof fm.title).toBe("string");
 		expect(fm.title.length).toBeGreaterThan(0);
 	});
 
-	it("has description field", async () => {
+	test("has description field", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		const fm = parseFrontmatter(content);
 		expect(typeof fm.description).toBe("string");
@@ -137,7 +138,7 @@ describe("unit: pt-br/privacy.mdx frontmatter", () => {
 // ─── pt-br/privacy.mdx — required topic markers ──────────────────────────────
 
 describe("unit: pt-br/privacy.mdx required topic markers", () => {
-	it("mentions cookieless or sem cookies", async () => {
+	test("mentions cookieless or sem cookies", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		const lower = content.toLowerCase();
 		expect(lower.includes("cookieless") || lower.includes("sem cookies")).toBe(
@@ -145,7 +146,7 @@ describe("unit: pt-br/privacy.mdx required topic markers", () => {
 		);
 	});
 
-	it("mentions IP address", async () => {
+	test("mentions IP address", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		const lower = content.toLowerCase();
 		expect(
@@ -155,12 +156,12 @@ describe("unit: pt-br/privacy.mdx required topic markers", () => {
 		).toBe(true);
 	});
 
-	it("mentions bot filtering", async () => {
+	test("mentions bot filtering", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		expect(content.toLowerCase()).toContain("bot");
 	});
 
-	it("mentions no cookies (sem cookies)", async () => {
+	test("mentions no cookies (sem cookies)", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		const lower = content.toLowerCase();
 		expect(lower.includes("sem cookies") || lower.includes("no cookies")).toBe(
@@ -168,12 +169,12 @@ describe("unit: pt-br/privacy.mdx required topic markers", () => {
 		);
 	});
 
-	it("mentions fingerprint", async () => {
+	test("mentions fingerprint", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		expect(content.toLowerCase()).toContain("fingerprint");
 	});
 
-	it("mentions public view counter behavior", async () => {
+	test("mentions public view counter behavior", async () => {
 		const content = await readPrivacyMdx("pt-br");
 		const lower = content.toLowerCase();
 		expect(
@@ -188,7 +189,7 @@ describe("unit: pt-br/privacy.mdx required topic markers", () => {
 // ─── Translation parity ───────────────────────────────────────────────────────
 
 describe("unit: privacy.mdx translation parity", () => {
-	it("both files exist (en and pt-br)", async () => {
+	test("both files exist (en and pt-br)", async () => {
 		const [en, ptbr] = await Promise.all([
 			readPrivacyMdx("en"),
 			readPrivacyMdx("pt-br"),
@@ -197,7 +198,7 @@ describe("unit: privacy.mdx translation parity", () => {
 		expect(ptbr.length).toBeGreaterThan(0);
 	});
 
-	it("both files have a non-empty title", async () => {
+	test("both files have a non-empty title", async () => {
 		const [en, ptbr] = await Promise.all([
 			readPrivacyMdx("en"),
 			readPrivacyMdx("pt-br"),

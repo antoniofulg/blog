@@ -1,6 +1,8 @@
-// @vitest-environment jsdom
-import { act, cleanup } from "@testing-library/react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import "./happydom";
+import { afterEach, beforeEach, describe, expect, jest, test } from "bun:test";
+
+const { act, cleanup } = await import("@testing-library/react");
+
 import {
 	COPY_BUTTON_CLASS,
 	RAW_SOURCE_ATTR,
@@ -19,7 +21,7 @@ const TTT_HEADING_EN = "Try it: tic-tac-toe";
 const TTT_HEADING_PT = "Experimente: jogo da velha";
 
 function clipboardMock(impl: () => Promise<void>) {
-	const writeText = vi.fn(impl);
+	const writeText = jest.fn(impl);
 	Object.defineProperty(navigator, "clipboard", {
 		value: { writeText },
 		configurable: true,
@@ -67,14 +69,14 @@ beforeEach(() => {
 afterEach(() => {
 	cleanup();
 	root.remove();
-	vi.restoreAllMocks();
-	vi.useRealTimers();
+	jest.restoreAllMocks();
+	jest.useRealTimers();
 });
 
 // ─── wireCopyButtons ──────────────────────────────────────────────────────────
 
 describe("wireCopyButtons", () => {
-	it("AC-1: copies the stashed raw source and sets the localized aria-label", async () => {
+	test("AC-1: copies the stashed raw source and sets the localized aria-label", async () => {
 		const raw = "const x = 1;\nconst y = 2;";
 		const writeText = clipboardMock(() => Promise.resolve());
 		const button = makeCodeBlock(root, raw);
@@ -91,8 +93,8 @@ describe("wireCopyButtons", () => {
 		expect(writeText).toHaveBeenCalledWith(raw);
 	});
 
-	it("AC-1: after click the label becomes 'Copied!' then reverts after the timer", async () => {
-		vi.useFakeTimers();
+	test("AC-1: after click the label becomes 'Copied!' then reverts after the timer", async () => {
+		jest.useFakeTimers();
 		clipboardMock(() => Promise.resolve());
 		const button = makeCodeBlock(root, "echo hi");
 
@@ -100,7 +102,8 @@ describe("wireCopyButtons", () => {
 
 		button.click();
 		// Flush the resolved clipboard microtask without advancing the revert timer.
-		await vi.advanceTimersByTimeAsync(0);
+		await Promise.resolve();
+		jest.advanceTimersByTime(0);
 		expect(button.getAttribute("aria-label")).toBe(COPY_LABELS.copied);
 		expect(button.getAttribute("data-copied")).toBe("true");
 
@@ -109,13 +112,13 @@ describe("wireCopyButtons", () => {
 		expect(live?.getAttribute("aria-live")).toBe("polite");
 		expect(live?.textContent).toBe(COPY_LABELS.copied);
 
-		await vi.advanceTimersByTimeAsync(2000);
+		jest.advanceTimersByTime(2000);
 		expect(button.getAttribute("aria-label")).toBe(COPY_LABELS.copy);
 		expect(button.hasAttribute("data-copied")).toBe(false);
 		expect(live?.textContent).toBe("");
 	});
 
-	it("does not enter the copied state when the clipboard write rejects", async () => {
+	test("does not enter the copied state when the clipboard write rejects", async () => {
 		clipboardMock(() => Promise.reject(new Error("denied")));
 		const button = makeCodeBlock(root, "secret");
 
@@ -129,7 +132,7 @@ describe("wireCopyButtons", () => {
 		expect(button.hasAttribute("data-copied")).toBe(false);
 	});
 
-	it("copies an empty string when the button has no enclosing <pre>", async () => {
+	test("copies an empty string when the button has no enclosing <pre>", async () => {
 		const writeText = clipboardMock(() => Promise.resolve());
 		const button = document.createElement("button");
 		button.type = "button";
@@ -144,7 +147,7 @@ describe("wireCopyButtons", () => {
 		expect(writeText).toHaveBeenCalledWith("");
 	});
 
-	it("does not throw and shows no copied state when clipboard is unavailable", async () => {
+	test("does not throw and shows no copied state when clipboard is unavailable", async () => {
 		// Non-secure origin / restrictive permission policy: navigator.clipboard is
 		// undefined. Accessing .writeText would throw synchronously before the
 		// .catch chain; the early guard must make the click a silent no-op.
@@ -162,31 +165,33 @@ describe("wireCopyButtons", () => {
 		expect(button.getAttribute("aria-label")).toBe(COPY_LABELS.copy);
 	});
 
-	it("re-clicking restarts the revert timer and cleanup clears a pending timer", async () => {
-		vi.useFakeTimers();
+	test("re-clicking restarts the revert timer and cleanup clears a pending timer", async () => {
+		jest.useFakeTimers();
 		clipboardMock(() => Promise.resolve());
 		const button = makeCodeBlock(root, "again");
 
 		const detach = wireCopyButtons(root, COPY_LABELS);
 
 		button.click();
-		await vi.advanceTimersByTimeAsync(0);
+		await Promise.resolve();
+		jest.advanceTimersByTime(0);
 		expect(button.getAttribute("aria-label")).toBe(COPY_LABELS.copied);
 
 		// Second click before revert: the prior timer is cleared and restarted, so
 		// the label is still "Copied!" after the original 2s would have elapsed.
-		await vi.advanceTimersByTimeAsync(1000);
+		jest.advanceTimersByTime(1000);
 		button.click();
-		await vi.advanceTimersByTimeAsync(1000);
+		await Promise.resolve();
+		jest.advanceTimersByTime(1000);
 		expect(button.getAttribute("aria-label")).toBe(COPY_LABELS.copied);
 
 		// Cleanup with a timer still pending clears it (no later revert fires).
 		detach();
-		await vi.advanceTimersByTimeAsync(2000);
+		jest.advanceTimersByTime(2000);
 		expect(root.querySelector("output")).toBeNull();
 	});
 
-	it("AC-4: cleanup detaches the handler and removes the live region", async () => {
+	test("AC-4: cleanup detaches the handler and removes the live region", async () => {
 		const writeText = clipboardMock(() => Promise.resolve());
 		const button = makeCodeBlock(root, "data");
 
@@ -206,7 +211,7 @@ describe("wireCopyButtons", () => {
 // ─── mountEmbeds ──────────────────────────────────────────────────────────────
 
 describe("mountEmbeds", () => {
-	it("AC-2: mounts the registered component and injects the locale", () => {
+	test("AC-2: mounts the registered component and injects the locale", () => {
 		const node = makeEmbed(root, "tic-tac-toe");
 
 		let detach: () => void = () => {};
@@ -222,8 +227,8 @@ describe("mountEmbeds", () => {
 		act(() => detach());
 	});
 
-	it("AC-3: an unknown embed name does not mount, keeps the fallback, and warns", () => {
-		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+	test("AC-3: an unknown embed name does not mount, keeps the fallback, and warns", () => {
+		const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
 		const node = makeEmbed(root, "does-not-exist");
 
 		let detach: () => void = () => {};
@@ -231,14 +236,14 @@ describe("mountEmbeds", () => {
 			detach = mountEmbeds(root, "en");
 		});
 
-		expect(warn).toHaveBeenCalledOnce();
+		expect(warn).toHaveBeenCalledTimes(1);
 		expect(warn.mock.calls[0]?.[0]).toContain("does-not-exist");
 		expect(node.querySelector(".embed-fallback")).not.toBeNull();
 
 		act(() => detach());
 	});
 
-	it("AC-4: cleanup unmounts the island root and empties the node", () => {
+	test("AC-4: cleanup unmounts the island root and empties the node", () => {
 		const node = makeEmbed(root, "tic-tac-toe");
 
 		let detach: () => void = () => {};
@@ -251,7 +256,7 @@ describe("mountEmbeds", () => {
 		expect(node.childNodes.length).toBe(0);
 	});
 
-	it("mounts with empty props when the data-props attribute is absent", () => {
+	test("mounts with empty props when the data-props attribute is absent", () => {
 		const node = document.createElement("div");
 		node.setAttribute("data-embed", "tic-tac-toe");
 		root.appendChild(node);
@@ -265,8 +270,8 @@ describe("mountEmbeds", () => {
 		act(() => detach());
 	});
 
-	it("degrades to empty props and warns when data-props is malformed JSON", () => {
-		const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
+	test("degrades to empty props and warns when data-props is malformed JSON", () => {
+		const warn = jest.spyOn(console, "warn").mockImplementation(() => {});
 		const node = makeEmbed(root, "tic-tac-toe", "{not json}");
 
 		let detach: () => void = () => {};
@@ -276,7 +281,7 @@ describe("mountEmbeds", () => {
 
 		// Still mounts (props fall back to {}); warning records the parse failure.
 		expect(node.textContent).toContain(TTT_HEADING_EN);
-		expect(warn).toHaveBeenCalledOnce();
+		expect(warn).toHaveBeenCalledTimes(1);
 
 		act(() => detach());
 	});
@@ -285,7 +290,7 @@ describe("mountEmbeds", () => {
 // ─── initPostEnhancements ─────────────────────────────────────────────────────
 
 describe("initPostEnhancements", () => {
-	it("wires copy buttons and mounts embeds, and the combined cleanup undoes both", async () => {
+	test("wires copy buttons and mounts embeds, and the combined cleanup undoes both", async () => {
 		const writeText = clipboardMock(() => Promise.resolve());
 		const button = makeCodeBlock(root, "combined");
 		const embedNode = makeEmbed(root, "tic-tac-toe");

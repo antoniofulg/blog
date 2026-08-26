@@ -79,9 +79,7 @@ const config = defineConfig({
 			// apply: "serve" ensures this only runs during the Vite dev server, not during
 			// builds. The watcher runs in a separate Bun subprocess so .ts resolves
 			// natively — Node.js (which runs Vite) cannot import .ts files directly.
-			// Skipped during vitest: tests start the watcher explicitly via their own imports.
 			async configureServer() {
-				if (process.env.VITEST) return;
 				const { runDevBoot } = await import("./app/lib/dev-boot");
 				await runDevBoot();
 			},

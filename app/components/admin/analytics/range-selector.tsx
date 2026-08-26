@@ -35,8 +35,8 @@ export const RANGE_OPTIONS: AnalyticsRange[] = [
  *   - Escape closes without selecting.
  *
  * Navigation is implemented via explicit onKeyDown handlers so the behaviour
- * is testable in jsdom (native <select> keyboard events are not dispatched in
- * the jsdom environment).
+ * is testable in a headless DOM (native <select> keyboard events are not
+ * dispatched by the test environment).
  */
 export function RangeSelector({ value, locale, onSelect }: Props) {
 	const [open, setOpen] = useState(false);

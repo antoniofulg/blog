@@ -12,27 +12,27 @@
  *   AC-5: Inserted rows have countryCode = null and isBot = false.
  */
 
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, jest, mock, test } from "bun:test";
 
 // ── Hoisted mocks ─────────────────────────────────────────────────────────────
-// Must be declared before any imports so vi.hoisted() runs first.
+// Must be declared before any imports so ()() runs first.
 
-const mocks = vi.hoisted(() => {
+const mocks = (() => {
 	// Transaction-scoped spies: these represent the tx proxy passed to the
 	// db.transaction() callback.
-	const txInsertValues = vi.fn();
-	const txInsert = vi.fn();
-	const txUpdateWhere = vi.fn();
-	const txUpdateSet = vi.fn();
-	const txUpdate = vi.fn();
+	const txInsertValues = jest.fn();
+	const txInsert = jest.fn();
+	const txUpdateWhere = jest.fn();
+	const txUpdateSet = jest.fn();
+	const txUpdate = jest.fn();
 
 	// Top-level db mock — only transaction is called from recordPostView.
-	const transaction = vi.fn();
+	const transaction = jest.fn();
 
 	// Spy on bucketEvent so tests can assert the composite call (utm + referer)
 	// that `recordPostView` makes. The real implementation is restored in
-	// beforeEach after vi.resetAllMocks() clears it.
-	const bucketEventSpy = vi.fn();
+	// beforeEach after jest.resetAllMocks() clears it.
+	const bucketEventSpy = jest.fn();
 
 	return {
 		transaction,
@@ -43,41 +43,32 @@ const mocks = vi.hoisted(() => {
 		txInsertValues,
 		bucketEventSpy,
 	};
-});
+})();
 
-// Holder for the real bucketEvent implementation.
-// Uses vi.hoisted so it is safe to reference inside the vi.mock factory —
-// plain `let` declarations are in TDZ when the hoisted factory runs.
-const realBucketEventHolder = vi.hoisted(() => ({
-	fn: (_input: {
-		utmSource?: string | null;
-		referer?: string | null;
-	}): string => "direct",
-}));
+import * as bucketer from "#/lib/analytics/referrer-bucketer";
 
-// server-only guard: no-op in Node/vitest context
-vi.mock("@tanstack/react-start/server-only", () => ({}));
+const realBucketEvent = bucketer.bucketEvent;
+
+// server-only guard: no-op in Bun Test context
+mock.module("@tanstack/react-start/server-only", () => ({}));
 
 // Mock #/db/client so no real DB connection is attempted.
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: {
 		transaction: mocks.transaction,
 	},
 }));
 
 // Spy on bucketEvent so we can assert the composite (utm + referer) call
-// that `recordPostView` issues. The spy wraps the real function so
-// referrer-parsing tests still receive correct return values.
-vi.mock("#/lib/analytics/referrer-bucketer", async (importOriginal) => {
-	const original =
-		await importOriginal<typeof import("#/lib/analytics/referrer-bucketer")>();
-	realBucketEventHolder.fn = original.bucketEvent;
-	return { ...original, bucketEvent: mocks.bucketEventSpy };
-});
+// that `recordPostView` issues. The factory preserves every other export.
+mock.module("#/lib/analytics/referrer-bucketer", () => ({
+	...bucketer,
+	bucketEvent: mocks.bucketEventSpy,
+}));
 
 // ── Import after mocks are hoisted ────────────────────────────────────────────
 
-import { recordPostView } from "#/lib/analytics/record-event.server";
+const { recordPostView } = await import("#/lib/analytics/record-event.server");
 
 // ── Shared test data ──────────────────────────────────────────────────────────
 
@@ -97,7 +88,7 @@ function makeRequest(ua?: string | null, referer?: string | null): Request {
 // ── Reset mock state before each test ────────────────────────────────────────
 
 beforeEach(() => {
-	vi.resetAllMocks();
+	jest.resetAllMocks();
 
 	// Restore default implementations after reset.
 	mocks.txInsertValues.mockResolvedValue([]);
@@ -114,14 +105,14 @@ beforeEach(() => {
 	);
 
 	// Restore bucketEvent spy to the real implementation so existing tests
-	// continue to receive correct return values after vi.resetAllMocks().
-	mocks.bucketEventSpy.mockImplementation(realBucketEventHolder.fn);
+	// continue to receive correct return values after jest.resetAllMocks().
+	mocks.bucketEventSpy.mockImplementation(realBucketEvent);
 });
 
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("recordPostView — happy path (human UA)", () => {
-	it("returns { recorded: true, counterIncremented: true }", async () => {
+	test("returns { recorded: true, counterIncremented: true }", async () => {
 		const result = await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA, "https://www.linkedin.com/feed/"),
@@ -130,7 +121,7 @@ describe("recordPostView — happy path (human UA)", () => {
 		expect(result).toEqual({ recorded: true, counterIncremented: true });
 	});
 
-	it("calls db.transaction exactly once (AC-4)", async () => {
+	test("calls db.transaction exactly once (AC-4)", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA),
@@ -139,7 +130,7 @@ describe("recordPostView — happy path (human UA)", () => {
 		expect(mocks.transaction).toHaveBeenCalledTimes(1);
 	});
 
-	it("tx.update is called with the correct postId (AC-4)", async () => {
+	test("tx.update is called with the correct postId (AC-4)", async () => {
 		await recordPostView({
 			postId: 42,
 			request: makeRequest(HUMAN_UA),
@@ -150,7 +141,7 @@ describe("recordPostView — happy path (human UA)", () => {
 		expect(mocks.txUpdateWhere).toHaveBeenCalledTimes(1);
 	});
 
-	it("tx.insert is called with the correct postId and lang (AC-4)", async () => {
+	test("tx.insert is called with the correct postId and lang (AC-4)", async () => {
 		await recordPostView({
 			postId: 7,
 			request: makeRequest(HUMAN_UA),
@@ -167,7 +158,7 @@ describe("recordPostView — happy path (human UA)", () => {
 });
 
 describe("recordPostView — bot rejection (AC-2)", () => {
-	it("returns { recorded: false, counterIncremented: false } for Googlebot", async () => {
+	test("returns { recorded: false, counterIncremented: false } for Googlebot", async () => {
 		const result = await recordPostView({
 			postId: 1,
 			request: makeRequest(BOT_UA),
@@ -176,7 +167,7 @@ describe("recordPostView — bot rejection (AC-2)", () => {
 		expect(result).toEqual({ recorded: false, counterIncremented: false });
 	});
 
-	it("does NOT call db.transaction for bot UA", async () => {
+	test("does NOT call db.transaction for bot UA", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(BOT_UA),
@@ -185,7 +176,7 @@ describe("recordPostView — bot rejection (AC-2)", () => {
 		expect(mocks.transaction).not.toHaveBeenCalled();
 	});
 
-	it("returns failure for null User-Agent", async () => {
+	test("returns failure for null User-Agent", async () => {
 		// null UA → isbot returns false (unknown), treated as human.
 		// This test verifies the null path doesn't crash the gate.
 		const result = await recordPostView({
@@ -199,7 +190,7 @@ describe("recordPostView — bot rejection (AC-2)", () => {
 });
 
 describe("recordPostView — DB failure path (AC-3)", () => {
-	it("returns { recorded: false, counterIncremented: false } when transaction throws", async () => {
+	test("returns { recorded: false, counterIncremented: false } when transaction throws", async () => {
 		mocks.transaction.mockRejectedValueOnce(new Error("DB connection lost"));
 		const result = await recordPostView({
 			postId: 1,
@@ -209,19 +200,18 @@ describe("recordPostView — DB failure path (AC-3)", () => {
 		expect(result).toEqual({ recorded: false, counterIncremented: false });
 	});
 
-	it("does NOT re-throw the DB error (AC-3)", async () => {
+	test("does NOT re-throw the DB error (AC-3)", async () => {
 		mocks.transaction.mockRejectedValueOnce(new Error("fatal DB error"));
-		await expect(
-			recordPostView({
-				postId: 1,
-				request: makeRequest(HUMAN_UA),
-				lang: "en",
-			}),
-		).resolves.not.toThrow();
+		const result = await recordPostView({
+			postId: 1,
+			request: makeRequest(HUMAN_UA),
+			lang: "en",
+		});
+		expect(result).toEqual({ recorded: false, counterIncremented: false });
 	});
 
-	it("logs a structured error with event='analytics_record_failed' and postId (AC-3)", async () => {
-		const consoleSpy = vi
+	test("logs a structured error with event='analytics_record_failed' and postId (AC-3)", async () => {
+		const consoleSpy = jest
 			.spyOn(console, "error")
 			.mockImplementation(() => undefined);
 		mocks.transaction.mockRejectedValueOnce(new Error("DB write failed"));
@@ -242,9 +232,9 @@ describe("recordPostView — DB failure path (AC-3)", () => {
 		consoleSpy.mockRestore();
 	});
 
-	it("handles non-Error thrown values (string) without crashing", async () => {
+	test("handles non-Error thrown values (string) without crashing", async () => {
 		// Covers the `String(error)` branch of the error instanceof Error ternary.
-		const consoleSpy = vi
+		const consoleSpy = jest
 			.spyOn(console, "error")
 			.mockImplementation(() => undefined);
 		mocks.transaction.mockImplementationOnce(() =>
@@ -264,7 +254,7 @@ describe("recordPostView — DB failure path (AC-3)", () => {
 });
 
 describe("recordPostView — referrer parsing", () => {
-	it("empty Referer header → referrerSource = 'direct' (AC-5 row shape)", async () => {
+	test("empty Referer header → referrerSource = 'direct' (AC-5 row shape)", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA), // no Referer header
@@ -277,7 +267,7 @@ describe("recordPostView — referrer parsing", () => {
 		expect(inserted).toMatchObject({ referrerSource: "direct" });
 	});
 
-	it("LinkedIn Referer → referrerSource = 'linkedin'", async () => {
+	test("LinkedIn Referer → referrerSource = 'linkedin'", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA, "https://www.linkedin.com/feed/"),
@@ -290,7 +280,7 @@ describe("recordPostView — referrer parsing", () => {
 		expect(inserted).toMatchObject({ referrerSource: "linkedin" });
 	});
 
-	it("GitHub Referer → referrerSource = 'github'", async () => {
+	test("GitHub Referer → referrerSource = 'github'", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA, "https://github.com/tanstack"),
@@ -305,7 +295,7 @@ describe("recordPostView — referrer parsing", () => {
 });
 
 describe("recordPostView — device parsing", () => {
-	it("mobile UA (iPhone) → device = 'mobile'", async () => {
+	test("mobile UA (iPhone) → device = 'mobile'", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(MOBILE_UA),
@@ -318,7 +308,7 @@ describe("recordPostView — device parsing", () => {
 		expect(inserted).toMatchObject({ device: "mobile" });
 	});
 
-	it("desktop UA (Chrome on Mac) → device = 'desktop'", async () => {
+	test("desktop UA (Chrome on Mac) → device = 'desktop'", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA),
@@ -333,7 +323,7 @@ describe("recordPostView — device parsing", () => {
 });
 
 describe("recordPostView — V1 column constraints (AC-5)", () => {
-	it("inserted row has countryCode = null (ADR-005: V1 defers country)", async () => {
+	test("inserted row has countryCode = null (ADR-005: V1 defers country)", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA),
@@ -346,7 +336,7 @@ describe("recordPostView — V1 column constraints (AC-5)", () => {
 		expect(inserted).toMatchObject({ countryCode: null });
 	});
 
-	it("inserted row has isBot = false (V1 never inserts bot rows)", async () => {
+	test("inserted row has isBot = false (V1 never inserts bot rows)", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA),
@@ -361,7 +351,7 @@ describe("recordPostView — V1 column constraints (AC-5)", () => {
 });
 
 describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
-	it("forwards the Referer header when no explicit referrer/utmSource is set", async () => {
+	test("forwards the Referer header when no explicit referrer/utmSource is set", async () => {
 		const refererValue = "https://www.linkedin.com/feed/";
 		await recordPostView({
 			postId: 1,
@@ -377,7 +367,7 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		expect(mocks.bucketEventSpy).toHaveBeenCalledTimes(1);
 	});
 
-	it("forwards null referer when no Referer header is present and no override", async () => {
+	test("forwards null referer when no Referer header is present and no override", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA), // no Referer header
@@ -391,7 +381,7 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		});
 	});
 
-	it("forwards the explicit utmSource argument verbatim", async () => {
+	test("forwards the explicit utmSource argument verbatim", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA),
@@ -406,7 +396,7 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		});
 	});
 
-	it("forwards the request Host header as selfHost so internal hops bucket direct", async () => {
+	test("forwards the request Host header as selfHost so internal hops bucket direct", async () => {
 		const req = makeRequest(HUMAN_UA, "https://example.test/post-a");
 		req.headers.set("Host", "example.test");
 		await recordPostView({ postId: 1, request: req, lang: "en" });
@@ -418,7 +408,7 @@ describe("recordPostView — bucketEvent composes utmSource + Referer", () => {
 		});
 	});
 
-	it("explicit referrer argument overrides the Referer header", async () => {
+	test("explicit referrer argument overrides the Referer header", async () => {
 		await recordPostView({
 			postId: 1,
 			request: makeRequest(HUMAN_UA, "https://this-must-be-ignored.example"),

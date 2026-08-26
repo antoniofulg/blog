@@ -1,0 +1,211 @@
+{
+  "schemaVersion": 1,
+  "commit": "9325a0da2d15c5f5796ad829b6fbc6d4744a4751",
+  "timestamp": "2026-08-24T22:53:54.970Z",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 10.50830078125,
+    "powerSource": "ac",
+    "startedAt": "2026-08-24T22:53:54.982Z"
+  },
+  "repetitions": 5,
+  "warmupsPerProfile": 1,
+  "canonicalRoutes": 5,
+  "profiles": [
+    {
+      "profile": {
+        "id": "playwright:node:1",
+        "arm": "playwright",
+        "runtime": "node",
+        "workers": 1,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:node:1",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 8577.695167,
+        "peakRssBytes": 965525504,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--workers=1",
+          "--retries=0",
+          "--grep",
+          "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+          "--reporter=json"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 6849.227665999999,
+          "peakRssBytes": 1330020352,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 2,
+          "durationMs": 5303.7743340000015,
+          "peakRssBytes": 1298219008,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 3,
+          "durationMs": 5677.344291999998,
+          "peakRssBytes": 1254309888,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 4,
+          "durationMs": 8595.442542,
+          "peakRssBytes": 1176584192,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        },
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 5,
+          "durationMs": 6332.840750000003,
+          "peakRssBytes": 1110704128,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 6332.840750000003,
+        "minMs": 5303.7743340000015,
+        "maxMs": 8595.442542,
+        "medianPeakRssBytes": 1254309888,
+        "sampleCount": 5,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": true
+    }
+  ],
+  "finalists": [
+    "playwright:node:1"
+  ],
+  "locks": [
+    "/tmp/praxis-playwright.lock",
+    "/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/creatista-test.lock"
+  ]
+}

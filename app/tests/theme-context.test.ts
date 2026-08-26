@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit and integration tests for app/lib/theme.tsx.
  *
@@ -12,9 +13,19 @@
  *   AC-7: Rejected recordThemeEvent does not throw or block the visual theme swap
  */
 
-import { act, cleanup, renderHook } from "@testing-library/react";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { act, cleanup, renderHook } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { LocaleProvider } from "#/lib/locale";
 import {
 	_resetCs16FontFlagForTest,
@@ -23,35 +34,46 @@ import {
 	useTheme,
 } from "#/lib/theme";
 
-// ─── Hoisted mocks ────────────────────────────────────────────────────────────
-// Must be declared before any imports so vi.hoisted() runs first.
+const happyDomWindow = window as unknown as Window & {
+	happyDOM: {
+		settings: {
+			disableCSSFileLoading: boolean;
+			handleDisabledFileLoadingAsSuccess: boolean;
+		};
+	};
+};
+happyDomWindow.happyDOM.settings.disableCSSFileLoading = true;
+happyDomWindow.happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
 
-const mocks = vi.hoisted(() => ({
-	recordThemeEvent: vi.fn(() => Promise.resolve({ recorded: true })),
-}));
+// ─── Hoisted mocks ────────────────────────────────────────────────────────────
+// Must be declared before any imports so ()() runs first.
+
+const mocks = (() => ({
+	recordThemeEvent: jest.fn(() => Promise.resolve({ recorded: true })),
+}))();
 
 // Replace the dispatch-theme-event wrapper used by theme.tsx.
 // theme.tsx dynamically imports dispatchThemeEvent from dispatch-theme-event.ts
 // (a non-.server. file) to avoid TanStack Start's import-protection plugin.
-// vi.mock intercepts the dynamic import correctly at test time.
-vi.mock("#/lib/analytics/dispatch-theme-event", () => ({
+// jest.mock intercepts the dynamic import correctly at test time.
+mock.module("#/lib/analytics/dispatch-theme-event", () => ({
 	dispatchThemeEvent: mocks.recordThemeEvent,
 }));
 
-// ─── jsdom environment setup ──────────────────────────────────────────────────
+// ─── HappyDOM environment setup ──────────────────────────────────────────────────
 
 // ThemeProvider reads window.matchMedia on mount; stub it to return light preference.
 Object.defineProperty(window, "matchMedia", {
 	writable: true,
-	value: vi.fn().mockImplementation((query: string) => ({
+	value: jest.fn().mockImplementation((query: string) => ({
 		matches: false, // false → light mode preference (no dark-mode match)
 		media: query,
 		onchange: null,
-		addListener: vi.fn(),
-		removeListener: vi.fn(),
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn(),
+		addListener: jest.fn(),
+		removeListener: jest.fn(),
+		addEventListener: jest.fn(),
+		removeEventListener: jest.fn(),
+		dispatchEvent: jest.fn(),
 	})),
 });
 
@@ -93,7 +115,7 @@ describe("unit: ensureCs16Font", () => {
 		resetDom();
 	});
 
-	it("AC-1: first call appends exactly one <link> with correct rel, href, data-cs16", () => {
+	test("AC-1: first call appends exactly one <link> with correct rel, href, data-cs16", () => {
 		ensureCs16Font();
 
 		const links = document.head.querySelectorAll("link[data-cs16='true']");
@@ -104,7 +126,7 @@ describe("unit: ensureCs16Font", () => {
 		expect(link.dataset.cs16).toBe("true");
 	});
 
-	it("AC-2: second call is a no-op — module flag prevents duplicate <link>", () => {
+	test("AC-2: second call is a no-op — module flag prevents duplicate <link>", () => {
 		ensureCs16Font();
 		ensureCs16Font();
 
@@ -113,7 +135,7 @@ describe("unit: ensureCs16Font", () => {
 		).toHaveLength(1);
 	});
 
-	it("SSR path: returns early without throwing when document is undefined", () => {
+	test("SSR path: returns early without throwing when document is undefined", () => {
 		const savedDocument = globalThis.document;
 		// @ts-expect-error — simulate SSR environment (no window/document globals)
 		delete globalThis.document;
@@ -132,20 +154,20 @@ describe("unit: ensureCs16Font", () => {
 // ─── unit: ThemeProvider setTheme — telemetry dispatch gating ─────────────────
 
 describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
-	it("AC-3: setTheme('cs16', 'keyboard') dispatches recordThemeEvent once with correct payload", async () => {
+	test("AC-3: setTheme('cs16', 'keyboard') dispatches recordThemeEvent once with correct payload", async () => {
 		const { result } = makeProviderHook();
 
 		await act(async () => {
 			result.current.setTheme("cs16", "keyboard");
 		});
 
-		expect(mocks.recordThemeEvent).toHaveBeenCalledOnce();
+		expect(mocks.recordThemeEvent).toHaveBeenCalledTimes(1);
 		expect(mocks.recordThemeEvent).toHaveBeenCalledWith({
 			data: { theme: "cs16", source: "keyboard", lang: "en" },
 		});
 	});
 
-	it("setTheme('cs16') with no source argument defaults to 'long-press'", async () => {
+	test("setTheme('cs16') with no source argument defaults to 'long-press'", async () => {
 		const { result } = makeProviderHook();
 
 		await act(async () => {
@@ -157,7 +179,7 @@ describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
 		});
 	});
 
-	it("explicit lang arg overrides the context locale in the recorded payload", async () => {
+	test("explicit lang arg overrides the context locale in the recorded payload", async () => {
 		// P2 fix: the toggle passes the active ROUTE locale. When provided it must
 		// win over the persisted-preference context locale (here the provider
 		// default "en"), so activating cs16 on a /pt-br/ route records "pt-br".
@@ -172,7 +194,7 @@ describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
 		});
 	});
 
-	it("AC-4: setTheme('dark') does NOT dispatch recordThemeEvent", async () => {
+	test("AC-4: setTheme('dark') does NOT dispatch recordThemeEvent", async () => {
 		const { result } = makeProviderHook();
 
 		await act(async () => {
@@ -182,7 +204,7 @@ describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
 		expect(mocks.recordThemeEvent).not.toHaveBeenCalled();
 	});
 
-	it("AC-4: setTheme('light') does NOT dispatch recordThemeEvent", async () => {
+	test("AC-4: setTheme('light') does NOT dispatch recordThemeEvent", async () => {
 		const { result } = makeProviderHook();
 
 		await act(async () => {
@@ -192,18 +214,17 @@ describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
 		expect(mocks.recordThemeEvent).not.toHaveBeenCalled();
 	});
 
-	it("AC-7: rejected recordThemeEvent does not throw and theme swap still completes", async () => {
+	test("AC-7: rejected recordThemeEvent does not throw and theme swap still completes", async () => {
 		mocks.recordThemeEvent.mockRejectedValueOnce(new Error("Network error"));
 
 		const { result } = makeProviderHook();
 
-		await expect(
-			act(async () => {
-				result.current.setTheme("cs16", "long-press");
-			}),
-		).resolves.not.toThrow();
+		await act(async () => {
+			result.current.setTheme("cs16", "long-press");
+		});
 
 		// Theme swap must have completed despite analytics failure
+		expect(document.documentElement.classList.contains("cs16")).toBe(true);
 		expect(result.current.theme).toBe("cs16");
 	});
 });
@@ -211,7 +232,7 @@ describe("unit: ThemeProvider — setTheme telemetry dispatch gating", () => {
 // ─── unit: ThemeProvider toggle() semantics ───────────────────────────────────
 
 describe("unit: ThemeProvider — toggle() stays in light/dark cycle", () => {
-	it("AC-6: toggle() cycles light → dark → light without calling recordThemeEvent", async () => {
+	test("AC-6: toggle() cycles light → dark → light without calling recordThemeEvent", async () => {
 		const { result } = makeProviderHook();
 		// Wait for hydration useEffect to settle: matchMedia returns false → light
 		await act(async () => {});
@@ -230,7 +251,7 @@ describe("unit: ThemeProvider — toggle() stays in light/dark cycle", () => {
 		expect(mocks.recordThemeEvent).not.toHaveBeenCalled();
 	});
 
-	it("AC-6 regression: toggle() from cs16 never produces cs16 as the next theme", async () => {
+	test("AC-6 regression: toggle() from cs16 never produces cs16 as the next theme", async () => {
 		const { result } = makeProviderHook();
 
 		await act(async () => {
@@ -253,7 +274,7 @@ describe("unit: ThemeProvider — toggle() stays in light/dark cycle", () => {
 // ─── integration: ThemeProvider — cs16 activation path ───────────────────────
 
 describe("integration: ThemeProvider — cs16 activation path", () => {
-	it("integration: setTheme('cs16') flips documentElement.classList to cs16 AND appends font <link>", async () => {
+	test("integration: setTheme('cs16') flips documentElement.classList to cs16 AND appends font <link>", async () => {
 		const { result } = makeProviderHook();
 
 		await act(async () => {
@@ -265,7 +286,7 @@ describe("integration: ThemeProvider — cs16 activation path", () => {
 		expect(links).toHaveLength(1);
 	});
 
-	it("AC-5: hydration useEffect calls ensureCs16Font for returning cs16 visitor (no user click)", async () => {
+	test("AC-5: hydration useEffect calls ensureCs16Font for returning cs16 visitor (no user click)", async () => {
 		// Pre-seed localStorage to simulate a returning cs16 visitor
 		localStorage.setItem("theme", "cs16");
 

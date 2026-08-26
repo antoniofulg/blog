@@ -1,10 +1,10 @@
+import { afterAll, beforeAll, describe, expect, jest, test } from "bun:test";
 import { existsSync, readFileSync } from "node:fs";
 import { mkdtemp, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
 import React from "react";
 import { renderToStaticMarkup } from "react-dom/server";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { _clearFontCacheForTesting, loadFonts } from "#/lib/og/fonts";
 import { generateOgImage } from "#/lib/og/generate";
 import { CardTemplate } from "#/lib/og/template";
@@ -52,43 +52,43 @@ afterAll(async () => {
 // ---------------------------------------------------------------------------
 
 describe("truncateCode", () => {
-	it("returns all lines and didTruncate: false when input fits", () => {
+	test("returns all lines and didTruncate: false when input fits", () => {
 		const result = truncateCode("a\nb\nc");
 		expect(result).toEqual({ lines: ["a", "b", "c"], didTruncate: false });
 	});
 
-	it("caps at 10 lines and sets didTruncate: true", () => {
+	test("caps at 10 lines and sets didTruncate: true", () => {
 		const code = "a\n".repeat(20);
 		const result = truncateCode(code);
 		expect(result.lines.length).toBeLessThanOrEqual(10);
 		expect(result.didTruncate).toBe(true);
 	});
 
-	it("caps at 600 chars and sets didTruncate: true", () => {
+	test("caps at 600 chars and sets didTruncate: true", () => {
 		const code = "x".repeat(800);
 		const result = truncateCode(code);
 		expect(result.lines.join("\n").length).toBeLessThanOrEqual(600);
 		expect(result.didTruncate).toBe(true);
 	});
 
-	it("never returns more than 10 lines regardless of input", () => {
+	test("never returns more than 10 lines regardless of input", () => {
 		const result = truncateCode("line\n".repeat(50));
 		expect(result.lines.length).toBeLessThanOrEqual(10);
 	});
 
-	it("joined lines always <= 600 chars", () => {
+	test("joined lines always <= 600 chars", () => {
 		// Build a string via join to avoid triggering useTemplate lint rule
 		const code = ["x".repeat(200), "y".repeat(200), "z".repeat(200)].join("\n");
 		const result = truncateCode(code);
 		expect(result.lines.join("\n").length).toBeLessThanOrEqual(600);
 	});
 
-	it("does not truncate a short single-line string", () => {
+	test("does not truncate a short single-line string", () => {
 		const result = truncateCode("const x = 1;");
 		expect(result).toEqual({ lines: ["const x = 1;"], didTruncate: false });
 	});
 
-	it("handles empty string input", () => {
+	test("handles empty string input", () => {
 		const result = truncateCode("");
 		expect(result.lines).toEqual([""]);
 		expect(result.didTruncate).toBe(false);
@@ -100,24 +100,24 @@ describe("truncateCode", () => {
 // ---------------------------------------------------------------------------
 
 describe("loadFonts", () => {
-	it("returns at least 3 font entries", () => {
+	test("returns at least 3 font entries", () => {
 		const fonts = loadFonts();
 		expect(fonts.length).toBeGreaterThanOrEqual(3);
 	});
 
-	it("includes Inter regular (weight 400)", () => {
+	test("includes Inter regular (weight 400)", () => {
 		const fonts = loadFonts();
 		const entry = fonts.find((f) => f.name === "Inter" && f.weight === 400);
 		expect(entry).toBeDefined();
 	});
 
-	it("includes Inter bold (weight 700)", () => {
+	test("includes Inter bold (weight 700)", () => {
 		const fonts = loadFonts();
 		const entry = fonts.find((f) => f.name === "Inter" && f.weight === 700);
 		expect(entry).toBeDefined();
 	});
 
-	it("includes JetBrains Mono regular (weight 400)", () => {
+	test("includes JetBrains Mono regular (weight 400)", () => {
 		const fonts = loadFonts();
 		const entry = fonts.find(
 			(f) => f.name === "JetBrains Mono" && f.weight === 400,
@@ -125,7 +125,7 @@ describe("loadFonts", () => {
 		expect(entry).toBeDefined();
 	});
 
-	it("all font data is a non-empty Buffer", () => {
+	test("all font data is a non-empty Buffer", () => {
 		const fonts = loadFonts();
 		for (const font of fonts) {
 			expect(Buffer.isBuffer(font.data)).toBe(true);
@@ -139,7 +139,7 @@ describe("loadFonts", () => {
 // ---------------------------------------------------------------------------
 
 describe("CardTemplate", () => {
-	it("creates a React element with the correct type", () => {
+	test("creates a React element with the correct type", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "Hello World",
 			tokenLines: null,
@@ -150,7 +150,7 @@ describe("CardTemplate", () => {
 		expect(element.props.title).toBe("Hello World");
 	});
 
-	it("renders to HTML string containing the title text", () => {
+	test("renders to HTML string containing the title text", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "My Unique Title 42",
 			tokenLines: null,
@@ -161,7 +161,7 @@ describe("CardTemplate", () => {
 		expect(html).toContain("My Unique Title 42");
 	});
 
-	it("renders to HTML containing token content when tokenLines provided", () => {
+	test("renders to HTML containing token content when tokenLines provided", () => {
 		const tokenLines = [[{ content: "const x = 1;", color: "#79b8ff" }]];
 		const element = React.createElement(CardTemplate, {
 			title: "Code Post",
@@ -173,7 +173,7 @@ describe("CardTemplate", () => {
 		expect(html).toContain("const x = 1;");
 	});
 
-	it("renders brand footer text", () => {
+	test("renders brand footer text", () => {
 		const element = React.createElement(CardTemplate, {
 			title: "T",
 			tokenLines: null,
@@ -184,7 +184,7 @@ describe("CardTemplate", () => {
 		expect(html).toContain("Antonio Fulgencio Blog");
 	});
 
-	it("shows the antoniofulg.tech domain in the footer (not the old .dev)", () => {
+	test("shows the antoniofulg.tech domain in the footer (not the old .dev)", () => {
 		const html = renderToStaticMarkup(
 			React.createElement(CardTemplate, {
 				title: "T",
@@ -197,7 +197,7 @@ describe("CardTemplate", () => {
 		expect(html).not.toContain("antoniofulg.dev");
 	});
 
-	it("renders the round profile avatar when a data URI is provided", () => {
+	test("renders the round profile avatar when a data URI is provided", () => {
 		const dataUri = "data:image/jpeg;base64,QUJD";
 		const html = renderToStaticMarkup(
 			React.createElement(CardTemplate, {
@@ -213,7 +213,7 @@ describe("CardTemplate", () => {
 		expect(html).toMatch(/border-radius:\s*22px/);
 	});
 
-	it("passes token lines prop correctly", () => {
+	test("passes token lines prop correctly", () => {
 		const tokenLines = [[{ content: "hello", color: "#fff" }]];
 		const element = React.createElement(CardTemplate, {
 			title: "Test",
@@ -228,7 +228,7 @@ describe("CardTemplate", () => {
 		expect(firstToken?.content).toBe("hello");
 	});
 
-	it("renders each listItem when listItems is provided (ADR-007 list card)", () => {
+	test("renders each listItem when listItems is provided (ADR-007 list card)", () => {
 		const html = renderToStaticMarkup(
 			React.createElement(CardTemplate, {
 				title: "Tools",
@@ -244,7 +244,7 @@ describe("CardTemplate", () => {
 		expect(html).toContain("data-og-list");
 	});
 
-	it("list card takes precedence over tokenLines (code is not rendered)", () => {
+	test("list card takes precedence over tokenLines (code is not rendered)", () => {
 		const html = renderToStaticMarkup(
 			React.createElement(CardTemplate, {
 				title: "Tools",
@@ -258,7 +258,7 @@ describe("CardTemplate", () => {
 		expect(html).not.toContain("const secret = 1;");
 	});
 
-	it("empty listItems falls through to the code panel (no list card)", () => {
+	test("empty listItems falls through to the code panel (no list card)", () => {
 		const html = renderToStaticMarkup(
 			React.createElement(CardTemplate, {
 				title: "Tools",
@@ -325,7 +325,7 @@ const BASE_COLORS = { codeBg: "#24292e", codeFg: "#e1e4e8" } as const;
 const EXPECTED_MAX_HEIGHT = 10 * 28 + 20 * 2;
 
 describe("CardTemplate panel sizing", () => {
-	it("compact path: a 1-line snippet sizes to content (flexGrow: 0) with a spacer and no fade", () => {
+	test("compact path: a 1-line snippet sizes to content (flexGrow: 0) with a spacer and no fade", () => {
 		const nodes = flattenTree(
 			CardTemplate({
 				title: "Short snippet",
@@ -347,7 +347,7 @@ describe("CardTemplate panel sizing", () => {
 		expect(findFade(nodes)).toBeUndefined();
 	});
 
-	it("long-code path: a truncated block applies the maxHeight cap and renders the fade", () => {
+	test("long-code path: a truncated block applies the maxHeight cap and renders the fade", () => {
 		const many = Array.from({ length: 20 }, (_, i) => [
 			{ content: `line ${i}`, color: "#e1e4e8" },
 		]);
@@ -376,7 +376,7 @@ describe("CardTemplate panel sizing", () => {
 		expect(findSpacer(nodes)).toBeDefined();
 	});
 
-	it("complete-10-line path: an un-truncated 10-line block renders with no fade (off-by-one fix)", () => {
+	test("complete-10-line path: an un-truncated 10-line block renders with no fade (off-by-one fix)", () => {
 		// truncateCode returns didTruncate: false for an exactly-10-line block, so
 		// nothing was cut — the card must NOT clip the 10th line under a fade.
 		const tenLines = Array.from({ length: 10 }, (_, i) => [
@@ -401,7 +401,7 @@ describe("CardTemplate panel sizing", () => {
 		expect(findFade(nodes)).toBeUndefined();
 	});
 
-	it("long-title path: keeps the title node whole (flexShrink: 0, full text)", () => {
+	test("long-title path: keeps the title node whole (flexShrink: 0, full text)", () => {
 		const longTitle =
 			"A deliberately long multi line title that wraps across the card top";
 		const nodes = flattenTree(
@@ -418,7 +418,7 @@ describe("CardTemplate panel sizing", () => {
 		expect(titleNode?.props.children).toBe(longTitle);
 	});
 
-	it("no-code path: tokenLines === null renders the spacer + footer and no panel", () => {
+	test("no-code path: tokenLines === null renders the spacer + footer and no panel", () => {
 		const nodes = flattenTree(
 			CardTemplate({ title: "No code", tokenLines: null, ...BASE_COLORS }),
 		);
@@ -437,7 +437,7 @@ describe("CardTemplate panel sizing", () => {
 		expect(html).toContain("Antonio Fulgencio Blog");
 	});
 
-	it("empty-array path: tokenLines === [] renders the spacer and no panel", () => {
+	test("empty-array path: tokenLines === [] renders the spacer and no panel", () => {
 		const nodes = flattenTree(
 			CardTemplate({ title: "Empty", tokenLines: [], ...BASE_COLORS }),
 		);
@@ -455,7 +455,7 @@ describe("generateOgImage - integration", () => {
 	// These tests do a real satori → resvg render — allow up to 30 s each
 	const TIMEOUT = 30_000;
 
-	it(
+	test(
 		"AC-1: writes a 1200×630 PNG with code block and returns correct path",
 		async () => {
 			const slug = `${TEST_SLUG_PREFIX}with-code`;
@@ -486,7 +486,7 @@ describe("generateOgImage - integration", () => {
 		TIMEOUT,
 	);
 
-	it(
+	test(
 		"AC-7: writes a 1200×630 list card when listItems is provided (ADR-007)",
 		async () => {
 			const slug = `${TEST_SLUG_PREFIX}list-card`;
@@ -514,7 +514,7 @@ describe("generateOgImage - integration", () => {
 		TIMEOUT,
 	);
 
-	it(
+	test(
 		"AC-2: writes a card with title only when firstCodeBlock is null",
 		async () => {
 			const slug = `${TEST_SLUG_PREFIX}no-code`;
@@ -539,7 +539,7 @@ describe("generateOgImage - integration", () => {
 		TIMEOUT,
 	);
 
-	it(
+	test(
 		"AC-3: truncates code longer than 10 lines and writes a valid PNG",
 		async () => {
 			const slug = `${TEST_SLUG_PREFIX}long-code`;
@@ -568,17 +568,17 @@ describe("generateOgImage - integration", () => {
 		TIMEOUT,
 	);
 
-	it(
+	test(
 		"AC-4: returns null and logs console.warn containing the slug when generation fails",
 		async () => {
-			const warnSpy = vi.spyOn(console, "warn").mockImplementation(() => {});
+			const warnSpy = jest.spyOn(console, "warn").mockImplementation(() => {});
 
 			// Clear the module-level font cache so loadFonts() actually reads from disk,
 			// allowing the mocked process.cwd() to cause an ENOENT → failure path.
 			_clearFontCacheForTesting();
 
 			// Override process.cwd() so loadFonts cannot find the font files → throws
-			const cwdSpy = vi
+			const cwdSpy = jest
 				.spyOn(process, "cwd")
 				.mockReturnValue("/tmp/nonexistent-path-for-og-error-test" as never);
 
@@ -605,7 +605,7 @@ describe("generateOgImage - integration", () => {
 		TIMEOUT,
 	);
 
-	it(
+	test(
 		"fixture: generates PNG from sample.mdx TypeScript code block",
 		async () => {
 			// Extract the first fenced code block from the sample fixture file
@@ -636,7 +636,7 @@ describe("generateOgImage - integration", () => {
 		TIMEOUT,
 	);
 
-	it(
+	test(
 		"falls back gracefully for an unsupported language",
 		async () => {
 			const slug = `${TEST_SLUG_PREFIX}unknown-lang`;

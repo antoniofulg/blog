@@ -1,4 +1,12 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
 import {
 	createLighthouseRunner,
 	lighthouseToFindings,
@@ -9,9 +17,9 @@ import {
 // Mock @playwright/test to control chromium.executablePath() return value
 // ──────────────────────────────────────────────────────────────────────────────
 
-vi.mock("@playwright/test", () => ({
+mock.module("@playwright/test", () => ({
 	chromium: {
-		executablePath: vi.fn(() => "/mocked/chromium"),
+		executablePath: jest.fn(() => "/mocked/chromium"),
 	},
 }));
 
@@ -37,7 +45,7 @@ function makeLHR(scores: {
 }
 
 function mockRunner(lhrJson: string) {
-	const run = vi.fn(
+	const run = jest.fn(
 		async (
 			_url: string,
 			_opts: { chromePath?: string; settings?: { chromeFlags?: string } },
@@ -51,7 +59,7 @@ function mockRunner(lhrJson: string) {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("createLighthouseRunner", () => {
-	it("returns object with run method (module.exports is class, not {LighthouseRunner})", () => {
+	test("returns object with run method (module.exports is class, not {LighthouseRunner})", () => {
 		const runner = createLighthouseRunner();
 		expect(runner).toBeDefined();
 		expect(typeof runner.run).toBe("function");
@@ -63,7 +71,7 @@ describe("createLighthouseRunner", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("lighthouseToFindings", () => {
-	it("perf=0.75 → perf-budget-breach minor finding", () => {
+	test("perf=0.75 → perf-budget-breach minor finding", () => {
 		const findings = lighthouseToFindings(
 			{
 				performance: 0.75,
@@ -80,7 +88,7 @@ describe("lighthouseToFindings", () => {
 		});
 	});
 
-	it("perf=0.85 → no perf-budget-breach finding", () => {
+	test("perf=0.85 → no perf-budget-breach finding", () => {
 		const findings = lighthouseToFindings(
 			{
 				performance: 0.85,
@@ -95,7 +103,7 @@ describe("lighthouseToFindings", () => {
 		).toHaveLength(0);
 	});
 
-	it("perf exactly at threshold 0.8 → no finding", () => {
+	test("perf exactly at threshold 0.8 → no finding", () => {
 		const findings = lighthouseToFindings(
 			{ performance: 0.8, accessibility: 0.95, bestPractices: 0.95, seo: 0.95 },
 			"http://localhost:4173/",
@@ -105,7 +113,7 @@ describe("lighthouseToFindings", () => {
 		).toHaveLength(0);
 	});
 
-	it("seo=0.85 → seo-score-drop minor finding", () => {
+	test("seo=0.85 → seo-score-drop minor finding", () => {
 		const findings = lighthouseToFindings(
 			{ performance: 0.9, accessibility: 0.95, bestPractices: 0.95, seo: 0.85 },
 			"http://localhost:4173/",
@@ -117,7 +125,7 @@ describe("lighthouseToFindings", () => {
 		});
 	});
 
-	it("seo=0.9 → no seo-score-drop finding", () => {
+	test("seo=0.9 → no seo-score-drop finding", () => {
 		const findings = lighthouseToFindings(
 			{ performance: 0.9, accessibility: 0.95, bestPractices: 0.95, seo: 0.9 },
 			"http://localhost:4173/",
@@ -127,7 +135,7 @@ describe("lighthouseToFindings", () => {
 		).toHaveLength(0);
 	});
 
-	it("bestPractices=0.85 → best-practices-fail minor finding", () => {
+	test("bestPractices=0.85 → best-practices-fail minor finding", () => {
 		const findings = lighthouseToFindings(
 			{ performance: 0.9, accessibility: 0.95, bestPractices: 0.85, seo: 0.95 },
 			"http://localhost:4173/",
@@ -139,7 +147,7 @@ describe("lighthouseToFindings", () => {
 		});
 	});
 
-	it("bestPractices=0.9 → no best-practices-fail finding", () => {
+	test("bestPractices=0.9 → no best-practices-fail finding", () => {
 		const findings = lighthouseToFindings(
 			{ performance: 0.9, accessibility: 0.95, bestPractices: 0.9, seo: 0.95 },
 			"http://localhost:4173/",
@@ -149,7 +157,7 @@ describe("lighthouseToFindings", () => {
 		).toHaveLength(0);
 	});
 
-	it("all scores below threshold → three findings", () => {
+	test("all scores below threshold → three findings", () => {
 		const findings = lighthouseToFindings(
 			{ performance: 0.7, accessibility: 0.8, bestPractices: 0.7, seo: 0.8 },
 			"http://localhost:4173/",
@@ -157,7 +165,7 @@ describe("lighthouseToFindings", () => {
 		expect(findings).toHaveLength(3);
 	});
 
-	it("all scores above threshold → no findings", () => {
+	test("all scores above threshold → no findings", () => {
 		const findings = lighthouseToFindings(
 			{
 				performance: 0.95,
@@ -170,7 +178,7 @@ describe("lighthouseToFindings", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("finding detail includes numeric score", () => {
+	test("finding detail includes numeric score", () => {
 		const findings = lighthouseToFindings(
 			{
 				performance: 0.75,
@@ -183,7 +191,7 @@ describe("lighthouseToFindings", () => {
 		expect(findings[0].detail?.score).toBe(0.75);
 	});
 
-	it("finding filePath is the url argument", () => {
+	test("finding filePath is the url argument", () => {
 		const url = "http://localhost:4173/about";
 		const findings = lighthouseToFindings(
 			{
@@ -203,7 +211,7 @@ describe("lighthouseToFindings", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("runLighthouse", () => {
-	it("passes chromePath from chromium.executablePath() to the runner", async () => {
+	test("passes chromePath from chromium.executablePath() to the runner", async () => {
 		const { chromium } = await import("@playwright/test");
 		const runner = mockRunner(makeLHR({}));
 
@@ -216,7 +224,7 @@ describe("runLighthouse", () => {
 		);
 	});
 
-	it("returns LighthouseScores with all 4 fields in [0, 1] range", async () => {
+	test("returns LighthouseScores with all 4 fields in [0, 1] range", async () => {
 		const runner = mockRunner(
 			makeLHR({
 				performance: 0.82,
@@ -237,7 +245,7 @@ describe("runLighthouse", () => {
 		expect(scores.seo).toBeLessThanOrEqual(1);
 	});
 
-	it("maps LHR categories correctly including best-practices hyphen key", async () => {
+	test("maps LHR categories correctly including best-practices hyphen key", async () => {
 		const runner = mockRunner(
 			makeLHR({
 				performance: 0.82,
@@ -254,7 +262,7 @@ describe("runLighthouse", () => {
 		expect(scores.seo).toBe(0.93);
 	});
 
-	it("returns 0 for missing LHR category score", async () => {
+	test("returns 0 for missing LHR category score", async () => {
 		const runner = mockRunner(
 			JSON.stringify({ lighthouseVersion: "11.0.0", categories: {} }),
 		);
@@ -264,7 +272,7 @@ describe("runLighthouse", () => {
 		expect(scores.seo).toBe(0);
 	});
 
-	it("chromePath argument equals chromium.executablePath() output", async () => {
+	test("chromePath argument equals chromium.executablePath() output", async () => {
 		const runner = mockRunner(makeLHR({}));
 		await runLighthouse("http://localhost:4173/", runner);
 		const [, opts] = runner.run.mock.calls[0];
@@ -278,44 +286,44 @@ describe("runLighthouse", () => {
 
 describe("runLighthouse — timeout", () => {
 	beforeEach(() => {
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 	});
 
 	afterEach(() => {
-		vi.useRealTimers();
+		jest.useRealTimers();
 		delete process.env.APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS;
 	});
 
-	it("rejects with timeout error when runner hangs longer than default 30s", async () => {
+	test("rejects with timeout error when runner hangs longer than default 30s", async () => {
 		const hangingRunner = {
-			run: vi.fn(() => new Promise<string>(() => {})),
+			run: jest.fn(() => new Promise<string>(() => {})),
 		};
 
 		const promise = runLighthouse("http://localhost:4173/", hangingRunner);
-		vi.advanceTimersByTime(30_001);
+		jest.advanceTimersByTime(30_001);
 
 		await expect(promise).rejects.toThrow(/timed out after 30000ms/);
 	});
 
-	it("respects APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS env var", async () => {
+	test("respects APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS env var", async () => {
 		process.env.APP_AUDIT_LIGHTHOUSE_TIMEOUT_MS = "5000";
 
 		const hangingRunner = {
-			run: vi.fn(() => new Promise<string>(() => {})),
+			run: jest.fn(() => new Promise<string>(() => {})),
 		};
 
 		const promise = runLighthouse("http://localhost:4173/", hangingRunner);
-		vi.advanceTimersByTime(5_001);
+		jest.advanceTimersByTime(5_001);
 
 		await expect(promise).rejects.toThrow(/timed out after 5000ms/);
 	});
 
-	it("resolves normally when runner completes before timeout", async () => {
+	test("resolves normally when runner completes before timeout", async () => {
 		const fastRunner = mockRunner(makeLHR({ performance: 0.9, seo: 0.95 }));
 
 		const promise = runLighthouse("http://localhost:4173/", fastRunner);
 		// Advance time less than 30s — runner already resolved synchronously via mock
-		vi.advanceTimersByTime(100);
+		jest.advanceTimersByTime(100);
 
 		const scores = await promise;
 		expect(scores.performance).toBe(0.9);

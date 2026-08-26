@@ -1,0 +1,846 @@
+{
+  "timestamp": "2026-08-24T15:05:05.000Z",
+  "bun": "1.4.0",
+  "profiles": [
+    {
+      "cohort": "pure",
+      "workers": 1,
+      "runner": "vitest",
+      "files": [
+        "analytics-device-detector.test.ts",
+        "strings.test.ts",
+        "og-resolve.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:1",
+        "--",
+        "app/tests/analytics-device-detector.test.ts",
+        "app/tests/strings.test.ts",
+        "app/tests/og-resolve.test.ts"
+      ],
+      "ms": 3999.9264169999997,
+      "peakRssBytes": 235945984,
+      "loadAvg1": 23.3017578125,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  45 passed (45)",
+        "   Start at  15:05:05",
+        "   Duration  3.19s (transform 2.10s, setup 0ms, import 2.57s, tests 61ms, environment 1ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=1 app/tests/analytics-device-detector.test.ts app/tests/strings.test.ts app/tests/og-resolve.test.ts\n"
+    },
+    {
+      "cohort": "pure",
+      "workers": 1,
+      "runner": "bun:test",
+      "files": [
+        "analytics-device-detector.test.ts",
+        "strings.test.ts",
+        "og-resolve.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/analytics-device-detector.test.ts",
+        "app/tests-bun/strings.test.ts",
+        "app/tests-bun/og-resolve.test.ts",
+        "--isolate"
+      ],
+      "ms": 95.89279100000022,
+      "peakRssBytes": 0,
+      "loadAvg1": 22.796875,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40)",
+        ""
+      ],
+      "stderrTail": "\napp/tests-bun/analytics-device-detector.test.ts:\n(pass) detectDevice > classifies Mozilla/5.0 (iPhone; CPU iPhone OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 as mobile [0.08ms]\n(pass) detectDevice > classifies Mozilla/5.0 (Linux; Android 13; Pixel 7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.144 Mobile Safari/537.36 as mobile\n(pass) detectDevice > classifies Mozilla/5.0 (Linux; Android 12; SM-G991B) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.144 Mobile Safari/537.36 as mobile\n(pass) detectDevice > classifies Mozilla/5.0 (iPad; CPU OS 17_0 like Mac OS X) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Mobile/15E148 Safari/604.1 as tablet\n(pass) detectDevice > classifies Mozilla/5.0 (Linux; Android 12; Tablet Build/XXXXX) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.6099.144 Safari/537.36 as tablet\n(pass) detectDevice > classifies Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 as desktop\n(pass) detectDevice > classifies Mozilla/5.0 (X11; Linux x86_64; rv:121.0) Gecko/20100101 Firefox/121.0 as desktop\n(pass) detectDevice > classifies Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36 Edg/120.0.0.0 as desktop\n(pass) detectDevice > classifies Mozilla/5.0 (Macintosh; Intel Mac OS X 14_0) AppleWebKit/605.1.15 (KHTML, like Gecko) Version/17.0 Safari/605.1.15 as desktop\n(pass) detectDevice > returns desktop for null\n(pass) detectDevice > returns desktop for undefined\n(pass) detectDevice > returns desktop for empty string\n\n 45 pass\n 0 fail\n 51 expect() calls\nRan 45 tests across 3 files. [70.00ms]\n"
+    },
+    {
+      "cohort": "pure",
+      "workers": 2,
+      "runner": "vitest",
+      "files": [
+        "analytics-device-detector.test.ts",
+        "strings.test.ts",
+        "og-resolve.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:2",
+        "--",
+        "app/tests/analytics-device-detector.test.ts",
+        "app/tests/strings.test.ts",
+        "app/tests/og-resolve.test.ts"
+      ],
+      "ms": 2908.5544580000005,
+      "peakRssBytes": 229441536,
+      "loadAvg1": 22.796875,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  45 passed (45)",
+        "   Start at  15:05:09",
+        "   Duration  2.52s (transform 1.93s, setup 0ms, import 2.37s, tests 30ms, environment 0ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=2 app/tests/analytics-device-detector.test.ts app/tests/strings.test.ts app/tests/og-resolve.test.ts\n"
+    },
+    {
+      "cohort": "pure",
+      "workers": 2,
+      "runner": "bun:test",
+      "files": [
+        "analytics-device-detector.test.ts",
+        "strings.test.ts",
+        "og-resolve.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/analytics-device-detector.test.ts",
+        "app/tests-bun/strings.test.ts",
+        "app/tests-bun/og-resolve.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 74.73112500000025,
+      "peakRssBytes": 0,
+      "loadAvg1": 23.37353515625,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > treats '/http-icon.png' as a relative path, not an absolute URL\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > treats '/httpfoo/cover.png' as a relative path\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'http://...' as an absolute URL\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'https://...' as an absolute URL\n\napp/tests-bun/strings.test.ts:\n(pass) unit: uiStringsSchema validation success > parses en strings unchanged [0.05ms]\n(pass) unit: uiStringsSchema validation success > parses pt-br strings unchanged [0.03ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError for empty object (missing localeSwitcher) [0.37ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError when postMeta is missing [0.05ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError when notFound.title is missing [0.06ms]\n(pass) unit: value contracts > strings.en.localeSwitcher.label === \"English\"\n(pass) unit: value contracts > strings[\"pt-br\"].localeSwitcher.label === \"Português\"\n(pass) integration: module load does not throw > importing strings module succeeds without throwing [0.08ms]\n\n 45 pass\n 0 fail\n 51 expect() calls\nRan 45 tests across 3 files. [68.00ms]\n"
+    },
+    {
+      "cohort": "pure",
+      "workers": 4,
+      "runner": "vitest",
+      "files": [
+        "analytics-device-detector.test.ts",
+        "strings.test.ts",
+        "og-resolve.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:4",
+        "--",
+        "app/tests/analytics-device-detector.test.ts",
+        "app/tests/strings.test.ts",
+        "app/tests/og-resolve.test.ts"
+      ],
+      "ms": 2299.4078340000005,
+      "peakRssBytes": 263651328,
+      "loadAvg1": 23.37353515625,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  45 passed (45)",
+        "   Start at  15:05:12",
+        "   Duration  1.84s (transform 1.40s, setup 0ms, import 1.78s, tests 30ms, environment 1ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=4 app/tests/analytics-device-detector.test.ts app/tests/strings.test.ts app/tests/og-resolve.test.ts\n"
+    },
+    {
+      "cohort": "pure",
+      "workers": 4,
+      "runner": "bun:test",
+      "files": [
+        "analytics-device-detector.test.ts",
+        "strings.test.ts",
+        "og-resolve.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/analytics-device-detector.test.ts",
+        "app/tests-bun/strings.test.ts",
+        "app/tests-bun/og-resolve.test.ts",
+        "--parallel=4"
+      ],
+      "ms": 87.83745799999997,
+      "peakRssBytes": 0,
+      "loadAvg1": 23.37353515625,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 4x PARALLEL",
+        ""
+      ],
+      "stderrTail": "(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > treats '/http-icon.png' as a relative path, not an absolute URL [0.01ms]\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > treats '/httpfoo/cover.png' as a relative path [0.01ms]\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'http://...' as an absolute URL [0.01ms]\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'https://...' as an absolute URL [0.01ms]\n\napp/tests-bun/strings.test.ts:\n(pass) unit: uiStringsSchema validation success > parses en strings unchanged [0.06ms]\n(pass) unit: uiStringsSchema validation success > parses pt-br strings unchanged [0.04ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError for empty object (missing localeSwitcher) [0.56ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError when postMeta is missing [0.07ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError when notFound.title is missing [0.07ms]\n(pass) unit: value contracts > strings.en.localeSwitcher.label === \"English\"\n(pass) unit: value contracts > strings[\"pt-br\"].localeSwitcher.label === \"Português\"\n(pass) integration: module load does not throw > importing strings module succeeds without throwing [0.14ms]\n\n 45 pass\n 0 fail\n 51 expect() calls\nRan 45 tests across 3 files. [75.00ms]\n"
+    },
+    {
+      "cohort": "dom",
+      "workers": 1,
+      "runner": "vitest",
+      "files": [
+        "language-menu.test.ts",
+        "post-enhancements.test.ts",
+        "embeds.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:1",
+        "--",
+        "app/tests/language-menu.test.ts",
+        "app/tests/post-enhancements.test.ts",
+        "app/tests/embeds.test.ts"
+      ],
+      "ms": 8118.791834,
+      "peakRssBytes": 278380544,
+      "loadAvg1": 23.37353515625,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  26 passed (26)",
+        "   Start at  15:05:14",
+        "   Duration  7.59s (transform 1.87s, setup 0ms, import 3.59s, tests 822ms, environment 2.43s)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=1 app/tests/language-menu.test.ts app/tests/post-enhancements.test.ts app/tests/embeds.test.ts\n"
+    },
+    {
+      "cohort": "dom",
+      "workers": 1,
+      "runner": "bun:test",
+      "files": [
+        "language-menu.test.ts",
+        "post-enhancements.test.ts",
+        "embeds.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/language-menu.test.ts",
+        "app/tests-bun/post-enhancements.test.ts",
+        "app/tests-bun/embeds.test.ts",
+        "--isolate"
+      ],
+      "ms": 803.5586250000015,
+      "peakRssBytes": 116867072,
+      "loadAvg1": 22.2392578125,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40)",
+        ""
+      ],
+      "stderrTail": "app/tests-bun/post-enhancements.test.ts:\n(pass) wireCopyButtons > AC-1: copies the stashed raw source and sets the localized aria-label [6.03ms]\n(pass) wireCopyButtons > AC-1: after click the label becomes 'Copied!' then reverts after the timer [0.70ms]\n(pass) wireCopyButtons > does not enter the copied state when the clipboard write rejects [0.30ms]\n(pass) wireCopyButtons > copies an empty string when the button has no enclosing <pre> [1.80ms]\n(pass) wireCopyButtons > does not throw and shows no copied state when clipboard is unavailable [1.66ms]\n(pass) wireCopyButtons > re-clicking restarts the revert timer and cleanup clears a pending timer [2.43ms]\n(pass) wireCopyButtons > AC-4: cleanup detaches the handler and removes the live region [2.02ms]\n(pass) mountEmbeds > AC-2: mounts the registered component and injects the locale [18.59ms]\n(pass) mountEmbeds > AC-3: an unknown embed name does not mount, keeps the fallback, and warns [1.68ms]\n(pass) mountEmbeds > AC-4: cleanup unmounts the island root and empties the node [4.57ms]\n(pass) mountEmbeds > mounts with empty props when the data-props attribute is absent [1.40ms]\n(pass) mountEmbeds > degrades to empty props and warns when data-props is malformed JSON [3.02ms]\n(pass) initPostEnhancements > wires copy buttons and mounts embeds, and the combined cleanup undoes both [5.24ms]\n\n 26 pass\n 0 fail\n 57 expect() calls\nRan 26 tests across 3 files. [793.00ms]\n"
+    },
+    {
+      "cohort": "dom",
+      "workers": 2,
+      "runner": "vitest",
+      "files": [
+        "language-menu.test.ts",
+        "post-enhancements.test.ts",
+        "embeds.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:2",
+        "--",
+        "app/tests/language-menu.test.ts",
+        "app/tests/post-enhancements.test.ts",
+        "app/tests/embeds.test.ts"
+      ],
+      "ms": 6946.426000000003,
+      "peakRssBytes": 400785408,
+      "loadAvg1": 22.2392578125,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  26 passed (26)",
+        "   Start at  15:05:23",
+        "   Duration  6.43s (transform 2.58s, setup 0ms, import 4.79s, tests 1.26s, environment 3.97s)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=2 app/tests/language-menu.test.ts app/tests/post-enhancements.test.ts app/tests/embeds.test.ts\n"
+    },
+    {
+      "cohort": "dom",
+      "workers": 2,
+      "runner": "bun:test",
+      "files": [
+        "language-menu.test.ts",
+        "post-enhancements.test.ts",
+        "embeds.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/language-menu.test.ts",
+        "app/tests-bun/post-enhancements.test.ts",
+        "app/tests-bun/embeds.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 867.0617919999968,
+      "peakRssBytes": 11075584,
+      "loadAvg1": 21.9794921875,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "app/tests-bun/post-enhancements.test.ts:\n(pass) wireCopyButtons > AC-1: copies the stashed raw source and sets the localized aria-label [5.38ms]\n(pass) wireCopyButtons > AC-1: after click the label becomes 'Copied!' then reverts after the timer [0.67ms]\n(pass) wireCopyButtons > does not enter the copied state when the clipboard write rejects [0.90ms]\n(pass) wireCopyButtons > copies an empty string when the button has no enclosing <pre> [1.62ms]\n(pass) wireCopyButtons > does not throw and shows no copied state when clipboard is unavailable [0.54ms]\n(pass) wireCopyButtons > re-clicking restarts the revert timer and cleanup clears a pending timer [1.39ms]\n(pass) wireCopyButtons > AC-4: cleanup detaches the handler and removes the live region [0.99ms]\n(pass) mountEmbeds > AC-2: mounts the registered component and injects the locale [5.74ms]\n(pass) mountEmbeds > AC-3: an unknown embed name does not mount, keeps the fallback, and warns [1.56ms]\n(pass) mountEmbeds > AC-4: cleanup unmounts the island root and empties the node [4.38ms]\n(pass) mountEmbeds > mounts with empty props when the data-props attribute is absent [1.83ms]\n(pass) mountEmbeds > degrades to empty props and warns when data-props is malformed JSON [1.02ms]\n(pass) initPostEnhancements > wires copy buttons and mounts embeds, and the combined cleanup undoes both [1.37ms]\n\n 26 pass\n 0 fail\n 57 expect() calls\nRan 26 tests across 3 files. [857.00ms]\n"
+    },
+    {
+      "cohort": "dom",
+      "workers": 4,
+      "runner": "vitest",
+      "files": [
+        "language-menu.test.ts",
+        "post-enhancements.test.ts",
+        "embeds.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:4",
+        "--",
+        "app/tests/language-menu.test.ts",
+        "app/tests/post-enhancements.test.ts",
+        "app/tests/embeds.test.ts"
+      ],
+      "ms": 3050.2273749999986,
+      "peakRssBytes": 560906240,
+      "loadAvg1": 21.82080078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  26 passed (26)",
+        "   Start at  15:05:31",
+        "   Duration  2.74s (transform 3.03s, setup 0ms, import 4.44s, tests 930ms, environment 2.26s)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=4 app/tests/language-menu.test.ts app/tests/post-enhancements.test.ts app/tests/embeds.test.ts\n"
+    },
+    {
+      "cohort": "dom",
+      "workers": 4,
+      "runner": "bun:test",
+      "files": [
+        "language-menu.test.ts",
+        "post-enhancements.test.ts",
+        "embeds.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/language-menu.test.ts",
+        "app/tests-bun/post-enhancements.test.ts",
+        "app/tests-bun/embeds.test.ts",
+        "--parallel=4"
+      ],
+      "ms": 654.5507919999982,
+      "peakRssBytes": 11042816,
+      "loadAvg1": 21.82080078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 4x PARALLEL",
+        ""
+      ],
+      "stderrTail": "(pass) mountEmbeds > AC-3: an unknown embed name does not mount, keeps the fallback, and warns [0.30ms]\n(pass) mountEmbeds > AC-4: cleanup unmounts the island root and empties the node [3.09ms]\n(pass) mountEmbeds > mounts with empty props when the data-props attribute is absent [6.90ms]\n(pass) mountEmbeds > degrades to empty props and warns when data-props is malformed JSON [3.63ms]\n(pass) initPostEnhancements > wires copy buttons and mounts embeds, and the combined cleanup undoes both [5.62ms]\n\napp/tests-bun/language-menu.test.ts:\n(pass) unit: aria-label on menu items (issue 002 — screen reader accessibility) > keeps controls disabled in SSR markup until hydration [5.92ms]\n(pass) unit: aria-label on menu items (issue 002 — screen reader accessibility) > available item aria-label is just the locale label [19.47ms]\n(pass) unit: aria-label on menu items (issue 002 — screen reader accessibility) > unavailable item aria-label includes the hint text (en currentLocale) [4.53ms]\n(pass) unit: aria-label on menu items (issue 002 — screen reader accessibility) > unavailable item aria-label uses pt-br hint when currentLocale is pt-br [3.39ms]\n(pass) unit: aria-label on menu items (issue 002 — screen reader accessibility) > unavailable item still renders visible hint span for sighted users [3.46ms]\n(pass) unit: tabIndex and aria-current on active chip > active chip carries aria-current and tabIndex=-1 [7.22ms]\n(pass) unit: tabIndex and aria-current on active chip > alternate chip is in the tab order [2.17ms]\n\n 26 pass\n 0 fail\n 57 expect() calls\nRan 26 tests across 3 files. [645.00ms]\n"
+    },
+    {
+      "cohort": "mocks-timers",
+      "workers": 1,
+      "runner": "vitest",
+      "files": [
+        "record-theme-event.test.ts",
+        "watcher-integ.test.ts",
+        "theme-toggle.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:1",
+        "--",
+        "app/tests/record-theme-event.test.ts",
+        "app/tests/watcher-integ.test.ts",
+        "app/tests/theme-toggle.test.ts"
+      ],
+      "ms": 5351.610250000005,
+      "peakRssBytes": 694337536,
+      "loadAvg1": 21.82080078125,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  50 passed (50)",
+        "   Start at  15:05:35",
+        "   Duration  5.05s (transform 1.21s, setup 0ms, import 1.57s, tests 2.66s, environment 496ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=1 app/tests/record-theme-event.test.ts app/tests/watcher-integ.test.ts app/tests/theme-toggle.test.ts\n"
+    },
+    {
+      "cohort": "mocks-timers",
+      "workers": 1,
+      "runner": "bun:test",
+      "files": [
+        "record-theme-event.test.ts",
+        "watcher-integ.test.ts",
+        "theme-toggle.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/record-theme-event.test.ts",
+        "app/tests-bun/watcher-integ.test.ts",
+        "app/tests-bun/theme-toggle.test.ts",
+        "--isolate"
+      ],
+      "ms": 1675.1890000000058,
+      "peakRssBytes": 254050304,
+      "loadAvg1": 21.3544921875,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40)",
+        "{\"level\":\"INFO\",\"event\":\"watcher_started\",\"contentDir\":\"/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/watcher-mech-y7myMZ\"}",
+        ""
+      ],
+      "stderrTail": "{\"event\":\"theme_event_record_failed\",\"theme\":\"cs16\",\"source\":\"long-press\",\"lang\":\"en\",\"error\":\"fatal DB error\"}\n(pass) recordThemeEventHandler — DB failure path (AC-4) > does not re-throw the DB error (never-throws contract) [0.03ms]\n(pass) recordThemeEventHandler — DB failure path (AC-4) > logs one structured JSON line with event='theme_event_record_failed' (AC-4) [0.08ms]\n(pass) recordThemeEventHandler — DB failure path (AC-4) > error log includes theme, source, lang discriminators [0.05ms]\n(pass) recordThemeEventHandler — DB failure path (AC-4) > handles non-Error thrown values (string) without crashing [0.05ms]\n(pass) recordThemeEventHandler — exported types (AC-1) > RecordThemeEventInput accepts all valid combinations (compile-time check) [0.01ms]\n(pass) recordThemeEventHandler — exported types (AC-1) > RecordThemeEventResult has boolean 'recorded' (compile-time check)\n\napp/tests-bun/watcher-integ.test.ts:\n(pass) config: vite-env-only > vite.config.ts protects watcher.server from client bundle [0.49ms]\n(pass) config: vite-env-only > vite.config.ts includes content-watcher-dev Vite plugin with apply:serve [0.21ms]\n(pass) mechanism: real fs.watch > writing a new .mdx file calls upsertPost within 2s [113.09ms]\n(pass) mechanism: real fs.watch > editing an existing .mdx file calls upsertPost again within 2s [215.89ms]\n(pass) mechanism: real fs.watch > deleting an .mdx file calls removePost within 2s [224.19ms]\n\n 50 pass\n 0 fail\n 69644 expect() calls\nRan 50 tests across 3 files. [1.66s]\n"
+    },
+    {
+      "cohort": "mocks-timers",
+      "workers": 2,
+      "runner": "vitest",
+      "files": [
+        "record-theme-event.test.ts",
+        "watcher-integ.test.ts",
+        "theme-toggle.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:2",
+        "--",
+        "app/tests/record-theme-event.test.ts",
+        "app/tests/watcher-integ.test.ts",
+        "app/tests/theme-toggle.test.ts"
+      ],
+      "ms": 6954.112582999995,
+      "peakRssBytes": 525369344,
+      "loadAvg1": 20.68505859375,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  50 passed (50)",
+        "   Start at  15:05:42",
+        "   Duration  6.57s (transform 1.79s, setup 0ms, import 2.43s, tests 4.75s, environment 573ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=2 app/tests/record-theme-event.test.ts app/tests/watcher-integ.test.ts app/tests/theme-toggle.test.ts\n"
+    },
+    {
+      "cohort": "mocks-timers",
+      "workers": 2,
+      "runner": "bun:test",
+      "files": [
+        "record-theme-event.test.ts",
+        "watcher-integ.test.ts",
+        "theme-toggle.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/record-theme-event.test.ts",
+        "app/tests-bun/watcher-integ.test.ts",
+        "app/tests-bun/theme-toggle.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 1673.4910840000011,
+      "peakRssBytes": 11091968,
+      "loadAvg1": 20.3896484375,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to PopperContent inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n(pass) unit: AC-6 — short-click calls toggle(), popover stays closed > short-click does NOT call setTheme [3.32ms]\n(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 sets documentElement class to 'cs16' [13.38ms]\n(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 calls recordThemeEvent with source:'keyboard' [13.66ms]\n\n 50 pass\n 0 fail\n 34810 expect() calls\nRan 50 tests across 3 files. [1.66s]\n"
+    },
+    {
+      "cohort": "mocks-timers",
+      "workers": 4,
+      "runner": "vitest",
+      "files": [
+        "record-theme-event.test.ts",
+        "watcher-integ.test.ts",
+        "theme-toggle.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:4",
+        "--",
+        "app/tests/record-theme-event.test.ts",
+        "app/tests/watcher-integ.test.ts",
+        "app/tests/theme-toggle.test.ts"
+      ],
+      "ms": 10870.635999999999,
+      "peakRssBytes": 398639104,
+      "loadAvg1": 20.3583984375,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "{\"command\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun /Users/antoniofulg/Projects/blog/scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5\",\"execPath\":\"/Users/antoniofulg/.local/share/mise/installs/bun/1.4.0/bin/bun\",\"runtime\":\"bun\",\"runtimeVersion\":\"1.4.0\",\"runner\":\"vitest\",\"runnerVersion\":\"4.1.5\"}",
+        "",
+        " RUN  v4.1.5 /Users/antoniofulg/Projects/blog",
+        "",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  50 passed (50)",
+        "   Start at  15:05:51",
+        "   Duration  10.03s (transform 3.02s, setup 0ms, import 3.81s, tests 6.18s, environment 1.18s)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=4 app/tests/record-theme-event.test.ts app/tests/watcher-integ.test.ts app/tests/theme-toggle.test.ts\n"
+    },
+    {
+      "cohort": "mocks-timers",
+      "workers": 4,
+      "runner": "bun:test",
+      "files": [
+        "record-theme-event.test.ts",
+        "watcher-integ.test.ts",
+        "theme-toggle.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/record-theme-event.test.ts",
+        "app/tests-bun/watcher-integ.test.ts",
+        "app/tests-bun/theme-toggle.test.ts",
+        "--parallel=4"
+      ],
+      "ms": 1748.1871249999967,
+      "peakRssBytes": 11370496,
+      "loadAvg1": 22.4873046875,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 4x PARALLEL",
+        ""
+      ],
+      "stderrTail": "This ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\nAn update to PopperContent inside a test was not wrapped in act(...).\n\nWhen testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n(pass) unit: AC-6 — short-click calls toggle(), popover stays closed > short-click does NOT call setTheme [54.32ms]\n(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 sets documentElement class to 'cs16' [41.19ms]\n(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 calls recordThemeEvent with source:'keyboard' [48.59ms]\n\n 50 pass\n 0 fail\n 72741 expect() calls\nRan 50 tests across 3 files. [1.74s]\n"
+    },
+    {
+      "cohort": "integration-infra",
+      "workers": 1,
+      "runner": "vitest",
+      "files": [
+        "privacy-pages.test.ts",
+        "copy-button-transformer.test.ts",
+        "pglite-extended-query.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:1",
+        "--",
+        "app/tests/privacy-pages.test.ts",
+        "app/tests/copy-button-transformer.test.ts",
+        "app/tests/pglite-extended-query.test.ts"
+      ],
+      "ms": 13494.667375000005,
+      "peakRssBytes": 1213546496,
+      "loadAvg1": 22.4873046875,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  40 passed (40)",
+        "   Start at  15:06:03",
+        "   Duration  13.03s (transform 97ms, setup 0ms, import 234ms, tests 12.52s, environment 0ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=1 app/tests/privacy-pages.test.ts app/tests/copy-button-transformer.test.ts app/tests/pglite-extended-query.test.ts\n"
+    },
+    {
+      "cohort": "integration-infra",
+      "workers": 1,
+      "runner": "bun:test",
+      "files": [
+        "privacy-pages.test.ts",
+        "copy-button-transformer.test.ts",
+        "pglite-extended-query.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/privacy-pages.test.ts",
+        "app/tests-bun/copy-button-transformer.test.ts",
+        "app/tests-bun/pglite-extended-query.test.ts",
+        "--isolate"
+      ],
+      "ms": 17153.609958,
+      "peakRssBytes": 983334912,
+      "loadAvg1": 22.4921875,
+      "exitCode": 1,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40)",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        ""
+      ],
+      "stderrTail": "(pass) unit: pt-br/privacy.mdx frontmatter > has description field [0.30ms]\n(pass) unit: pt-br/privacy.mdx required topic markers > mentions cookieless or sem cookies [0.12ms]\n(pass) unit: pt-br/privacy.mdx required topic markers > mentions IP address [0.10ms]\n(pass) unit: pt-br/privacy.mdx required topic markers > mentions bot filtering [0.13ms]\n(pass) unit: pt-br/privacy.mdx required topic markers > mentions no cookies (sem cookies) [0.37ms]\n(pass) unit: pt-br/privacy.mdx required topic markers > mentions fingerprint [0.24ms]\n(pass) unit: pt-br/privacy.mdx required topic markers > mentions public view counter behavior [0.28ms]\n(pass) unit: privacy.mdx translation parity > both files exist (en and pt-br) [0.41ms]\n(pass) unit: privacy.mdx translation parity > both files have a non-empty title [0.26ms]\n\n2 tests failed:\n(fail) PGLite proxy: unnamed prepared statement isolation across connections > (unnamed) [5911.79ms]\n  ^ a beforeEach/afterEach hook timed out for this test.\n(fail) PGLite proxy: unnamed prepared statement isolation across connections > (unnamed) [25.57ms]\n\n 37 pass\n 2 fail\n 61 expect() calls\nRan 39 tests across 3 files. [17.09s]\n"
+    },
+    {
+      "cohort": "integration-infra",
+      "workers": 2,
+      "runner": "vitest",
+      "files": [
+        "privacy-pages.test.ts",
+        "copy-button-transformer.test.ts",
+        "pglite-extended-query.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:2",
+        "--",
+        "app/tests/privacy-pages.test.ts",
+        "app/tests/copy-button-transformer.test.ts",
+        "app/tests/pglite-extended-query.test.ts"
+      ],
+      "ms": 20005.884957999995,
+      "peakRssBytes": 1232748544,
+      "loadAvg1": 22.5009765625,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  40 passed (40)",
+        "   Start at  15:06:34",
+        "   Duration  19.51s (transform 236ms, setup 0ms, import 496ms, tests 24.93s, environment 1ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=2 app/tests/privacy-pages.test.ts app/tests/copy-button-transformer.test.ts app/tests/pglite-extended-query.test.ts\n"
+    },
+    {
+      "cohort": "integration-infra",
+      "workers": 2,
+      "runner": "bun:test",
+      "files": [
+        "privacy-pages.test.ts",
+        "copy-button-transformer.test.ts",
+        "pglite-extended-query.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/privacy-pages.test.ts",
+        "app/tests-bun/copy-button-transformer.test.ts",
+        "app/tests-bun/pglite-extended-query.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 12226.925749999995,
+      "peakRssBytes": 11763712,
+      "loadAvg1": 25.57470703125,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "(pass) PGLite proxy: lock-acquire timer cleanup > 100 fast acquires: no unhandledRejection fires after acquire resolves [545.81ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[pg-proxy] unnamed slot held >500ms; destroying stuck connection\n(pass) PGLite proxy: lock acquire timeout > stall: second connection gets a wire response within 2 s when first holds lock without Bind [504.45ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[pg-proxy] unnamed slot held >500ms; destroying stuck connection\n(pass) PGLite proxy: stalled holder eviction > stalled holder is evicted and the queued connection binds its own statement [505.90ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > concurrent connections do not corrupt unnamed prepared statement state (08P01 regression) [7.30ms]\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > high concurrency: 4 connections with separate Parse/Bind pipelines do not produce 08P01 [10.72ms]\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > error response includes ErrorResponse (0x45) before ReadyForQuery (0x5a) on Bind param mismatch [3.31ms]\n\n 40 pass\n 0 fail\n 71 expect() calls\nRan 40 tests across 3 files. [12.22s]\n"
+    },
+    {
+      "cohort": "integration-infra",
+      "workers": 4,
+      "runner": "vitest",
+      "files": [
+        "privacy-pages.test.ts",
+        "copy-button-transformer.test.ts",
+        "pglite-extended-query.test.ts"
+      ],
+      "command": [
+        "bun",
+        "run",
+        "test:vitest:bun:4",
+        "--",
+        "app/tests/privacy-pages.test.ts",
+        "app/tests/copy-button-transformer.test.ts",
+        "app/tests/pglite-extended-query.test.ts"
+      ],
+      "ms": 10846.695083000013,
+      "peakRssBytes": 1474920448,
+      "loadAvg1": 29.681640625,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "[⣷] Pulling schema from database...",
+        "\u001b[2K\u001b[1G[✓] Pulling schema from database...",
+        "",
+        " Test Files  3 passed (3)",
+        "      Tests  40 passed (40)",
+        "   Start at  15:07:06",
+        "   Duration  10.45s (transform 222ms, setup 0ms, import 475ms, tests 13.23s, environment 0ms)",
+        "",
+        ""
+      ],
+      "stderrTail": "$ TZ=UTC bun --bun scripts/check-test-runtime.ts --runtime=bun --version=1.4.0 --runner=vitest --runner-version=4.1.5 && TZ=UTC bun --bun node_modules/vitest/vitest.mjs run --maxWorkers=4 app/tests/privacy-pages.test.ts app/tests/copy-button-transformer.test.ts app/tests/pglite-extended-query.test.ts\n"
+    },
+    {
+      "cohort": "integration-infra",
+      "workers": 4,
+      "runner": "bun:test",
+      "files": [
+        "privacy-pages.test.ts",
+        "copy-button-transformer.test.ts",
+        "pglite-extended-query.test.ts"
+      ],
+      "command": [
+        "bun",
+        "test",
+        "app/tests-bun/privacy-pages.test.ts",
+        "app/tests-bun/copy-button-transformer.test.ts",
+        "app/tests-bun/pglite-extended-query.test.ts",
+        "--parallel=4"
+      ],
+      "ms": 9416.078083,
+      "peakRssBytes": 12320768,
+      "loadAvg1": 30.8291015625,
+      "exitCode": 0,
+      "timedOut": false,
+      "outcome": null,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 4x PARALLEL",
+        ""
+      ],
+      "stderrTail": "(pass) PGLite proxy: lock-acquire timer cleanup > 100 fast acquires: no unhandledRejection fires after acquire resolves [405.43ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[pg-proxy] unnamed slot held >500ms; destroying stuck connection\n(pass) PGLite proxy: lock acquire timeout > stall: second connection gets a wire response within 2 s when first holds lock without Bind [544.74ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[pg-proxy] unnamed slot held >500ms; destroying stuck connection\n(pass) PGLite proxy: stalled holder eviction > stalled holder is evicted and the queued connection binds its own statement [510.53ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > concurrent connections do not corrupt unnamed prepared statement state (08P01 regression) [54.24ms]\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > high concurrency: 4 connections with separate Parse/Bind pipelines do not produce 08P01 [6.14ms]\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > error response includes ErrorResponse (0x45) before ReadyForQuery (0x5a) on Bind param mismatch [2.99ms]\n\n 40 pass\n 0 fail\n 71 expect() calls\nRan 40 tests across 3 files. [9.41s]\n"
+    }
+  ]
+}

@@ -1,16 +1,24 @@
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
 import { mkdtemp, readFile, rm } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const siteModelMocks = vi.hoisted(() => ({
-	getPostInventory: vi.fn().mockResolvedValue([]),
-	getRouteInventory: vi.fn().mockResolvedValue([]),
-}));
+const siteModelMocks = (() => ({
+	getPostInventory: jest.fn().mockResolvedValue([]),
+	getRouteInventory: jest.fn().mockResolvedValue([]),
+}))();
 
-vi.mock("#/lib/site-model.server", () => ({
+mock.module("#/lib/site-model.server", () => ({
 	getPostInventory: siteModelMocks.getPostInventory,
 	getRouteInventory: siteModelMocks.getRouteInventory,
 }));
@@ -24,13 +32,15 @@ import {
 	type Finding,
 	runContentAudit,
 } from "#/lib/content-audit/checks.server";
-import { writeReport } from "#/lib/content-audit/reporter.server";
+
+const { writeReport } = await import("#/lib/content-audit/reporter.server");
+
 import type { PostEntry } from "#/lib/site-model.server";
 import type { PostFrontmatter } from "#/types/content";
 
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
-const FIXTURES = join(import.meta.dirname, "fixtures/content-audit");
+const FIXTURES = join(process.cwd(), "app/tests/fixtures/content-audit");
 
 function fix(name: string) {
 	return join(FIXTURES, name);
@@ -61,7 +71,7 @@ async function fileExists(path: string): Promise<boolean> {
 // ─── checkFrontmatter ─────────────────────────────────────────────────────────
 
 describe("checkFrontmatter", () => {
-	it("fixture missing title → blocker finding", async () => {
+	test("fixture missing title → blocker finding", async () => {
 		const findings = await checkFrontmatter([fix("no-title.mdx")]);
 		expect(findings).toHaveLength(1);
 		expect(findings[0].category).toBe("frontmatter-invalid");
@@ -69,12 +79,12 @@ describe("checkFrontmatter", () => {
 		expect(findings[0].message).toMatch(/title/i);
 	});
 
-	it("valid fixture → no finding", async () => {
+	test("valid fixture → no finding", async () => {
 		const findings = await checkFrontmatter([fix("valid.mdx")]);
 		expect(findings).toHaveLength(0);
 	});
 
-	it("multiple files → one finding per bad file", async () => {
+	test("multiple files → one finding per bad file", async () => {
 		const findings = await checkFrontmatter([
 			fix("no-title.mdx"),
 			fix("valid.mdx"),
@@ -83,14 +93,14 @@ describe("checkFrontmatter", () => {
 		expect(findings[0].filePath).toBe(fix("no-title.mdx"));
 	});
 
-	it("nonexistent file → blocker finding (parse error)", async () => {
+	test("nonexistent file → blocker finding (parse error)", async () => {
 		const findings = await checkFrontmatter(["/nonexistent/path/file.mdx"]);
 		expect(findings).toHaveLength(1);
 		expect(findings[0].category).toBe("frontmatter-invalid");
 		expect(findings[0].severity).toBe("blocker");
 	});
 
-	it("severity is always blocker for frontmatter-invalid", async () => {
+	test("severity is always blocker for frontmatter-invalid", async () => {
 		const findings = await checkFrontmatter([fix("no-title.mdx")]);
 		expect(findings[0].severity).toBe("blocker");
 	});
@@ -99,7 +109,7 @@ describe("checkFrontmatter", () => {
 // ─── checkTranslationGaps ─────────────────────────────────────────────────────
 
 describe("checkTranslationGaps", () => {
-	it("post with hasTwin=false → major finding", () => {
+	test("post with hasTwin=false → major finding", () => {
 		const posts = [makePost({ hasTwin: false })];
 		const findings = checkTranslationGaps(posts);
 		expect(findings).toHaveLength(1);
@@ -107,7 +117,7 @@ describe("checkTranslationGaps", () => {
 		expect(findings[0].severity).toBe("major");
 	});
 
-	it("post with hasTwin=false and noTranslation=true → no finding", () => {
+	test("post with hasTwin=false and noTranslation=true → no finding", () => {
 		const posts = [
 			makePost({
 				hasTwin: false,
@@ -118,20 +128,20 @@ describe("checkTranslationGaps", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("post with hasTwin=true → no finding", () => {
+	test("post with hasTwin=true → no finding", () => {
 		const posts = [makePost({ hasTwin: true })];
 		const findings = checkTranslationGaps(posts);
 		expect(findings).toHaveLength(0);
 	});
 
-	it("finding includes filePath and message", () => {
+	test("finding includes filePath and message", () => {
 		const posts = [makePost({ hasTwin: false, filePath: fix("valid.mdx") })];
 		const findings = checkTranslationGaps(posts);
 		expect(findings[0].filePath).toBe(fix("valid.mdx"));
 		expect(findings[0].message).toBeTruthy();
 	});
 
-	it("multiple posts: only the untwinned one produces a finding", () => {
+	test("multiple posts: only the untwinned one produces a finding", () => {
 		const posts = [
 			makePost({ slug: "no-twin", hasTwin: false }),
 			makePost({ slug: "has-twin", hasTwin: true }),
@@ -148,7 +158,7 @@ describe("checkBrokenLinks", () => {
 	const knownSlugs = new Set(["existing-post"]);
 	const knownPaths = new Set(["/", "/about", "/login"]);
 
-	it("published post with broken internal link → blocker", async () => {
+	test("published post with broken internal link → blocker", async () => {
 		const posts = [makePost({ filePath: fix("broken-link.mdx") })];
 		const findings = await checkBrokenLinks(posts, knownSlugs, knownPaths);
 		const blocker = findings.find((f) => f.severity === "blocker");
@@ -157,7 +167,7 @@ describe("checkBrokenLinks", () => {
 		expect(blocker?.message).toContain("/non-existent");
 	});
 
-	it("draft post with broken internal link → minor", async () => {
+	test("draft post with broken internal link → minor", async () => {
 		const posts = [
 			makePost({
 				filePath: fix("broken-link.mdx"),
@@ -174,20 +184,20 @@ describe("checkBrokenLinks", () => {
 		expect(minor?.severity).toBe("minor");
 	});
 
-	it("post with valid route link → no finding", async () => {
+	test("post with valid route link → no finding", async () => {
 		const posts = [makePost({ filePath: fix("good-link.mdx") })];
 		const findings = await checkBrokenLinks(posts, knownSlugs, knownPaths);
 		expect(findings).toHaveLength(0);
 	});
 
-	it("finding includes line number from link source", async () => {
+	test("finding includes line number from link source", async () => {
 		const posts = [makePost({ filePath: fix("broken-link.mdx") })];
 		const findings = await checkBrokenLinks(posts, knownSlugs, knownPaths);
 		const broken = findings.find((f) => f.category === "broken-link");
 		expect(broken?.line).toBeGreaterThan(0);
 	});
 
-	it("links with locale prefixes resolve via slug extraction → no finding", async () => {
+	test("links with locale prefixes resolve via slug extraction → no finding", async () => {
 		const posts = [makePost({ filePath: fix("locale-link.mdx") })];
 		const findings = await checkBrokenLinks(
 			posts,
@@ -197,7 +207,7 @@ describe("checkBrokenLinks", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("dynamic href in JSX → minor finding (not silently dropped)", async () => {
+	test("dynamic href in JSX → minor finding (not silently dropped)", async () => {
 		const dynamicPosts = [
 			makePost({
 				filePath: fix("../link-parser/expression-attr.mdx"),
@@ -219,7 +229,7 @@ describe("checkBrokenLinks", () => {
 // ─── checkMissingAltText ──────────────────────────────────────────────────────
 
 describe("checkMissingAltText", () => {
-	it("image with no alt text → major finding", async () => {
+	test("image with no alt text → major finding", async () => {
 		const posts = [makePost({ filePath: fix("missing-alt.mdx") })];
 		const findings = await checkMissingAltText(posts);
 		expect(findings).toHaveLength(1);
@@ -228,19 +238,19 @@ describe("checkMissingAltText", () => {
 		expect(findings[0].message).toContain("image.png");
 	});
 
-	it("image with alt text → no finding", async () => {
+	test("image with alt text → no finding", async () => {
 		const posts = [makePost({ filePath: fix("has-alt.mdx") })];
 		const findings = await checkMissingAltText(posts);
 		expect(findings).toHaveLength(0);
 	});
 
-	it("post with no images → no finding", async () => {
+	test("post with no images → no finding", async () => {
 		const posts = [makePost({ filePath: fix("valid.mdx") })];
 		const findings = await checkMissingAltText(posts);
 		expect(findings).toHaveLength(0);
 	});
 
-	it("finding includes line number", async () => {
+	test("finding includes line number", async () => {
 		const posts = [makePost({ filePath: fix("missing-alt.mdx") })];
 		const findings = await checkMissingAltText(posts);
 		expect(findings[0].line).toBeGreaterThan(0);
@@ -250,7 +260,7 @@ describe("checkMissingAltText", () => {
 // ─── checkSeriesGaps ──────────────────────────────────────────────────────────
 
 describe("checkSeriesGaps", () => {
-	it("published posts with gap in parts → minor finding", () => {
+	test("published posts with gap in parts → minor finding", () => {
 		const posts = [
 			makePost({
 				slug: "part1",
@@ -269,7 +279,7 @@ describe("checkSeriesGaps", () => {
 		expect(findings[0].message).toContain("2");
 	});
 
-	it("published posts with contiguous parts → no finding", () => {
+	test("published posts with contiguous parts → no finding", () => {
 		const posts = [
 			makePost({
 				slug: "part1",
@@ -284,7 +294,7 @@ describe("checkSeriesGaps", () => {
 		expect(findings).toHaveLength(0);
 	});
 
-	it("draft post creates gap among published — still a finding", () => {
+	test("draft post creates gap among published — still a finding", () => {
 		const posts = [
 			makePost({
 				slug: "p1",
@@ -310,13 +320,13 @@ describe("checkSeriesGaps", () => {
 		expect(findings[0].message).toContain("2");
 	});
 
-	it("posts without series field → no finding", () => {
+	test("posts without series field → no finding", () => {
 		const posts = [makePost()];
 		const findings = checkSeriesGaps(posts);
 		expect(findings).toHaveLength(0);
 	});
 
-	it("series detail record includes series name and expected part", () => {
+	test("series detail record includes series name and expected part", () => {
 		const posts = [
 			makePost({
 				slug: "p1",
@@ -332,7 +342,7 @@ describe("checkSeriesGaps", () => {
 		expect(findings[0].detail?.expectedPart).toBe(2);
 	});
 
-	it("multiple gaps in same series — all reported, not just the first", () => {
+	test("multiple gaps in same series — all reported, not just the first", () => {
 		const posts = [
 			makePost({
 				slug: "p1",
@@ -361,15 +371,15 @@ describe("writeReport", () => {
 
 	beforeEach(async () => {
 		tmpDir = await mkdtemp(join(tmpdir(), "content-audit-test-"));
-		vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+		jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 	});
 
 	afterEach(async () => {
-		vi.restoreAllMocks();
+		jest.restoreAllMocks();
 		await rm(tmpDir, { recursive: true, force: true });
 	});
 
-	it("creates per-run report at expected path", async () => {
+	test("creates per-run report at expected path", async () => {
 		await writeReport([], "manual");
 		const date = new Date().toISOString().slice(0, 10);
 		const reportPath = join(
@@ -380,7 +390,7 @@ describe("writeReport", () => {
 		expect(await fileExists(reportPath)).toBe(true);
 	});
 
-	it("report contains documented sections", async () => {
+	test("report contains documented sections", async () => {
 		const findings: Finding[] = [
 			{
 				category: "broken-link",
@@ -419,7 +429,7 @@ describe("writeReport", () => {
 		expect(content).toContain("series-gap");
 	});
 
-	it("empty findings → all sections show (none)", async () => {
+	test("empty findings → all sections show (none)", async () => {
 		await writeReport([], "manual");
 		const date = new Date().toISOString().slice(0, 10);
 		const content = await readFile(
@@ -429,7 +439,7 @@ describe("writeReport", () => {
 		expect(content.match(/\(none\)/g)?.length).toBe(3);
 	});
 
-	it("initializes SUMMARY.md with header if missing", async () => {
+	test("initializes SUMMARY.md with header if missing", async () => {
 		await writeReport([], "manual");
 		const content = await readFile(
 			join(tmpDir, "docs/audits/SUMMARY.md"),
@@ -439,7 +449,7 @@ describe("writeReport", () => {
 		expect(content).toContain("| ----------");
 	});
 
-	it("appends a row to SUMMARY.md", async () => {
+	test("appends a row to SUMMARY.md", async () => {
 		const findings: Finding[] = [
 			{
 				category: "translation-gap",
@@ -460,7 +470,7 @@ describe("writeReport", () => {
 		expect(content).toContain("translation-gap");
 	});
 
-	it("second call same day overwrites report and appends a second SUMMARY row", async () => {
+	test("second call same day overwrites report and appends a second SUMMARY row", async () => {
 		await writeReport([], "first");
 		await writeReport([], "second");
 
@@ -481,7 +491,7 @@ describe("writeReport", () => {
 		expect(rows.length).toBe(2);
 	});
 
-	it("finding counts in SUMMARY row match findings array", async () => {
+	test("finding counts in SUMMARY row match findings array", async () => {
 		const findings: Finding[] = [
 			{
 				category: "broken-link",
@@ -511,7 +521,7 @@ describe("writeReport", () => {
 		expect(content).toMatch(/\|\s*1\s*\|\s*1\s*\|\s*1\s*\|/);
 	});
 
-	it("pipe in triggerLabel is escaped in SUMMARY row (issue 004)", async () => {
+	test("pipe in triggerLabel is escaped in SUMMARY row (issue 004)", async () => {
 		await writeReport([], "ci|pipe");
 		const content = await readFile(
 			join(tmpDir, "docs/audits/SUMMARY.md"),
@@ -527,7 +537,7 @@ describe("writeReport", () => {
 		expect(cols).toHaveLength(6);
 	});
 
-	it("newline in triggerLabel does not break SUMMARY row (issue 004)", async () => {
+	test("newline in triggerLabel does not break SUMMARY row (issue 004)", async () => {
 		await writeReport([], "line1\nline2");
 		const content = await readFile(
 			join(tmpDir, "docs/audits/SUMMARY.md"),
@@ -539,7 +549,7 @@ describe("writeReport", () => {
 		expect(rows).toHaveLength(1);
 	});
 
-	it("SUMMARY top-finding reflects highest severity, not insertion order (issue 005)", async () => {
+	test("SUMMARY top-finding reflects highest severity, not insertion order (issue 005)", async () => {
 		const findings: Finding[] = [
 			{
 				category: "translation-gap",
@@ -573,10 +583,10 @@ describe("writeReport", () => {
 
 describe("runContentAudit integration", () => {
 	afterEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
-	it("returns Finding[] with expected categories when given fixture posts", async () => {
+	test("returns Finding[] with expected categories when given fixture posts", async () => {
 		const mockPosts = [
 			makePost({
 				slug: "broken-link",
@@ -623,7 +633,7 @@ describe("runContentAudit integration", () => {
 		expect(categories).toContain("missing-alt-text");
 	});
 
-	it("returns an array even with no posts", async () => {
+	test("returns an array even with no posts", async () => {
 		siteModelMocks.getPostInventory.mockResolvedValue([]);
 		siteModelMocks.getRouteInventory.mockResolvedValue([]);
 
@@ -634,12 +644,12 @@ describe("runContentAudit integration", () => {
 		);
 	});
 
-	it("full runContentAudit + writeReport produces readable markdown", async () => {
+	test("full runContentAudit + writeReport produces readable markdown", async () => {
 		siteModelMocks.getPostInventory.mockResolvedValue([]);
 		siteModelMocks.getRouteInventory.mockResolvedValue([]);
 
 		const tmpDir = await mkdtemp(join(tmpdir(), "audit-report-test-"));
-		vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+		jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 
 		try {
 			const findings = await runContentAudit(FIXTURES);
@@ -656,7 +666,7 @@ describe("runContentAudit integration", () => {
 			expect(content).toContain("## Minor");
 			expect(content.length).toBeGreaterThan(100);
 		} finally {
-			vi.restoreAllMocks();
+			jest.restoreAllMocks();
 			await rm(tmpDir, { recursive: true, force: true });
 		}
 	});

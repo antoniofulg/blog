@@ -1,15 +1,16 @@
-import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
-import { tmpdir } from "node:os";
-import { basename, join, relative } from "node:path";
 import {
 	afterAll,
 	beforeAll,
 	beforeEach,
 	describe,
 	expect,
-	it,
-	vi,
-} from "vitest";
+	jest,
+	mock,
+	test,
+} from "bun:test";
+import { mkdir, mkdtemp, readdir, rm, writeFile } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { basename, join, relative } from "node:path";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
@@ -23,13 +24,13 @@ function makeDbChain(rows: unknown[] = []) {
 	});
 }
 
-const dbMocks = vi.hoisted(() => {
-	const from = vi.fn().mockImplementation(() => makeDbChain());
-	const select = vi.fn().mockReturnValue({ from });
+const dbMocks = (() => {
+	const from = jest.fn().mockImplementation(() => makeDbChain());
+	const select = jest.fn().mockReturnValue({ from });
 	return { select, from };
-});
+})();
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: { select: dbMocks.select },
 }));
 
@@ -46,7 +47,7 @@ import {
 // ─── Helpers ─────────────────────────────────────────────────────────────────
 
 function resetDbMocks() {
-	vi.clearAllMocks();
+	jest.clearAllMocks();
 	dbMocks.from.mockImplementation(() => makeDbChain());
 	dbMocks.select.mockReturnValue({ from: dbMocks.from });
 }
@@ -86,12 +87,12 @@ function assertCoverage(keys: string[]): void {
 // ─── Unit: ROUTE_METADATA shape ──────────────────────────────────────────────
 
 describe("unit: ROUTE_METADATA", () => {
-	it("is a non-empty object", () => {
+	test("is a non-empty object", () => {
 		expect(typeof ROUTE_METADATA).toBe("object");
 		expect(Object.keys(ROUTE_METADATA).length).toBeGreaterThan(0);
 	});
 
-	it("every entry has required shape", () => {
+	test("every entry has required shape", () => {
 		const validAuth: RouteAuthLevel[] = ["public", "admin"];
 		for (const [, meta] of Object.entries(ROUTE_METADATA)) {
 			expect(typeof meta.path).toBe("string");
@@ -110,7 +111,7 @@ describe("unit: getRouteInventory", () => {
 		dbMocks.select.mockReturnValue({ from: dbMocks.from });
 	});
 
-	it("returns one RouteEntry per non-null ROUTE_METADATA entry when DB has posts", async () => {
+	test("returns one RouteEntry per non-null ROUTE_METADATA entry when DB has posts", async () => {
 		const inventory = await getRouteInventory();
 		const expectedCount = Object.values(ROUTE_METADATA).filter(
 			(m) => m.expectedStatus !== null,
@@ -118,14 +119,14 @@ describe("unit: getRouteInventory", () => {
 		expect(inventory).toHaveLength(expectedCount);
 	});
 
-	it("filters out expectedStatus: null entries (layout/opt-out routes)", async () => {
+	test("filters out expectedStatus: null entries (layout/opt-out routes)", async () => {
 		const inventory = await getRouteInventory();
 		for (const entry of inventory) {
 			expect(entry.expectedStatus).not.toBeNull();
 		}
 	});
 
-	it("each RouteEntry has required shape", async () => {
+	test("each RouteEntry has required shape", async () => {
 		const inventory = await getRouteInventory();
 		const validAuth: RouteAuthLevel[] = ["public", "admin"];
 		const validStatuses = [200, 302, 401, 404];
@@ -137,7 +138,7 @@ describe("unit: getRouteInventory", () => {
 		}
 	});
 
-	it("inventory count equals (total route files - excluded - opt-outs) when DB has posts", async () => {
+	test("inventory count equals (total route files - excluded - opt-outs) when DB has posts", async () => {
 		const keys = await walkRouteKeys(ROUTES_DIR);
 		const optOutCount = Object.values(ROUTE_METADATA).filter(
 			(m) => m.expectedStatus === null,
@@ -146,7 +147,7 @@ describe("unit: getRouteInventory", () => {
 		expect(inventory).toHaveLength(keys.length - optOutCount);
 	});
 
-	it("slug routes excluded from inventory when DB has no posts", async () => {
+	test("slug routes excluded from inventory when DB has no posts", async () => {
 		dbMocks.from.mockImplementation(() => makeDbChain([]));
 		const inventory = await getRouteInventory();
 		const slugRoutes = inventory.filter((e) => e.path.includes(":slug"));
@@ -165,21 +166,21 @@ describe("unit: resolveRoutePath", () => {
 		intent: "test",
 	};
 
-	it("returns path unchanged when no sampleSlug", () => {
+	test("returns path unchanged when no sampleSlug", () => {
 		expect(resolveRoutePath({ ...base, path: "/about" })).toBe("/about");
 	});
 
-	it("returns path unchanged for parameterized route with no sampleSlug", () => {
+	test("returns path unchanged for parameterized route with no sampleSlug", () => {
 		expect(resolveRoutePath({ ...base, path: "/:slug" })).toBe("/:slug");
 	});
 
-	it("replaces :slug with sampleSlug", () => {
+	test("replaces :slug with sampleSlug", () => {
 		expect(
 			resolveRoutePath({ ...base, path: "/:slug", sampleSlug: "my-post" }),
 		).toBe("/my-post");
 	});
 
-	it("replaces all :slug occurrences", () => {
+	test("replaces all :slug occurrences", () => {
 		expect(
 			resolveRoutePath({
 				...base,
@@ -189,7 +190,7 @@ describe("unit: resolveRoutePath", () => {
 		).toBe("/admin/preview/draft-post");
 	});
 
-	it("leaves other path segments unchanged", () => {
+	test("leaves other path segments unchanged", () => {
 		expect(
 			resolveRoutePath({
 				...base,
@@ -203,13 +204,13 @@ describe("unit: resolveRoutePath", () => {
 // ─── Unit: ROUTE_METADATA sampleSlug for parameterized routes ─────────────────
 
 describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", () => {
-	it("/:slug entry has no static sampleSlug — resolved at runtime from DB", () => {
+	test("/:slug entry has no static sampleSlug — resolved at runtime from DB", () => {
 		const entry = ROUTE_METADATA["{-$locale}/$slug.tsx"];
 		expect(entry).toBeDefined();
 		expect(entry.sampleSlug).toBeUndefined();
 	});
 
-	it("getRouteInventory uses live DB slug for parameterized routes", async () => {
+	test("getRouteInventory uses live DB slug for parameterized routes", async () => {
 		dbMocks.from.mockImplementation(() =>
 			makeDbChain([{ slug: "my-live-post" }]),
 		);
@@ -219,7 +220,7 @@ describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", ()
 		expect(slugRoute?.sampleSlug).toBe("my-live-post");
 	});
 
-	it("getRouteInventory excludes slug routes when DB returns no posts", async () => {
+	test("getRouteInventory excludes slug routes when DB returns no posts", async () => {
 		dbMocks.from.mockImplementation(() => makeDbChain([]));
 		dbMocks.select.mockReturnValue({ from: dbMocks.from });
 		const inventory = await getRouteInventory();
@@ -230,12 +231,12 @@ describe("unit: ROUTE_METADATA parameterized routes resolve slug at runtime", ()
 // ─── Drift: ROUTE_METADATA vs app/routes/**/*.tsx ────────────────────────────
 
 describe("drift: ROUTE_METADATA covers all app/routes/**/*.tsx", () => {
-	it("no current route file is missing from ROUTE_METADATA", async () => {
+	test("no current route file is missing from ROUTE_METADATA", async () => {
 		const keys = await walkRouteKeys(ROUTES_DIR);
 		expect(() => assertCoverage(keys)).not.toThrow();
 	});
 
-	it("adding a fake-route.tsx triggers failure with route name in message", () => {
+	test("adding a fake-route.tsx triggers failure with route name in message", () => {
 		const fakeKey = "fake-route.tsx";
 		const realKeys = Object.keys(ROUTE_METADATA);
 		expect(() => assertCoverage([...realKeys, fakeKey])).toThrowError(
@@ -243,11 +244,11 @@ describe("drift: ROUTE_METADATA covers all app/routes/**/*.tsx", () => {
 		);
 	});
 
-	it("empty file list passes coverage check (vacuous truth)", () => {
+	test("empty file list passes coverage check (vacuous truth)", () => {
 		expect(() => assertCoverage([])).not.toThrow();
 	});
 
-	it("error message names all missing routes when multiple are absent", () => {
+	test("error message names all missing routes when multiple are absent", () => {
 		const fakeKeys = ["missing-a.tsx", "missing-b.tsx"];
 		let message = "";
 		try {
@@ -267,17 +268,17 @@ describe("unit: getPostInventory — no content dir", () => {
 
 	beforeAll(async () => {
 		tmpDir = await mkdtemp(join(tmpdir(), "site-model-nodir-"));
-		vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+		jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 	});
 
 	afterAll(async () => {
-		vi.restoreAllMocks();
+		jest.restoreAllMocks();
 		await rm(tmpDir, { recursive: true, force: true });
 	});
 
 	beforeEach(resetDbMocks);
 
-	it("returns empty array when app/content/posts does not exist", async () => {
+	test("returns empty array when app/content/posts does not exist", async () => {
 		const result = await getPostInventory();
 		expect(result).toEqual([]);
 	});
@@ -310,22 +311,22 @@ describe("unit: getPostInventory — fixture posts", () => {
 			"---\ntitle: Solo Post\n---\nContent.",
 		);
 
-		vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+		jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 	});
 
 	afterAll(async () => {
-		vi.restoreAllMocks();
+		jest.restoreAllMocks();
 		await rm(tmpDir, { recursive: true, force: true });
 	});
 
 	beforeEach(resetDbMocks);
 
-	it("returns one PostEntry per .mdx file", async () => {
+	test("returns one PostEntry per .mdx file", async () => {
 		const result = await getPostInventory();
 		expect(result).toHaveLength(3);
 	});
 
-	it("each entry has required PostEntry shape", async () => {
+	test("each entry has required PostEntry shape", async () => {
 		const result = await getPostInventory();
 		for (const entry of result) {
 			expect(typeof entry.slug).toBe("string");
@@ -336,7 +337,7 @@ describe("unit: getPostInventory — fixture posts", () => {
 		}
 	});
 
-	it("hasTwin=true for posts where both en and pt-br variants exist", async () => {
+	test("hasTwin=true for posts where both en and pt-br variants exist", async () => {
 		const result = await getPostInventory();
 		const twinPosts = result.filter((e: PostEntry) => e.slug === "twin-post");
 		expect(twinPosts).toHaveLength(2);
@@ -345,14 +346,14 @@ describe("unit: getPostInventory — fixture posts", () => {
 		}
 	});
 
-	it("hasTwin=false for posts with no counterpart locale", async () => {
+	test("hasTwin=false for posts with no counterpart locale", async () => {
 		const result = await getPostInventory();
 		const solo = result.find((e: PostEntry) => e.slug === "solo-post");
 		expect(solo).toBeDefined();
 		expect(solo?.hasTwin).toBe(false);
 	});
 
-	it("lang derived from parent directory name", async () => {
+	test("lang derived from parent directory name", async () => {
 		const result = await getPostInventory();
 		for (const entry of result) {
 			if (entry.filePath.includes("/en/")) {
@@ -363,7 +364,7 @@ describe("unit: getPostInventory — fixture posts", () => {
 		}
 	});
 
-	it("slug derived from frontmatter slug field when present", async () => {
+	test("slug derived from frontmatter slug field when present", async () => {
 		const result = await getPostInventory();
 		const twinEn = result.find((e: PostEntry) =>
 			e.filePath.endsWith("/en/twin-post.mdx"),
@@ -371,7 +372,7 @@ describe("unit: getPostInventory — fixture posts", () => {
 		expect(twinEn?.slug).toBe("twin-post");
 	});
 
-	it("slug derived from filename when frontmatter has no slug", async () => {
+	test("slug derived from filename when frontmatter has no slug", async () => {
 		const result = await getPostInventory();
 		const solo = result.find((e: PostEntry) =>
 			e.filePath.endsWith("solo-post.mdx"),
@@ -425,17 +426,17 @@ describe("unit: getPostInventory — edge cases", () => {
 			"---\ntitle: French Post\n---\nContent.",
 		);
 
-		vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+		jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 	});
 
 	afterAll(async () => {
-		vi.restoreAllMocks();
+		jest.restoreAllMocks();
 		await rm(tmpDir, { recursive: true, force: true });
 	});
 
 	beforeEach(resetDbMocks);
 
-	it("skips files with missing title frontmatter (no-title.mdx omitted from result)", async () => {
+	test("skips files with missing title frontmatter (no-title.mdx omitted from result)", async () => {
 		const result = await getPostInventory();
 		const hasNoTitle = result.some((e: PostEntry) =>
 			e.filePath.includes("no-title.mdx"),
@@ -443,7 +444,7 @@ describe("unit: getPostInventory — edge cases", () => {
 		expect(hasNoTitle).toBe(false);
 	});
 
-	it("skips files in unsupported locale directory (fr/)", async () => {
+	test("skips files in unsupported locale directory (fr/)", async () => {
 		const result = await getPostInventory();
 		const hasFrench = result.some((e: PostEntry) =>
 			e.filePath.includes("/fr/"),
@@ -451,7 +452,7 @@ describe("unit: getPostInventory — edge cases", () => {
 		expect(hasFrench).toBe(false);
 	});
 
-	it("parses publishedAt as ISO date string when gray-matter returns a Date object", async () => {
+	test("parses publishedAt as ISO date string when gray-matter returns a Date object", async () => {
 		const result = await getPostInventory();
 		const dated = result.find((e: PostEntry) =>
 			e.filePath.includes("dated.mdx"),
@@ -460,7 +461,7 @@ describe("unit: getPostInventory — edge cases", () => {
 		expect(dated?.frontmatter.publishedAt).toMatch(/^\d{4}-\d{2}-\d{2}/);
 	});
 
-	it("parses publishedAt from string value when not a Date object", async () => {
+	test("parses publishedAt from string value when not a Date object", async () => {
 		const result = await getPostInventory();
 		const stringDated = result.find((e: PostEntry) =>
 			e.filePath.includes("string-date.mdx"),
@@ -469,7 +470,7 @@ describe("unit: getPostInventory — edge cases", () => {
 		expect(stringDated?.frontmatter.publishedAt).toBe("2026-06-01");
 	});
 
-	it("parses seriesPart from integer frontmatter field", async () => {
+	test("parses seriesPart from integer frontmatter field", async () => {
 		const result = await getPostInventory();
 		const series = result.find((e: PostEntry) =>
 			e.filePath.includes("series-post.mdx"),
@@ -478,7 +479,7 @@ describe("unit: getPostInventory — edge cases", () => {
 		expect(series?.frontmatter.seriesPart).toBe(3);
 	});
 
-	it("non-.mdx files in content dir are ignored", async () => {
+	test("non-.mdx files in content dir are ignored", async () => {
 		const result = await getPostInventory();
 		const hasReadme = result.some((e: PostEntry) =>
 			e.filePath.includes("readme.txt"),
@@ -492,7 +493,7 @@ describe("unit: getPostInventory — edge cases", () => {
 describe("integration: getPostInventory — real content dir", () => {
 	beforeEach(resetDbMocks);
 
-	it("returns an array (empty when no MDX files present)", async () => {
+	test("returns an array (empty when no MDX files present)", async () => {
 		const result = await getPostInventory();
 		expect(Array.isArray(result)).toBe(true);
 	});

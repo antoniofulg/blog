@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit and integration tests for app/components/ui/theme-toggle.tsx
  *
@@ -17,37 +18,35 @@
  */
 
 import {
-	act,
-	cleanup,
-	createEvent,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
-import React from "react";
-import {
 	afterAll,
 	afterEach,
 	beforeAll,
 	beforeEach,
 	describe,
 	expect,
-	it,
-	vi,
-} from "vitest";
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { act, cleanup, createEvent, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
+import React from "react";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => ({
-	useThemeSpy: vi.fn(),
-	mockToggle: vi.fn(),
-	mockSetTheme: vi.fn(),
-	recordThemeEvent: vi.fn(() => Promise.resolve({ recorded: true })),
+const mocks = (() => ({
+	useThemeSpy: jest.fn(),
+	mockToggle: jest.fn(),
+	mockSetTheme: jest.fn(),
+	recordThemeEvent: jest.fn(() => Promise.resolve({ recorded: true })),
 	/**
 	 * Captured reference to the real `useTheme` from the actual module.
-	 * Set inside the vi.mock factory so integration tests can restore the real
+	 * Set inside the jest.mock factory so integration tests can restore the real
 	 * implementation for describe blocks that need actual context reads.
-	 * Must live in vi.hoisted so it is initialised before the mock factory runs.
+	 * Must live in jest.hoisted so it is initialised before the mock factory runs.
 	 */
 	realUseTheme: null as
 		| (() => {
@@ -59,46 +58,61 @@ const mocks = vi.hoisted(() => ({
 				) => void;
 		  })
 		| null,
-}));
+}))();
 
 // Replace `useTheme` with a spy so unit tests control the returned values.
 // All other exports (ThemeProvider, ThemeSource, etc.) stay real.
-vi.mock("#/lib/theme", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("#/lib/theme")>();
-	mocks.realUseTheme = actual.useTheme as typeof mocks.realUseTheme;
-	return {
-		...actual,
-		useTheme: mocks.useThemeSpy,
-	};
-});
+// Bun uses a complete module factory below so unit and integration paths share
+// the same implementation exports.
 
 // Intercept the dispatch-theme-event wrapper used by theme.tsx.
 // theme.tsx dynamically imports dispatchThemeEvent from dispatch-theme-event.ts
 // (a non-.server. wrapper) to avoid TanStack Start's import-protection plugin.
-vi.mock("#/lib/analytics/dispatch-theme-event", () => ({
+mock.module("#/lib/analytics/dispatch-theme-event", () => ({
 	dispatchThemeEvent: mocks.recordThemeEvent,
 }));
 
-// ── Imports (after vi.mock declarations) ─────────────────────────────────────
+// ── Imports (after jest.mock declarations) ─────────────────────────────────────
 
-import { ThemeToggle } from "#/components/ui/theme-toggle";
 import { LocaleProvider as RealLocaleProvider } from "#/lib/locale";
-import { ThemeProvider } from "#/lib/theme";
+import * as realTheme from "#/lib/theme";
 
-// ── jsdom stubs ───────────────────────────────────────────────────────────────
+const realUseTheme = realTheme.useTheme;
+
+const happyDomWindow = window as unknown as Window & {
+	happyDOM: {
+		settings: {
+			disableCSSFileLoading: boolean;
+			handleDisabledFileLoadingAsSuccess: boolean;
+		};
+	};
+};
+happyDomWindow.happyDOM.settings.disableCSSFileLoading = true;
+happyDomWindow.happyDOM.settings.handleDisabledFileLoadingAsSuccess = true;
+
+mock.module("#/lib/theme", () => ({
+	...realTheme,
+	useTheme: mocks.useThemeSpy,
+}));
+
+const { ThemeProvider } = realTheme;
+const { ThemeToggle } = await import("#/components/ui/theme-toggle");
+mocks.realUseTheme = realUseTheme;
+
+// ── HappyDOM stubs ───────────────────────────────────────────────────────────────
 
 // ThemeProvider reads window.matchMedia on mount — stub to return light preference.
 Object.defineProperty(window, "matchMedia", {
 	writable: true,
-	value: vi.fn().mockImplementation((query: string) => ({
+	value: jest.fn().mockImplementation((query: string) => ({
 		matches: false,
 		media: query,
 		onchange: null,
-		addListener: vi.fn(),
-		removeListener: vi.fn(),
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn(),
+		addListener: jest.fn(),
+		removeListener: jest.fn(),
+		addEventListener: jest.fn(),
+		removeEventListener: jest.fn(),
+		dispatchEvent: jest.fn(),
 	})),
 });
 
@@ -151,7 +165,7 @@ afterEach(() => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe("unit: handleKeyDown — ArrowDown opens the popover", () => {
-	it("AC-1: ArrowDown opens the popover (aria-expanded goes false→true)", () => {
+	test("AC-1: ArrowDown opens the popover (aria-expanded goes false→true)", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
@@ -160,7 +174,7 @@ describe("unit: handleKeyDown — ArrowDown opens the popover", () => {
 		expect(btn.getAttribute("aria-expanded")).toBe("true");
 	});
 
-	it("AC-2: Space does NOT open the popover via handleKeyDown (uses native click → toggle)", () => {
+	test("AC-2: Space does NOT open the popover via handleKeyDown (uses native click → toggle)", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
@@ -171,50 +185,50 @@ describe("unit: handleKeyDown — ArrowDown opens the popover", () => {
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
 	});
 
-	it("ArrowDown calls preventDefault to suppress native scroll", () => {
+	test("ArrowDown calls preventDefault to suppress native scroll", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
 		const event = createEvent.keyDown(btn, { key: "ArrowDown" });
-		const preventSpy = vi.spyOn(event, "preventDefault");
+		const preventSpy = jest.spyOn(event, "preventDefault");
 		fireEvent(btn, event);
 
-		expect(preventSpy).toHaveBeenCalledOnce();
+		expect(preventSpy).toHaveBeenCalledTimes(1);
 	});
 
-	it("Space does NOT call preventDefault — uses native button activation", () => {
+	test("Space does NOT call preventDefault — uses native button activation", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
 		const event = createEvent.keyDown(btn, { key: " " });
-		const preventSpy = vi.spyOn(event, "preventDefault");
+		const preventSpy = jest.spyOn(event, "preventDefault");
 		fireEvent(btn, event);
 
 		expect(preventSpy).not.toHaveBeenCalled();
 	});
 
-	it("Tab key does NOT open the popover", () => {
+	test("Tab key does NOT open the popover", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 		fireEvent.keyDown(btn, { key: "Tab" });
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
 	});
 
-	it("Enter key does NOT open the popover from the button", () => {
+	test("Enter key does NOT open the popover from the button", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 		fireEvent.keyDown(btn, { key: "Enter" });
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
 	});
 
-	it("Escape key does NOT open the popover from the button-level handler", () => {
+	test("Escape key does NOT open the popover from the button-level handler", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 		fireEvent.keyDown(btn, { key: "Escape" });
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
 	});
 
-	it("arbitrary character key 'a' does NOT open the popover", () => {
+	test("arbitrary character key 'a' does NOT open the popover", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 		fireEvent.keyDown(btn, { key: "a" });
@@ -227,24 +241,24 @@ describe("unit: handleKeyDown — ArrowDown opens the popover", () => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe("unit: aria attributes on the toggle button", () => {
-	it("has aria-haspopup='menu'", () => {
+	test("has aria-haspopup='menu'", () => {
 		renderToggle();
 		expect(getToggleBtn().getAttribute("aria-haspopup")).toBe("menu");
 	});
 
-	it("has aria-expanded='false' when popover is closed", () => {
+	test("has aria-expanded='false' when popover is closed", () => {
 		renderToggle();
 		expect(getToggleBtn().getAttribute("aria-expanded")).toBe("false");
 	});
 
-	it("has aria-expanded='true' after ArrowDown opens the popover", () => {
+	test("has aria-expanded='true' after ArrowDown opens the popover", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 		fireEvent.keyDown(btn, { key: "ArrowDown" });
 		expect(btn.getAttribute("aria-expanded")).toBe("true");
 	});
 
-	it("has aria-keyshortcuts='ArrowDown' (Space uses native button activation, not disclosed)", () => {
+	test("has aria-keyshortcuts='ArrowDown' (Space uses native button activation, not disclosed)", () => {
 		renderToggle();
 		expect(getToggleBtn().getAttribute("aria-keyshortcuts")).toBe("ArrowDown");
 	});
@@ -255,7 +269,7 @@ describe("unit: aria attributes on the toggle button", () => {
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe("unit: forceMount — menu items exist in DOM regardless of open state", () => {
-	it("AC-3: three menuitemradio buttons exist in DOM when popover is closed", () => {
+	test("AC-3: three menuitemradio buttons exist in DOM when popover is closed", () => {
 		renderToggle();
 		// { hidden: true } includes elements hidden from the AT tree
 		// (Popover.Content has `hidden` attr when open===false)
@@ -263,7 +277,7 @@ describe("unit: forceMount — menu items exist in DOM regardless of open state"
 		expect(items).toHaveLength(3);
 	});
 
-	it("AC-3: three menuitemradio buttons exist in DOM when popover is open", () => {
+	test("AC-3: three menuitemradio buttons exist in DOM when popover is open", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 		fireEvent.keyDown(btn, { key: "ArrowDown" });
@@ -272,14 +286,14 @@ describe("unit: forceMount — menu items exist in DOM regardless of open state"
 		expect(items).toHaveLength(3);
 	});
 
-	it("popover content has 'hidden' attribute when open===false", () => {
+	test("popover content has 'hidden' attribute when open===false", () => {
 		renderToggle();
 		// role="menu" is set explicitly on Popover.Content
 		const menu = screen.getByRole("menu", { hidden: true });
 		expect(menu.hasAttribute("hidden")).toBe(true);
 	});
 
-	it("popover content does NOT have 'hidden' attribute when open===true", () => {
+	test("popover content does NOT have 'hidden' attribute when open===true", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 		fireEvent.keyDown(btn, { key: "ArrowDown" });
@@ -288,7 +302,7 @@ describe("unit: forceMount — menu items exist in DOM regardless of open state"
 		expect(menu.hasAttribute("hidden")).toBe(false);
 	});
 
-	it("Light, Dark, and CS 1.6 options exist in DOM even when popover is closed", () => {
+	test("Light, Dark, and CS 1.6 options exist in DOM even when popover is closed", () => {
 		renderToggle();
 		const labels = screen
 			.getAllByRole("menuitemradio", { hidden: true })
@@ -304,7 +318,7 @@ describe("unit: forceMount — menu items exist in DOM regardless of open state"
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe("unit: focus management — ArrowDown moves focus to first menuitemradio", () => {
-	it("ArrowDown opens popover and moves focus to the first menu item", async () => {
+	test("ArrowDown opens popover and moves focus to the first menu item", async () => {
 		// Focus-to-first-item is provided by:
 		//   1. Radix Popover's built-in FocusTrap (on open state transitions),
 		//   2. the useEffect belt-and-suspenders ensuring the correct element in
@@ -326,7 +340,7 @@ describe("unit: focus management — ArrowDown moves focus to first menuitemradi
 // ═════════════════════════════════════════════════════════════════════════════
 
 describe("unit: source attribution — keyboard path sets source='keyboard'", () => {
-	it("AC-4: ArrowDown then pick CS 1.6 calls setTheme with source:'keyboard'", () => {
+	test("AC-4: ArrowDown then pick CS 1.6 calls setTheme with source:'keyboard'", () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
@@ -342,7 +356,7 @@ describe("unit: source attribution — keyboard path sets source='keyboard'", ()
 		expect(mocks.mockSetTheme).toHaveBeenCalledWith("cs16", "keyboard", "en");
 	});
 
-	it("forwards the route locale prop as the third setTheme arg (pt-br route)", () => {
+	test("forwards the route locale prop as the third setTheme arg (pt-br route)", () => {
 		renderToggle("pt-br");
 		// pt-br render localizes the aria-label, so query by the pt-br name.
 		const btn = screen.getByRole("button", { name: "Alternar tema" });
@@ -360,7 +374,7 @@ describe("unit: source attribution — keyboard path sets source='keyboard'", ()
 		);
 	});
 
-	it("Space does NOT open popover — toggle() is called via native click instead", () => {
+	test("Space does NOT open popover — toggle() is called via native click instead", () => {
 		// Space keydown no longer intercepted; native button fires click → toggle().
 		// This test verifies the popover source attribution path is not triggered by Space.
 		renderToggle();
@@ -375,21 +389,21 @@ describe("unit: source attribution — keyboard path sets source='keyboard'", ()
 
 describe("unit: source attribution — long-press path sets source='long-press'", () => {
 	beforeAll(() => {
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 	});
 
 	afterAll(() => {
-		vi.useRealTimers();
+		jest.useRealTimers();
 	});
 
-	it("AC-5: long-press then pick CS 1.6 calls setTheme with source:'long-press'", async () => {
+	test("AC-5: long-press then pick CS 1.6 calls setTheme with source:'long-press'", async () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
 		// Simulate pointer long-press: pointerDown → advance 500ms timer → open
 		fireEvent.pointerDown(btn);
 		await act(async () => {
-			vi.advanceTimersByTime(500);
+			jest.advanceTimersByTime(500);
 		});
 
 		// Popover should now be open
@@ -408,14 +422,14 @@ describe("unit: source attribution — long-press path sets source='long-press'"
 
 describe("unit: AC-6 — short-click calls toggle(), popover stays closed", () => {
 	beforeAll(() => {
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 	});
 
 	afterAll(() => {
-		vi.useRealTimers();
+		jest.useRealTimers();
 	});
 
-	it("click without long-press calls toggle() and leaves popover closed", async () => {
+	test("click without long-press calls toggle() and leaves popover closed", async () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
@@ -424,11 +438,11 @@ describe("unit: AC-6 — short-click calls toggle(), popover stays closed", () =
 		fireEvent.pointerUp(btn);
 		fireEvent.click(btn);
 
-		expect(mocks.mockToggle).toHaveBeenCalledOnce();
+		expect(mocks.mockToggle).toHaveBeenCalledTimes(1);
 		expect(btn.getAttribute("aria-expanded")).toBe("false");
 	});
 
-	it("short-click does NOT call setTheme", async () => {
+	test("short-click does NOT call setTheme", async () => {
 		renderToggle();
 		const btn = getToggleBtn();
 
@@ -467,7 +481,7 @@ describe("integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activatio
 	// beforeAll: initial setup before first integration test
 	// beforeEach: re-apply before EACH test because the global afterEach calls
 	//   setUnitMock() which resets the spy between tests.
-	// Vitest hook order: test → describe afterEach → global afterEach
+	// Bun Test hook order: test → describe afterEach → global afterEach
 	//                    → global beforeEach → describe beforeEach → next test
 	beforeAll(restoreReal);
 	beforeEach(restoreReal);
@@ -486,7 +500,7 @@ describe("integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activatio
 		);
 	}
 
-	it("ArrowDown + click CS 1.6 sets documentElement class to 'cs16'", async () => {
+	test("ArrowDown + click CS 1.6 sets documentElement class to 'cs16'", async () => {
 		renderIntegration();
 		await act(async () => {}); // settle hydration effect
 
@@ -501,7 +515,7 @@ describe("integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activatio
 		expect(document.documentElement.classList.contains("cs16")).toBe(true);
 	});
 
-	it("ArrowDown + click CS 1.6 calls recordThemeEvent with source:'keyboard'", async () => {
+	test("ArrowDown + click CS 1.6 calls recordThemeEvent with source:'keyboard'", async () => {
 		renderIntegration();
 		await act(async () => {});
 

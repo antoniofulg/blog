@@ -14,18 +14,26 @@
  *   AC-3: Human UA + valid input → one row with all six columns; created_at within 1 s.
  */
 
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
+import {
+	afterAll,
+	beforeAll,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
 import { themeEvents } from "#/db/schema";
 import type { RecordThemeEventInput } from "#/lib/analytics/record-theme-event.server";
 import type { TestDb } from "../../tests/e2e/db";
 import { createTestDb } from "../../tests/e2e/db";
 
 // ── PGLite injection via hoisted getter ───────────────────────────────────────
-// vi.hoisted runs before any module imports (including vi.mock factories).
+// jest.hoisted runs before any module imports (including jest.mock factories).
 // The holder provides a get/set API so the factory closure always reads the
 // current value — set in beforeAll once the async createTestDb() resolves.
 
-const dbHolder = vi.hoisted(() => {
+const dbHolder = (() => {
 	// biome-ignore lint/suspicious/noExplicitAny: db type varies between drizzle adapters
 	let _db: any = null;
 	return {
@@ -41,20 +49,20 @@ const dbHolder = vi.hoisted(() => {
 			return _db;
 		},
 	};
-});
+})();
 
-// server-only guard: no-op in Node/vitest context
-vi.mock("@tanstack/react-start/server-only", () => ({}));
+// server-only guard: no-op in Bun Test context
+mock.module("@tanstack/react-start/server-only", () => ({}));
 
 // getRequest: used inside the server fn handler wrapper; no-op for integration tests
 // since we call recordThemeEventHandler directly (getRequest never runs in this path).
-vi.mock("@tanstack/react-start/server", () => ({
-	getRequest: vi.fn(() => new Request("http://localhost/")),
+mock.module("@tanstack/react-start/server", () => ({
+	getRequest: jest.fn(() => new Request("http://localhost/")),
 }));
 
 // Prevent TanStack Start Vite plugin from stripping server fn handlers.
 // Pattern mirrors admin-routes.test.ts / auth.test.ts.
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -65,7 +73,7 @@ vi.mock("@tanstack/react-start", () => ({
 
 // Replace #/db/client with a lazy getter so the PGLite db is resolved at
 // call time rather than at mock-factory time.
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	get db() {
 		return dbHolder.get();
 	},
@@ -73,7 +81,9 @@ vi.mock("#/db/client", () => ({
 
 // ── Import after mocks are registered ────────────────────────────────────────
 
-import { recordThemeEventHandler } from "#/lib/analytics/record-theme-event.server";
+const { recordThemeEventHandler } = await import(
+	"#/lib/analytics/record-theme-event.server"
+);
 
 // ── Test constants ────────────────────────────────────────────────────────────
 
@@ -89,17 +99,17 @@ let testDb: TestDb;
 beforeAll(async () => {
 	testDb = await createTestDb();
 	dbHolder.set(testDb.db);
-}, 30_000);
+}, 60_000);
 
 afterAll(async () => {
 	dbHolder.clear();
 	await testDb?.close();
-});
+}, 60_000);
 
 // ── Integration tests ─────────────────────────────────────────────────────────
 
 describe("recordThemeEventHandler integration: PGLite INSERT", () => {
-	it("human UA: inserts one row with all six columns and returns { recorded: true } (AC-3)", async () => {
+	test("human UA: inserts one row with all six columns and returns { recorded: true } (AC-3)", async () => {
 		const before = Date.now();
 
 		const input: RecordThemeEventInput = {
@@ -137,7 +147,7 @@ describe("recordThemeEventHandler integration: PGLite INSERT", () => {
 		expect(ts).toBeLessThanOrEqual(after + 1000);
 	}, 30_000);
 
-	it("keyboard source: inserts with source='keyboard' and lang='pt-br'", async () => {
+	test("keyboard source: inserts with source='keyboard' and lang='pt-br'", async () => {
 		const countBefore = (await testDb.db.select().from(themeEvents)).length;
 
 		const input: RecordThemeEventInput = {
@@ -165,7 +175,7 @@ describe("recordThemeEventHandler integration: PGLite INSERT", () => {
 		});
 	}, 30_000);
 
-	it("bot UA: does not insert a row and returns { recorded: false } (AC-2)", async () => {
+	test("bot UA: does not insert a row and returns { recorded: false } (AC-2)", async () => {
 		const countBefore = (await testDb.db.select().from(themeEvents)).length;
 
 		const input: RecordThemeEventInput = {

@@ -1,0 +1,1584 @@
+{
+  "schemaVersion": 1,
+  "commit": "9325a0da2d15c5f5796ad829b6fbc6d4744a4751",
+  "timestamp": "2026-08-24T22:49:36.109Z",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 9.49072265625,
+    "powerSource": "ac",
+    "startedAt": "2026-08-24T22:49:36.121Z"
+  },
+  "repetitions": 1,
+  "warmupsPerProfile": 1,
+  "canonicalRoutes": 5,
+  "profiles": [
+    {
+      "profile": {
+        "id": "playwright:node:1",
+        "arm": "playwright",
+        "runtime": "node",
+        "workers": 1,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:node:1",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 6681.137084,
+        "peakRssBytes": 1232584704,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": null,
+        "valid": false,
+        "exclusionReason": "missing smoke outcome",
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--workers=1",
+          "--retries=0",
+          "--grep",
+          "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+          "--reporter=json"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "playwright:node:1",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 4681.363584,
+          "peakRssBytes": 1709096960,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": null,
+          "valid": false,
+          "exclusionReason": "missing smoke outcome",
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: missing smoke outcome",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "playwright:bun:1",
+        "arm": "playwright",
+        "runtime": "bun",
+        "workers": 1,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:bun:1",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3738.343917,
+        "peakRssBytes": 1478656000,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": null,
+        "valid": false,
+        "exclusionReason": "missing smoke outcome",
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--workers=1",
+          "--retries=0",
+          "--grep",
+          "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+          "--reporter=json"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "playwright:bun:1",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 3572.278583000001,
+          "peakRssBytes": 1502969856,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": null,
+          "valid": false,
+          "exclusionReason": "missing smoke outcome",
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=1",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: missing smoke outcome",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "playwright:node:2",
+        "arm": "playwright",
+        "runtime": "node",
+        "workers": 2,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:node:2",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 4469.226375000002,
+        "peakRssBytes": 1689124864,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": null,
+        "valid": false,
+        "exclusionReason": "missing smoke outcome",
+        "command": [
+          "node",
+          "node_modules/@playwright/test/cli.js",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--workers=2",
+          "--retries=0",
+          "--grep",
+          "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+          "--reporter=json"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "playwright:node:2",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 4347.62975,
+          "peakRssBytes": 1551269888,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": null,
+          "valid": false,
+          "exclusionReason": "missing smoke outcome",
+          "command": [
+            "node",
+            "node_modules/@playwright/test/cli.js",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: missing smoke outcome",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "playwright:bun:2",
+        "arm": "playwright",
+        "runtime": "bun",
+        "workers": 2,
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright"
+        ]
+      },
+      "warmup": {
+        "profile": "playwright:bun:2",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3563.4905830000025,
+        "peakRssBytes": 1375010816,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": null,
+        "valid": false,
+        "exclusionReason": "missing smoke outcome",
+        "command": [
+          "bunx",
+          "--bun",
+          "playwright",
+          "test",
+          "--config=playwright.config.ts",
+          "--project=chromium",
+          "--workers=2",
+          "--retries=0",
+          "--grep",
+          "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+          "--reporter=json"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "playwright:bun:2",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 3632.9473749999997,
+          "peakRssBytes": 1309229056,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": null,
+          "valid": false,
+          "exclusionReason": "missing smoke outcome",
+          "command": [
+            "bunx",
+            "--bun",
+            "playwright",
+            "test",
+            "--config=playwright.config.ts",
+            "--project=chromium",
+            "--workers=2",
+            "--retries=0",
+            "--grep",
+            "en post render|pt-br post render|404:|/pt-br/ renders 200|/ renders 200",
+            "--reporter=json"
+          ]
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: missing smoke outcome",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:cold:1view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:cold:1view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 2720.274333000001,
+        "peakRssBytes": 134201344,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:cold:1view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 772.9429579999996,
+          "peakRssBytes": 144343040,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 772.9429579999996,
+        "minMs": 772.9429579999996,
+        "maxMs": 772.9429579999996,
+        "medianPeakRssBytes": 144343040,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:cold:1view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "cold",
+        "views": 1,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:cold:1view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 803.9180839999972,
+        "peakRssBytes": 143327232,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:cold:1view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 877.8716249999998,
+          "peakRssBytes": 142540800,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 877.8716249999998,
+        "minMs": 877.8716249999998,
+        "maxMs": 877.8716249999998,
+        "medianPeakRssBytes": 142540800,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:cold:2view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "cold",
+        "views": 2,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:cold:2view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 6136.352541,
+        "peakRssBytes": 125829120,
+        "exitCode": 1,
+        "timedOut": false,
+        "outcome": {
+          "passed": false,
+          "routeCount": 5
+        },
+        "valid": false,
+        "exclusionReason": "exit code 1; canonical route outcome mismatch",
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:cold:2view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 9893.142832999998,
+          "peakRssBytes": 143835136,
+          "exitCode": 1,
+          "timedOut": false,
+          "outcome": {
+            "passed": false,
+            "routeCount": 5
+          },
+          "valid": false,
+          "exclusionReason": "exit code 1; canonical route outcome mismatch",
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: exit code 1; canonical route outcome mismatch",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:cold:2view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "cold",
+        "views": 2,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:cold:2view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 6105.117083000005,
+        "peakRssBytes": 142606336,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:cold:2view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 9937.527000000002,
+          "peakRssBytes": 144113664,
+          "exitCode": 1,
+          "timedOut": false,
+          "outcome": {
+            "passed": false,
+            "routeCount": 5
+          },
+          "valid": false,
+          "exclusionReason": "exit code 1; canonical route outcome mismatch",
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: exit code 1; canonical route outcome mismatch",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:warm:1view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "warm",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:warm:1view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 868.143624999997,
+        "peakRssBytes": 140967936,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:warm:1view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 661.7244169999904,
+          "peakRssBytes": 144064512,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 661.7244169999904,
+        "minMs": 661.7244169999904,
+        "maxMs": 661.7244169999904,
+        "medianPeakRssBytes": 144064512,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": true
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:warm:1view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "warm",
+        "views": 1,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:warm:1view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 821.0640419999982,
+        "peakRssBytes": 134234112,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:warm:1view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 695.3555419999902,
+          "peakRssBytes": 140951552,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 695.3555419999902,
+        "minMs": 695.3555419999902,
+        "maxMs": 695.3555419999902,
+        "medianPeakRssBytes": 140951552,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": true
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:warm:2view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "warm",
+        "views": 2,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:warm:2view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 11052.700834000003,
+        "peakRssBytes": 133775360,
+        "exitCode": 1,
+        "timedOut": false,
+        "outcome": {
+          "passed": false,
+          "routeCount": 5
+        },
+        "valid": false,
+        "exclusionReason": "exit code 1; canonical route outcome mismatch",
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:warm:2view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 15877.696750000003,
+          "peakRssBytes": 145408000,
+          "exitCode": 1,
+          "timedOut": false,
+          "outcome": {
+            "passed": false,
+            "routeCount": 5
+          },
+          "valid": false,
+          "exclusionReason": "exit code 1; canonical route outcome mismatch",
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: exit code 1; canonical route outcome mismatch",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:webkit:warm:2view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "warm",
+        "views": 2,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:warm:2view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 10860.12745900001,
+        "peakRssBytes": 136052736,
+        "exitCode": 1,
+        "timedOut": false,
+        "outcome": {
+          "passed": false,
+          "routeCount": 5
+        },
+        "valid": false,
+        "exclusionReason": "exit code 1; canonical route outcome mismatch",
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:warm:2view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 11138.651874999981,
+          "peakRssBytes": 141688832,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 11138.651874999981,
+        "minMs": 11138.651874999981,
+        "maxMs": 11138.651874999981,
+        "medianPeakRssBytes": 141688832,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:cold:1view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:cold:1view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3852.348209000018,
+        "peakRssBytes": 1266204672,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:cold:1view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 2770.851082999987,
+          "peakRssBytes": 1240530944,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 2770.851082999987,
+        "minMs": 2770.851082999987,
+        "maxMs": 2770.851082999987,
+        "medianPeakRssBytes": 1240530944,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:cold:1view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "cold",
+        "views": 1,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:cold:1view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3035.0031250000175,
+        "peakRssBytes": 1275625472,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:cold:1view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 2852.037666999997,
+          "peakRssBytes": 1328103424,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 2852.037666999997,
+        "minMs": 2852.037666999997,
+        "maxMs": 2852.037666999997,
+        "medianPeakRssBytes": 1328103424,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:cold:2view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "cold",
+        "views": 2,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:cold:2view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3797.548333999992,
+        "peakRssBytes": 1693515776,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:cold:2view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 3750.4688750000205,
+          "peakRssBytes": 1635303424,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 3750.4688750000205,
+        "minMs": 3750.4688750000205,
+        "maxMs": 3750.4688750000205,
+        "medianPeakRssBytes": 1635303424,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:cold:2view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "cold",
+        "views": 2,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:cold:2view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 4289.469458999985,
+        "peakRssBytes": 1763934208,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:cold:2view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 4063.674249999982,
+          "peakRssBytes": 1495515136,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 4063.674249999982,
+        "minMs": 4063.674249999982,
+        "maxMs": 4063.674249999982,
+        "medianPeakRssBytes": 1495515136,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:warm:1view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "warm",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:warm:1view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 2982.9752909999806,
+        "peakRssBytes": 1357807616,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:warm:1view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 3117.3558750000084,
+          "peakRssBytes": 1480966144,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 3117.3558750000084,
+        "minMs": 3117.3558750000084,
+        "maxMs": 3117.3558750000084,
+        "medianPeakRssBytes": 1480966144,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:warm:1view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "warm",
+        "views": 1,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:warm:1view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 2988.189041000005,
+        "peakRssBytes": 1479999488,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:warm:1view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 2852.986333000008,
+          "peakRssBytes": 1477672960,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 2852.986333000008,
+        "minMs": 2852.986333000008,
+        "maxMs": 2852.986333000008,
+        "medianPeakRssBytes": 1477672960,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:warm:2view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "warm",
+        "views": 2,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:warm:2view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3995.2690000000002,
+        "peakRssBytes": 1843085312,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:warm:2view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 2988.8427920000104,
+          "peakRssBytes": 1865023488,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 2988.8427920000104,
+        "minMs": 2988.8427920000104,
+        "maxMs": 2988.8427920000104,
+        "medianPeakRssBytes": 1865023488,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    },
+    {
+      "profile": {
+        "id": "webview:chrome:warm:2view:smol",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "chrome",
+        "phase": "warm",
+        "views": 2,
+        "smol": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:chrome:warm:2view:smol",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3667.499041000032,
+        "peakRssBytes": 1754775552,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "--smol",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=chrome",
+          "--views=2",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:chrome:warm:2view:smol",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 4192.987207999977,
+          "peakRssBytes": 1636204544,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": true,
+          "command": [
+            "bun",
+            "--smol",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=chrome",
+            "--views=2",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ]
+        }
+      ],
+      "aggregate": {
+        "medianMs": 4192.987207999977,
+        "minMs": 4192.987207999977,
+        "maxMs": 4192.987207999977,
+        "medianPeakRssBytes": 1636204544,
+        "sampleCount": 1,
+        "medianLoadAvg1": 0,
+        "maxLoadAvg1": 0
+      },
+      "valid": true,
+      "invalidReasons": [],
+      "nonDominated": false
+    }
+  ],
+  "finalists": [
+    "webview:webkit:warm:1view",
+    "webview:webkit:warm:1view:smol"
+  ],
+  "locks": [
+    "/tmp/praxis-playwright.lock",
+    "/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/creatista-test.lock"
+  ]
+}

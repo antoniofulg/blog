@@ -4,48 +4,51 @@ import {
 	beforeEach,
 	describe,
 	expect,
-	it,
-	vi,
-} from "vitest";
+	jest,
+	mock,
+	test,
+} from "bun:test";
+import * as realFs from "node:fs";
+import * as realPromises from "node:fs/promises";
+
+const realReadFile = realPromises.readFile;
+const realReaddir = realPromises.readdir;
+
 import { z } from "zod";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
-	const readFile = vi.fn().mockResolvedValue("");
-	const readdir = vi.fn<() => Promise<string[]>>().mockResolvedValue([]);
-	const existsSync = vi.fn().mockReturnValue(false);
-	const renderMdx = vi.fn().mockResolvedValue(() => null);
+const mocks = (() => {
+	const readFile = jest.fn().mockResolvedValue("");
+	const readdir = jest.fn<() => Promise<string[]>>().mockResolvedValue([]);
+	const existsSync = jest.fn().mockReturnValue(false);
+	const renderMdx = jest.fn().mockResolvedValue(() => null);
 	return { readFile, readdir, existsSync, renderMdx };
-});
+})();
 
-vi.mock("node:fs/promises", async (importOriginal) => {
-	const actual = await importOriginal<typeof import("node:fs/promises")>();
-	return {
-		...actual,
-		readFile: mocks.readFile,
-		readdir: mocks.readdir,
-	};
-});
-
-vi.mock("node:fs", () => ({
+mock.module("node:fs", () => ({
+	...realFs,
 	existsSync: mocks.existsSync,
 }));
 
-vi.mock("#/lib/mdx/renderer.server", () => ({
+mock.module("node:fs/promises", () => ({
+	...realPromises,
+	readFile: mocks.readFile,
+	readdir: mocks.readdir,
+}));
+
+mock.module("#/lib/mdx/renderer.server", () => ({
 	renderMdx: mocks.renderMdx,
 }));
 
-import {
-	loadStaticPage,
-	pageFrontmatterSchema,
-	socialKindEnum,
-} from "#/lib/mdx/pages.server";
+const { loadStaticPage, pageFrontmatterSchema, socialKindEnum } = await import(
+	"#/lib/mdx/pages.server"
+);
 
 // ─── Unit: pageFrontmatterSchema ─────────────────────────────────────────────
 
 describe("unit: pageFrontmatterSchema", () => {
-	it("AC-1: parse({ title: 'About' }) succeeds and returns { title: 'About' }", () => {
+	test("AC-1: parse({ title: 'About' }) succeeds and returns { title: 'About' }", () => {
 		const result = pageFrontmatterSchema.parse({ title: "About" });
 		expect(result.title).toBe("About");
 		// no extra declared fields leak into output
@@ -54,7 +57,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		expect(result.links).toBeUndefined();
 	});
 
-	it("AC-2: missing title throws ZodError referencing title path", () => {
+	test("AC-2: missing title throws ZodError referencing title path", () => {
 		let caught: unknown;
 		try {
 			pageFrontmatterSchema.parse({});
@@ -69,7 +72,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		expect(titleIssue).toBeDefined();
 	});
 
-	it("AC-2: links with typo key (linkdin) throws", () => {
+	test("AC-2: links with typo key (linkdin) throws", () => {
 		expect(() =>
 			pageFrontmatterSchema.parse({
 				title: "About",
@@ -78,7 +81,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		).toThrow();
 	});
 
-	it("AC-3: unknown field (tagline) flows through unchanged via passthrough", () => {
+	test("AC-3: unknown field (tagline) flows through unchanged via passthrough", () => {
 		const result = pageFrontmatterSchema.parse({
 			title: "About",
 			tagline: "Software Engineer",
@@ -89,7 +92,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		);
 	});
 
-	it("nowUpdatedAt passthrough: unknown date field flows through", () => {
+	test("nowUpdatedAt passthrough: unknown date field flows through", () => {
 		const result = pageFrontmatterSchema.parse({
 			title: "About",
 			nowUpdatedAt: "2026-05-22",
@@ -97,7 +100,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		expect((result as Record<string, unknown>).nowUpdatedAt).toBe("2026-05-22");
 	});
 
-	it("valid links with correct enum keys parse successfully", () => {
+	test("valid links with correct enum keys parse successfully", () => {
 		const result = pageFrontmatterSchema.parse({
 			title: "About",
 			links: {
@@ -111,19 +114,19 @@ describe("unit: pageFrontmatterSchema", () => {
 		expect(result.links?.email).toBe("mailto:me@example.com");
 	});
 
-	it("all six social kinds are valid enum values", () => {
+	test("all six social kinds are valid enum values", () => {
 		const validKinds = ["github", "linkedin", "x", "instagram", "rss", "email"];
 		for (const kind of validKinds) {
 			expect(() => socialKindEnum.parse(kind)).not.toThrow();
 		}
 	});
 
-	it("invalid social kind throws", () => {
+	test("invalid social kind throws", () => {
 		expect(() => socialKindEnum.parse("twitter")).toThrow();
 		expect(() => socialKindEnum.parse("facebook")).toThrow();
 	});
 
-	it("avatar field propagates", () => {
+	test("avatar field propagates", () => {
 		const result = pageFrontmatterSchema.parse({
 			title: "About",
 			avatar: "/about/profile.jpeg",
@@ -131,7 +134,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		expect(result.avatar).toBe("/about/profile.jpeg");
 	});
 
-	it("avatarAlt parses as a string", () => {
+	test("avatarAlt parses as a string", () => {
 		const result = pageFrontmatterSchema.parse({
 			title: "About",
 			avatarAlt: "Antonio Fulgencio",
@@ -139,7 +142,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		expect(result.avatarAlt).toBe("Antonio Fulgencio");
 	});
 
-	it("accepts nowUpdatedAt as a Date instance (gray-matter parses YAML dates this way)", () => {
+	test("accepts nowUpdatedAt as a Date instance (gray-matter parses YAML dates this way)", () => {
 		const date = new Date("2026-05-22");
 		const result = pageFrontmatterSchema.parse({
 			title: "About",
@@ -148,7 +151,7 @@ describe("unit: pageFrontmatterSchema", () => {
 		expect(result.nowUpdatedAt).toBeInstanceOf(Date);
 	});
 
-	it("locale parses as a string", () => {
+	test("locale parses as a string", () => {
 		const result = pageFrontmatterSchema.parse({
 			title: "About",
 			locale: "en",
@@ -161,11 +164,11 @@ describe("unit: pageFrontmatterSchema", () => {
 
 describe("unit: loadStaticPage propagates avatar and links via schema", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		mocks.renderMdx.mockResolvedValue(() => null);
 	});
 
-	it("AC-4: returns frontmatter with avatar populated from file", async () => {
+	test("AC-4: returns frontmatter with avatar populated from file", async () => {
 		mocks.readFile.mockResolvedValue(
 			[
 				"---",
@@ -183,7 +186,7 @@ describe("unit: loadStaticPage propagates avatar and links via schema", () => {
 		expect(result?.entry.frontmatter.avatar).toBe("/about/profile.jpeg");
 	});
 
-	it("AC-4: returns frontmatter with links populated from file", async () => {
+	test("AC-4: returns frontmatter with links populated from file", async () => {
 		mocks.readFile.mockResolvedValue(
 			[
 				"---",
@@ -208,7 +211,7 @@ describe("unit: loadStaticPage propagates avatar and links via schema", () => {
 		);
 	});
 
-	it("tagline passthrough: unknown frontmatter field survives loadStaticPage", async () => {
+	test("tagline passthrough: unknown frontmatter field survives loadStaticPage", async () => {
 		mocks.readFile.mockResolvedValue(
 			[
 				"---",
@@ -228,7 +231,7 @@ describe("unit: loadStaticPage propagates avatar and links via schema", () => {
 		);
 	});
 
-	it("missing title: throws (Zod parse error)", async () => {
+	test("missing title: throws (Zod parse error)", async () => {
 		mocks.readFile.mockResolvedValue(
 			["---", "description: No title", "---", "", "Content."].join("\n"),
 		);
@@ -236,7 +239,7 @@ describe("unit: loadStaticPage propagates avatar and links via schema", () => {
 		await expect(loadStaticPage("no-title", "en")).rejects.toThrow();
 	});
 
-	it("invalid links key: throws (Zod parse error)", async () => {
+	test("invalid links key: throws (Zod parse error)", async () => {
 		mocks.readFile.mockResolvedValue(
 			[
 				"---",
@@ -261,7 +264,7 @@ describe("integration: loadStaticPage with real about.mdx", () => {
 	const { join } = require("node:path");
 
 	let tmpDir: string;
-	let cwdSpy: ReturnType<typeof vi.spyOn>;
+	let cwdSpy: ReturnType<typeof jest.spyOn>;
 
 	beforeAll(async () => {
 		tmpDir = await mkdtemp(join(tmpdir(), "pages-fm-integ-"));
@@ -287,24 +290,20 @@ describe("integration: loadStaticPage with real about.mdx", () => {
 			"utf-8",
 		);
 
-		cwdSpy = vi.spyOn(process, "cwd").mockReturnValue(tmpDir);
+		cwdSpy = jest.spyOn(process, "cwd").mockReturnValue(tmpDir);
 
-		const realFs =
-			await vi.importActual<typeof import("node:fs/promises")>(
-				"node:fs/promises",
-			);
-		vi.mocked(mocks.readFile).mockImplementation(realFs.readFile as never);
-		vi.mocked(mocks.readdir).mockImplementation(realFs.readdir as never);
+		mocks.readFile.mockImplementation(realReadFile as never);
+		mocks.readdir.mockImplementation(realReaddir as never);
 	});
 
 	afterAll(async () => {
 		cwdSpy?.mockRestore();
-		vi.mocked(mocks.readFile).mockResolvedValue("");
-		vi.mocked(mocks.readdir).mockResolvedValue([]);
+		mocks.readFile.mockResolvedValue("");
+		mocks.readdir.mockResolvedValue([]);
 		await rm(tmpDir, { recursive: true, force: true });
 	});
 
-	it("AC-4 full: avatar and links are defined and correct in loaded entry", async () => {
+	test("AC-4 full: avatar and links are defined and correct in loaded entry", async () => {
 		const result = await loadStaticPage("about", "en");
 
 		expect(result).not.toBeNull();
@@ -320,7 +319,7 @@ describe("integration: loadStaticPage with real about.mdx", () => {
 		);
 	});
 
-	it("AC-3 full: tagline and nowUpdatedAt flow through passthrough", async () => {
+	test("AC-3 full: tagline and nowUpdatedAt flow through passthrough", async () => {
 		const result = await loadStaticPage("about", "en");
 
 		expect(result).not.toBeNull();

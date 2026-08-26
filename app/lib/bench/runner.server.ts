@@ -26,10 +26,16 @@ const STDERR_TAIL_LINES = 20;
 
 export type MeasuredRun = Sample & {
 	stdout: string;
+	/** Full stderr for parsers whose structured summary is emitted there. */
+	stderr?: string;
 	stderrTail: string;
 	timedOut: boolean;
 	/** Process-group id the command ran in, so a caller can prove it is gone. */
 	pgid: number;
+	/** True only after every process in the measured group has exited. */
+	cleanupVerified?: boolean;
+	/** Process ids still visible when cleanup verification failed. */
+	lingeringPids?: number[];
 };
 
 export function tailLines(text: string, lines = STDERR_TAIL_LINES): string {
@@ -43,15 +49,80 @@ export function tailLines(text: string, lines = STDERR_TAIL_LINES): string {
  */
 export async function groupRssBytes(pgid: number): Promise<number> {
 	try {
-		const { stdout } = await run("ps", ["-o", "rss=", "-g", String(pgid)]);
-		return stdout
+		const { stdout } = await run("ps", ["-axo", "pid=,ppid=,rss="]);
+		const processes = stdout
 			.split("\n")
-			.map((line) => Number.parseInt(line.trim(), 10))
-			.filter((kb) => Number.isFinite(kb))
-			.reduce((total, kb) => total + kb * 1024, 0);
+			.map((line) => line.trim().split(/\s+/).map(Number))
+			.filter(
+				(parts): parts is [number, number, number] =>
+					parts.length === 3 && parts.every(Number.isFinite),
+			);
+		const children = new Map<number, Array<[number, number, number]>>();
+		for (const process of processes) {
+			const siblings = children.get(process[1]) ?? [];
+			siblings.push(process);
+			children.set(process[1], siblings);
+		}
+		const queue = [pgid];
+		const seen = new Set<number>();
+		let total = 0;
+		while (queue.length > 0) {
+			const pid = queue.shift();
+			if (pid === undefined || seen.has(pid)) continue;
+			seen.add(pid);
+			const process = processes.find((candidate) => candidate[0] === pid);
+			if (process) total += process[2] * 1024;
+			for (const child of children.get(pid) ?? []) queue.push(child[0]);
+		}
+		return total;
 	} catch {
 		return 0;
 	}
+}
+
+/** Return process ids still belonging to a detached measured process group. */
+export async function processGroupPids(pgid: number): Promise<number[]> {
+	if (pgid === 0) return [];
+	try {
+		const { stdout } = await run("ps", ["-axo", "pid=,pgid="]);
+		return stdout
+			.split("\n")
+			.map((line) => line.trim().split(/\s+/).map(Number))
+			.filter(
+				(parts): parts is [number, number] =>
+					parts.length === 2 &&
+					parts.every(Number.isFinite) &&
+					parts[1] === pgid,
+			)
+			.map(([pid]) => pid);
+	} catch {
+		return [];
+	}
+}
+
+/** Poll until the measured process group has disappeared, then terminate leftovers. */
+export async function verifyProcessGroupCleanup(
+	pgid: number,
+	waitMs = 1_000,
+): Promise<{ verified: boolean; lingeringPids: number[] }> {
+	if (pgid === 0) return { verified: true, lingeringPids: [] };
+	const deadline = Date.now() + waitMs;
+	let pids = await processGroupPids(pgid);
+	while (pids.length > 0 && Date.now() < deadline) {
+		await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
+		pids = await processGroupPids(pgid);
+	}
+	if (pids.length === 0) return { verified: true, lingeringPids: [] };
+	killGroup(pgid, "SIGTERM");
+	for (let attempt = 0; attempt < 20; attempt += 1) {
+		await new Promise((resolvePromise) => setTimeout(resolvePromise, 25));
+		pids = await processGroupPids(pgid);
+		if (pids.length === 0) return { verified: true, lingeringPids: [] };
+	}
+	killGroup(pgid, "SIGKILL");
+	await new Promise((resolvePromise) => setTimeout(resolvePromise, 50));
+	pids = await processGroupPids(pgid);
+	return { verified: pids.length === 0, lingeringPids: pids };
 }
 
 /**
@@ -62,7 +133,7 @@ export async function groupRssBytes(pgid: number): Promise<number> {
 export async function spawnMeasured(
 	argv: string[],
 	env: NodeJS.ProcessEnv,
-	opts: { timeoutMs: number; cwd?: string },
+	opts: { timeoutMs: number; cwd?: string; onStart?: (pgid: number) => void },
 ): Promise<MeasuredRun> {
 	const started = performance.now();
 	const loadAvg1 = loadavg()[0];
@@ -73,6 +144,7 @@ export async function spawnMeasured(
 		stdio: ["ignore", "pipe", "pipe"],
 	});
 	const pgid = child.pid ?? 0;
+	opts.onStart?.(pgid);
 
 	let stdout = "";
 	let stderr = "";
@@ -110,6 +182,7 @@ export async function spawnMeasured(
 
 	clearInterval(sampler);
 	clearTimeout(timer);
+	const cleanup = await verifyProcessGroupCleanup(pgid);
 
 	return {
 		ms: performance.now() - started,
@@ -117,9 +190,12 @@ export async function spawnMeasured(
 		exitCode,
 		loadAvg1,
 		stdout,
+		stderr,
 		stderrTail: tailLines(stderr),
 		timedOut,
 		pgid,
+		cleanupVerified: cleanup.verified,
+		lingeringPids: cleanup.lingeringPids,
 	};
 }
 

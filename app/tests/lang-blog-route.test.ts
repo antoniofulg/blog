@@ -1,22 +1,22 @@
+import { beforeEach, describe, expect, jest, mock, test } from "bun:test";
 import { createServer } from "node:net";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
-	const selectOrderBy = vi.fn().mockResolvedValue([]);
-	const selectWhere = vi.fn().mockReturnValue({ orderBy: selectOrderBy });
-	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
-	const select = vi.fn().mockReturnValue({ from: selectFrom });
+const mocks = (() => {
+	const selectOrderBy = jest.fn().mockResolvedValue([]);
+	const selectWhere = jest.fn().mockReturnValue({ orderBy: selectOrderBy });
+	const selectFrom = jest.fn().mockReturnValue({ where: selectWhere });
+	const select = jest.fn().mockReturnValue({ from: selectFrom });
 
 	return { select, selectFrom, selectWhere, selectOrderBy };
-});
+})();
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: { select: mocks.select },
 }));
 
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -25,9 +25,11 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
-import { listPostsFn } from "#/db/queries";
+const { listPostsFn } = await import("#/db/queries");
+
 import type { posts } from "#/db/schema";
-import { validateLocaleFn } from "#/routes/{-$locale}/index.server";
+
+const { validateLocaleFn } = await import("#/routes/{-$locale}/index.server");
 
 type Post = (typeof posts)["_"]["inferSelect"];
 
@@ -51,7 +53,7 @@ function makePost(overrides: Partial<Post> = {}): Post {
 }
 
 function resetMocks() {
-	vi.clearAllMocks();
+	jest.clearAllMocks();
 	mocks.selectOrderBy.mockResolvedValue([]);
 	mocks.selectWhere.mockReturnValue({ orderBy: mocks.selectOrderBy });
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
@@ -67,28 +69,28 @@ function paginate<T>(items: T[], page: number): T[] {
 }
 
 describe("unit: pagination logic", () => {
-	it("page 1 of 10 posts returns 9 posts", () => {
+	test("page 1 of 10 posts returns 9 posts", () => {
 		const allPosts = Array.from({ length: 10 }, (_, i) =>
 			makePost({ id: i + 1, slug: `post-${i + 1}` }),
 		);
 		expect(paginate(allPosts, 1)).toHaveLength(9);
 	});
 
-	it("page 2 of 10 posts returns 1 post", () => {
+	test("page 2 of 10 posts returns 1 post", () => {
 		const allPosts = Array.from({ length: 10 }, (_, i) =>
 			makePost({ id: i + 1, slug: `post-${i + 1}` }),
 		);
 		expect(paginate(allPosts, 2)).toHaveLength(1);
 	});
 
-	it("page 1 of 9 posts returns all 9", () => {
+	test("page 1 of 9 posts returns all 9", () => {
 		const allPosts = Array.from({ length: 9 }, (_, i) =>
 			makePost({ id: i + 1, slug: `post-${i + 1}` }),
 		);
 		expect(paginate(allPosts, 1)).toHaveLength(9);
 	});
 
-	it("empty list returns empty page", () => {
+	test("empty list returns empty page", () => {
 		expect(paginate([], 1)).toHaveLength(0);
 	});
 });
@@ -98,7 +100,7 @@ describe("unit: pagination logic", () => {
 describe("unit: listPostsFn — locale filtering", () => {
 	beforeEach(resetMocks);
 
-	it("passes 'en' to the query and returns English posts", async () => {
+	test("passes 'en' to the query and returns English posts", async () => {
 		const enPost = makePost({ lang: "en" });
 		mocks.selectOrderBy.mockResolvedValue([enPost]);
 		const result = await listPostsFn("en");
@@ -107,7 +109,7 @@ describe("unit: listPostsFn — locale filtering", () => {
 		expect(result[0].lang).toBe("en");
 	});
 
-	it("passes 'pt-br' to the query and returns pt-br posts", async () => {
+	test("passes 'pt-br' to the query and returns pt-br posts", async () => {
 		const ptPost = makePost({
 			lang: "pt-br",
 			filePath: "/content/pt-br/hello.mdx",
@@ -119,13 +121,13 @@ describe("unit: listPostsFn — locale filtering", () => {
 		expect(result[0].lang).toBe("pt-br");
 	});
 
-	it("returns empty array when no posts match the locale", async () => {
+	test("returns empty array when no posts match the locale", async () => {
 		mocks.selectOrderBy.mockResolvedValue([]);
 		const result = await listPostsFn("pt-br");
 		expect(result).toHaveLength(0);
 	});
 
-	it("does not mix locales — empty when no posts in lang", async () => {
+	test("does not mix locales — empty when no posts in lang", async () => {
 		mocks.selectOrderBy.mockResolvedValue([]);
 		const result = await listPostsFn("en");
 		expect(result).toHaveLength(0);
@@ -135,19 +137,19 @@ describe("unit: listPostsFn — locale filtering", () => {
 // ─── Unit: getLocalePosts inputValidator ─────────────────────────────────────
 
 describe("unit: getLocalePosts inputValidator — locale validation", () => {
-	it("rejects an unknown locale string", () => {
+	test("rejects an unknown locale string", () => {
 		expect(() => validateLocaleFn("fr")).toThrow(/Invalid locale/);
 	});
 
-	it("rejects an empty string", () => {
+	test("rejects an empty string", () => {
 		expect(() => validateLocaleFn("")).toThrow(/Invalid locale/);
 	});
 
-	it("accepts 'en'", () => {
+	test("accepts 'en'", () => {
 		expect(validateLocaleFn("en")).toBe("en");
 	});
 
-	it("accepts 'pt-br'", () => {
+	test("accepts 'pt-br'", () => {
 		expect(validateLocaleFn("pt-br")).toBe("pt-br");
 	});
 });
@@ -185,39 +187,39 @@ describe.skipIf(port5432Free || port3000Free)(
 			await sql.end();
 		});
 
-		it("GET / returns 200", async () => {
+		test("GET / returns 200", async () => {
 			const res = await fetch(`${BASE_URL}/`);
 			expect(res.status).toBe(200);
 		});
 
-		it("GET / contains the published English post", async () => {
+		test("GET / contains the published English post", async () => {
 			const res = await fetch(`${BASE_URL}/`);
 			const html = await res.text();
 			expect(html).toContain("Locale Blog Test");
 		});
 
-		it("GET /pt-br/ returns 200 with empty state", async () => {
+		test("GET /pt-br/ returns 200 with empty state", async () => {
 			const res = await fetch(`${BASE_URL}/pt-br/`);
 			expect(res.status).toBe(200);
 			const html = await res.text();
 			expect(html).toContain("Nenhum artigo encontrado");
 		});
 
-		it("GET / head contains hreflang en → /", async () => {
+		test("GET / head contains hreflang en → /", async () => {
 			const res = await fetch(`${BASE_URL}/`);
 			const html = await res.text();
 			expect(html).toContain('hreflang="en"');
 			expect(html).toContain('href="/"');
 		});
 
-		it("GET / head contains hreflang pt-BR → /pt-br/", async () => {
+		test("GET / head contains hreflang pt-BR → /pt-br/", async () => {
 			const res = await fetch(`${BASE_URL}/`);
 			const html = await res.text();
 			expect(html).toContain('hreflang="pt-BR"');
 			expect(html).toContain('href="/pt-br/"');
 		});
 
-		it("GET /pt-br/ head contains both hreflang pairs", async () => {
+		test("GET /pt-br/ head contains both hreflang pairs", async () => {
 			const res = await fetch(`${BASE_URL}/pt-br/`);
 			const html = await res.text();
 			expect(html).toContain('hreflang="en"');
@@ -226,7 +228,7 @@ describe.skipIf(port5432Free || port3000Free)(
 			expect(html).toContain('href="/pt-br/"');
 		});
 
-		it("GET / hreflang hrefs contain no /en/ prefix", async () => {
+		test("GET / hreflang hrefs contain no /en/ prefix", async () => {
 			const res = await fetch(`${BASE_URL}/`);
 			const html = await res.text();
 			expect(html).not.toMatch(/hreflang="en"[^>]*href="\/en\//);

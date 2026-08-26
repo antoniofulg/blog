@@ -1,29 +1,42 @@
+import { beforeEach, describe, expect, jest, mock, test } from "bun:test";
 import { createServer } from "node:net";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 import type { Post } from "#/db/schema";
 import type { Locale } from "#/lib/locale";
 import type { PageEntry } from "#/lib/mdx/pages.server";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
-	const listPostsFn = vi
+const mocks = (() => {
+	const listPostsFn = jest
 		.fn<(lang: Locale) => Promise<Post[]>>()
 		.mockResolvedValue([]);
-	const enumerateStaticPages = vi
+	const enumerateStaticPages = jest
 		.fn<(locale: Locale) => Promise<PageEntry[]>>()
 		.mockResolvedValue([]);
-	const staticPageHasTwin = vi
+	const staticPageHasTwin = jest
 		.fn<(slug: string, targetLocale: Locale) => boolean>()
 		.mockReturnValue(false);
 	return { listPostsFn, enumerateStaticPages, staticPageHasTwin };
-});
+})();
 
-vi.mock("#/db/queries", () => ({
+const savedEnv = new Map<string, string | undefined>();
+function stubEnv(name: string, value: string): void {
+	if (!savedEnv.has(name)) savedEnv.set(name, process.env[name]);
+	process.env[name] = value;
+}
+function unstubAllEnvs(): void {
+	for (const [name, value] of savedEnv) {
+		if (value === undefined) delete process.env[name];
+		else process.env[name] = value;
+	}
+	savedEnv.clear();
+}
+
+mock.module("#/db/queries", () => ({
 	listPostsFn: mocks.listPostsFn,
 }));
 
-vi.mock("#/lib/mdx/pages.server", () => ({
+mock.module("#/lib/mdx/pages.server", () => ({
 	enumerateStaticPages: mocks.enumerateStaticPages,
 	staticPageHasTwin: mocks.staticPageHasTwin,
 }));
@@ -86,13 +99,13 @@ function assertReciprocity(entries: SitemapEntry[]): void {
 
 describe("unit: getSitemapEntriesFn — structural homepage entries", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		mocks.listPostsFn.mockResolvedValue([]);
 		mocks.enumerateStaticPages.mockResolvedValue([]);
 		mocks.staticPageHasTwin.mockReturnValue(false);
 	});
 
-	it("always includes EN homepage entry", async () => {
+	test("always includes EN homepage entry", async () => {
 		const entries = await getSitemapEntriesFn();
 		const enHome = entries.find(
 			(e) => e.loc.endsWith("/") && !e.loc.includes("/pt-br/"),
@@ -100,13 +113,13 @@ describe("unit: getSitemapEntriesFn — structural homepage entries", () => {
 		expect(enHome).toBeDefined();
 	});
 
-	it("always includes PT-BR homepage entry", async () => {
+	test("always includes PT-BR homepage entry", async () => {
 		const entries = await getSitemapEntriesFn();
 		const ptbrHome = entries.find((e) => e.loc.endsWith("/pt-br/"));
 		expect(ptbrHome).toBeDefined();
 	});
 
-	it("EN homepage entry has isDefault: true", async () => {
+	test("EN homepage entry has isDefault: true", async () => {
 		const entries = await getSitemapEntriesFn();
 		const enHome = entries.find(
 			(e) => e.loc.endsWith("/") && !e.loc.includes("/pt-br/"),
@@ -114,13 +127,13 @@ describe("unit: getSitemapEntriesFn — structural homepage entries", () => {
 		expect(enHome?.isDefault).toBe(true);
 	});
 
-	it("PT-BR homepage entry does NOT have isDefault", async () => {
+	test("PT-BR homepage entry does NOT have isDefault", async () => {
 		const entries = await getSitemapEntriesFn();
 		const ptbrHome = entries.find((e) => e.loc.endsWith("/pt-br/"));
 		expect(ptbrHome?.isDefault).toBeFalsy();
 	});
 
-	it("homepage entries have alternates for both locales", async () => {
+	test("homepage entries have alternates for both locales", async () => {
 		const entries = await getSitemapEntriesFn();
 		const enHome = entries.find(
 			(e) => e.loc.endsWith("/") && !e.loc.includes("/pt-br/"),
@@ -131,63 +144,63 @@ describe("unit: getSitemapEntriesFn — structural homepage entries", () => {
 		expect(hreflangs).toContain("pt-BR");
 	});
 
-	it("SITE_URL env var sets origin", async () => {
-		vi.stubEnv("SITE_URL", "https://example.com");
+	test("SITE_URL env var sets origin", async () => {
+		stubEnv("SITE_URL", "https://example.com");
 		try {
 			const entries = await getSitemapEntriesFn();
 			expect(entries.some((e) => e.loc.startsWith("https://example.com"))).toBe(
 				true,
 			);
 		} finally {
-			vi.unstubAllEnvs();
+			unstubAllEnvs();
 		}
 	});
 
-	it("SITE_URL trailing slash is stripped", async () => {
-		vi.stubEnv("SITE_URL", "https://example.com/");
+	test("SITE_URL trailing slash is stripped", async () => {
+		stubEnv("SITE_URL", "https://example.com/");
 		try {
 			const entries = await getSitemapEntriesFn();
 			expect(entries.some((e) => e.loc === "https://example.com/")).toBe(true);
 		} finally {
-			vi.unstubAllEnvs();
+			unstubAllEnvs();
 		}
 	});
 
-	it("falls back to localhost:3000 when SITE_URL is absent (non-production)", async () => {
-		vi.stubEnv("SITE_URL", "");
-		vi.stubEnv("NODE_ENV", "test");
+	test("falls back to localhost:3000 when SITE_URL is absent (non-production)", async () => {
+		stubEnv("SITE_URL", "");
+		stubEnv("NODE_ENV", "test");
 		try {
 			const entries = await getSitemapEntriesFn();
 			expect(
 				entries.some((e) => e.loc.startsWith("http://localhost:3000")),
 			).toBe(true);
 		} finally {
-			vi.unstubAllEnvs();
+			unstubAllEnvs();
 		}
 	});
 
-	it("throws when SITE_URL is unset in production", async () => {
-		vi.stubEnv("SITE_URL", "");
-		vi.stubEnv("NODE_ENV", "production");
+	test("throws when SITE_URL is unset in production", async () => {
+		stubEnv("SITE_URL", "");
+		stubEnv("NODE_ENV", "production");
 		try {
 			await expect(getSitemapEntriesFn()).rejects.toThrow(
 				"SITE_URL must be set in production",
 			);
 		} finally {
-			vi.unstubAllEnvs();
+			unstubAllEnvs();
 		}
 	});
 
-	it("getSitemapXmlResponse returns 500 when SITE_URL unset in production", async () => {
-		vi.stubEnv("SITE_URL", "");
-		vi.stubEnv("NODE_ENV", "production");
+	test("getSitemapXmlResponse returns 500 when SITE_URL unset in production", async () => {
+		stubEnv("SITE_URL", "");
+		stubEnv("NODE_ENV", "production");
 		try {
 			const res = await getSitemapXmlResponse();
 			expect(res.status).toBe(500);
 			const body = await res.text();
 			expect(body).toContain("SITE_URL");
 		} finally {
-			vi.unstubAllEnvs();
+			unstubAllEnvs();
 		}
 	});
 });
@@ -196,12 +209,12 @@ describe("unit: getSitemapEntriesFn — structural homepage entries", () => {
 
 describe("unit: getSitemapEntriesFn — post entries", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		mocks.enumerateStaticPages.mockResolvedValue([]);
 		mocks.staticPageHasTwin.mockReturnValue(false);
 	});
 
-	it("includes an entry per EN post", async () => {
+	test("includes an entry per EN post", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en" ? [makePost("hello-world"), makePost("second-post")] : [],
 		);
@@ -210,7 +223,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		expect(entries.some((e) => e.loc.includes("/second-post"))).toBe(true);
 	});
 
-	it("includes an entry per PT-BR post", async () => {
+	test("includes an entry per PT-BR post", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "pt-br" ? [makePost("ola-mundo", "pt-br")] : [],
 		);
@@ -218,7 +231,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		expect(entries.some((e) => e.loc.includes("/pt-br/ola-mundo"))).toBe(true);
 	});
 
-	it("EN post with both locales: EN entry has both hreflang alternates", async () => {
+	test("EN post with both locales: EN entry has both hreflang alternates", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en"
 				? [makePost("shared-post")]
@@ -232,7 +245,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		expect(langs).toContain("pt-BR");
 	});
 
-	it("EN post with both locales: PT-BR entry has both hreflang alternates (reciprocal)", async () => {
+	test("EN post with both locales: PT-BR entry has both hreflang alternates (reciprocal)", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en"
 				? [makePost("shared-post")]
@@ -246,7 +259,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		expect(langs).toContain("pt-BR");
 	});
 
-	it("EN-only post: EN entry has no hreflang alternates", async () => {
+	test("EN-only post: EN entry has no hreflang alternates", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en" ? [makePost("en-only")] : [],
 		);
@@ -255,7 +268,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		expect(enEntry?.alternates).toHaveLength(0);
 	});
 
-	it("PT-BR-only post: PT-BR entry has no hreflang alternates", async () => {
+	test("PT-BR-only post: PT-BR entry has no hreflang alternates", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "pt-br" ? [makePost("ptbr-only", "pt-br")] : [],
 		);
@@ -264,7 +277,7 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 		expect(ptbrEntry?.alternates).toHaveLength(0);
 	});
 
-	it("mixed fixture: en-only post has no alternates; bilingual post has alternates", async () => {
+	test("mixed fixture: en-only post has no alternates; bilingual post has alternates", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) => {
 			if (lang === "en") return [makePost("both"), makePost("en-only")];
 			if (lang === "pt-br") return [makePost("both", "pt-br")];
@@ -288,11 +301,11 @@ describe("unit: getSitemapEntriesFn — post entries", () => {
 
 describe("unit: getSitemapEntriesFn — static page entries", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		mocks.listPostsFn.mockResolvedValue([]);
 	});
 
-	it("includes an entry per EN page", async () => {
+	test("includes an entry per EN page", async () => {
 		mocks.enumerateStaticPages.mockImplementation(async (locale: string) =>
 			locale === "en" ? [makePage("about")] : [],
 		);
@@ -302,7 +315,7 @@ describe("unit: getSitemapEntriesFn — static page entries", () => {
 		expect(entries.some((e) => e.loc.endsWith("/about"))).toBe(true);
 	});
 
-	it("includes an entry per PT-BR page", async () => {
+	test("includes an entry per PT-BR page", async () => {
 		mocks.enumerateStaticPages.mockImplementation(async (locale: string) =>
 			locale === "pt-br" ? [makePage("sobre", "pt-br")] : [],
 		);
@@ -312,7 +325,7 @@ describe("unit: getSitemapEntriesFn — static page entries", () => {
 		expect(entries.some((e) => e.loc.includes("/pt-br/sobre"))).toBe(true);
 	});
 
-	it("EN page with twin: EN entry has both hreflang alternates", async () => {
+	test("EN page with twin: EN entry has both hreflang alternates", async () => {
 		mocks.enumerateStaticPages.mockImplementation(async (locale: string) =>
 			locale === "en" ? [makePage("about")] : [makePage("about", "pt-br")],
 		);
@@ -326,7 +339,7 @@ describe("unit: getSitemapEntriesFn — static page entries", () => {
 		expect(langs).toContain("pt-BR");
 	});
 
-	it("EN page without twin: EN entry has no hreflang alternates", async () => {
+	test("EN page without twin: EN entry has no hreflang alternates", async () => {
 		mocks.enumerateStaticPages.mockImplementation(async (locale: string) =>
 			locale === "en" ? [makePage("uses")] : [],
 		);
@@ -337,7 +350,7 @@ describe("unit: getSitemapEntriesFn — static page entries", () => {
 		expect(enUses?.alternates).toHaveLength(0);
 	});
 
-	it("PT-BR page with twin: PT-BR entry has both hreflang alternates", async () => {
+	test("PT-BR page with twin: PT-BR entry has both hreflang alternates", async () => {
 		mocks.enumerateStaticPages.mockImplementation(async (locale: string) =>
 			locale === "en" ? [makePage("about")] : [makePage("about", "pt-br")],
 		);
@@ -353,10 +366,10 @@ describe("unit: getSitemapEntriesFn — static page entries", () => {
 
 describe("unit: reciprocity invariant (AC-4)", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 	});
 
-	it("homepages only: reciprocity holds", async () => {
+	test("homepages only: reciprocity holds", async () => {
 		mocks.listPostsFn.mockResolvedValue([]);
 		mocks.enumerateStaticPages.mockResolvedValue([]);
 		mocks.staticPageHasTwin.mockReturnValue(false);
@@ -365,7 +378,7 @@ describe("unit: reciprocity invariant (AC-4)", () => {
 		assertReciprocity(entries);
 	});
 
-	it("bilingual post: reciprocity holds", async () => {
+	test("bilingual post: reciprocity holds", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en" ? [makePost("shared")] : [makePost("shared", "pt-br")],
 		);
@@ -376,7 +389,7 @@ describe("unit: reciprocity invariant (AC-4)", () => {
 		assertReciprocity(entries);
 	});
 
-	it("EN-only post: reciprocity holds (no alternates → no pairs to check)", async () => {
+	test("EN-only post: reciprocity holds (no alternates → no pairs to check)", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en" ? [makePost("en-only")] : [],
 		);
@@ -387,7 +400,7 @@ describe("unit: reciprocity invariant (AC-4)", () => {
 		assertReciprocity(entries);
 	});
 
-	it("mixed fixture (post + page, bilingual + unilingual): reciprocity holds", async () => {
+	test("mixed fixture (post + page, bilingual + unilingual): reciprocity holds", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) => {
 			if (lang === "en") return [makePost("shared-post"), makePost("en-only")];
 			if (lang === "pt-br") return [makePost("shared-post", "pt-br")];
@@ -404,7 +417,7 @@ describe("unit: reciprocity invariant (AC-4)", () => {
 		assertReciprocity(entries);
 	});
 
-	it("zero asymmetric hreflang violations: PSM-5", async () => {
+	test("zero asymmetric hreflang violations: PSM-5", async () => {
 		// Success Metric #5: asymmetric hreflang violations = 0
 		mocks.listPostsFn.mockImplementation(async (lang: string) => {
 			if (lang === "en")
@@ -452,28 +465,28 @@ describe("unit: reciprocity invariant (AC-4)", () => {
 
 describe("unit: getSitemapXmlResponse — response contract", () => {
 	beforeEach(() => {
-		vi.clearAllMocks();
+		jest.clearAllMocks();
 		mocks.listPostsFn.mockResolvedValue([]);
 		mocks.enumerateStaticPages.mockResolvedValue([]);
 		mocks.staticPageHasTwin.mockReturnValue(false);
 	});
 
-	it("returns HTTP 200", async () => {
+	test("returns HTTP 200", async () => {
 		const res = await getSitemapXmlResponse();
 		expect(res.status).toBe(200);
 	});
 
-	it("sets content-type: application/xml", async () => {
+	test("sets content-type: application/xml", async () => {
 		const res = await getSitemapXmlResponse();
 		expect(res.headers.get("content-type")).toBe("application/xml");
 	});
 
-	it("body starts with XML declaration", async () => {
+	test("body starts with XML declaration", async () => {
 		const body = await (await getSitemapXmlResponse()).text();
 		expect(body).toMatch(/^<\?xml version="1\.0" encoding="UTF-8"\?>/);
 	});
 
-	it("body contains urlset with correct namespaces (AC-1)", async () => {
+	test("body contains urlset with correct namespaces (AC-1)", async () => {
 		const body = await (await getSitemapXmlResponse()).text();
 		expect(body).toContain(
 			'xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
@@ -481,18 +494,18 @@ describe("unit: getSitemapXmlResponse — response contract", () => {
 		expect(body).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
 	});
 
-	it("body ends with </urlset>", async () => {
+	test("body ends with </urlset>", async () => {
 		const body = await (await getSitemapXmlResponse()).text();
 		expect(body.trimEnd()).toMatch(/<\/urlset>$/);
 	});
 
-	it("body contains <url> and <loc> elements", async () => {
+	test("body contains <url> and <loc> elements", async () => {
 		const body = await (await getSitemapXmlResponse()).text();
 		expect(body).toContain("<url>");
 		expect(body).toContain("<loc>");
 	});
 
-	it("x-default annotation present only on EN homepage (AC-3)", async () => {
+	test("x-default annotation present only on EN homepage (AC-3)", async () => {
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en"
 				? [makePost("some-post")]
@@ -503,8 +516,8 @@ describe("unit: getSitemapXmlResponse — response contract", () => {
 		expect(xdefaultMatches).toHaveLength(1);
 	});
 
-	it("bilingual post: both locale <url> entries appear in body (AC-2)", async () => {
-		vi.stubEnv("SITE_URL", "http://localhost:3000");
+	test("bilingual post: both locale <url> entries appear in body (AC-2)", async () => {
+		stubEnv("SITE_URL", "http://localhost:3000");
 		mocks.listPostsFn.mockImplementation(async (lang: string) =>
 			lang === "en"
 				? [makePost("my-post"), makePost("en-only")]
@@ -524,18 +537,18 @@ describe("unit: getSitemapXmlResponse — response contract", () => {
 			);
 			expect(enOnlyBlock).not.toContain("pt-BR");
 		} finally {
-			vi.unstubAllEnvs();
+			unstubAllEnvs();
 		}
 	});
 
-	it("XML escaping: special chars in origin are escaped", async () => {
-		vi.stubEnv("SITE_URL", "http://localhost:3000");
+	test("XML escaping: special chars in origin are escaped", async () => {
+		stubEnv("SITE_URL", "http://localhost:3000");
 		try {
 			const body = await (await getSitemapXmlResponse()).text();
 			// No unescaped & in attribute values or text
 			expect(body).not.toMatch(/href="[^"]*&[^a][^m][^p]/);
 		} finally {
-			vi.unstubAllEnvs();
+			unstubAllEnvs();
 		}
 	});
 });
@@ -555,17 +568,17 @@ const port3000Free = await isPortFree(3000);
 describe.skipIf(port3000Free)("integration: GET /sitemap.xml", () => {
 	const BASE_URL = "http://localhost:3000";
 
-	it("returns 200", async () => {
+	test("returns 200", async () => {
 		const res = await fetch(`${BASE_URL}/sitemap.xml`);
 		expect(res.status).toBe(200);
 	});
 
-	it("content-type is application/xml", async () => {
+	test("content-type is application/xml", async () => {
 		const res = await fetch(`${BASE_URL}/sitemap.xml`);
 		expect(res.headers.get("content-type")).toContain("application/xml");
 	});
 
-	it("body contains urlset with sitemaps namespace", async () => {
+	test("body contains urlset with sitemaps namespace", async () => {
 		const res = await fetch(`${BASE_URL}/sitemap.xml`);
 		const body = await res.text();
 		expect(body).toContain(
@@ -574,7 +587,7 @@ describe.skipIf(port3000Free)("integration: GET /sitemap.xml", () => {
 		expect(body).toContain('xmlns:xhtml="http://www.w3.org/1999/xhtml"');
 	});
 
-	it("reciprocity invariant holds on live fixture set", async () => {
+	test("reciprocity invariant holds on live fixture set", async () => {
 		const res = await fetch(`${BASE_URL}/sitemap.xml`);
 		const body = await res.text();
 

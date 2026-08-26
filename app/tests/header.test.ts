@@ -1,13 +1,19 @@
-// @vitest-environment jsdom
+import "./happydom";
 import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { act, cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { Header } from "#/components/layout/header";
 import { LanguageMenu } from "#/components/ui/language-menu";
 import { LocaleProvider } from "#/lib/locale";
@@ -21,8 +27,8 @@ type MockMatch = {
 	loaderData?: unknown;
 };
 
-const mocks = vi.hoisted(() => {
-	const navigate = vi.fn();
+const mocks = (() => {
+	const navigate = jest.fn();
 	let currentPathname = "/en/blog";
 	let currentMatches: MockMatch[] = [];
 	const setPathname = (p: string) => {
@@ -34,15 +40,15 @@ const mocks = vi.hoisted(() => {
 	};
 	const getMatches = () => currentMatches;
 	return { navigate, setPathname, getPathname, setMatches, getMatches };
-});
+})();
 
 // theme.tsx calls recordThemeEvent via dynamic import inside setTheme.
 // Mock the module so test renders don't hit the server-only guard.
-vi.mock("#/lib/analytics/record-theme-event.server", () => ({
-	recordThemeEvent: vi.fn(() => Promise.resolve({ recorded: true })),
+mock.module("#/lib/analytics/record-theme-event.server", () => ({
+	recordThemeEvent: jest.fn(() => Promise.resolve({ recorded: true })),
 }));
 
-vi.mock("@tanstack/react-router", () => ({
+mock.module("@tanstack/react-router", () => ({
 	Link: ({
 		children,
 		to,
@@ -72,15 +78,15 @@ vi.mock("@tanstack/react-router", () => ({
 // matchMedia stub for ThemeProvider
 Object.defineProperty(window, "matchMedia", {
 	writable: true,
-	value: vi.fn().mockImplementation((query: string) => ({
+	value: jest.fn().mockImplementation((query: string) => ({
 		matches: false,
 		media: query,
 		onchange: null,
-		addListener: vi.fn(),
-		removeListener: vi.fn(),
-		addEventListener: vi.fn(),
-		removeEventListener: vi.fn(),
-		dispatchEvent: vi.fn(),
+		addListener: jest.fn(),
+		removeListener: jest.fn(),
+		addEventListener: jest.fn(),
+		removeEventListener: jest.fn(),
+		dispatchEvent: jest.fn(),
 	})),
 });
 
@@ -113,7 +119,7 @@ function slugMatch(
 describe("unit: LanguageMenu available item", () => {
 	afterEach(cleanup);
 
-	it("renders label without hint when available defaults (true)", () => {
+	test("renders label without hint when available defaults (true)", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -126,7 +132,7 @@ describe("unit: LanguageMenu available item", () => {
 		expect(screen.queryByText("sem tradução")).toBeNull();
 	});
 
-	it("renders label without hint when available={true}", () => {
+	test("renders label without hint when available={true}", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -137,7 +143,7 @@ describe("unit: LanguageMenu available item", () => {
 		expect(screen.queryByText("no translation")).toBeNull();
 	});
 
-	it("renders hint text when available={false} (en locale) (AC-4)", () => {
+	test("renders hint text when available={false} (en locale) (AC-4)", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -148,7 +154,7 @@ describe("unit: LanguageMenu available item", () => {
 		expect(screen.getByText("no translation")).toBeDefined();
 	});
 
-	it("renders localized hint text in pt-br when available={false}", () => {
+	test("renders localized hint text in pt-br when available={false}", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -159,7 +165,7 @@ describe("unit: LanguageMenu available item", () => {
 		expect(screen.getByText("sem tradução")).toBeDefined();
 	});
 
-	it("aria-label includes 'no translation' hint when available={false} (AC-4)", () => {
+	test("aria-label includes 'no translation' hint when available={false} (AC-4)", () => {
 		// aria-disabled was removed (button stays operable — opens missing-twin dialog).
 		// The hint suffix in aria-label is the AT signal for the unavailable state.
 		render(
@@ -174,7 +180,7 @@ describe("unit: LanguageMenu available item", () => {
 		expect(item.getAttribute("aria-disabled")).toBeNull();
 	});
 
-	it("aria-label is plain label when available={true}", () => {
+	test("aria-label is plain label when available={true}", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -187,8 +193,8 @@ describe("unit: LanguageMenu available item", () => {
 		expect(item.getAttribute("aria-disabled")).toBeNull();
 	});
 
-	it("onClick fires when available={false} (AC-4 — modal seam preserved)", () => {
-		const onClick = vi.fn();
+	test("onClick fires when available={false} (AC-4 — modal seam preserved)", () => {
+		const onClick = jest.fn();
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -208,8 +214,8 @@ describe("unit: LanguageMenu available item", () => {
 		expect(onClick).toHaveBeenCalledTimes(1);
 	});
 
-	it("onClick fires when available={true}", () => {
-		const onClick = vi.fn();
+	test("onClick fires when available={true}", () => {
+		const onClick = jest.fn();
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -235,7 +241,7 @@ describe("unit: LanguageMenu available item", () => {
 describe("integration: LanguageMenu mixed availability", () => {
 	afterEach(cleanup);
 
-	it("renders available item without hint, unavailable item with hint", () => {
+	test("renders available item without hint, unavailable item with hint", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -259,7 +265,7 @@ describe("integration: LanguageMenu mixed availability", () => {
 		expect(screen.queryByText("sem tradução")).toBeNull();
 	});
 
-	it("both items render their labels regardless of availability", () => {
+	test("both items render their labels regardless of availability", () => {
 		render(
 			React.createElement(LanguageMenu, {
 				variant: "list",
@@ -288,7 +294,7 @@ describe("unit: Header language switcher trigger label", () => {
 		cleanup();
 	});
 
-	it("renders locale code 'EN' as the current chip when locale is 'en'", async () => {
+	test("renders locale code 'EN' as the current chip when locale is 'en'", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -298,7 +304,7 @@ describe("unit: Header language switcher trigger label", () => {
 		expect(chip.textContent?.trim()).toBe("EN");
 	});
 
-	it("renders locale code 'PT' as the current chip when on /pt-br/blog", async () => {
+	test("renders locale code 'PT' as the current chip when on /pt-br/blog", async () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
@@ -327,7 +333,7 @@ describe("unit: Header language switcher on admin routes", () => {
 		cleanup();
 	});
 
-	it("switcher IS rendered on /admin (admin gets the same affordance as reader pages)", async () => {
+	test("switcher IS rendered on /admin (admin gets the same affordance as reader pages)", async () => {
 		mocks.setPathname("/admin");
 		renderHeader();
 		await act(async () => {});
@@ -338,7 +344,7 @@ describe("unit: Header language switcher on admin routes", () => {
 		).not.toBeNull();
 	});
 
-	it("switcher is rendered on /en/blog", async () => {
+	test("switcher is rendered on /en/blog", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -360,7 +366,7 @@ describe("unit: Header language switcher navigation", () => {
 		cleanup();
 	});
 
-	it("on post route '/en/react-suspense', clicking Português navigates to /{-$locale}/$slug/ with pt-br", async () => {
+	test("on post route '/en/react-suspense', clicking Português navigates to /{-$locale}/$slug/ with pt-br", async () => {
 		mocks.setPathname("/en/react-suspense");
 		mocks.setMatches([
 			slugMatch("react-suspense", "en", {
@@ -385,7 +391,7 @@ describe("unit: Header language switcher navigation", () => {
 		expect(localStorage.getItem("locale")).toBe("pt-br");
 	});
 
-	it("on structural route '/en/blog', clicking Português navigates to /{-$locale}/ with pt-br", async () => {
+	test("on structural route '/en/blog', clicking Português navigates to /{-$locale}/ with pt-br", async () => {
 		mocks.setPathname("/en/blog");
 		mocks.setMatches([]);
 		renderHeader();
@@ -403,7 +409,7 @@ describe("unit: Header language switcher navigation", () => {
 		});
 	});
 
-	it("on page route '/about' with twin, clicking Português navigates to /{-$locale}/$slug/ with about", async () => {
+	test("on page route '/about' with twin, clicking Português navigates to /{-$locale}/$slug/ with about", async () => {
 		mocks.setPathname("/about");
 		mocks.setMatches([
 			slugMatch("about", undefined, {
@@ -427,7 +433,7 @@ describe("unit: Header language switcher navigation", () => {
 		});
 	});
 
-	it("on post route with no twin (hasTwin=false), clicking Português opens dialog (no navigate)", async () => {
+	test("on post route with no twin (hasTwin=false), clicking Português opens dialog (no navigate)", async () => {
 		mocks.setPathname("/en/en-only-post");
 		mocks.setMatches([
 			slugMatch("en-only-post", "en", {
@@ -466,7 +472,7 @@ describe("unit: Header dialog state on unavailable locale", () => {
 		cleanup();
 	});
 
-	it("clicking pt-br chip on /en/blog triggers navigate (no menu state to close)", async () => {
+	test("clicking pt-br chip on /en/blog triggers navigate (no menu state to close)", async () => {
 		mocks.setPathname("/en/blog");
 		mocks.setMatches([]);
 		renderHeader();
@@ -500,7 +506,7 @@ describe("integration: language switcher localStorage", () => {
 		cleanup();
 	});
 
-	it("after switching locale, localStorage.getItem('locale') returns 'pt-br'", async () => {
+	test("after switching locale, localStorage.getItem('locale') returns 'pt-br'", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -514,7 +520,7 @@ describe("integration: language switcher localStorage", () => {
 		expect(localStorage.getItem("locale")).toBe("pt-br");
 	});
 
-	it("switcher button is visible on rendered header on '/en/blog'", async () => {
+	test("switcher button is visible on rendered header on '/en/blog'", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -537,35 +543,35 @@ describe("unit: Header removed nav entries", () => {
 		cleanup();
 	});
 
-	it("en locale: no link to /tutorials", async () => {
+	test("en locale: no link to /tutorials", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
 		expect(document.querySelector('a[href="/tutorials"]')).toBeNull();
 	});
 
-	it("en locale: no link to /projects", async () => {
+	test("en locale: no link to /projects", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
 		expect(document.querySelector('a[href="/projects"]')).toBeNull();
 	});
 
-	it("pt-br locale: no link to /tutorials", async () => {
+	test("pt-br locale: no link to /tutorials", async () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
 		expect(document.querySelector('a[href="/tutorials"]')).toBeNull();
 	});
 
-	it("pt-br locale: no link to /projects", async () => {
+	test("pt-br locale: no link to /projects", async () => {
 		mocks.setPathname("/pt-br/blog");
 		renderHeader();
 		await act(async () => {});
 		expect(document.querySelector('a[href="/projects"]')).toBeNull();
 	});
 
-	it("locale switcher button still renders on non-admin routes", async () => {
+	test("locale switcher button still renders on non-admin routes", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});
@@ -574,7 +580,7 @@ describe("unit: Header removed nav entries", () => {
 		).not.toBeNull();
 	});
 
-	it("theme toggle button still renders", async () => {
+	test("theme toggle button still renders", async () => {
 		mocks.setPathname("/en/blog");
 		renderHeader();
 		await act(async () => {});

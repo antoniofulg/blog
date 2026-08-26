@@ -1,11 +1,19 @@
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const fsMock = vi.hoisted(() => {
+const fsMock = (() => {
 	let captured: ((event: string, filename: string | null) => void) | null =
 		null;
-	const watchFn = vi
+	const watchFn = jest
 		.fn()
 		.mockImplementation(
 			(
@@ -14,7 +22,7 @@ const fsMock = vi.hoisted(() => {
 				cb: (event: string, filename: string | null) => void,
 			) => {
 				captured = cb;
-				return { close: vi.fn() };
+				return { close: jest.fn() };
 			},
 		);
 	return {
@@ -27,25 +35,25 @@ const fsMock = vi.hoisted(() => {
 			watchFn.mockClear();
 		},
 	};
-});
+})();
 
-const statMock = vi.hoisted(() => vi.fn());
+const statMock = (() => jest.fn())();
 
-const indexerMocks = vi.hoisted(() => ({
-	upsertPost: vi.fn().mockResolvedValue(undefined),
-	removePost: vi.fn().mockResolvedValue(undefined),
-}));
+const indexerMocks = (() => ({
+	upsertPost: jest.fn().mockResolvedValue(undefined),
+	removePost: jest.fn().mockResolvedValue(undefined),
+}))();
 
-vi.mock("node:fs", () => ({ watch: fsMock.watchFn }));
-vi.mock("node:fs/promises", () => ({ stat: statMock }));
-vi.mock("#/db/indexer", () => indexerMocks);
+mock.module("node:fs", () => ({ watch: fsMock.watchFn }));
+mock.module("node:fs/promises", () => ({ stat: statMock }));
+mock.module("#/db/indexer", () => indexerMocks);
 
-import { startContentWatcher } from "#/lib/watcher.server";
+const { startContentWatcher } = await import("#/lib/watcher.server");
 
 // ─── Helpers ──────────────────────────────────────────────────────────────────
 
 function resetAll() {
-	vi.clearAllMocks(); // prevent spy call history from leaking between tests
+	jest.clearAllMocks(); // prevent spy call history from leaking between tests
 	fsMock.reset();
 	statMock.mockReset();
 	indexerMocks.upsertPost.mockReset().mockResolvedValue(undefined);
@@ -57,32 +65,35 @@ function resetAll() {
 describe("unit: non-.mdx filtering", () => {
 	beforeEach(() => {
 		resetAll();
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 	});
 	afterEach(() => {
-		vi.clearAllTimers();
-		vi.useRealTimers();
+		jest.clearAllTimers();
+		jest.useRealTimers();
 	});
 
-	it("ignores .txt files — upsertPost and removePost not called", async () => {
+	test("ignores .txt files — upsertPost and removePost not called", async () => {
 		startContentWatcher("/content");
 		fsMock.trigger("change", "readme.txt");
-		await vi.advanceTimersByTimeAsync(200);
+		jest.advanceTimersByTime(200);
+		await Promise.resolve();
 		expect(indexerMocks.upsertPost).not.toHaveBeenCalled();
 		expect(indexerMocks.removePost).not.toHaveBeenCalled();
 	});
 
-	it("ignores .ts files", async () => {
+	test("ignores .ts files", async () => {
 		startContentWatcher("/content");
 		fsMock.trigger("change", "config.ts");
-		await vi.advanceTimersByTimeAsync(200);
+		jest.advanceTimersByTime(200);
+		await Promise.resolve();
 		expect(indexerMocks.upsertPost).not.toHaveBeenCalled();
 	});
 
-	it("ignores null filename", async () => {
+	test("ignores null filename", async () => {
 		startContentWatcher("/content");
 		fsMock.trigger("change", null);
-		await vi.advanceTimersByTimeAsync(200);
+		jest.advanceTimersByTime(200);
+		await Promise.resolve();
 		expect(indexerMocks.upsertPost).not.toHaveBeenCalled();
 	});
 });
@@ -92,28 +103,31 @@ describe("unit: non-.mdx filtering", () => {
 describe("unit: debounce", () => {
 	beforeEach(() => {
 		resetAll();
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 		statMock.mockResolvedValue({});
 	});
 	afterEach(() => {
-		vi.clearAllTimers();
-		vi.useRealTimers();
+		jest.clearAllTimers();
+		jest.useRealTimers();
 	});
 
-	it("two rapid 'change' events within 100ms → exactly one upsertPost call", async () => {
+	test("two rapid 'change' events within 100ms → exactly one upsertPost call", async () => {
 		startContentWatcher("/content");
 		fsMock.trigger("change", "post.mdx");
 		fsMock.trigger("change", "post.mdx");
-		await vi.advanceTimersByTimeAsync(200);
+		jest.advanceTimersByTime(200);
+		await Promise.resolve();
 		expect(indexerMocks.upsertPost).toHaveBeenCalledTimes(1);
 	});
 
-	it("two events 150ms apart → two upsertPost calls", async () => {
+	test("two events 150ms apart → two upsertPost calls", async () => {
 		startContentWatcher("/content");
 		fsMock.trigger("change", "post.mdx");
-		await vi.advanceTimersByTimeAsync(150);
+		jest.advanceTimersByTime(150);
+		await Promise.resolve();
 		fsMock.trigger("change", "post.mdx");
-		await vi.advanceTimersByTimeAsync(150);
+		jest.advanceTimersByTime(150);
+		await Promise.resolve();
 		expect(indexerMocks.upsertPost).toHaveBeenCalledTimes(2);
 	});
 });
@@ -123,31 +137,33 @@ describe("unit: debounce", () => {
 describe("unit: rename event stat dispatch", () => {
 	beforeEach(() => {
 		resetAll();
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 	});
 	afterEach(() => {
-		vi.clearAllTimers();
-		vi.useRealTimers();
+		jest.clearAllTimers();
+		jest.useRealTimers();
 	});
 
-	it("'rename' + stat resolves → calls upsertPost with correct path", async () => {
+	test("'rename' + stat resolves → calls upsertPost with correct path", async () => {
 		statMock.mockResolvedValue({});
 		startContentWatcher("/content");
 		fsMock.trigger("rename", "new-post.mdx");
-		await vi.advanceTimersByTimeAsync(200);
+		jest.advanceTimersByTime(200);
+		await Promise.resolve();
 		expect(indexerMocks.upsertPost).toHaveBeenCalledWith(
 			"/content/new-post.mdx",
 		);
 		expect(indexerMocks.removePost).not.toHaveBeenCalled();
 	});
 
-	it("'rename' + stat rejects (ENOENT) → calls removePost with correct path", async () => {
+	test("'rename' + stat rejects (ENOENT) → calls removePost with correct path", async () => {
 		statMock.mockRejectedValue(
 			Object.assign(new Error("ENOENT"), { code: "ENOENT" }),
 		);
 		startContentWatcher("/content");
 		fsMock.trigger("rename", "deleted-post.mdx");
-		await vi.advanceTimersByTimeAsync(200);
+		jest.advanceTimersByTime(200);
+		await Promise.resolve();
 		expect(indexerMocks.removePost).toHaveBeenCalledWith(
 			"/content/deleted-post.mdx",
 		);
@@ -160,20 +176,21 @@ describe("unit: rename event stat dispatch", () => {
 describe("unit: upsertPost error isolation", () => {
 	beforeEach(() => {
 		resetAll();
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 	});
 	afterEach(() => {
-		vi.clearAllTimers();
-		vi.useRealTimers();
+		jest.clearAllTimers();
+		jest.useRealTimers();
 	});
 
-	it("upsertPost throws (e.g. YAML parse error) → removePost is NOT called, error logged", async () => {
-		const errorSpy = vi.spyOn(console, "error");
+	test("upsertPost throws (e.g. YAML parse error) → removePost is NOT called, error logged", async () => {
+		const errorSpy = jest.spyOn(console, "error");
 		statMock.mockResolvedValue({});
 		indexerMocks.upsertPost.mockRejectedValue(new Error("YAML parse error"));
 		startContentWatcher("/content");
 		fsMock.trigger("change", "post.mdx");
-		await vi.advanceTimersByTimeAsync(200);
+		jest.advanceTimersByTime(200);
+		await Promise.resolve();
 		expect(indexerMocks.upsertPost).toHaveBeenCalledWith("/content/post.mdx");
 		expect(indexerMocks.removePost).not.toHaveBeenCalled();
 		expect(errorSpy).toHaveBeenCalledWith(
@@ -187,11 +204,11 @@ describe("unit: upsertPost error isolation", () => {
 describe("unit: watcher start failure", () => {
 	beforeEach(resetAll);
 
-	it("does not throw if fs.watch itself throws — logs watcher_start_failed", () => {
+	test("does not throw if fs.watch itself throws — logs watcher_start_failed", () => {
 		fsMock.watchFn.mockImplementationOnce(() => {
 			throw new Error("EMFILE: too many open files");
 		});
-		const errorSpy = vi.spyOn(console, "error");
+		const errorSpy = jest.spyOn(console, "error");
 		expect(() => startContentWatcher("/content")).not.toThrow();
 		expect(errorSpy).toHaveBeenCalledWith(
 			expect.stringContaining("watcher_start_failed"),
@@ -204,8 +221,8 @@ describe("unit: watcher start failure", () => {
 describe("unit: startup log", () => {
 	beforeEach(resetAll);
 
-	it("logs watcher_started JSON to console.log on invocation", () => {
-		const logSpy = vi.spyOn(console, "log");
+	test("logs watcher_started JSON to console.log on invocation", () => {
+		const logSpy = jest.spyOn(console, "log");
 		startContentWatcher("/content");
 		const calls = logSpy.mock.calls.map((c) => c[0] as string);
 		const found = calls.some(
@@ -220,28 +237,30 @@ describe("unit: startup log", () => {
 describe("unit: startup warning", () => {
 	beforeEach(() => {
 		resetAll();
-		vi.useFakeTimers();
+		jest.useFakeTimers();
 	});
 	afterEach(() => {
-		vi.clearAllTimers();
-		vi.useRealTimers();
+		jest.clearAllTimers();
+		jest.useRealTimers();
 	});
 
-	it("emits watcher_no_events warning after 5s with no events", async () => {
-		const warnSpy = vi.spyOn(console, "warn");
+	test("emits watcher_no_events warning after 5s with no events", async () => {
+		const warnSpy = jest.spyOn(console, "warn");
 		startContentWatcher("/content");
-		await vi.advanceTimersByTimeAsync(5001);
+		jest.advanceTimersByTime(5001);
+		await Promise.resolve();
 		expect(warnSpy).toHaveBeenCalledWith(
 			expect.stringContaining("watcher_no_events"),
 		);
 	});
 
-	it("does NOT emit warning if a .mdx event fired before 5s", async () => {
-		const warnSpy = vi.spyOn(console, "warn");
+	test("does NOT emit warning if a .mdx event fired before 5s", async () => {
+		const warnSpy = jest.spyOn(console, "warn");
 		statMock.mockResolvedValue({});
 		startContentWatcher("/content");
 		fsMock.trigger("change", "post.mdx");
-		await vi.advanceTimersByTimeAsync(5001);
+		jest.advanceTimersByTime(5001);
+		await Promise.resolve();
 		expect(warnSpy).not.toHaveBeenCalled();
 	});
 });

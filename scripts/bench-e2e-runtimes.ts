@@ -16,6 +16,7 @@ import {
 } from "#/lib/bench/runner.server";
 import { aggregate } from "#/lib/bench/stats";
 import type { Aggregate, HostMeta, Sample } from "#/lib/bench/types";
+import { BROWSER_SMOKE_ROUTE_IDS } from "#/lib/browser-bench/contract";
 
 const runCommand = promisify(execFile);
 
@@ -25,6 +26,10 @@ export const BROWSER = "chromium" as const;
 export const DEFAULT_REPETITIONS = 5;
 export const MAX_REPETITIONS = 20;
 export const WARMUP_COUNT = 1;
+export const DEFAULT_WORKERS = 1;
+export const PLAYWRIGHT_WORKER_COUNTS = [1, 2] as const;
+export const BROWSER_SMOKE_GREP =
+	"en post render:|pt-br post render:|404:|(?<!en)/ renders 200,|/pt-br/ renders 200,";
 export const LOAD_PER_CORE_LIMIT = 1;
 export const LOAD_GATE_POLL_INTERVAL_MS = 1_000;
 export const LOAD_GATE_TIMEOUT_MS = 5 * 60_000;
@@ -51,6 +56,8 @@ export type E2EOutcome = {
 	unexpected: number;
 	flaky: number;
 	inventory: number;
+	smokeRoutes: number;
+	setupOverhead: number;
 };
 
 export type E2ESample = {
@@ -103,7 +110,7 @@ export type E2EBenchRun = {
 	runnerVersion: string;
 	repetitions: number;
 	warmupsPerArm: number;
-	workers: 1;
+	workers: number;
 	retries: 0;
 	loadValidity: {
 		perCoreLimit: number;
@@ -122,6 +129,7 @@ export type E2EBenchRun = {
 
 export type E2EBenchArgs = {
 	repetitions: number;
+	workers: (typeof PLAYWRIGHT_WORKER_COUNTS)[number];
 	help: boolean;
 };
 
@@ -158,6 +166,7 @@ function parsePositiveInt(value: string): number {
 export function parseE2EBenchArgs(args: string[]): E2EBenchArgs {
 	const parsed: E2EBenchArgs = {
 		repetitions: DEFAULT_REPETITIONS,
+		workers: DEFAULT_WORKERS,
 		help: false,
 	};
 	for (let index = 0; index < args.length; index += 1) {
@@ -176,19 +185,41 @@ export function parseE2EBenchArgs(args: string[]): E2EBenchArgs {
 			parsed.repetitions = parsePositiveInt(arg.slice("--repetitions=".length));
 			continue;
 		}
+		if (arg === "--workers") {
+			const value = args[++index];
+			if (!value) throw new Error("--workers requires a value");
+			parsed.workers = parseWorkers(value);
+			continue;
+		}
+		if (arg.startsWith("--workers=")) {
+			parsed.workers = parseWorkers(arg.slice("--workers=".length));
+			continue;
+		}
 		throw new Error(`unknown argument: ${arg}`);
 	}
 	return parsed;
 }
 
-export function commandForRuntime(arm: RuntimeArm): string[] {
+function parseWorkers(value: string): (typeof PLAYWRIGHT_WORKER_COUNTS)[number] {
+	if (!/^[12]$/.test(value)) {
+		throw new Error("--workers must be 1 or 2");
+	}
+	return Number(value) as (typeof PLAYWRIGHT_WORKER_COUNTS)[number];
+}
+
+export function commandForRuntime(
+	arm: RuntimeArm,
+	workers = DEFAULT_WORKERS,
+): string[] {
 	return [
 		...arm.command,
 		"test",
 		"--config=playwright.config.ts",
 		`--project=${BROWSER}`,
-		"--workers=1",
+		`--workers=${workers}`,
 		"--retries=0",
+		"--grep",
+		BROWSER_SMOKE_GREP,
 		"--reporter=json",
 	];
 }
@@ -222,6 +253,8 @@ export function parsePlaywrightOutcome(raw: string): E2EOutcome | null {
 		unexpected,
 		flaky,
 		inventory: expected + skipped + unexpected + flaky,
+		smokeRoutes: BROWSER_SMOKE_ROUTE_IDS.length,
+		setupOverhead: Math.max(0, expected - BROWSER_SMOKE_ROUTE_IDS.length),
 	};
 }
 
@@ -376,6 +409,10 @@ export function armMemoryValidity(
 			reasons.push(`sample ${index + 1}: flaky tests`);
 		if (sample.outcome && sample.outcome.unexpected > 0)
 			reasons.push(`sample ${index + 1}: unexpected tests`);
+		if (sample.outcome && sample.outcome.expected < BROWSER_SMOKE_ROUTE_IDS.length)
+			reasons.push(
+				`sample ${index + 1}: fewer than ${BROWSER_SMOKE_ROUTE_IDS.length} canonical smoke routes`,
+			);
 		if (reference && sample.outcome && !outcomesEqual(reference, sample.outcome)) {
 			reasons.push(`sample ${index + 1}: Playwright inventory or outcome changed`);
 		}
@@ -420,6 +457,7 @@ export function timingValidity(
 export async function runE2EBenchmark(
 	repetitions = DEFAULT_REPETITIONS,
 	deps: E2EBenchDeps = defaultE2EBenchDeps,
+	workers = DEFAULT_WORKERS,
 ): Promise<E2EBenchRun> {
 	if (!Number.isInteger(repetitions) || repetitions < 1) {
 		throw new Error("repetitions must be a positive integer");
@@ -434,7 +472,7 @@ export async function runE2EBenchmark(
 	}
 
 	const runOne = async (arm: RuntimeArm, target: E2ESample[]) => {
-		const command = commandForRuntime(arm);
+		const command = commandForRuntime(arm, workers);
 		const loadGateTimedOut = await waitForLoad(deps);
 		const loadStart = deps.loadAvg();
 		let loadMax = loadStart;
@@ -518,7 +556,7 @@ export async function runE2EBenchmark(
 		runnerVersion: deps.runnerVersion,
 		repetitions,
 		warmupsPerArm: WARMUP_COUNT,
-		workers: 1,
+		workers,
 		retries: 0,
 		loadValidity: {
 			perCoreLimit: LOAD_PER_CORE_LIMIT,
@@ -549,7 +587,8 @@ export function renderE2EBenchmark(run: E2EBenchRun): string {
 		`- Host: ${run.host.host} (${run.host.cpuModel}, ${run.host.cores} cores, ${bytes(run.host.totalMemBytes)} RAM, load ${run.host.loadAvg1.toFixed(2)})`,
 		`- Browser: ${run.browser}; server runtime: Bun; Playwright ${run.runnerVersion}`,
 		`- Samples: ${run.warmupsPerArm} warmup retained but excluded + ${run.repetitions} interleaved measured per runtime`,
-		"- Configuration: one worker, zero retries, same `playwright.config.ts`, same Bun application server",
+		`- Configuration: ${run.workers} worker(s), zero retries, same \`playwright.config.ts\`, same Bun application server`,
+		`- Inventory: ${BROWSER_SMOKE_ROUTE_IDS.length} canonical public outcomes selected with \`--grep\`; Playwright setup-project tests are reported separately as setup overhead`,
 		"",
 	];
 	if (!run.validComparison) {
@@ -611,8 +650,8 @@ function sampleRow(
 	index: number,
 	sample: E2ESample,
 ): string {
-	const outcome = sample.outcome
-		? `${sample.outcome.expected} expected / ${sample.outcome.skipped} skipped / ${sample.outcome.unexpected} unexpected / ${sample.outcome.flaky} flaky`
+		const outcome = sample.outcome
+		? `${sample.outcome.smokeRoutes} smoke routes / ${sample.outcome.setupOverhead} setup overhead / ${sample.outcome.skipped} skipped / ${sample.outcome.unexpected} unexpected / ${sample.outcome.flaky} flaky`
 		: "missing";
 	return `| ${runtime} | ${kind} | ${index} | ${sample.durationMs.toFixed(2)} | ${bytes(sample.peakRssBytes)} | ${sample.loadStart.toFixed(2)} | ${sample.loadMax.toFixed(2)} | ${sample.loadEnd.toFixed(2)} | ${sample.exitCode ?? "timeout"} | ${sample.outcome?.inventory ?? "missing"} | ${outcome} | ${sample.cleanupVerified ? "verified" : "orphan"} |`;
 }
@@ -719,8 +758,8 @@ export const defaultE2EBenchDeps: E2EBenchDeps = {
 
 function usage(): string {
 	return [
-		"Usage: bun run scripts/bench-e2e-runtimes.ts [--repetitions=N]",
-		"Compares Node 24 and Bun 1.4 Playwright on the same Bun server and Chromium suite.",
+		"Usage: bun run scripts/bench-e2e-runtimes.ts [--repetitions=N] [--workers=1|2]",
+		"Compares Node 24 and Bun 1.4 Playwright on the same Bun server and five-route public smoke.",
 		`Measured repetitions: 1-${MAX_REPETITIONS}, default ${DEFAULT_REPETITIONS}; one warmup is retained but excluded.`,
 	].join("\n");
 }
@@ -731,7 +770,11 @@ export async function main(args = process.argv.slice(2)): Promise<void> {
 		console.log(usage());
 		return;
 	}
-	const run = await runE2EBenchmark(parsed.repetitions);
+	const run = await runE2EBenchmark(
+		parsed.repetitions,
+		defaultE2EBenchDeps,
+		parsed.workers,
+	);
 	const paths = await writeE2EBenchmark(run);
 	console.log(`JSON: ${paths.jsonPath}`);
 	console.log(`Markdown: ${paths.markdownPath}`);

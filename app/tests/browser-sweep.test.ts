@@ -1,5 +1,5 @@
+import { describe, expect, jest, test } from "bun:test";
 import type { Page } from "@playwright/test";
-import { describe, expect, it, vi } from "vitest";
 import {
 	classifyNetworkStatus,
 	isHydrationMismatch,
@@ -21,75 +21,75 @@ const baseRoute: RouteEntry = {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("classifyNetworkStatus", () => {
-	it("maps 503 → blocker", () => {
+	test("maps 503 → blocker", () => {
 		expect(classifyNetworkStatus(503)).toBe("blocker");
 	});
 
-	it("maps 500 → blocker", () => {
+	test("maps 500 → blocker", () => {
 		expect(classifyNetworkStatus(500)).toBe("blocker");
 	});
 
-	it("maps 0 (requestfailed) → blocker", () => {
+	test("maps 0 (requestfailed) → blocker", () => {
 		expect(classifyNetworkStatus(0)).toBe("blocker");
 	});
 
-	it("maps 404 → major", () => {
+	test("maps 404 → major", () => {
 		expect(classifyNetworkStatus(404)).toBe("major");
 	});
 
-	it("maps 400 → major", () => {
+	test("maps 400 → major", () => {
 		expect(classifyNetworkStatus(400)).toBe("major");
 	});
 
-	it("maps 200 → null (no finding)", () => {
+	test("maps 200 → null (no finding)", () => {
 		expect(classifyNetworkStatus(200)).toBeNull();
 	});
 
-	it("maps 301 → null (no finding)", () => {
+	test("maps 301 → null (no finding)", () => {
 		expect(classifyNetworkStatus(301)).toBeNull();
 	});
 });
 
 describe("isHydrationMismatch", () => {
-	it('matches "hydration failed"', () => {
+	test('matches "hydration failed"', () => {
 		expect(isHydrationMismatch("hydration failed: foo bar")).toBe(true);
 	});
 
-	it('matches "did not match"', () => {
+	test('matches "did not match"', () => {
 		expect(isHydrationMismatch("Server rendered HTML did not match")).toBe(
 			true,
 		);
 	});
 
-	it('matches "Text content does not match"', () => {
+	test('matches "Text content does not match"', () => {
 		expect(
 			isHydrationMismatch("Text content does not match server-rendered"),
 		).toBe(true);
 	});
 
-	it("rejects unrelated message", () => {
+	test("rejects unrelated message", () => {
 		expect(isHydrationMismatch("TypeError: cannot read property")).toBe(false);
 	});
 
-	it("rejects empty string", () => {
+	test("rejects empty string", () => {
 		expect(isHydrationMismatch("")).toBe(false);
 	});
 });
 
 describe("isMixedContent", () => {
-	it('matches "Mixed Content:" prefix', () => {
+	test('matches "Mixed Content:" prefix', () => {
 		expect(isMixedContent("Mixed Content: http://example.com blocked")).toBe(
 			true,
 		);
 	});
 
-	it('matches "Mixed Content" anywhere in string', () => {
+	test('matches "Mixed Content" anywhere in string', () => {
 		expect(isMixedContent("[Violation] Mixed Content warning detected")).toBe(
 			true,
 		);
 	});
 
-	it("rejects plain console error", () => {
+	test("rejects plain console error", () => {
 		expect(isMixedContent("TypeError: foo is not a function")).toBe(false);
 	});
 });
@@ -113,9 +113,9 @@ function createMockLocator(
 	} = {},
 ) {
 	return {
-		textContent: vi.fn(async () => opts.textContent ?? null),
-		getAttribute: vi.fn(async () => opts.attrValue ?? null),
-		evaluateAll: vi.fn(async () => opts.evaluateAllResult ?? []),
+		textContent: jest.fn(async () => opts.textContent ?? null),
+		getAttribute: jest.fn(async () => opts.attrValue ?? null),
+		evaluateAll: jest.fn(async () => opts.evaluateAllResult ?? []),
 	};
 }
 
@@ -133,12 +133,12 @@ interface MockPageConfig {
 function createMockPage(config: MockPageConfig = {}): Page {
 	const handlers: Record<string, ((arg: unknown) => void)[]> = {};
 
-	const on = vi.fn((event: string, handler: (arg: unknown) => void) => {
+	const on = jest.fn((event: string, handler: (arg: unknown) => void) => {
 		handlers[event] = handlers[event] ?? [];
 		handlers[event].push(handler);
 	});
 
-	const goto = vi.fn(async (_url: string) => {
+	const goto = jest.fn(async (_url: string) => {
 		if (config.gotoThrows) throw config.gotoThrows;
 		for (const msg of config.consoleMessages ?? []) {
 			handlers.console?.forEach((h) => {
@@ -164,7 +164,7 @@ function createMockPage(config: MockPageConfig = {}): Page {
 		return fallback;
 	}
 
-	const locator = vi.fn((selector: string) => {
+	const locator = jest.fn((selector: string) => {
 		if (selector === "title") {
 			return createMockLocator({
 				textContent: config.titleText ?? "Test Page",
@@ -199,14 +199,14 @@ function createMockPage(config: MockPageConfig = {}): Page {
 		return createMockLocator();
 	});
 
-	const evaluate = vi.fn(async () => config.firstPaintMs ?? 0);
+	const evaluate = jest.fn(async () => config.firstPaintMs ?? 0);
 
 	return {
 		on,
 		goto,
 		locator,
 		evaluate,
-		url: vi.fn(() => ""),
+		url: jest.fn(() => ""),
 	} as unknown as Page;
 }
 
@@ -215,7 +215,7 @@ function createMockPage(config: MockPageConfig = {}): Page {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: try/catch", () => {
-	it("emits sweep-error finding when page.goto() throws; no exception escapes", async () => {
+	test("emits sweep-error finding when page.goto() throws; no exception escapes", async () => {
 		const page = createMockPage({ gotoThrows: new Error("navigation failed") });
 		const findings = await sweepRoute(page, baseRoute);
 		expect(findings).toHaveLength(1);
@@ -227,7 +227,7 @@ describe("sweepRoute: try/catch", () => {
 		});
 	});
 
-	it("sweep-error finding includes stack trace in detail", async () => {
+	test("sweep-error finding includes stack trace in detail", async () => {
 		const err = new Error("timeout");
 		const page = createMockPage({ gotoThrows: err });
 		const findings = await sweepRoute(page, baseRoute);
@@ -240,7 +240,7 @@ describe("sweepRoute: try/catch", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: console-error listener", () => {
-	it("captures msg.type() === error; ignores info/warning", async () => {
+	test("captures msg.type() === error; ignores info/warning", async () => {
 		const page = createMockPage({
 			consoleMessages: [
 				{ type: () => "error", text: () => "real error" },
@@ -254,7 +254,7 @@ describe("sweepRoute: console-error listener", () => {
 		expect(errors[0].message).toContain("real error");
 	});
 
-	it("console-error finding has blocker severity", async () => {
+	test("console-error finding has blocker severity", async () => {
 		const page = createMockPage({
 			consoleMessages: [{ type: () => "error", text: () => "boom" }],
 		});
@@ -269,7 +269,7 @@ describe("sweepRoute: console-error listener", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: hydration-mismatch", () => {
-	it("detects hydration-mismatch from console.error with 'hydration failed'", async () => {
+	test("detects hydration-mismatch from console.error with 'hydration failed'", async () => {
 		const page = createMockPage({
 			consoleMessages: [
 				{ type: () => "error", text: () => "hydration failed: expected div" },
@@ -284,7 +284,7 @@ describe("sweepRoute: hydration-mismatch", () => {
 		).toBe("blocker");
 	});
 
-	it("detects hydration-mismatch from 'did not match'", async () => {
+	test("detects hydration-mismatch from 'did not match'", async () => {
 		const page = createMockPage({
 			consoleMessages: [
 				{
@@ -299,7 +299,7 @@ describe("sweepRoute: hydration-mismatch", () => {
 		);
 	});
 
-	it("detects hydration-mismatch from 'Text content does not match'", async () => {
+	test("detects hydration-mismatch from 'Text content does not match'", async () => {
 		const page = createMockPage({
 			consoleMessages: [
 				{
@@ -314,7 +314,7 @@ describe("sweepRoute: hydration-mismatch", () => {
 		);
 	});
 
-	it("hydration-mismatch message is NOT also classified as console-error", async () => {
+	test("hydration-mismatch message is NOT also classified as console-error", async () => {
 		const page = createMockPage({
 			consoleMessages: [
 				{ type: () => "error", text: () => "hydration failed: mismatch" },
@@ -330,7 +330,7 @@ describe("sweepRoute: hydration-mismatch", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: mixed-content", () => {
-	it("detects mixed-content from console.error containing 'Mixed Content'", async () => {
+	test("detects mixed-content from console.error containing 'Mixed Content'", async () => {
 		const page = createMockPage({
 			consoleMessages: [
 				{
@@ -343,7 +343,7 @@ describe("sweepRoute: mixed-content", () => {
 		expect(findings.some((f) => f.category === "mixed-content")).toBe(true);
 	});
 
-	it("mixed-content is NOT classified as console-error", async () => {
+	test("mixed-content is NOT classified as console-error", async () => {
 		const page = createMockPage({
 			consoleMessages: [
 				{ type: () => "error", text: () => "Mixed Content: blocked" },
@@ -359,7 +359,7 @@ describe("sweepRoute: mixed-content", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: network-fail", () => {
-	it("503 response → blocker finding", async () => {
+	test("503 response → blocker finding", async () => {
 		const page = createMockPage({
 			responses: [
 				{ url: () => "http://localhost/api/data", status: () => 503 },
@@ -371,7 +371,7 @@ describe("sweepRoute: network-fail", () => {
 		expect(netFail[0].severity).toBe("blocker");
 	});
 
-	it("404 response → major finding", async () => {
+	test("404 response → major finding", async () => {
 		const page = createMockPage({
 			responses: [{ url: () => "http://localhost/img.png", status: () => 404 }],
 		});
@@ -381,7 +381,7 @@ describe("sweepRoute: network-fail", () => {
 		expect(netFail[0].severity).toBe("major");
 	});
 
-	it("200 response → no network-fail finding", async () => {
+	test("200 response → no network-fail finding", async () => {
 		const page = createMockPage({
 			responses: [{ url: () => "http://localhost/", status: () => 200 }],
 		});
@@ -391,7 +391,7 @@ describe("sweepRoute: network-fail", () => {
 		);
 	});
 
-	it("requestfailed event (no HTTP status) → blocker finding", async () => {
+	test("requestfailed event (no HTTP status) → blocker finding", async () => {
 		const page = createMockPage({
 			failedRequests: [
 				{
@@ -414,7 +414,7 @@ describe("sweepRoute: network-fail", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: broken-image", () => {
-	it("returns broken-image finding with src URL when naturalWidth === 0", async () => {
+	test("returns broken-image finding with src URL when naturalWidth === 0", async () => {
 		const page = createMockPage({
 			brokenImageSrcs: ["http://localhost/bad.png"],
 		});
@@ -425,7 +425,7 @@ describe("sweepRoute: broken-image", () => {
 		expect(brokenImg?.detail?.src).toBe("http://localhost/bad.png");
 	});
 
-	it("no broken-image finding when all images load successfully", async () => {
+	test("no broken-image finding when all images load successfully", async () => {
 		const page = createMockPage({ brokenImageSrcs: [] });
 		const findings = await sweepRoute(page, baseRoute);
 		expect(findings.filter((f) => f.category === "broken-image")).toHaveLength(
@@ -439,7 +439,7 @@ describe("sweepRoute: broken-image", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: missing-meta", () => {
-	it("returns missing-meta finding for absent og:title", async () => {
+	test("returns missing-meta finding for absent og:title", async () => {
 		const page = createMockPage({
 			metaValues: { "og:title": null },
 		});
@@ -448,7 +448,7 @@ describe("sweepRoute: missing-meta", () => {
 		expect(missing.some((f) => f.detail?.tag === "og:title")).toBe(true);
 	});
 
-	it("no missing-meta finding when all tags present", async () => {
+	test("no missing-meta finding when all tags present", async () => {
 		const page = createMockPage();
 		const findings = await sweepRoute(page, baseRoute);
 		expect(findings.filter((f) => f.category === "missing-meta")).toHaveLength(
@@ -456,7 +456,7 @@ describe("sweepRoute: missing-meta", () => {
 		);
 	});
 
-	it("empty string og:image counts as missing", async () => {
+	test("empty string og:image counts as missing", async () => {
 		const page = createMockPage({
 			metaValues: { "og:image": "" },
 		});
@@ -474,7 +474,7 @@ describe("sweepRoute: missing-meta", () => {
 // ──────────────────────────────────────────────────────────────────────────────
 
 describe("sweepRoute: slow-response", () => {
-	it("emits slow-response finding when first-paint > 1500ms", async () => {
+	test("emits slow-response finding when first-paint > 1500ms", async () => {
 		const page = createMockPage({ firstPaintMs: 1600 });
 		const findings = await sweepRoute(page, baseRoute);
 		const slow = findings.find((f) => f.category === "slow-response");
@@ -483,7 +483,7 @@ describe("sweepRoute: slow-response", () => {
 		expect(slow?.detail?.firstPaintMs).toBe(1600);
 	});
 
-	it("no slow-response finding when first-paint <= 1500ms", async () => {
+	test("no slow-response finding when first-paint <= 1500ms", async () => {
 		const page = createMockPage({ firstPaintMs: 1000 });
 		const findings = await sweepRoute(page, baseRoute);
 		expect(findings.filter((f) => f.category === "slow-response")).toHaveLength(
@@ -491,7 +491,7 @@ describe("sweepRoute: slow-response", () => {
 		);
 	});
 
-	it("no slow-response finding at exactly 1500ms", async () => {
+	test("no slow-response finding at exactly 1500ms", async () => {
 		const page = createMockPage({ firstPaintMs: 1500 });
 		const findings = await sweepRoute(page, baseRoute);
 		expect(findings.filter((f) => f.category === "slow-response")).toHaveLength(

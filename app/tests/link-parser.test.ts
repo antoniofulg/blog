@@ -1,6 +1,6 @@
+import { describe, expect, test } from "bun:test";
 import { readdir } from "node:fs/promises";
 import path from "node:path";
-import { describe, expect, it } from "vitest";
 import { extractLinks } from "#/lib/content-audit/link-parser.server";
 
 async function walkMdx(dir: string): Promise<string[]> {
@@ -14,14 +14,14 @@ async function walkMdx(dir: string): Promise<string[]> {
 	return out;
 }
 
-const FIXTURES = path.resolve(import.meta.dirname, "fixtures/link-parser");
+const FIXTURES = path.resolve(process.cwd(), "app/tests/fixtures/link-parser");
 
 function fix(name: string) {
 	return path.join(FIXTURES, name);
 }
 
 describe("link-parser: markdown links", () => {
-	it("extracts internal markdown link with correct href, line, column", async () => {
+	test("extracts internal markdown link with correct href, line, column", async () => {
 		const links = await extractLinks(fix("markdown-links.mdx"));
 		const internal = links.find((l) => l.href === "/foo");
 		expect(internal).toBeDefined();
@@ -30,21 +30,21 @@ describe("link-parser: markdown links", () => {
 		expect(internal?.column).toBeGreaterThan(0);
 	});
 
-	it("extracts external markdown link", async () => {
+	test("extracts external markdown link", async () => {
 		const links = await extractLinks(fix("markdown-links.mdx"));
 		const external = links.find((l) => l.href === "https://example.com");
 		expect(external).toBeDefined();
 		expect(external?.kind).toBe("markdown");
 	});
 
-	it("extracts fragment-only markdown link", async () => {
+	test("extracts fragment-only markdown link", async () => {
 		const links = await extractLinks(fix("markdown-links.mdx"));
 		const frag = links.find((l) => l.href === "#section");
 		expect(frag).toBeDefined();
 		expect(frag?.kind).toBe("markdown");
 	});
 
-	it("extracts relative markdown link", async () => {
+	test("extracts relative markdown link", async () => {
 		const links = await extractLinks(fix("markdown-links.mdx"));
 		const rel = links.find((l) => l.href === "../other");
 		expect(rel).toBeDefined();
@@ -53,7 +53,7 @@ describe("link-parser: markdown links", () => {
 });
 
 describe("link-parser: JSX Link component", () => {
-	it("extracts block <Link href='/bar'> with correct href and kind", async () => {
+	test("extracts block <Link href='/bar'> with correct href and kind", async () => {
 		const links = await extractLinks(fix("jsx-link.mdx"));
 		const block = links.find((l) => l.href === "/bar");
 		expect(block).toBeDefined();
@@ -61,7 +61,7 @@ describe("link-parser: JSX Link component", () => {
 		expect(block?.line).toBeGreaterThan(0);
 	});
 
-	it("extracts inline <Link href='/inline-bar'>", async () => {
+	test("extracts inline <Link href='/inline-bar'>", async () => {
 		const links = await extractLinks(fix("jsx-link.mdx"));
 		const inline = links.find((l) => l.href === "/inline-bar");
 		expect(inline).toBeDefined();
@@ -70,14 +70,14 @@ describe("link-parser: JSX Link component", () => {
 });
 
 describe("link-parser: JSX anchor element", () => {
-	it("extracts block <a href='https://example.com'>", async () => {
+	test("extracts block <a href='https://example.com'>", async () => {
 		const links = await extractLinks(fix("jsx-a.mdx"));
 		const external = links.find((l) => l.href === "https://example.com");
 		expect(external).toBeDefined();
 		expect(external?.kind).toBe("jsx");
 	});
 
-	it("extracts inline <a href='/internal'>", async () => {
+	test("extracts inline <a href='/internal'>", async () => {
 		const links = await extractLinks(fix("jsx-a.mdx"));
 		const internal = links.find((l) => l.href === "/internal");
 		expect(internal).toBeDefined();
@@ -86,21 +86,21 @@ describe("link-parser: JSX anchor element", () => {
 });
 
 describe("link-parser: JSX expression attributes", () => {
-	it("extracts literal double-quoted expression href={'/expr-foo'}", async () => {
+	test("extracts literal double-quoted expression href={'/expr-foo'}", async () => {
 		const links = await extractLinks(fix("expression-attr.mdx"));
 		const link = links.find((l) => l.href === "/expr-foo");
 		expect(link).toBeDefined();
 		expect(link?.kind).toBe("jsx");
 	});
 
-	it("extracts literal single-quoted expression href={'single-quoted'}", async () => {
+	test("extracts literal single-quoted expression href={'single-quoted'}", async () => {
 		const links = await extractLinks(fix("expression-attr.mdx"));
 		const link = links.find((l) => l.href === "single-quoted");
 		expect(link).toBeDefined();
 		expect(link?.kind).toBe("jsx");
 	});
 
-	it("returns skipped-dynamic link for dynamic href={someVar}", async () => {
+	test("returns skipped-dynamic link for dynamic href={someVar}", async () => {
 		const links = await extractLinks(fix("expression-attr.mdx"));
 		const dynamic = links.find((l) => l.kind === "skipped-dynamic");
 		expect(dynamic).toBeDefined();
@@ -108,7 +108,7 @@ describe("link-parser: JSX expression attributes", () => {
 		expect(dynamic?.line).toBeGreaterThan(0);
 	});
 
-	it("does not include variable name as href for dynamic expression", async () => {
+	test("does not include variable name as href for dynamic expression", async () => {
 		const links = await extractLinks(fix("expression-attr.mdx"));
 		const byVarName = links.find((l) => l.href === "someVar");
 		expect(byVarName).toBeUndefined();
@@ -116,12 +116,12 @@ describe("link-parser: JSX expression attributes", () => {
 });
 
 describe("link-parser: edge cases", () => {
-	it("returns [] for file with no links", async () => {
+	test("returns [] for file with no links", async () => {
 		const links = await extractLinks(fix("empty.mdx"));
 		expect(links).toEqual([]);
 	});
 
-	it("handles mixed file: returns all link kinds", async () => {
+	test("handles mixed file: returns all link kinds", async () => {
 		const links = await extractLinks(fix("mixed.mdx"));
 		const hrefs = links.map((l) => l.href);
 		expect(hrefs).toContain("/mixed-internal");
@@ -131,20 +131,20 @@ describe("link-parser: edge cases", () => {
 		expect(hrefs).toContain("#top");
 	});
 
-	it("ignores JSX elements with boolean href attribute (null value)", async () => {
+	test("ignores JSX elements with boolean href attribute (null value)", async () => {
 		const links = await extractLinks(fix("no-href.mdx"));
 		// <a href> has null value — must not produce a link
 		const booleanHref = links.find((l) => l.href === "true");
 		expect(booleanHref).toBeUndefined();
 	});
 
-	it("ignores JSX elements with no href attribute", async () => {
+	test("ignores JSX elements with no href attribute", async () => {
 		const links = await extractLinks(fix("no-href.mdx"));
 		// <Link> with no attributes — must return empty
 		expect(links.length).toBe(0);
 	});
 
-	it("ignores JSX elements that are not 'a' or 'Link'", async () => {
+	test("ignores JSX elements that are not 'a' or 'Link'", async () => {
 		const links = await extractLinks(fix("no-href.mdx"));
 		// <Button href="/ignored"> — must not produce a link
 		const buttonLink = links.find((l) => l.href === "/ignored");
@@ -153,7 +153,7 @@ describe("link-parser: edge cases", () => {
 });
 
 describe("link-parser: integration — whole tree parse", () => {
-	it("walks app/content/posts/** without throwing and returns arrays", async () => {
+	test("walks app/content/posts/** without throwing and returns arrays", async () => {
 		const postsDir = path.resolve(
 			import.meta.dirname,
 			"../../app/content/posts",
@@ -172,7 +172,7 @@ describe("link-parser: integration — whole tree parse", () => {
 	// observed value. The previous 2 s bound was tight enough that full-suite
 	// worker contention alone tripped it, which inside a version benchmark
 	// showed up as a compat finding against whichever runtime was unlucky.
-	it("whole-tree parse completes without a pathological slowdown", async () => {
+	test("whole-tree parse completes without a pathological slowdown", async () => {
 		const postsDir = path.resolve(
 			import.meta.dirname,
 			"../../app/content/posts",

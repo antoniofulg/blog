@@ -1,7 +1,9 @@
-// @vitest-environment jsdom
-import { act, renderHook } from "@testing-library/react";
+import "./happydom";
+import { afterEach, beforeEach, describe, expect, test } from "bun:test";
+
+const { act, renderHook } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it } from "vitest";
 import {
 	buildLocaleHead,
 	collapseDefaultLocalePath,
@@ -33,7 +35,7 @@ function wrapper({ children }: { children: React.ReactNode }) {
 // ─── unit: getTwinAvailabilityForCurrentRoute ────────────────────────────────
 
 describe("unit: getTwinAvailabilityForCurrentRoute", () => {
-	it("post with twin → available: true, renderSwitcher: true", () => {
+	test("post with twin → available: true, renderSwitcher: true", () => {
 		expect(
 			getTwinAvailabilityForCurrentRoute(
 				{ kind: "post", slug: "my-post", hasTwin: true },
@@ -42,7 +44,7 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 		).toEqual({ available: true, renderSwitcher: true });
 	});
 
-	it("post without twin → available: false, renderSwitcher: true (AC-1)", () => {
+	test("post without twin → available: false, renderSwitcher: true (AC-1)", () => {
 		expect(
 			getTwinAvailabilityForCurrentRoute(
 				{ kind: "post", slug: "x", hasTwin: false },
@@ -51,7 +53,7 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 		).toEqual({ available: false, renderSwitcher: true });
 	});
 
-	it("page with twin → available: true, renderSwitcher: true", () => {
+	test("page with twin → available: true, renderSwitcher: true", () => {
 		expect(
 			getTwinAvailabilityForCurrentRoute(
 				{ kind: "page", slug: "about", hasTwin: true },
@@ -60,7 +62,7 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 		).toEqual({ available: true, renderSwitcher: true });
 	});
 
-	it("page without twin → available: false, renderSwitcher: true", () => {
+	test("page without twin → available: false, renderSwitcher: true", () => {
 		expect(
 			getTwinAvailabilityForCurrentRoute(
 				{ kind: "page", slug: "about", hasTwin: false },
@@ -69,13 +71,13 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 		).toEqual({ available: false, renderSwitcher: true });
 	});
 
-	it("structural → available: true, renderSwitcher: true (AC-2)", () => {
+	test("structural → available: true, renderSwitcher: true (AC-2)", () => {
 		expect(
 			getTwinAvailabilityForCurrentRoute({ kind: "structural" }, "pt-br"),
 		).toEqual({ available: true, renderSwitcher: true });
 	});
 
-	it("structural → same result for en target", () => {
+	test("structural → same result for en target", () => {
 		expect(
 			getTwinAvailabilityForCurrentRoute({ kind: "structural" }, "en"),
 		).toEqual({ available: true, renderSwitcher: true });
@@ -85,7 +87,7 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 	// the sidebar. It now lives in the Header for admin too, consistent with
 	// reader pages; the admin branch in useLangSwitcher short-circuits the
 	// URL navigate so setLocale alone updates the locale context.
-	it("admin → renderSwitcher: true (switcher moved to Header)", () => {
+	test("admin → renderSwitcher: true (switcher moved to Header)", () => {
 		const result = getTwinAvailabilityForCurrentRoute(
 			{ kind: "admin" },
 			"pt-br",
@@ -93,7 +95,7 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 		expect(result.renderSwitcher).toBe(true);
 	});
 
-	it("admin → available: true (no twin concept; both locales always reachable)", () => {
+	test("admin → available: true (no twin concept; both locales always reachable)", () => {
 		const result = getTwinAvailabilityForCurrentRoute(
 			{ kind: "admin" },
 			"pt-br",
@@ -101,7 +103,7 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 		expect(result.available).toBe(true);
 	});
 
-	it("post with twin targeting en → available: true", () => {
+	test("post with twin targeting en → available: true", () => {
 		expect(
 			getTwinAvailabilityForCurrentRoute(
 				{ kind: "post", slug: "hello", hasTwin: true },
@@ -114,29 +116,29 @@ describe("unit: getTwinAvailabilityForCurrentRoute", () => {
 // ─── unit: collapseDefaultLocalePath ────────────────────────────────────────
 
 describe("unit: collapseDefaultLocalePath", () => {
-	it("'/' stays '/'", () => {
+	test("'/' stays '/'", () => {
 		expect(collapseDefaultLocalePath("/")).toBe("/");
 	});
 
-	it(`'/${DEFAULT_LOCALE}/' collapses to '/'`, () => {
+	test(`'/${DEFAULT_LOCALE}/' collapses to '/'`, () => {
 		expect(collapseDefaultLocalePath(`/${DEFAULT_LOCALE}/`)).toBe("/");
 	});
 
-	it(`'/${DEFAULT_LOCALE}/about/' collapses to '/about/'`, () => {
+	test(`'/${DEFAULT_LOCALE}/about/' collapses to '/about/'`, () => {
 		expect(collapseDefaultLocalePath(`/${DEFAULT_LOCALE}/about/`)).toBe(
 			"/about/",
 		);
 	});
 
-	it("'/pt-br/' stays '/pt-br/' (non-default locale kept)", () => {
+	test("'/pt-br/' stays '/pt-br/' (non-default locale kept)", () => {
 		expect(collapseDefaultLocalePath("/pt-br/")).toBe("/pt-br/");
 	});
 
-	it("'/pt-br/about/' stays '/pt-br/about/'", () => {
+	test("'/pt-br/about/' stays '/pt-br/about/'", () => {
 		expect(collapseDefaultLocalePath("/pt-br/about/")).toBe("/pt-br/about/");
 	});
 
-	it("'/other/' stays '/other/' (arbitrary path untouched)", () => {
+	test("'/other/' stays '/other/' (arbitrary path untouched)", () => {
 		expect(collapseDefaultLocalePath("/other/")).toBe("/other/");
 	});
 });
@@ -144,27 +146,27 @@ describe("unit: collapseDefaultLocalePath", () => {
 // ─── unit: localeHref ───────────────────────────────────────────────────────
 
 describe("unit: localeHref", () => {
-	it("en feed → '/'", () => {
+	test("en feed → '/'", () => {
 		expect(localeHref("en")).toBe("/");
 	});
 
-	it("pt-br feed → '/pt-br/'", () => {
+	test("pt-br feed → '/pt-br/'", () => {
 		expect(localeHref("pt-br")).toBe("/pt-br/");
 	});
 
-	it("en post → '/slug'", () => {
+	test("en post → '/slug'", () => {
 		expect(localeHref("en", "my-post")).toBe("/my-post");
 	});
 
-	it("pt-br post → '/pt-br/slug'", () => {
+	test("pt-br post → '/pt-br/slug'", () => {
 		expect(localeHref("pt-br", "my-post")).toBe("/pt-br/my-post");
 	});
 
-	it("en href has no /en/ prefix", () => {
+	test("en href has no /en/ prefix", () => {
 		expect(localeHref("en", "slug")).not.toContain("/en/");
 	});
 
-	it("en feed has no /en/ prefix", () => {
+	test("en feed has no /en/ prefix", () => {
 		expect(localeHref("en")).not.toContain("/en");
 	});
 });
@@ -172,29 +174,29 @@ describe("unit: localeHref", () => {
 // ─── unit: detectLocaleFromRequest ──────────────────────────────────────────
 
 describe("unit: detectLocaleFromRequest", () => {
-	it("pt-BR,pt;q=0.9,en-US;q=0.8 → 'pt-br'", () => {
+	test("pt-BR,pt;q=0.9,en-US;q=0.8 → 'pt-br'", () => {
 		expect(
 			detectLocaleFromRequest(makeRequest("pt-BR,pt;q=0.9,en-US;q=0.8")),
 		).toBe("pt-br");
 	});
 
-	it("en-US,en;q=0.9 → 'en'", () => {
+	test("en-US,en;q=0.9 → 'en'", () => {
 		expect(detectLocaleFromRequest(makeRequest("en-US,en;q=0.9"))).toBe("en");
 	});
 
-	it("'pt' → 'pt-br'", () => {
+	test("'pt' → 'pt-br'", () => {
 		expect(detectLocaleFromRequest(makeRequest("pt"))).toBe("pt-br");
 	});
 
-	it("missing header → 'en'", () => {
+	test("missing header → 'en'", () => {
 		expect(detectLocaleFromRequest(makeRequest())).toBe("en");
 	});
 
-	it("empty header → 'en'", () => {
+	test("empty header → 'en'", () => {
 		expect(detectLocaleFromRequest(makeRequest(""))).toBe(DEFAULT_LOCALE);
 	});
 
-	it("cookie locale=en overrides Accept-Language: pt-BR", () => {
+	test("cookie locale=en overrides Accept-Language: pt-BR", () => {
 		expect(
 			detectLocaleFromRequest(
 				makeRequest("pt-BR,pt;q=0.9,en-US;q=0.8", "locale=en"),
@@ -202,19 +204,19 @@ describe("unit: detectLocaleFromRequest", () => {
 		).toBe("en");
 	});
 
-	it("cookie locale=pt-br overrides Accept-Language: en-US", () => {
+	test("cookie locale=pt-br overrides Accept-Language: en-US", () => {
 		expect(
 			detectLocaleFromRequest(makeRequest("en-US,en;q=0.9", "locale=pt-br")),
 		).toBe("pt-br");
 	});
 
-	it("invalid cookie locale falls back to Accept-Language", () => {
+	test("invalid cookie locale falls back to Accept-Language", () => {
 		expect(
 			detectLocaleFromRequest(makeRequest("pt-BR,pt;q=0.9", "locale=fr")),
 		).toBe("pt-br");
 	});
 
-	it("cookie among multiple cookies → locale=en wins", () => {
+	test("cookie among multiple cookies → locale=en wins", () => {
 		expect(
 			detectLocaleFromRequest(
 				makeRequest("pt-BR,pt;q=0.9", "theme=dark; locale=en; other=value"),
@@ -222,19 +224,19 @@ describe("unit: detectLocaleFromRequest", () => {
 		).toBe("en");
 	});
 
-	it("en-US,en;q=0.9,pt;q=0.1 → 'en' (English wins by weight)", () => {
+	test("en-US,en;q=0.9,pt;q=0.1 → 'en' (English wins by weight)", () => {
 		expect(
 			detectLocaleFromRequest(makeRequest("en-US,en;q=0.9,pt;q=0.1")),
 		).toBe("en");
 	});
 
-	it("en;q=1.0,pt;q=0.0 → 'en' (pt explicitly declined)", () => {
+	test("en;q=1.0,pt;q=0.0 → 'en' (pt explicitly declined)", () => {
 		expect(detectLocaleFromRequest(makeRequest("en;q=1.0,pt;q=0.0"))).toBe(
 			"en",
 		);
 	});
 
-	it("zh-CN,zh;q=0.9,en-US;q=0.8,pt-BR;q=0.1 → 'en' (en beats pt by weight)", () => {
+	test("zh-CN,zh;q=0.9,en-US;q=0.8,pt-BR;q=0.1 → 'en' (en beats pt by weight)", () => {
 		expect(
 			detectLocaleFromRequest(
 				makeRequest("zh-CN,zh;q=0.9,en-US;q=0.8,pt-BR;q=0.1"),
@@ -249,13 +251,13 @@ describe("unit: LocaleProvider + useLocale", () => {
 	beforeEach(() => localStorage.clear());
 	afterEach(() => localStorage.clear());
 
-	it("initializes with 'en' when localStorage has no 'locale' key", async () => {
+	test("initializes with 'en' when localStorage has no 'locale' key", async () => {
 		const { result } = renderHook(() => useLocale(), { wrapper });
 		await act(async () => {});
 		expect(result.current.locale).toBe("en");
 	});
 
-	it("setLocale('pt-br') writes 'pt-br' to localStorage", async () => {
+	test("setLocale('pt-br') writes 'pt-br' to localStorage", async () => {
 		const { result } = renderHook(() => useLocale(), { wrapper });
 		await act(async () => {
 			result.current.setLocale("pt-br");
@@ -264,7 +266,7 @@ describe("unit: LocaleProvider + useLocale", () => {
 		expect(result.current.locale).toBe("pt-br");
 	});
 
-	it("useLocale() returns { locale, setLocale } shape", () => {
+	test("useLocale() returns { locale, setLocale } shape", () => {
 		const { result } = renderHook(() => useLocale(), { wrapper });
 		expect(result.current).toHaveProperty("locale");
 		expect(typeof result.current.setLocale).toBe("function");
@@ -274,7 +276,7 @@ describe("unit: LocaleProvider + useLocale", () => {
 // ─── unit: buildLocaleHead ───────────────────────────────────────────────────
 
 describe("unit: buildLocaleHead", () => {
-	it("does not emit a canonical link (single source = __root.tsx)", () => {
+	test("does not emit a canonical link (single source = __root.tsx)", () => {
 		// Canonical emission was moved to __root.tsx (locale-aware via pathname
 		// collapse) so the rendered HTML has exactly one `<link rel="canonical">`.
 		// Duplicate canonicals confuse the audit's strict-mode getAttribute call
@@ -283,7 +285,7 @@ describe("unit: buildLocaleHead", () => {
 		expect(links.find((l) => l.rel === "canonical")).toBeUndefined();
 	});
 
-	it("og:url still includes locale-specific canonical pathname", () => {
+	test("og:url still includes locale-specific canonical pathname", () => {
 		// og:url stays in buildLocaleHead because it is a meta property and does
 		// not collide with the root layout's link[rel=canonical]. Keeps the
 		// per-locale canonical intent visible to social-card scrapers.
@@ -307,7 +309,7 @@ describe("unit: buildLocaleHead", () => {
 		expect(new URL(ptContent, "http://x").pathname).toBe("/pt-br/");
 	});
 
-	it("en → og:locale 'en_US'", () => {
+	test("en → og:locale 'en_US'", () => {
 		const { meta } = buildLocaleHead("en");
 		const ogLocale = meta.find(
 			(m) => "property" in m && m.property === "og:locale",
@@ -317,7 +319,7 @@ describe("unit: buildLocaleHead", () => {
 		);
 	});
 
-	it("pt-br → og:locale 'pt_BR'", () => {
+	test("pt-br → og:locale 'pt_BR'", () => {
 		const { meta } = buildLocaleHead("pt-br");
 		const ogLocale = meta.find(
 			(m) => "property" in m && m.property === "og:locale",
@@ -327,7 +329,7 @@ describe("unit: buildLocaleHead", () => {
 		);
 	});
 
-	it("en → description matches en copy", () => {
+	test("en → description matches en copy", () => {
 		const { meta } = buildLocaleHead("en");
 		const desc = meta.find((m) => "name" in m && m.name === "description");
 		expect(desc && "content" in desc ? desc.content : null).toContain(
@@ -335,7 +337,7 @@ describe("unit: buildLocaleHead", () => {
 		);
 	});
 
-	it("pt-br → description matches pt-br copy", () => {
+	test("pt-br → description matches pt-br copy", () => {
 		const { meta } = buildLocaleHead("pt-br");
 		const desc = meta.find((m) => "name" in m && m.name === "description");
 		expect(desc && "content" in desc ? desc.content : null).toContain(
@@ -343,18 +345,18 @@ describe("unit: buildLocaleHead", () => {
 		);
 	});
 
-	it("no descriptor → emits zero hreflang links (default = no-twin)", () => {
+	test("no descriptor → emits zero hreflang links (default = no-twin)", () => {
 		const { links } = buildLocaleHead("en");
 		const alternates = links.filter((l) => l.rel === "alternate");
 		expect(alternates).toHaveLength(0);
 	});
 
-	it("no-twin descriptor → emits zero hreflang links (AC-2)", () => {
+	test("no-twin descriptor → emits zero hreflang links (AC-2)", () => {
 		const { links } = buildLocaleHead("en", { kind: "no-twin" });
 		expect(links.filter((l) => l.rel === "alternate")).toHaveLength(0);
 	});
 
-	it("has-twin descriptor → emits two locale alternates without x-default", () => {
+	test("has-twin descriptor → emits two locale alternates without x-default", () => {
 		const { links } = buildLocaleHead("en", { kind: "has-twin" });
 		const alternates = links.filter((l) => l.rel === "alternate");
 		expect(alternates).toHaveLength(2);
@@ -364,7 +366,7 @@ describe("unit: buildLocaleHead", () => {
 		expect(langs).not.toContain("x-default");
 	});
 
-	it("homepage descriptor (en) → emits x-default + both locale alternates (AC-3)", () => {
+	test("homepage descriptor (en) → emits x-default + both locale alternates (AC-3)", () => {
 		const { links } = buildLocaleHead("en", { kind: "homepage" });
 		const alternates = links.filter((l) => l.rel === "alternate");
 		expect(alternates).toHaveLength(3);
@@ -374,7 +376,7 @@ describe("unit: buildLocaleHead", () => {
 		expect(langs).toContain("pt-BR");
 	});
 
-	it("homepage descriptor (pt-br) → emits x-default + both locale alternates (AC-3)", () => {
+	test("homepage descriptor (pt-br) → emits x-default + both locale alternates (AC-3)", () => {
 		const { links } = buildLocaleHead("pt-br", { kind: "homepage" });
 		const alternates = links.filter((l) => l.rel === "alternate");
 		expect(alternates).toHaveLength(3);
@@ -384,7 +386,7 @@ describe("unit: buildLocaleHead", () => {
 		expect(langs).toContain("pt-BR");
 	});
 
-	it("homepage descriptor → x-default href points to EN root '/'", () => {
+	test("homepage descriptor → x-default href points to EN root '/'", () => {
 		const { links } = buildLocaleHead("en", { kind: "homepage" });
 		const xDefault = links.find(
 			(l) => "hrefLang" in l && l.hrefLang === "x-default",
@@ -396,7 +398,7 @@ describe("unit: buildLocaleHead", () => {
 		expect(new URL(href, "http://x").pathname).toBe("/");
 	});
 
-	it("homepage descriptor → pt-br locale href is '/pt-br/'", () => {
+	test("homepage descriptor → pt-br locale href is '/pt-br/'", () => {
 		const { links } = buildLocaleHead("en", { kind: "homepage" });
 		const ptBrLink = links.find(
 			(l) => "hrefLang" in l && l.hrefLang === "pt-BR",

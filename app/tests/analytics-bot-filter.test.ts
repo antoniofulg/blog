@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, test } from "bun:test";
 import { isBotUserAgent } from "#/lib/analytics/bot-filter";
 
 // AC-6: importing the module must not trigger any DB connection.
@@ -8,7 +8,7 @@ import { isBotUserAgent } from "#/lib/analytics/bot-filter";
 describe("isBotUserAgent", () => {
 	// ── Known bot User-Agents ────────────────────────────────────────────────────
 
-	it.each([
+	test.each([
 		["Googlebot/2.1 (+http://www.google.com/bot.html)", "Googlebot"],
 		["bingbot/2.0 (+http://www.bing.com/bingbot.htm)", "bingbot"],
 		["GPTBot/1.0 (+https://openai.com/gptbot)", "GPTBot"],
@@ -20,7 +20,7 @@ describe("isBotUserAgent", () => {
 
 	// ── Known human User-Agents ──────────────────────────────────────────────────
 
-	it.each([
+	test.each([
 		[
 			"Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
 			"Chrome on Mac",
@@ -47,15 +47,15 @@ describe("isBotUserAgent", () => {
 
 	// ── Edge cases ───────────────────────────────────────────────────────────────
 
-	it("returns false for null", () => {
+	test("returns false for null", () => {
 		expect(isBotUserAgent(null)).toBe(false);
 	});
 
-	it("returns false for undefined", () => {
+	test("returns false for undefined", () => {
 		expect(isBotUserAgent(undefined)).toBe(false);
 	});
 
-	it("returns false for empty string", () => {
+	test("returns false for empty string", () => {
 		expect(isBotUserAgent("")).toBe(false);
 	});
 });

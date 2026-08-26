@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import { collectHostMeta, parsePowerSource } from "#/lib/bench/host.server";
 
 describe("bench host metadata", () => {

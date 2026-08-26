@@ -1,37 +1,38 @@
 # Testing Rules
 
-## Vitest vs. Playwright Boundary
+## Bun Test vs. Playwright Boundary
 
 | Concern | Tool | Location |
 |---------|------|----------|
-| Unit logic, pure functions | Vitest | `app/tests/` |
-| Component rendering, route loading | Vitest | `app/tests/` |
+| Unit logic, pure functions | Bun Test | `app/tests/` |
+| Component rendering, route loading | Bun Test + selective HappyDOM | `app/tests/` |
 | Full browser flows, auth round-trips | Playwright through Bun | `tests/e2e/` |
-| CI infra validation, file assertions | Vitest | `app/tests/` |
+| CI infra validation, file assertions | Bun Test | `app/tests/` |
 
-Rule: if the test requires a real browser, it belongs in `tests/e2e/`. If it
-can run in Node with JSDOM or just file reads, it belongs in `app/tests/`.
-The retired Bun.WebView experiment is preserved only as benchmark evidence in
-`docs/benchmarks/e2e-webview/`; it is not an executable test route.
+Rule: if the test requires a complete real-browser flow, it belongs in
+`tests/e2e/`. Pure/server tests run directly in Bun; component tests import
+`app/tests/happydom.ts` explicitly so server tests do not pay for or inherit a
+global DOM. Bun.WebView remains a non-blocking five-route local diagnostic.
 
 ## Test runner decision
 
-Bun 1.4 + Vitest is the permanent unit, component, and integration test
-runner, including the blocking CI quality entry. `test:vitest:node` remains the
-explicit Node 24 reference and rollback route. Bun Test was retired on
-2026-08-24 after two local full-suite signals were roughly twice as slow
-(60.96 vs 119.71 s and 59.56 vs 127.88 s). Inventory/skip differences and
-shared-runner conditions made both uncontrolled rather than valid performance
-benchmarks; memory evidence was inconclusive, and the evidence did not justify
-maintaining the candidate.
+Native Bun Test 1.4 is the permanent unit, component, integration, and
+infrastructure runner, including the blocking CI quality entry. `bun run test`
+delegates to `test:bun`, pins Bun 1.4.0 and `TZ=UTC`, and uses two isolated
+workers. This is AD-006.
 
-Reports under `docs/benchmarks/bun-test/` are historical compatibility evidence
-only. Do not add or restore Bun Test shadow, parity, or cutover workflow.
+The decision is based on the controlled 113-product-file matrix: isolated-2
+was 21.64% faster than Bun-hosted Vitest, used 3.24% more peak RSS, and reduced
+RSS×time by 19.10%. The canonical tree now also includes 20 active
+infrastructure files (133 total). Vitest, jsdom, parity/shadow scripts, and the
+duplicate `app/tests-bun/` tree are removed. Historical reports remain under
+`docs/benchmarks/`; do not recreate a second live tree for routine changes.
 
 ## Layout
 
 ```
-app/tests/      — Vitest tests (co-located with app logic)
+app/tests/      — Bun Test unit, component, integration, and infra tests
+	happydom.ts   — selective DOM registration and cleanup
 tests/e2e/      — Playwright E2E specs
   fixtures/     — test.extend wrappers (auth.ts)
   .auth/        — storageState files (gitignored, never committed)
@@ -46,8 +47,13 @@ tests/e2e/      — Playwright E2E specs
   through Bun; this remains the CI gate.
 - `bun run test:e2e:all` runs Chromium, Firefox, and WebKit locally through Bun.
 - `bun run test:e2e:node` preserves the direct Node Chromium fallback.
-- Bun.WebView has no package script or CI route. Its completed experiment is
-  archived under `docs/benchmarks/e2e-webview/`.
+- `bun run test:e2e:webview:harness` runs the local Playwright Test harness with
+  Bun.WebView WebKit. It covers exactly the five routes in
+  `app/lib/browser-bench/contract.ts` and remains outside CI/default discovery.
+- `bun run bench:e2e:webview:harness` compares Playwright Page, WebView WebKit,
+  and WebView Chrome under the same Playwright Test harness. Evidence lives in
+  `docs/benchmarks/playwright-webview-hybrid/`; the Chrome-matched result does
+  not justify replacing Playwright Page.
 
 ## Selector Hierarchy
 

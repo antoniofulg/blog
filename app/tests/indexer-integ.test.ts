@@ -1,28 +1,20 @@
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { mkdir, mkdtemp, rm, writeFile } from "node:fs/promises";
-import { createServer } from "node:net";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 import { removePost, syncAll, upsertPost } from "#/db/indexer";
+import { isPostgresAvailable } from "#/lib/test-bench/database";
 
 const DB_URL =
 	process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog";
-// Shared across Vitest/Bun indexer/sync suites and worktrees. Hold one
+// Shared across Bun Test indexer/sync suites and worktrees. Hold one
 // PostgreSQL session lock for each suite because syncAll cleans the full table.
 const INTEGRATION_ADVISORY_LOCK_KEY = 748_231_409;
 
-function isPortFree(port: number): Promise<boolean> {
-	return new Promise((resolve) => {
-		const server = createServer();
-		server.listen(port, () => server.close(() => resolve(true)));
-		server.on("error", () => resolve(false));
-	});
-}
+const databaseUnavailable = !(await isPostgresAvailable(DB_URL));
 
-const port5432Free = await isPortFree(5432);
-
-describe.skipIf(port5432Free)("integration: indexer", () => {
+describe.skipIf(databaseUnavailable)("integration: indexer", () => {
 	// definite assignment assertion — assigned in beforeAll
 	let sql!: import("postgres").Sql;
 	let tmpDir!: string;
@@ -71,7 +63,7 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		return `---\ntitle: ${title}\n${extra}---\nContent.`;
 	}
 
-	it("upsertPost creates row with correct slug", async () => {
+	test("upsertPost creates row with correct slug", async () => {
 		const dir = join(tmpDir, "en");
 		await mkdir(dir, { recursive: true });
 		const filePath = join(dir, "integ-hello.mdx");
@@ -84,7 +76,7 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		expect(rows[0].slug).toBe("integ-hello");
 	});
 
-	it("second upsertPost updates title but preserves view_count", async () => {
+	test("second upsertPost updates title but preserves view_count", async () => {
 		const dir = join(tmpDir, "en");
 		await mkdir(dir, { recursive: true });
 		const filePath = join(dir, "integ-preserve.mdx");
@@ -101,7 +93,7 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		expect(rows[0].view_count).toBe(5);
 	});
 
-	it("removePost deletes row; subsequent query returns 0 rows", async () => {
+	test("removePost deletes row; subsequent query returns 0 rows", async () => {
 		const dir = join(tmpDir, "en");
 		await mkdir(dir, { recursive: true });
 		const filePath = join(dir, "integ-remove.mdx");
@@ -112,7 +104,7 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		expect(rows).toHaveLength(0);
 	});
 
-	it("syncAll on directory with 3 .mdx files produces 3 rows", async () => {
+	test("syncAll on directory with 3 .mdx files produces 3 rows", async () => {
 		const syncDir = join(tmpDir, "sync3");
 		await mkdir(join(syncDir, "en"), { recursive: true });
 		await writeFile(join(syncDir, "en", "s1.mdx"), mdx("Sync One"));
@@ -124,7 +116,7 @@ describe.skipIf(port5432Free)("integration: indexer", () => {
 		expect(rows).toHaveLength(3);
 	});
 
-	it("syncAll after deleting a file removes the orphaned row", async () => {
+	test("syncAll after deleting a file removes the orphaned row", async () => {
 		const syncDir = join(tmpDir, "sync-orphan");
 		await mkdir(join(syncDir, "en"), { recursive: true });
 		const keepPath = join(syncDir, "en", "keep.mdx");

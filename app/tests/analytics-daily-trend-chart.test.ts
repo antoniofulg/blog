@@ -1,4 +1,5 @@
-// @vitest-environment jsdom
+import "./happydom";
+
 /**
  * Unit tests for DailyTrendChart component and detectPeaks helper.
  *
@@ -6,15 +7,18 @@
  * logic, ReferenceDot rendering for peak markers, chart container presence,
  * and locale-driven tick/title labels.
  *
- * Recharts is fully mocked — jsdom has no ResizeObserver or SVG layout.
+ * Recharts is fully mocked — HappyDOM has no ResizeObserver or SVG layout.
  */
-import { cleanup, render, screen } from "@testing-library/react";
+
+import { afterEach, beforeEach, describe, expect, mock, test } from "bun:test";
+
+const { cleanup, render, screen } = await import("@testing-library/react");
+
 import React from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 // ── Hoisted mock state ────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
+const mocks = (() => {
 	let locale: "en" | "pt-br" = "en";
 	return {
 		setLocale: (l: "en" | "pt-br") => {
@@ -22,20 +26,20 @@ const mocks = vi.hoisted(() => {
 		},
 		getLocale: () => locale,
 	};
-});
+})();
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 // Provide LOCALES so strings.ts module-level validation loop works.
-vi.mock("#/lib/locale", () => ({
+mock.module("#/lib/locale", () => ({
 	useLocale: () => ({ locale: mocks.getLocale() }),
 	LOCALES: ["en", "pt-br"],
 }));
 
-// Stub Recharts primitives — jsdom has no ResizeObserver / SVG layout support.
+// Stub Recharts primitives — HappyDOM has no ResizeObserver / SVG layout support.
 // LineChart exposes data length via data-count; ReferenceDot exposes x/y for
 // peak assertions.
-vi.mock("recharts", () => ({
+mock.module("recharts", () => ({
 	ResponsiveContainer: ({ children }: { children: React.ReactNode }) =>
 		children,
 	LineChart: ({
@@ -70,7 +74,8 @@ import {
 	detectPeaks,
 } from "#/components/admin/analytics/daily-trend-chart";
 import type { AnalyticsDashboardData } from "#/db/analytics-queries";
-import { strings } from "#/lib/i18n/strings";
+
+const { strings } = await import("#/lib/i18n/strings");
 
 // ── Fixture helpers ───────────────────────────────────────────────────────────
 
@@ -107,7 +112,7 @@ afterEach(cleanup);
 // ── detectPeaks unit tests ────────────────────────────────────────────────────
 
 describe("detectPeaks", () => {
-	it("returns top 3 days by count for a known dataset", () => {
+	test("returns top 3 days by count for a known dataset", () => {
 		const data = makeTrend([10, 50, 5, 80, 20, 70, 3]);
 		const peaks = detectPeaks(data);
 		expect(peaks).toHaveLength(3);
@@ -116,7 +121,7 @@ describe("detectPeaks", () => {
 		expect(counts).toEqual([80, 70, 50]);
 	});
 
-	it("returns top 3 preserving original insertion order", () => {
+	test("returns top 3 preserving original insertion order", () => {
 		const data = makeTrend([10, 50, 5, 80, 20, 70, 3]);
 		const peaks = detectPeaks(data);
 		// Original positions: 50 at idx 1, 80 at idx 3, 70 at idx 5.
@@ -124,27 +129,27 @@ describe("detectPeaks", () => {
 		expect(peaks.map((p) => p.count)).toEqual([50, 80, 70]);
 	});
 
-	it("returns all items when data.length <= 3", () => {
+	test("returns all items when data.length <= 3", () => {
 		const data = makeTrend([10, 50, 5]);
 		const peaks = detectPeaks(data);
 		expect(peaks).toHaveLength(3);
 	});
 
-	it("returns a shallow copy when data.length === n", () => {
+	test("returns a shallow copy when data.length === n", () => {
 		const data = makeTrend([10, 50, 5]);
 		const peaks = detectPeaks(data, 3);
 		expect(peaks).not.toBe(data); // different reference
 		expect(peaks).toEqual(data);
 	});
 
-	it("handles n=1 (single peak)", () => {
+	test("handles n=1 (single peak)", () => {
 		const data = makeTrend([10, 50, 5, 80, 20]);
 		const peaks = detectPeaks(data, 1);
 		expect(peaks).toHaveLength(1);
 		expect(peaks[0].count).toBe(80);
 	});
 
-	it("handles all-equal counts — returns first n in order", () => {
+	test("handles all-equal counts — returns first n in order", () => {
 		const data = makeTrend([5, 5, 5, 5, 5]);
 		const peaks = detectPeaks(data, 3);
 		expect(peaks).toHaveLength(3);
@@ -152,12 +157,12 @@ describe("detectPeaks", () => {
 		expect(peaks.map((p) => p.count)).toEqual([5, 5, 5]);
 	});
 
-	it("returns empty array for empty input", () => {
+	test("returns empty array for empty input", () => {
 		const peaks = detectPeaks([]);
 		expect(peaks).toEqual([]);
 	});
 
-	it("returns single item for a single-item array", () => {
+	test("returns single item for a single-item array", () => {
 		const data = makeTrend([42]);
 		const peaks = detectPeaks(data);
 		expect(peaks).toHaveLength(1);
@@ -168,26 +173,26 @@ describe("detectPeaks", () => {
 // ── DailyTrendChart component tests ──────────────────────────────────────────
 
 describe("DailyTrendChart — rendering", () => {
-	it("renders the chart wrapper with data-testid='daily-trend-chart'", () => {
+	test("renders the chart wrapper with data-testid='daily-trend-chart'", () => {
 		renderChart(makeTrend([10, 20, 30]));
 		expect(screen.getByTestId("daily-trend-chart")).toBeDefined();
 	});
 
-	it("passes correct number of data points to LineChart (30-day dataset)", () => {
+	test("passes correct number of data points to LineChart (30-day dataset)", () => {
 		const trend = makeTrend(Array.from({ length: 30 }, (_, i) => i + 1));
 		renderChart(trend);
 		const chart = screen.getByTestId("line-chart");
 		expect(chart.getAttribute("data-count")).toBe("30");
 	});
 
-	it("passes correct count for a 7-day dataset", () => {
+	test("passes correct count for a 7-day dataset", () => {
 		const trend = makeTrend([5, 10, 8, 15, 6, 12, 9]);
 		renderChart(trend);
 		const chart = screen.getByTestId("line-chart");
 		expect(chart.getAttribute("data-count")).toBe("7");
 	});
 
-	it("passes correct count for a 90-day dataset", () => {
+	test("passes correct count for a 90-day dataset", () => {
 		const trend = makeTrend(Array.from({ length: 90 }, (_, i) => i + 1));
 		renderChart(trend);
 		const chart = screen.getByTestId("line-chart");
@@ -198,14 +203,14 @@ describe("DailyTrendChart — rendering", () => {
 // ── Peak marker tests ─────────────────────────────────────────────────────────
 
 describe("DailyTrendChart — peak markers (ReferenceDot)", () => {
-	it("renders exactly 3 ReferenceDot markers for a dataset with >= 3 points", () => {
+	test("renders exactly 3 ReferenceDot markers for a dataset with >= 3 points", () => {
 		const trend = makeTrend([10, 50, 5, 80, 20, 70, 3]);
 		renderChart(trend);
 		const dots = screen.getAllByTestId("reference-dot");
 		expect(dots).toHaveLength(3);
 	});
 
-	it("renders peak dots with the correct x (date) values", () => {
+	test("renders peak dots with the correct x (date) values", () => {
 		const trend = makeTrend([10, 50, 5, 80, 20, 70, 3]);
 		renderChart(trend);
 		const dots = screen.getAllByTestId("reference-dot");
@@ -214,14 +219,14 @@ describe("DailyTrendChart — peak markers (ReferenceDot)", () => {
 		expect(xValues).toEqual(["2025-01-02", "2025-01-04", "2025-01-06"].sort());
 	});
 
-	it("renders fewer than 3 dots when dataset has < 3 points", () => {
+	test("renders fewer than 3 dots when dataset has < 3 points", () => {
 		const trend = makeTrend([10, 50]);
 		renderChart(trend);
 		const dots = screen.getAllByTestId("reference-dot");
 		expect(dots).toHaveLength(2);
 	});
 
-	it("renders 0 ReferenceDots for an empty dataset", () => {
+	test("renders 0 ReferenceDots for an empty dataset", () => {
 		renderChart([]);
 		const dots = screen.queryAllByTestId("reference-dot");
 		expect(dots).toHaveLength(0);
@@ -231,7 +236,7 @@ describe("DailyTrendChart — peak markers (ReferenceDot)", () => {
 // ── Empty state (task_18) ─────────────────────────────────────────────────────
 
 describe("DailyTrendChart — empty state", () => {
-	it("renders EmptyState with awaitingData when dailyTrend is empty and no postId", () => {
+	test("renders EmptyState with awaitingData when dailyTrend is empty and no postId", () => {
 		renderChart([]);
 		expect(screen.getByTestId("daily-trend-chart")).toBeDefined();
 		expect(
@@ -239,7 +244,7 @@ describe("DailyTrendChart — empty state", () => {
 		).toBeDefined();
 	});
 
-	it("renders awaitingDataDescription when dailyTrend is empty and no postId", () => {
+	test("renders awaitingDataDescription when dailyTrend is empty and no postId", () => {
 		renderChart([]);
 		expect(
 			screen.getByText(
@@ -248,12 +253,12 @@ describe("DailyTrendChart — empty state", () => {
 		).toBeDefined();
 	});
 
-	it("does NOT render LineChart when dailyTrend is empty", () => {
+	test("does NOT render LineChart when dailyTrend is empty", () => {
 		renderChart([]);
 		expect(screen.queryByTestId("line-chart")).toBeNull();
 	});
 
-	it("renders filter-empty title when postId is set and dailyTrend is empty", () => {
+	test("renders filter-empty title when postId is set and dailyTrend is empty", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: [],
@@ -266,7 +271,7 @@ describe("DailyTrendChart — empty state", () => {
 		).toBeDefined();
 	});
 
-	it("renders filter-empty description when postId is set and dailyTrend is empty", () => {
+	test("renders filter-empty description when postId is set and dailyTrend is empty", () => {
 		render(
 			React.createElement(DailyTrendChart, {
 				dailyTrend: [],
@@ -281,7 +286,7 @@ describe("DailyTrendChart — empty state", () => {
 		).toBeDefined();
 	});
 
-	it("does not show EmptyState when dailyTrend has data", () => {
+	test("does not show EmptyState when dailyTrend has data", () => {
 		renderChart(makeTrend([10, 20]));
 		expect(
 			screen.queryByText(strings.en.admin.analytics.empty.awaitingData),
@@ -293,21 +298,21 @@ describe("DailyTrendChart — empty state", () => {
 // ── Widget title (locale) ─────────────────────────────────────────────────────
 
 describe("DailyTrendChart — widget title", () => {
-	it("renders widget title from en strings", () => {
+	test("renders widget title from en strings", () => {
 		renderChart(makeTrend([10, 20]));
 		expect(
 			screen.getByText(strings.en.admin.analytics.widgets.dailyTrend),
 		).toBeDefined();
 	});
 
-	it("renders widget title from pt-br strings", () => {
+	test("renders widget title from pt-br strings", () => {
 		renderChart(makeTrend([10, 20]), "pt-br");
 		expect(
 			screen.getByText(strings["pt-br"].admin.analytics.widgets.dailyTrend),
 		).toBeDefined();
 	});
 
-	it("widget title differs between en and pt-br", () => {
+	test("widget title differs between en and pt-br", () => {
 		expect(strings.en.admin.analytics.widgets.dailyTrend).not.toBe(
 			strings["pt-br"].admin.analytics.widgets.dailyTrend,
 		);

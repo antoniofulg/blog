@@ -5,15 +5,18 @@
  * Integration tests: run `bun run favicons`, inspect generated files
  */
 
+import { afterAll, beforeAll, describe, expect, test } from "bun:test";
 import { execSync } from "node:child_process";
 import { existsSync, readFileSync, statSync } from "node:fs";
 import path from "node:path";
-import { afterAll, beforeAll, describe, expect, it } from "vitest";
 
 // ─── Paths ────────────────────────────────────────────────────────────────────
 
 const ROOT = path.resolve(__dirname, "../..");
-const FIXTURE_SVG = path.join(__dirname, "fixtures/test-favicon.svg");
+const FIXTURE_SVG = path.join(
+	process.cwd(),
+	"app/tests/fixtures/test-favicon.svg",
+);
 const PUBLIC = path.join(ROOT, "public");
 
 // ─── Import helpers under test ────────────────────────────────────────────────
@@ -28,7 +31,7 @@ import {
 // ─── Unit: loadAndResize ──────────────────────────────────────────────────────
 
 describe("loadAndResize", () => {
-	it("returns a Buffer of the requested square dimensions", async () => {
+	test("returns a Buffer of the requested square dimensions", async () => {
 		const buf = await loadAndResize(FIXTURE_SVG, 32);
 		// Verify PNG magic bytes
 		expect(buf[0]).toBe(0x89);
@@ -43,7 +46,7 @@ describe("loadAndResize", () => {
 		expect(height).toBe(32);
 	});
 
-	it("returns correct dimensions for multiple sizes", async () => {
+	test("returns correct dimensions for multiple sizes", async () => {
 		for (const size of [16, 48, 180, 192, 512]) {
 			const buf = await loadAndResize(FIXTURE_SVG, size);
 			const width = buf.readUInt32BE(16);
@@ -53,7 +56,7 @@ describe("loadAndResize", () => {
 		}
 	});
 
-	it("is deterministic — same input produces identical bytes", async () => {
+	test("is deterministic — same input produces identical bytes", async () => {
 		const [a, b] = await Promise.all([
 			loadAndResize(FIXTURE_SVG, 32),
 			loadAndResize(FIXTURE_SVG, 32),
@@ -61,7 +64,7 @@ describe("loadAndResize", () => {
 		expect(a).toEqual(b);
 	});
 
-	it("throws a descriptive error when the source file is missing", async () => {
+	test("throws a descriptive error when the source file is missing", async () => {
 		await expect(
 			loadAndResize("/nonexistent/path/icon.svg", 32),
 		).rejects.toThrow(/Source file not found/);
@@ -71,7 +74,7 @@ describe("loadAndResize", () => {
 // ─── Unit: encodeIco ─────────────────────────────────────────────────────────
 
 describe("encodeIco", () => {
-	it("produces a Buffer with the ICO magic bytes", async () => {
+	test("produces a Buffer with the ICO magic bytes", async () => {
 		const png = await loadAndResize(FIXTURE_SVG, 16);
 		const ico = encodeIco([png]);
 		// ICO magic: 00 00 01 00
@@ -81,7 +84,7 @@ describe("encodeIco", () => {
 		expect(ico[3]).toBe(0x00);
 	});
 
-	it("writes the correct image count in the header", async () => {
+	test("writes the correct image count in the header", async () => {
 		const [p16, p32, p48] = await Promise.all([
 			loadAndResize(FIXTURE_SVG, 16),
 			loadAndResize(FIXTURE_SVG, 32),
@@ -91,7 +94,7 @@ describe("encodeIco", () => {
 		expect(ico.readUInt16LE(4)).toBe(3);
 	});
 
-	it("encodes width and height for each entry", async () => {
+	test("encodes width and height for each entry", async () => {
 		const sizes = [16, 32, 48] as const;
 		const pngs = await Promise.all(
 			sizes.map((s) => loadAndResize(FIXTURE_SVG, s)),
@@ -109,7 +112,7 @@ describe("encodeIco", () => {
 		}
 	});
 
-	it("includes all PNG bytes in the output (total size check)", async () => {
+	test("includes all PNG bytes in the output (total size check)", async () => {
 		const [p16, p32] = await Promise.all([
 			loadAndResize(FIXTURE_SVG, 16),
 			loadAndResize(FIXTURE_SVG, 32),
@@ -120,7 +123,7 @@ describe("encodeIco", () => {
 		expect(ico.length).toBe(expectedMin);
 	});
 
-	it("detects as image/x-icon via detectMimeType", async () => {
+	test("detects as image/x-icon via detectMimeType", async () => {
 		const png = await loadAndResize(FIXTURE_SVG, 16);
 		const ico = encodeIco([png]);
 		expect(detectMimeType(ico)).toBe("image/x-icon");
@@ -130,12 +133,12 @@ describe("encodeIco", () => {
 // ─── Unit: detectMimeType ─────────────────────────────────────────────────────
 
 describe("detectMimeType", () => {
-	it("detects PNG", async () => {
+	test("detects PNG", async () => {
 		const buf = await loadAndResize(FIXTURE_SVG, 16);
 		expect(detectMimeType(buf)).toBe("image/png");
 	});
 
-	it("detects SVG", () => {
+	test("detects SVG", () => {
 		const svg = Buffer.from(
 			"<svg xmlns='http://www.w3.org/2000/svg'/>",
 			"utf-8",
@@ -143,13 +146,13 @@ describe("detectMimeType", () => {
 		expect(detectMimeType(svg)).toBe("image/svg+xml");
 	});
 
-	it("detects ICO", async () => {
+	test("detects ICO", async () => {
 		const png = await loadAndResize(FIXTURE_SVG, 16);
 		const ico = encodeIco([png]);
 		expect(detectMimeType(ico)).toBe("image/x-icon");
 	});
 
-	it("throws on unknown magic bytes", () => {
+	test("throws on unknown magic bytes", () => {
 		const unknown = Buffer.from([0xff, 0xfe, 0xfd, 0xfc]);
 		expect(() => detectMimeType(unknown)).toThrow(/Unknown image MIME type/);
 	});
@@ -158,33 +161,33 @@ describe("detectMimeType", () => {
 // ─── Unit: buildFaviconSvg ────────────────────────────────────────────────────
 
 describe("buildFaviconSvg", () => {
-	it("returns a string starting with <svg", () => {
+	test("returns a string starting with <svg", () => {
 		const svg = buildFaviconSvg();
 		expect(svg.trim()).toMatch(/^<svg/);
 	});
 
-	it("contains prefers-color-scheme media query", () => {
+	test("contains prefers-color-scheme media query", () => {
 		const svg = buildFaviconSvg();
 		expect(svg).toContain("prefers-color-scheme: dark");
 	});
 
-	it("contains both light and dark accent colours", () => {
+	test("contains both light and dark accent colours", () => {
 		const svg = buildFaviconSvg();
 		expect(svg).toContain("#097098"); // light accent
 		expect(svg).toContain("#69C3FF"); // dark accent
 	});
 
-	it("is deterministic (same string on every call)", () => {
+	test("is deterministic (same string on every call)", () => {
 		expect(buildFaviconSvg()).toBe(buildFaviconSvg());
 	});
 
-	it("contains the Terminal icon paths", () => {
+	test("contains the Terminal icon paths", () => {
 		const svg = buildFaviconSvg();
 		expect(svg).toContain("polyline");
 		expect(svg).toContain("line");
 	});
 
-	it("detects as image/svg+xml via detectMimeType", () => {
+	test("detects as image/svg+xml via detectMimeType", () => {
 		const svg = buildFaviconSvg();
 		const buf = Buffer.from(svg, "utf-8");
 		expect(detectMimeType(buf)).toBe("image/svg+xml");
@@ -219,13 +222,13 @@ describe("bun run favicons (integration)", () => {
 		// (Integration test does not modify committed assets.)
 	});
 
-	it("exits 0 and writes all five expected files", () => {
+	test("exits 0 and writes all five expected files", () => {
 		for (const file of GENERATED) {
 			expect(existsSync(path.join(PUBLIC, file))).toBe(true);
 		}
 	});
 
-	it("favicon.ico has ICO magic bytes", () => {
+	test("favicon.ico has ICO magic bytes", () => {
 		const ico = readFileSync(path.join(PUBLIC, "favicon.ico"));
 		expect(ico[0]).toBe(0x00);
 		expect(ico[1]).toBe(0x00);
@@ -233,7 +236,7 @@ describe("bun run favicons (integration)", () => {
 		expect(ico[3]).toBe(0x00);
 	});
 
-	it("favicon.ico contains 3 entries (16/32/48 px)", () => {
+	test("favicon.ico contains 3 entries (16/32/48 px)", () => {
 		const ico = readFileSync(path.join(PUBLIC, "favicon.ico"));
 		const count = ico.readUInt16LE(4);
 		expect(count).toBe(3);
@@ -249,30 +252,30 @@ describe("bun run favicons (integration)", () => {
 		}
 	});
 
-	it("apple-touch-icon.png is 180×180", () => {
+	test("apple-touch-icon.png is 180×180", () => {
 		const buf = readFileSync(path.join(PUBLIC, "apple-touch-icon.png"));
 		expect(buf.readUInt32BE(16)).toBe(180);
 		expect(buf.readUInt32BE(20)).toBe(180);
 	});
 
-	it("icon-192.png is 192×192", () => {
+	test("icon-192.png is 192×192", () => {
 		const buf = readFileSync(path.join(PUBLIC, "icon-192.png"));
 		expect(buf.readUInt32BE(16)).toBe(192);
 		expect(buf.readUInt32BE(20)).toBe(192);
 	});
 
-	it("icon-512.png is 512×512", () => {
+	test("icon-512.png is 512×512", () => {
 		const buf = readFileSync(path.join(PUBLIC, "icon-512.png"));
 		expect(buf.readUInt32BE(16)).toBe(512);
 		expect(buf.readUInt32BE(20)).toBe(512);
 	});
 
-	it("favicon.svg contains prefers-color-scheme media query", () => {
+	test("favicon.svg contains prefers-color-scheme media query", () => {
 		const svg = readFileSync(path.join(PUBLIC, "favicon.svg"), "utf-8");
 		expect(svg).toContain("prefers-color-scheme: dark");
 	});
 
-	it("re-running favicons produces byte-identical output (determinism)", () => {
+	test("re-running favicons produces byte-identical output (determinism)", () => {
 		// Read existing outputs.
 		const before = GENERATED.map((f) => readFileSync(path.join(PUBLIC, f)));
 
@@ -290,7 +293,7 @@ describe("bun run favicons (integration)", () => {
 // ─── Integration: og-image.jpg ───────────────────────────────────────────────
 
 describe("og-image.jpg", () => {
-	it("exists and is under 300 KB", () => {
+	test("exists and is under 300 KB", () => {
 		const ogPath = path.join(PUBLIC, "og-image.jpg");
 		expect(existsSync(ogPath), "og-image.jpg must exist in public/").toBe(true);
 		const { size } = statSync(ogPath);
@@ -299,7 +302,7 @@ describe("og-image.jpg", () => {
 		);
 	});
 
-	it("has JPEG magic bytes (FFD8FF)", () => {
+	test("has JPEG magic bytes (FFD8FF)", () => {
 		const ogPath = path.join(PUBLIC, "og-image.jpg");
 		const buf = readFileSync(ogPath);
 		expect(buf[0]).toBe(0xff);

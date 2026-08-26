@@ -1,3 +1,4 @@
+import { describe, expect, test } from "bun:test";
 import { execFileSync, execSync } from "node:child_process";
 import {
 	existsSync,
@@ -8,7 +9,6 @@ import {
 } from "node:fs";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
-import { describe, expect, it } from "vitest";
 
 const root = join(import.meta.dirname, "../..");
 const makefilePath = join(root, "Makefile");
@@ -68,7 +68,7 @@ function makeSetupWorkspace(databaseUrl: string) {
 }
 
 describe("unit: Makefile", () => {
-	it("make help exits 0 and prints all V1 targets", () => {
+	test("make help exits 0 and prints all V1 targets", () => {
 		const output = runMake(["help"]);
 
 		for (const target of [
@@ -97,20 +97,20 @@ describe("unit: Makefile", () => {
 		}
 	});
 
-	it("make help output uses ANSI cyan for target names", () => {
+	test("make help output uses ANSI cyan for target names", () => {
 		const output = runMake(["help"]);
 
 		expect(output).toContain("\u001b[36m");
 	});
 
-	it("bare make uses help as the default goal", () => {
+	test("bare make uses help as the default goal", () => {
 		const output = runMake([]);
 
 		expect(output).toContain("setup");
 		expect(output).toContain("dev-docker");
 	});
 
-	it("declares all V1 targets in one .PHONY list", () => {
+	test("declares all V1 targets in one .PHONY list", () => {
 		const content = readFileSync(makefilePath, "utf8");
 		const phonyBlock = content.match(/\.PHONY:[\s\S]*?\n\n/);
 
@@ -141,7 +141,7 @@ describe("unit: Makefile", () => {
 		}
 	});
 
-	it("make setup with no .env creates .env from .env.example", () => {
+	test("make setup with no .env creates .env from .env.example", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -158,7 +158,7 @@ describe("unit: Makefile", () => {
 		);
 	});
 
-	it("make setup runs DB startup and migration steps regardless of DATABASE_URL value", () => {
+	test("make setup runs DB startup and migration steps regardless of DATABASE_URL value", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			process.env.DATABASE_URL ?? "postgres://blog:blog@localhost:5432/blog",
 		);
@@ -176,7 +176,7 @@ describe("unit: Makefile", () => {
 		expect(commands).not.toContain("bun run db:seed"); // PRD F2: setup must not seed
 	});
 
-	it("quality gate targets delegate to the expected tools", () => {
+	test("quality gate targets delegate to the expected tools", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -197,7 +197,7 @@ describe("unit: Makefile", () => {
 		expect(commands).not.toContain("biome");
 	});
 
-	it("build and preview targets delegate to docker with configured names", () => {
+	test("build and preview targets delegate to docker with configured names", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -222,7 +222,7 @@ describe("unit: Makefile", () => {
 		);
 	});
 
-	it("database targets delegate to bun scripts and db-reset drops the public schema first", () => {
+	test("database targets delegate to bun scripts and db-reset drops the public schema first", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -243,7 +243,7 @@ describe("unit: Makefile", () => {
 		);
 	});
 
-	it("container lifecycle targets delegate to docker compose", () => {
+	test("container lifecycle targets delegate to docker compose", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -263,7 +263,7 @@ describe("unit: Makefile", () => {
 		expect(commands).toContain("docker compose exec app sh");
 	});
 
-	it("dev and dev-docker targets delegate to the expected commands", () => {
+	test("dev and dev-docker targets delegate to the expected commands", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -284,7 +284,7 @@ describe("unit: Makefile", () => {
 		expect(commands).not.toContain("docker compose up -d\n");
 	});
 
-	it("make deploy with no deploy script prints actionable instructions", () => {
+	test("make deploy with no deploy script prints actionable instructions", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -298,7 +298,7 @@ describe("unit: Makefile", () => {
 		expect(output).toContain("Create scripts/deploy.sh");
 	});
 
-	it("e2e quality targets are declared in .PHONY", () => {
+	test("e2e quality targets are declared in .PHONY", () => {
 		const content = readFileSync(makefilePath, "utf8");
 		const phonyBlock = content.match(/\.PHONY:[\s\S]*?\n\n/);
 
@@ -307,7 +307,7 @@ describe("unit: Makefile", () => {
 		expect(phonyBlock?.[0]).toContain("lint-tests");
 	});
 
-	it("test-e2e and lint-tests targets delegate to expected bun scripts", () => {
+	test("test-e2e and lint-tests targets delegate to expected bun scripts", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);
@@ -324,7 +324,7 @@ describe("unit: Makefile", () => {
 		expect(commands).toContain("bun run lint:tests");
 	});
 
-	it("make deploy runs scripts/deploy.sh when present", () => {
+	test("make deploy runs scripts/deploy.sh when present", () => {
 		const { binDir, logPath, workspace } = makeSetupWorkspace(
 			"postgres://blog:custom@localhost:5432/blog",
 		);

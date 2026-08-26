@@ -213,10 +213,18 @@ export type IncrementViewCountInput = {
 	utmSource: string | null;
 };
 
+export function shouldSuppressPostViewAnalytics(
+	environment: Record<string, string | undefined>,
+): boolean {
+	return environment.E2E_BROWSER_SMOKE === "true";
+}
+
 export async function incrementViewCountFn(
 	input: IncrementViewCountInput,
+	environment: Record<string, string | undefined> = process.env,
 ): Promise<void> {
 	const { id, referrer, utmSource } = input;
+	if (shouldSuppressPostViewAnalytics(environment)) return;
 
 	// Gate on bot check first — no DB I/O for bot requests.
 	const [{ getRequest }, { isBotUserAgent }] = await Promise.all([

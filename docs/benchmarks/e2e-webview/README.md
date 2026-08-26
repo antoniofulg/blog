@@ -1,5 +1,11 @@
 # Bun Playwright vs Bun.WebView — archived experiment
 
+> **Superseded methodology:** preserve the numbers below as historical evidence,
+> but do not use them as the current WebView verdict. Later work held Playwright
+> Test constant as the harness and compared the same five routes through
+> Playwright Page, Bun.WebView WebKit, and Bun.WebView Chrome. See the
+> [current matched-harness report](../playwright-webview-hybrid/README.md).
+
 This directory preserves the completed local benchmark as historical evidence.
 The WebView harness and package scripts were retired after the evaluation; the
 commands below document how the committed reports were produced and are no

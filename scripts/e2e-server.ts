@@ -44,13 +44,15 @@ await writeFile(
 	"utf-8",
 );
 
+const port = process.env.PORT ?? "4173";
+const baseUrl = `http://localhost:${port}`;
 const child = spawn("bun", ["run", ".output/server/index.mjs"], {
 	env: {
 		...process.env,
 		DATABASE_URL: testDb.connectionString,
-		PORT: "4173",
-		SITE_URL: "http://localhost:4173",
-		BETTER_AUTH_URL: "http://localhost:4173",
+		PORT: port,
+		SITE_URL: baseUrl,
+		BETTER_AUTH_URL: baseUrl,
 		// Signal to server fns that this is the Playwright preview server, so
 		// e.g. admin/index.server.ts can keep fixture posts visible to admin
 		// E2E specs that assert against them.

@@ -1,10 +1,26 @@
-// @vitest-environment jsdom
-import { act, cleanup, render, waitFor } from "@testing-library/react";
+import "./happydom";
+import {
+	afterEach,
+	beforeEach,
+	describe,
+	expect,
+	jest,
+	mock,
+	test,
+} from "bun:test";
+
+const { act, cleanup, render, waitFor } = await import(
+	"@testing-library/react"
+);
+
 import { createElement } from "react";
-import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import type { Post } from "#/db/schema";
 import { strings } from "#/lib/i18n/strings";
 import type { Locale } from "#/lib/locale";
+import * as realEnhancements from "#/lib/mdx/post-enhancements.client";
+
+const realInitPostEnhancements = realEnhancements.initPostEnhancements;
+
 import {
 	COPY_BUTTON_CLASS,
 	RAW_SOURCE_ATTR,
@@ -13,46 +29,47 @@ import {
 // ─── Mocks ────────────────────────────────────────────────────────────────────
 
 // Replace the co-located server module so importing the route never pulls the
-// real createServerFn / Drizzle chain into jsdom. PostView only invokes
+// real createServerFn / Drizzle chain into HappyDOM. PostView only invokes
 // incrementViewCount (best-effort, `.catch()`'d) at runtime.
-vi.mock("#/routes/{-$locale}/$slug.server", () => ({
-	getPostBySlugWithLang: vi.fn(),
-	incrementViewCount: vi.fn(() => Promise.resolve()),
+mock.module("#/routes/{-$locale}/$slug.server", () => ({
+	getPostBySlugWithLang: jest.fn(),
+	incrementViewCount: jest.fn(() => Promise.resolve()),
 }));
 
 // Stub the child components: PostHeader / PostFooter render <Link>, which needs a
 // RouterProvider. Stubbing them keeps the test focused on PostView's own wiring
 // (body ref + initializer effect) without standing up a router.
-vi.mock("#/components/ui/post-header", () => ({ PostHeader: () => null }));
-vi.mock("#/components/ui/post-footer", () => ({ PostFooter: () => null }));
-vi.mock("#/components/ui/post-share", () => ({ PostShare: () => null }));
-vi.mock("#/components/ui/translation-notice", () => ({
+mock.module("#/components/ui/post-header", () => ({ PostHeader: () => null }));
+mock.module("#/components/ui/post-footer", () => ({ PostFooter: () => null }));
+mock.module("#/components/ui/post-share", () => ({ PostShare: () => null }));
+mock.module("#/components/ui/translation-notice", () => ({
 	TranslationNotice: () => null,
 }));
-vi.mock("#/components/ui/static-page-profile", () => ({
+mock.module("#/components/ui/static-page-profile", () => ({
 	StaticPageProfile: () => null,
 }));
 
 // Wrap the REAL initializer in a spy: assert the call shape and the returned
 // cleanup, while preserving the genuine copy-wiring / embed-mount behavior that
 // the integration test exercises end-to-end.
-vi.mock("#/lib/mdx/post-enhancements.client", async (importActual) => {
-	const actual =
-		await importActual<typeof import("#/lib/mdx/post-enhancements.client")>();
+mock.module("#/lib/mdx/post-enhancements.client", () => {
 	return {
-		...actual,
-		initPostEnhancements: vi.fn((root: HTMLElement, opts) => {
-			const realCleanup = actual.initPostEnhancements(root, opts);
-			return vi.fn(realCleanup);
+		...realEnhancements,
+		initPostEnhancements: jest.fn((root: HTMLElement, opts) => {
+			const realCleanup = realInitPostEnhancements(root, opts);
+			return jest.fn(realCleanup);
 		}),
 	};
 });
 
-import { initPostEnhancements } from "#/lib/mdx/post-enhancements.client";
-import { PostView } from "#/routes/{-$locale}/$slug";
+const { initPostEnhancements } = await import(
+	"#/lib/mdx/post-enhancements.client"
+);
+const { PostView } = await import("#/routes/{-$locale}/$slug");
+
 import type { PostLoaderResult } from "#/routes/{-$locale}/$slug.server";
 
-const initSpy = vi.mocked(initPostEnhancements);
+const initSpy = initPostEnhancements as unknown as ReturnType<typeof jest.fn>;
 
 // TicTacToe headings per locale — proof the embed island mounted with its locale.
 const TTT_HEADING_EN = "Try it: tic-tac-toe";
@@ -111,7 +128,7 @@ function makeData(overrides: Partial<PostLoaderResult> = {}): PostLoaderResult {
 }
 
 function clipboardMock(impl: () => Promise<void>) {
-	const writeText = vi.fn(impl);
+	const writeText = jest.fn(impl);
 	Object.defineProperty(navigator, "clipboard", {
 		value: { writeText },
 		configurable: true,
@@ -121,7 +138,7 @@ function clipboardMock(impl: () => Promise<void>) {
 }
 
 beforeEach(() => {
-	vi.clearAllMocks();
+	jest.clearAllMocks();
 	sessionStorage.clear();
 });
 
@@ -132,7 +149,7 @@ afterEach(() => {
 // ─── AC-1: no slug-gated TicTacToe branch ─────────────────────────────────────
 
 describe("PostView: slug hardcode removal (AC-1)", () => {
-	it("renders the body container without a slug-gated TicTacToe branch", async () => {
+	test("renders the body container without a slug-gated TicTacToe branch", async () => {
 		// The formerly-hardcoded slug — proves the conditional mount is gone: the
 		// TicTacToe heading must NOT appear for a plain body lacking an embed.
 		render(
@@ -158,7 +175,7 @@ describe("PostView: slug hardcode removal (AC-1)", () => {
 // ─── AC-2: initializer invoked with container + requested locale ──────────────
 
 describe("PostView: initializer wiring (AC-2)", () => {
-	it("invokes initPostEnhancements once with the body container and en labels", async () => {
+	test("invokes initPostEnhancements once with the body container and en labels", async () => {
 		render(createElement(PostView, { data: makeData() }));
 
 		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
@@ -173,7 +190,7 @@ describe("PostView: initializer wiring (AC-2)", () => {
 		});
 	});
 
-	it("forwards the pt-br requested locale and localized copy labels", async () => {
+	test("forwards the pt-br requested locale and localized copy labels", async () => {
 		render(
 			createElement(PostView, {
 				data: makeData({
@@ -199,7 +216,7 @@ describe("PostView: initializer wiring (AC-2)", () => {
 	// so the client initializer must use the served content language (post.lang),
 	// not the requested URL locale, or the copy buttons / embed re-label themselves
 	// in pt-br after hydration while the article body stays English (issue_001 r5).
-	it("untranslated fallback post initializes enhancements in the served content language, not the requested locale", async () => {
+	test("untranslated fallback post initializes enhancements in the served content language, not the requested locale", async () => {
 		render(
 			createElement(PostView, {
 				data: makeData({
@@ -240,7 +257,7 @@ describe("PostView: initializer wiring (AC-2)", () => {
 // ─── AC-3: cleanup on unmount ─────────────────────────────────────────────────
 
 describe("PostView: initializer cleanup (AC-3)", () => {
-	it("runs the initializer's cleanup when the post unmounts", async () => {
+	test("runs the initializer's cleanup when the post unmounts", async () => {
 		const { unmount } = render(createElement(PostView, { data: makeData() }));
 
 		// The initializer resolves on a microtask (dynamic import) — wait for it
@@ -248,7 +265,7 @@ describe("PostView: initializer cleanup (AC-3)", () => {
 		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
 		// The spy wraps the real cleanup returned by initPostEnhancements.
 		const cleanupFn = initSpy.mock.results[0]?.value as ReturnType<
-			typeof vi.fn
+			typeof jest.fn
 		>;
 		expect(cleanupFn).not.toHaveBeenCalled();
 
@@ -256,7 +273,7 @@ describe("PostView: initializer cleanup (AC-3)", () => {
 		expect(cleanupFn).toHaveBeenCalledTimes(1);
 	});
 
-	it("tears down and re-initializes exactly once on post change (no stale double-mount)", async () => {
+	test("tears down and re-initializes exactly once on post change (no stale double-mount)", async () => {
 		const { rerender } = render(
 			createElement(PostView, {
 				data: makeData({ html: HTML_WITH_FEATURES }),
@@ -267,7 +284,7 @@ describe("PostView: initializer cleanup (AC-3)", () => {
 		// and wait for the embed to mount over post A's marker.
 		await waitFor(() => expect(initSpy).toHaveBeenCalledTimes(1));
 		const firstCleanup = initSpy.mock.results[0]?.value as ReturnType<
-			typeof vi.fn
+			typeof jest.fn
 		>;
 		await waitFor(() => {
 			const node = document.querySelector<HTMLElement>("[data-embed]");
@@ -311,7 +328,7 @@ describe("PostView: initializer cleanup (AC-3)", () => {
 // ─── Integration: embed mounts + copy button works through the route ──────────
 
 describe("PostView: enhancements work end-to-end (integration)", () => {
-	it("mounts the embed island and wires a working copy button over the body", async () => {
+	test("mounts the embed island and wires a working copy button over the body", async () => {
 		const writeText = clipboardMock(() => Promise.resolve());
 
 		render(

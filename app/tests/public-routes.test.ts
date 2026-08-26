@@ -1,24 +1,24 @@
+import { beforeEach, describe, expect, jest, mock, test } from "bun:test";
 import { readFileSync } from "node:fs";
 import { createServer } from "node:net";
 import { join } from "node:path";
-import { beforeEach, describe, expect, it, vi } from "vitest";
 
 // ─── Hoisted mocks ────────────────────────────────────────────────────────────
 
-const mocks = vi.hoisted(() => {
-	const selectOrderBy = vi.fn().mockResolvedValue([]);
-	const selectWhere = vi.fn().mockReturnValue({ orderBy: selectOrderBy });
-	const selectFrom = vi.fn().mockReturnValue({ where: selectWhere });
-	const select = vi.fn().mockReturnValue({ from: selectFrom });
+const mocks = (() => {
+	const selectOrderBy = jest.fn().mockResolvedValue([]);
+	const selectWhere = jest.fn().mockReturnValue({ orderBy: selectOrderBy });
+	const selectFrom = jest.fn().mockReturnValue({ where: selectWhere });
+	const select = jest.fn().mockReturnValue({ from: selectFrom });
 
 	return { select, selectFrom, selectWhere, selectOrderBy };
-});
+})();
 
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	db: { select: mocks.select },
 }));
 
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -27,7 +27,8 @@ vi.mock("@tanstack/react-start", () => ({
 	}),
 }));
 
-import { listPostsFn } from "#/db/queries";
+const { listPostsFn } = await import("#/db/queries");
+
 import type { posts } from "#/db/schema";
 
 type Post = (typeof posts)["_"]["inferSelect"];
@@ -52,7 +53,7 @@ function makePost(overrides: Partial<Post> = {}): Post {
 }
 
 function resetMocks() {
-	vi.clearAllMocks();
+	jest.clearAllMocks();
 	mocks.selectOrderBy.mockResolvedValue([]);
 	mocks.selectWhere.mockReturnValue({ orderBy: mocks.selectOrderBy });
 	mocks.selectFrom.mockReturnValue({ where: mocks.selectWhere });
@@ -64,7 +65,7 @@ function resetMocks() {
 describe("unit: listPostsFn", () => {
 	beforeEach(resetMocks);
 
-	it("calls db.select().from(posts).where(lang).orderBy(publishedAt DESC)", async () => {
+	test("calls db.select().from(posts).where(lang).orderBy(publishedAt DESC)", async () => {
 		mocks.selectOrderBy.mockResolvedValue([makePost()]);
 		const result = await listPostsFn("en");
 		expect(mocks.select).toHaveBeenCalledTimes(1);
@@ -73,13 +74,13 @@ describe("unit: listPostsFn", () => {
 		expect(result[0].slug).toBe("hello-world");
 	});
 
-	it("returns empty when DB returns no posts for the locale", async () => {
+	test("returns empty when DB returns no posts for the locale", async () => {
 		mocks.selectOrderBy.mockResolvedValue([]);
 		const result = await listPostsFn("en");
 		expect(result).toHaveLength(0);
 	});
 
-	it("returns posts in publishedAt DESC order when mock returns them that way", async () => {
+	test("returns posts in publishedAt DESC order when mock returns them that way", async () => {
 		const older = makePost({
 			id: 1,
 			slug: "older",
@@ -114,12 +115,12 @@ const port3000Free = await isPortFree(3000);
 describe.skipIf(port3000Free)("integration: post-shim URL resolution", () => {
 	const BASE_URL = "http://localhost:3000";
 
-	it("GET / returns 200 (en feed served by {-$locale}/index.tsx)", async () => {
+	test("GET / returns 200 (en feed served by {-$locale}/index.tsx)", async () => {
 		const res = await fetch(`${BASE_URL}/`);
 		expect(res.status).toBe(200);
 	});
 
-	it("GET /blog returns 404 (intentional per ADR-001)", async () => {
+	test("GET /blog returns 404 (intentional per ADR-001)", async () => {
 		const res = await fetch(`${BASE_URL}/blog`, { redirect: "manual" });
 		expect(res.status).toBe(404);
 	});
@@ -142,46 +143,46 @@ describe("unit: deleted routes absent from routeTree", () => {
 	];
 
 	for (const path of deletedPaths) {
-		it(`routeTree.gen.ts has no route definition for '${path}'`, () => {
+		test(`routeTree.gen.ts has no route definition for '${path}'`, () => {
 			expect(routeTree).not.toContain(`'${path}'`);
 			expect(routeTree).not.toContain(`"${path}"`);
 		});
 	}
 
-	it("routeTree.gen.ts has no import from routes/tutorials", () => {
+	test("routeTree.gen.ts has no import from routes/tutorials", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/tutorials/);
 	});
 
-	it("routeTree.gen.ts has no import from routes/projects", () => {
+	test("routeTree.gen.ts has no import from routes/projects", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/projects'/);
 	});
 
-	it("routeTree.gen.ts has no import from routes/newsletter", () => {
+	test("routeTree.gen.ts has no import from routes/newsletter", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/newsletter'/);
 	});
 
-	it("routeTree.gen.ts has no import from routes/search", () => {
+	test("routeTree.gen.ts has no import from routes/search", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/search'/);
 	});
 
-	it("routeTree.gen.ts has no import from routes/index (shim deleted)", () => {
+	test("routeTree.gen.ts has no import from routes/index (shim deleted)", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/index'/);
 	});
 
-	it("routeTree.gen.ts has no import from routes/blog (shim deleted)", () => {
+	test("routeTree.gen.ts has no import from routes/blog (shim deleted)", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/blog'/);
 	});
 
-	it("routeTree.gen.ts has no import from routes/$slug (shim deleted)", () => {
+	test("routeTree.gen.ts has no import from routes/$slug (shim deleted)", () => {
 		expect(routeTree).not.toMatch(/from '\.\/routes\/\$slug'/);
 	});
 
-	it("routeTree.gen.ts has no top-level route definition for '/blog'", () => {
+	test("routeTree.gen.ts has no top-level route definition for '/blog'", () => {
 		expect(routeTree).not.toContain("id: '/blog'");
 		expect(routeTree).not.toContain("path: '/blog'");
 	});
 
-	it("routeTree.gen.ts has no top-level '$slug' shim route (root parent)", () => {
+	test("routeTree.gen.ts has no top-level '$slug' shim route (root parent)", () => {
 		// Shim's FileRoutesById entry was `'/$slug': typeof SlugRoute`.
 		// After deletion only `'/{-$locale}/$slug'` remains.
 		expect(routeTree).not.toContain("'/$slug': typeof SlugRoute");
@@ -194,19 +195,19 @@ describe("unit: deleted routes absent from routeTree", () => {
 describe.skipIf(port3000Free)("integration: locale layout route", () => {
 	const BASE_URL = "http://localhost:3000";
 
-	it("GET /invalid/blog returns 404 (invalid locale throws notFound)", async () => {
+	test("GET /invalid/blog returns 404 (invalid locale throws notFound)", async () => {
 		const res = await fetch(`${BASE_URL}/invalid/blog`, {
 			redirect: "manual",
 		});
 		expect(res.status).toBe(404);
 	});
 
-	it("GET /about returns 200 (en locale About from MDX)", async () => {
+	test("GET /about returns 200 (en locale About from MDX)", async () => {
 		const res = await fetch(`${BASE_URL}/about`);
 		expect(res.status).toBe(200);
 	});
 
-	it("GET /pt-br/about returns 200 (pt-br locale About from MDX)", async () => {
+	test("GET /pt-br/about returns 200 (pt-br locale About from MDX)", async () => {
 		const res = await fetch(`${BASE_URL}/pt-br/about`);
 		expect(res.status).toBe(200);
 	});
@@ -219,7 +220,7 @@ describe.skipIf(port3000Free)(
 	() => {
 		const BASE_URL = "http://localhost:3000";
 
-		it("GET /nonexistent returns 404 with en notFound.title", async () => {
+		test("GET /nonexistent returns 404 with en notFound.title", async () => {
 			const res = await fetch(
 				`${BASE_URL}/__nonexistent_route_${Date.now()}__`,
 				{ redirect: "manual" },
@@ -229,7 +230,7 @@ describe.skipIf(port3000Free)(
 			expect(html).toContain("Page not found");
 		});
 
-		it("GET /pt-br/nonexistent returns 404 with pt-br notFound.title", async () => {
+		test("GET /pt-br/nonexistent returns 404 with pt-br notFound.title", async () => {
 			const res = await fetch(
 				`${BASE_URL}/pt-br/__nonexistent_route_${Date.now()}__`,
 				{ redirect: "manual" },
@@ -246,22 +247,22 @@ describe.skipIf(port3000Free)(
 describe.skipIf(port3000Free)("integration: deleted routes return 404", () => {
 	const BASE_URL = "http://localhost:3000";
 
-	it("GET /tutorials returns 404", async () => {
+	test("GET /tutorials returns 404", async () => {
 		const res = await fetch(`${BASE_URL}/tutorials`, { redirect: "manual" });
 		expect(res.status).toBe(404);
 	});
 
-	it("GET /projects returns 404", async () => {
+	test("GET /projects returns 404", async () => {
 		const res = await fetch(`${BASE_URL}/projects`, { redirect: "manual" });
 		expect(res.status).toBe(404);
 	});
 
-	it("GET /newsletter returns 404", async () => {
+	test("GET /newsletter returns 404", async () => {
 		const res = await fetch(`${BASE_URL}/newsletter`, { redirect: "manual" });
 		expect(res.status).toBe(404);
 	});
 
-	it("GET /search returns 404", async () => {
+	test("GET /search returns 404", async () => {
 		const res = await fetch(`${BASE_URL}/search`, { redirect: "manual" });
 		expect(res.status).toBe(404);
 	});

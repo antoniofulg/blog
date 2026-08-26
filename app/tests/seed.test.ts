@@ -1,7 +1,7 @@
+import { afterAll, beforeAll, describe, expect, jest, test } from "bun:test";
 import { execSync } from "node:child_process";
 import { createServer } from "node:net";
 import { join } from "node:path";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { seedAdmin } from "../../scripts/seed";
 
 const root = join(import.meta.dirname, "../..");
@@ -24,20 +24,20 @@ const port5432Free = await isPortFree(5432);
 
 function createMockDb(existingUsers: unknown[] = []) {
 	return {
-		select: vi.fn().mockReturnValue({
-			from: vi.fn().mockReturnValue({
-				where: vi.fn().mockReturnValue({
-					limit: vi.fn().mockResolvedValue(existingUsers),
+		select: jest.fn().mockReturnValue({
+			from: jest.fn().mockReturnValue({
+				where: jest.fn().mockReturnValue({
+					limit: jest.fn().mockResolvedValue(existingUsers),
 				}),
 			}),
 		}),
-		transaction: vi
+		transaction: jest
 			.fn()
 			// biome-ignore lint/suspicious/noExplicitAny: mock type
 			.mockImplementation(async (fn: (tx: any) => Promise<void>) => {
 				await fn({
-					insert: vi.fn().mockReturnValue({
-						values: vi.fn().mockResolvedValue(undefined),
+					insert: jest.fn().mockReturnValue({
+						values: jest.fn().mockResolvedValue(undefined),
 					}),
 				});
 			}),
@@ -47,21 +47,21 @@ function createMockDb(existingUsers: unknown[] = []) {
 // ─── Unit tests ─────────────────────────────────────────────────────────────
 
 describe("unit: seedAdmin env validation", () => {
-	it("returns error when ADMIN_EMAIL is not set", async () => {
+	test("returns error when ADMIN_EMAIL is not set", async () => {
 		const db = createMockDb();
 		const result = await seedAdmin(db, { ADMIN_PASSWORD: "secret" });
 		expect(result.status).toBe("error");
 		expect(result.message).toMatch(/ADMIN_EMAIL/);
 	});
 
-	it("returns error when ADMIN_PASSWORD is not set", async () => {
+	test("returns error when ADMIN_PASSWORD is not set", async () => {
 		const db = createMockDb();
 		const result = await seedAdmin(db, { ADMIN_EMAIL: "admin@example.com" });
 		expect(result.status).toBe("error");
 		expect(result.message).toMatch(/ADMIN_PASSWORD/);
 	});
 
-	it("reads ADMIN_EMAIL and ADMIN_PASSWORD from env", async () => {
+	test("reads ADMIN_EMAIL and ADMIN_PASSWORD from env", async () => {
 		const db = createMockDb([]);
 		const result = await seedAdmin(db, {
 			ADMIN_EMAIL: "admin@example.com",
@@ -71,7 +71,7 @@ describe("unit: seedAdmin env validation", () => {
 		expect(result.message).toContain("admin@example.com");
 	});
 
-	it("returns skipped when admin user already exists", async () => {
+	test("returns skipped when admin user already exists", async () => {
 		const db = createMockDb([{ id: "1", email: "admin@example.com" }]);
 		const result = await seedAdmin(db, {
 			ADMIN_EMAIL: "admin@example.com",
@@ -81,7 +81,7 @@ describe("unit: seedAdmin env validation", () => {
 		expect(result.message).toContain("already exists");
 	});
 
-	it("does not call transaction insert when user already exists", async () => {
+	test("does not call transaction insert when user already exists", async () => {
 		const db = createMockDb([{ id: "1", email: "admin@example.com" }]);
 		await seedAdmin(db, {
 			ADMIN_EMAIL: "admin@example.com",
@@ -92,7 +92,7 @@ describe("unit: seedAdmin env validation", () => {
 });
 
 describe("unit: script exit codes", () => {
-	it("exits 1 when ADMIN_EMAIL is not set", () => {
+	test("exits 1 when ADMIN_EMAIL is not set", () => {
 		expect(() =>
 			execSync("bun --no-env-file run scripts/seed.ts", {
 				cwd: root,
@@ -102,7 +102,7 @@ describe("unit: script exit codes", () => {
 		).toThrow();
 	});
 
-	it("exits 1 when ADMIN_PASSWORD is not set", () => {
+	test("exits 1 when ADMIN_PASSWORD is not set", () => {
 		expect(() =>
 			execSync("bun --no-env-file run scripts/seed.ts", {
 				cwd: root,
@@ -138,7 +138,7 @@ describe.skipIf(port5432Free)("integration: seed script", () => {
 		}
 	});
 
-	it("bun run db:seed exits 0 and creates exactly one user row", () => {
+	test("bun run db:seed exits 0 and creates exactly one user row", () => {
 		execSync("bun run db:seed", {
 			cwd: root,
 			env: {
@@ -151,7 +151,7 @@ describe.skipIf(port5432Free)("integration: seed script", () => {
 		});
 	});
 
-	it("seeded user email matches ADMIN_EMAIL", async () => {
+	test("seeded user email matches ADMIN_EMAIL", async () => {
 		// biome-ignore lint/style/noNonNullAssertion: set in beforeAll
 		const rows = await sql!<{ email: string }[]>`
       SELECT email FROM "user" WHERE email = ${TEST_EMAIL}
@@ -160,7 +160,7 @@ describe.skipIf(port5432Free)("integration: seed script", () => {
 		expect(rows[0].email).toBe(TEST_EMAIL);
 	});
 
-	it("seeded user password is hashed, not plaintext", async () => {
+	test("seeded user password is hashed, not plaintext", async () => {
 		// biome-ignore lint/style/noNonNullAssertion: set in beforeAll
 		const rows = await sql!<{ password: string }[]>`
       SELECT a.password FROM account a
@@ -173,7 +173,7 @@ describe.skipIf(port5432Free)("integration: seed script", () => {
 		expect(rows[0].password.length).toBeGreaterThan(20);
 	});
 
-	it("running db:seed a second time does not insert a duplicate (row count stays at 1)", () => {
+	test("running db:seed a second time does not insert a duplicate (row count stays at 1)", () => {
 		execSync("bun run db:seed", {
 			cwd: root,
 			env: {
@@ -186,7 +186,7 @@ describe.skipIf(port5432Free)("integration: seed script", () => {
 		});
 	});
 
-	it("user row count is still exactly 1 after second run", async () => {
+	test("user row count is still exactly 1 after second run", async () => {
 		// biome-ignore lint/style/noNonNullAssertion: set in beforeAll
 		const rows = await sql!<{ count: string }[]>`
       SELECT COUNT(*) AS count FROM "user" WHERE email = ${TEST_EMAIL}

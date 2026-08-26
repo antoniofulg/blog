@@ -1,12 +1,20 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it } from "bun:test";
 import {
 	groupRssBytes,
 	spawnMeasured,
 	tailLines,
+	verifyProcessGroupCleanup,
 } from "#/lib/bench/runner.server";
 
 const ENV = process.env;
 const MB = 1024 * 1024;
+const IDLE_BUN_COMMAND =
+	"bun -e 'const t=Date.now();while(Date.now()-t<3500){}'";
+const INCOMPRESSIBLE_ALLOCATION_COMMAND = [
+	"bash",
+	"-c",
+	"bun -e 'import { randomFillSync } from \"node:crypto\";const b=randomFillSync(Buffer.allocUnsafe(300*1024*1024));let checksum=0;let i=0;const t=Date.now();while(Date.now()-t<3500){checksum^=b[i];i=(i+4096)%b.length}console.log(checksum)'",
+] as const;
 
 describe("bench spawn measurement", () => {
 	it("measures wall-clock duration of the spawned command", async () => {
@@ -18,45 +26,32 @@ describe("bench spawn measurement", () => {
 	});
 
 	it("reports higher peak RSS for a child that allocates than one that does not", async () => {
-		const idle = await spawnMeasured(["bash", "-c", "sleep 3.5"], ENV, {
+		const idle = await spawnMeasured(["bash", "-c", IDLE_BUN_COMMAND], ENV, {
 			timeoutMs: 30_000,
 		});
 		const heavy = await spawnMeasured(
-			[
-				"bash",
-				"-c",
-				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)'",
-			],
+			[...INCOMPRESSIBLE_ALLOCATION_COMMAND],
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
 		expect(heavy.peakRssBytes).toBeGreaterThan(idle.peakRssBytes);
 		expect(heavy.peakRssBytes - idle.peakRssBytes).toBeGreaterThan(32 * MB);
-	});
+	}, 30_000);
 
 	it("counts a descendant's memory, not only the direct child's", async () => {
-		// bash is the direct child; bun is its descendant and holds the memory.
 		const idle = await spawnMeasured(
-			[
-				"bash",
-				"-c",
-				"bun -e 'const t=Date.now();while(Date.now()-t<3500){}' | cat",
-			],
+			["bash", "-c", `${IDLE_BUN_COMMAND} | cat`],
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
 		const heavy = await spawnMeasured(
-			[
-				"bash",
-				"-c",
-				"bun -e 'const b=Buffer.alloc(300*1024*1024,7);const t=Date.now();while(Date.now()-t<3500){};console.log(b.length)' | cat",
-			],
+			["bash", "-c", `${INCOMPRESSIBLE_ALLOCATION_COMMAND[2]} | cat`],
 			ENV,
 			{ timeoutMs: 30_000 },
 		);
 		expect(heavy.peakRssBytes).toBeGreaterThan(idle.peakRssBytes);
 		expect(heavy.peakRssBytes - idle.peakRssBytes).toBeGreaterThan(32 * MB);
-	});
+	}, 30_000);
 
 	it("kills a command that exceeds the timeout and leaves no orphan", async () => {
 		const result = await spawnMeasured(["bash", "-c", "sleep 30"], ENV, {
@@ -87,8 +82,11 @@ describe("bench spawn measurement", () => {
 	});
 
 	it("keeps only the last 20 stderr lines", () => {
-		const text = Array.from({ length: 50 }, (_, i) => `line${i}`).join("\n");
-		const tail = tailLines(text);
+		const output = Array.from(
+			{ length: 50 },
+			(_, index) => `line${index}`,
+		).join("\n");
+		const tail = tailLines(output);
 		expect(tail.split("\n")).toHaveLength(20);
 		expect(tail).toContain("line49");
 		expect(tail).not.toContain("line29");
@@ -96,5 +94,13 @@ describe("bench spawn measurement", () => {
 
 	it("reports zero resident memory for a process group that no longer exists", async () => {
 		expect(await groupRssBytes(999_999)).toBe(0);
+	});
+
+	it("proves measured process groups are gone after a successful run", async () => {
+		const result = await spawnMeasured(["bash", "-c", "exit 0"], ENV, {
+			timeoutMs: 10_000,
+		});
+		expect(result.cleanupVerified).toBe(true);
+		expect((await verifyProcessGroupCleanup(result.pgid)).verified).toBe(true);
 	});
 });

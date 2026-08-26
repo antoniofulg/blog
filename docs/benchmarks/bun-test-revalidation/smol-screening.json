@@ -1,0 +1,115 @@
+{
+  "timestamp": "2026-08-24T15:07:44.426Z",
+  "bun": "1.4.0",
+  "mode": "--smol --parallel=2",
+  "profiles": [
+    {
+      "cohort": "pure",
+      "files": [
+        "app/tests-bun/analytics-device-detector.test.ts",
+        "app/tests-bun/strings.test.ts",
+        "app/tests-bun/og-resolve.test.ts"
+      ],
+      "command": [
+        "bun",
+        "--smol",
+        "test",
+        "app/tests-bun/analytics-device-detector.test.ts",
+        "app/tests-bun/strings.test.ts",
+        "app/tests-bun/og-resolve.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 87.23216699999999,
+      "peakRssBytes": 0,
+      "loadAvg1": 25.19384765625,
+      "exitCode": 0,
+      "timedOut": false,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > treats '/http-icon.png' as a relative path, not an absolute URL\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > treats '/httpfoo/cover.png' as a relative path\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'http://...' as an absolute URL\n(pass) unit: resolveOgImagePath — http-prefix false-positive guard (issue-005) > still treats 'https://...' as an absolute URL\n\napp/tests-bun/strings.test.ts:\n(pass) unit: uiStringsSchema validation success > parses en strings unchanged [0.58ms]\n(pass) unit: uiStringsSchema validation success > parses pt-br strings unchanged [0.04ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError for empty object (missing localeSwitcher) [1.27ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError when postMeta is missing [0.18ms]\n(pass) unit: uiStringsSchema validation failure > throws ZodError when notFound.title is missing [0.06ms]\n(pass) unit: value contracts > strings.en.localeSwitcher.label === \"English\"\n(pass) unit: value contracts > strings[\"pt-br\"].localeSwitcher.label === \"Português\"\n(pass) integration: module load does not throw > importing strings module succeeds without throwing [0.48ms]\n\n 45 pass\n 0 fail\n 51 expect() calls\nRan 45 tests across 3 files. [73.00ms]\n"
+    },
+    {
+      "cohort": "dom",
+      "files": [
+        "app/tests-bun/language-menu.test.ts",
+        "app/tests-bun/post-enhancements.test.ts",
+        "app/tests-bun/embeds.test.ts"
+      ],
+      "command": [
+        "bun",
+        "--smol",
+        "test",
+        "app/tests-bun/language-menu.test.ts",
+        "app/tests-bun/post-enhancements.test.ts",
+        "app/tests-bun/embeds.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 385.16279199999997,
+      "peakRssBytes": 11042816,
+      "loadAvg1": 25.19384765625,
+      "exitCode": 0,
+      "timedOut": false,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "app/tests-bun/post-enhancements.test.ts:\n(pass) wireCopyButtons > AC-1: copies the stashed raw source and sets the localized aria-label [4.02ms]\n(pass) wireCopyButtons > AC-1: after click the label becomes 'Copied!' then reverts after the timer [0.84ms]\n(pass) wireCopyButtons > does not enter the copied state when the clipboard write rejects [0.47ms]\n(pass) wireCopyButtons > copies an empty string when the button has no enclosing <pre> [0.47ms]\n(pass) wireCopyButtons > does not throw and shows no copied state when clipboard is unavailable [0.97ms]\n(pass) wireCopyButtons > re-clicking restarts the revert timer and cleanup clears a pending timer [0.83ms]\n(pass) wireCopyButtons > AC-4: cleanup detaches the handler and removes the live region [0.30ms]\n(pass) mountEmbeds > AC-2: mounts the registered component and injects the locale [4.17ms]\n(pass) mountEmbeds > AC-3: an unknown embed name does not mount, keeps the fallback, and warns [0.76ms]\n(pass) mountEmbeds > AC-4: cleanup unmounts the island root and empties the node [2.63ms]\n(pass) mountEmbeds > mounts with empty props when the data-props attribute is absent [1.57ms]\n(pass) mountEmbeds > degrades to empty props and warns when data-props is malformed JSON [0.90ms]\n(pass) initPostEnhancements > wires copy buttons and mounts embeds, and the combined cleanup undoes both [1.27ms]\n\n 26 pass\n 0 fail\n 57 expect() calls\nRan 26 tests across 3 files. [380.00ms]\n"
+    },
+    {
+      "cohort": "mocks-timers",
+      "files": [
+        "app/tests-bun/record-theme-event.test.ts",
+        "app/tests-bun/watcher-integ.test.ts",
+        "app/tests-bun/theme-toggle.test.ts"
+      ],
+      "command": [
+        "bun",
+        "--smol",
+        "test",
+        "app/tests-bun/record-theme-event.test.ts",
+        "app/tests-bun/watcher-integ.test.ts",
+        "app/tests-bun/theme-toggle.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 667.496375,
+      "peakRssBytes": 11321344,
+      "loadAvg1": 25.19384765625,
+      "exitCode": 0,
+      "timedOut": false,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "When testing, code that causes React state updates should be wrapped into act(...):\n\nact(() => {\n  /* fire events that update state */\n});\n/* assert on the output */\n\nThis ensures that you're testing the behavior the user would see in the browser. Learn more at https://react.dev/link/wrap-tests-with-act\n(pass) unit: AC-6 — short-click calls toggle(), popover stays closed > short-click does NOT call setTheme [2.96ms]\n(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 sets documentElement class to 'cs16' [7.83ms]\n(pass) integration: ThemeProvider + ThemeToggle — keyboard CS 1.6 activation > ArrowDown + click CS 1.6 calls recordThemeEvent with source:'keyboard' [6.71ms]\n\napp/tests-bun/watcher-integ.test.ts:\n(pass) mechanism: real fs.watch > deleting an .mdx file calls removePost within 2s [225.45ms]\n\n 50 pass\n 0 fail\n 171686 expect() calls\nRan 50 tests across 3 files. [662.00ms]\n"
+    },
+    {
+      "cohort": "integration-infra",
+      "files": [
+        "app/tests-bun/privacy-pages.test.ts",
+        "app/tests-bun/copy-button-transformer.test.ts",
+        "app/tests-bun/pglite-extended-query.test.ts"
+      ],
+      "command": [
+        "bun",
+        "--smol",
+        "test",
+        "app/tests-bun/privacy-pages.test.ts",
+        "app/tests-bun/copy-button-transformer.test.ts",
+        "app/tests-bun/pglite-extended-query.test.ts",
+        "--parallel=2"
+      ],
+      "ms": 6014.981,
+      "peakRssBytes": 11026432,
+      "loadAvg1": 23.89697265625,
+      "exitCode": 0,
+      "timedOut": false,
+      "stdoutTail": [
+        "bun test v1.4.0 (34cbb9a40) 2x PARALLEL",
+        ""
+      ],
+      "stderrTail": "(pass) PGLite proxy: lock-acquire timer cleanup > 100 fast acquires: no unhandledRejection fires after acquire resolves [292.71ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[pg-proxy] unnamed slot held >500ms; destroying stuck connection\n(pass) PGLite proxy: lock acquire timeout > stall: second connection gets a wire response within 2 s when first holds lock without Bind [516.42ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n[pg-proxy] unnamed slot held >500ms; destroying stuck connection\n(pass) PGLite proxy: stalled holder eviction > stalled holder is evicted and the queued connection binds its own statement [517.16ms]\n[⣷] Pulling schema from database...\n\u001b[2K\u001b[1G[✓] Pulling schema from database...\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > concurrent connections do not corrupt unnamed prepared statement state (08P01 regression) [13.86ms]\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > high concurrency: 4 connections with separate Parse/Bind pipelines do not produce 08P01 [2.73ms]\n(pass) PGLite proxy: unnamed prepared statement isolation across connections > error response includes ErrorResponse (0x45) before ReadyForQuery (0x5a) on Bind param mismatch [2.18ms]\n\n 40 pass\n 0 fail\n 71 expect() calls\nRan 40 tests across 3 files. [6.00s]\n"
+    }
+  ]
+}

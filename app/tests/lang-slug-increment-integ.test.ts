@@ -12,17 +12,17 @@
  *   AC-2: Googlebot UA → view_count = 0 and zero event rows inserted.
  */
 
+import { afterAll, beforeAll, describe, expect, mock, test } from "bun:test";
 import { eq } from "drizzle-orm";
-import { afterAll, beforeAll, describe, expect, it, vi } from "vitest";
 import { analyticsEvents, posts } from "#/db/schema";
 import type { TestDb } from "../../tests/e2e/db";
 import { createTestDb } from "../../tests/e2e/db";
 
 // ── Hoisted holders ───────────────────────────────────────────────────────────
-// vi.hoisted runs before module imports so the mock factories close over
+// jest.hoisted runs before module imports so the mock factories close over
 // these holders and always read the current value set in beforeAll / per-test.
 
-const dbHolder = vi.hoisted(() => {
+const dbHolder = (() => {
 	// biome-ignore lint/suspicious/noExplicitAny: db type varies between drizzle adapters
 	let _db: any = null;
 	return {
@@ -38,9 +38,9 @@ const dbHolder = vi.hoisted(() => {
 			return _db;
 		},
 	};
-});
+})();
 
-const reqHolder = vi.hoisted(() => {
+const reqHolder = (() => {
 	let _req: Request = new Request("http://localhost/");
 	return {
 		set(req: Request) {
@@ -50,21 +50,21 @@ const reqHolder = vi.hoisted(() => {
 			return _req;
 		},
 	};
-});
+})();
 
 // ── Module mocks ──────────────────────────────────────────────────────────────
 
 // Suppress the server-only import guard used by record-event.server.ts and session.ts.
-vi.mock("@tanstack/react-start/server-only", () => ({}));
+mock.module("@tanstack/react-start/server-only", () => ({}));
 
 // Provide a controllable getRequest() so we can inject Request objects without
 // running inside a real TanStack Start server context.
-vi.mock("@tanstack/react-start/server", () => ({
+mock.module("@tanstack/react-start/server", () => ({
 	getRequest: () => reqHolder.get(),
 }));
 
 // Stub createServerFn so the static import at the top of $slug.server.ts resolves.
-vi.mock("@tanstack/react-start", () => ({
+mock.module("@tanstack/react-start", () => ({
 	createServerFn: () => ({
 		inputValidator: () => ({
 			handler: (fn: unknown) => fn,
@@ -75,7 +75,7 @@ vi.mock("@tanstack/react-start", () => ({
 
 // Replace #/db/client with a lazy getter — the PGLite instance is async, so it
 // must be set in beforeAll after createTestDb() resolves.
-vi.mock("#/db/client", () => ({
+mock.module("#/db/client", () => ({
 	get db() {
 		return dbHolder.get();
 	},
@@ -83,7 +83,9 @@ vi.mock("#/db/client", () => ({
 
 // ── Import SUT after mocks ────────────────────────────────────────────────────
 
-import { incrementViewCountFn } from "#/routes/{-$locale}/$slug.server";
+const { incrementViewCountFn } = await import(
+	"#/routes/{-$locale}/$slug.server"
+);
 
 // ── Constants ─────────────────────────────────────────────────────────────────
 
@@ -109,7 +111,7 @@ afterAll(async () => {
 // ── Tests ─────────────────────────────────────────────────────────────────────
 
 describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
-	it("human UA: view_count increments to 1 and one event row is inserted (AC-1)", async () => {
+	test("human UA: view_count increments to 1 and one event row is inserted (AC-1)", async () => {
 		const [seededPost] = await testDb.db
 			.insert(posts)
 			.values({
@@ -164,7 +166,7 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 		});
 	}, 30_000);
 
-	it("Googlebot UA: view_count stays 0 and no event row is inserted (AC-2)", async () => {
+	test("Googlebot UA: view_count stays 0 and no event row is inserted (AC-2)", async () => {
 		const [seededPost] = await testDb.db
 			.insert(posts)
 			.values({
@@ -205,7 +207,7 @@ describe("incrementViewCountFn integration: PGLite via recordPostView", () => {
 		expect(events).toHaveLength(0);
 	}, 30_000);
 
-	it("unknown post id: returns without error and no event row inserted", async () => {
+	test("unknown post id: returns without error and no event row inserted", async () => {
 		reqHolder.set(
 			new Request("http://localhost/nonexistent", {
 				headers: { "User-Agent": HUMAN_UA },

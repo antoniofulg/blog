@@ -1,0 +1,98 @@
+{
+  "schemaVersion": 1,
+  "commit": "508dfca2b51571cf386f8040dc1002860aa786b6",
+  "timestamp": "2026-08-24T22:37:13.284Z",
+  "host": {
+    "host": "Antonios-MacBook-Pro.local",
+    "cpuModel": "Apple M3 Pro",
+    "cores": 11,
+    "totalMemBytes": 19327352832,
+    "loadAvg1": 5.8330078125,
+    "powerSource": "ac",
+    "startedAt": "2026-08-24T22:37:13.293Z"
+  },
+  "repetitions": 1,
+  "warmupsPerProfile": 1,
+  "canonicalRoutes": 5,
+  "profiles": [
+    {
+      "profile": {
+        "id": "webview:webkit:cold:1view",
+        "arm": "webview",
+        "runtime": "bun",
+        "backend": "webkit",
+        "phase": "cold",
+        "views": 1,
+        "smol": false,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts"
+        ]
+      },
+      "warmup": {
+        "profile": "webview:webkit:cold:1view",
+        "kind": "warmup",
+        "run": 0,
+        "durationMs": 3106.778208,
+        "peakRssBytes": 131547136,
+        "exitCode": 0,
+        "timedOut": false,
+        "outcome": {
+          "passed": true,
+          "routeCount": 5
+        },
+        "valid": true,
+        "command": [
+          "bun",
+          "run",
+          "scripts/run-e2e-webview.ts",
+          "--external-server",
+          "--backend=webkit",
+          "--views=1",
+          "--passes=1",
+          "--base-url=http://localhost:4173"
+        ]
+      },
+      "samples": [
+        {
+          "profile": "webview:webkit:cold:1view",
+          "kind": "measured",
+          "run": 1,
+          "durationMs": 882.1017499999998,
+          "peakRssBytes": 144982016,
+          "exitCode": 0,
+          "timedOut": false,
+          "outcome": {
+            "passed": true,
+            "routeCount": 5
+          },
+          "valid": false,
+          "command": [
+            "bun",
+            "run",
+            "scripts/run-e2e-webview.ts",
+            "--external-server",
+            "--backend=webkit",
+            "--views=1",
+            "--passes=1",
+            "--base-url=http://localhost:4173"
+          ],
+          "exclusionReason": "process snapshot changed during sample"
+        }
+      ],
+      "aggregate": null,
+      "valid": false,
+      "invalidReasons": [
+        "sample 1: process snapshot changed during sample",
+        "expected 1 valid samples, got 0"
+      ],
+      "nonDominated": false
+    }
+  ],
+  "finalists": [],
+  "locks": [
+    "/tmp/praxis-playwright.lock",
+    "/var/folders/lc/_v1mn5h560d2tsmz474y7d1c0000gn/T/creatista-test.lock"
+  ]
+}

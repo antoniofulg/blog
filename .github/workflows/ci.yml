@@ -35,7 +35,7 @@ jobs:
       - run: make ${{ matrix.check }}
         env:
           # E2E credentials are needed by both:
-          #   - `test` matrix entry → vitest exercises e2e-harness.test.ts which
+          #   - `test` matrix entry → Bun Test exercises e2e-harness.test.ts which
           #     invokes tests/e2e/global-setup.ts → seedAdminUser() → requires
           #     E2E_ADMIN_EMAIL on CI (throws if missing).
           #   - `e2e` matrix entry → Playwright login fixture uses the same vars.

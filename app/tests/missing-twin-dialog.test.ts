@@ -1,13 +1,11 @@
-// @vitest-environment jsdom
-import {
-	act,
-	cleanup,
-	fireEvent,
-	render,
-	screen,
-} from "@testing-library/react";
+import "./happydom";
+import { afterEach, describe, expect, jest, test } from "bun:test";
+
+const { act, cleanup, fireEvent, render, screen } = await import(
+	"@testing-library/react"
+);
+
 import React from "react";
-import { afterEach, describe, expect, it, vi } from "vitest";
 import {
 	LOCALE_NAMES,
 	MissingTwinDialog,
@@ -20,11 +18,11 @@ afterEach(() => {
 // ─── unit: locale names ───────────────────────────────────────────────────────
 
 describe("unit: LOCALE_NAMES", () => {
-	it("English label", () => {
+	test("English label", () => {
 		expect(LOCALE_NAMES.en).toBe("English");
 	});
 
-	it("Portuguese label", () => {
+	test("Portuguese label", () => {
 		expect(LOCALE_NAMES["pt-br"]).toBe("Português (BR)");
 	});
 });
@@ -38,20 +36,20 @@ describe("unit: renders English copy when currentLocale is en", () => {
 				open: true,
 				currentLocale: "en",
 				targetLocale: "pt-br",
-				onConfirm: vi.fn(),
-				onCancel: vi.fn(),
+				onConfirm: jest.fn(),
+				onCancel: jest.fn(),
 			}),
 		);
 	}
 
-	it("renders title in English", async () => {
+	test("renders title in English", async () => {
 		await act(async () => {
 			setup();
 		});
 		expect(screen.getByText("Content not available")).toBeDefined();
 	});
 
-	it("body contains target locale human-readable name", async () => {
+	test("body contains target locale human-readable name", async () => {
 		await act(async () => {
 			setup();
 		});
@@ -59,14 +57,14 @@ describe("unit: renders English copy when currentLocale is en", () => {
 		expect(desc).toBeDefined();
 	});
 
-	it("renders confirm button in English", async () => {
+	test("renders confirm button in English", async () => {
 		await act(async () => {
 			setup();
 		});
 		expect(screen.getByRole("button", { name: "Continue" })).toBeDefined();
 	});
 
-	it("renders cancel button in English", async () => {
+	test("renders cancel button in English", async () => {
 		await act(async () => {
 			setup();
 		});
@@ -83,20 +81,20 @@ describe("unit: renders Portuguese copy when currentLocale is pt-br", () => {
 				open: true,
 				currentLocale: "pt-br",
 				targetLocale: "en",
-				onConfirm: vi.fn(),
-				onCancel: vi.fn(),
+				onConfirm: jest.fn(),
+				onCancel: jest.fn(),
 			}),
 		);
 	}
 
-	it("renders title in Portuguese", async () => {
+	test("renders title in Portuguese", async () => {
 		await act(async () => {
 			setup();
 		});
 		expect(screen.getByText("Conteúdo não disponível")).toBeDefined();
 	});
 
-	it("body contains English as target locale name", async () => {
+	test("body contains English as target locale name", async () => {
 		await act(async () => {
 			setup();
 		});
@@ -104,14 +102,14 @@ describe("unit: renders Portuguese copy when currentLocale is pt-br", () => {
 		expect(desc).toBeDefined();
 	});
 
-	it("renders confirm button in Portuguese", async () => {
+	test("renders confirm button in Portuguese", async () => {
 		await act(async () => {
 			setup();
 		});
 		expect(screen.getByRole("button", { name: "Continuar" })).toBeDefined();
 	});
 
-	it("renders cancel button in Portuguese", async () => {
+	test("renders cancel button in Portuguese", async () => {
 		await act(async () => {
 			setup();
 		});
@@ -122,9 +120,9 @@ describe("unit: renders Portuguese copy when currentLocale is pt-br", () => {
 // ─── unit: confirm callback ───────────────────────────────────────────────────
 
 describe("unit: confirm button calls onConfirm exactly once", () => {
-	it("onConfirm invoked once; onCancel not invoked", async () => {
-		const onConfirm = vi.fn();
-		const onCancel = vi.fn();
+	test("onConfirm invoked once; onCancel not invoked", async () => {
+		const onConfirm = jest.fn();
+		const onCancel = jest.fn();
 
 		await act(async () => {
 			render(
@@ -151,9 +149,9 @@ describe("unit: confirm button calls onConfirm exactly once", () => {
 // ─── unit: cancel callback ────────────────────────────────────────────────────
 
 describe("unit: cancel button calls onCancel exactly once", () => {
-	it("onCancel invoked once; onConfirm not invoked", async () => {
-		const onConfirm = vi.fn();
-		const onCancel = vi.fn();
+	test("onCancel invoked once; onConfirm not invoked", async () => {
+		const onConfirm = jest.fn();
+		const onCancel = jest.fn();
 
 		await act(async () => {
 			render(
@@ -180,9 +178,9 @@ describe("unit: cancel button calls onCancel exactly once", () => {
 // ─── integration: Escape key fires onCancel ───────────────────────────────────
 
 describe("integration: Escape key closes dialog and fires onCancel", () => {
-	it("onCancel fires on Escape keydown", async () => {
-		const onConfirm = vi.fn();
-		const onCancel = vi.fn();
+	test("onCancel fires on Escape keydown", async () => {
+		const onConfirm = jest.fn();
+		const onCancel = jest.fn();
 
 		await act(async () => {
 			render(
