@@ -1,5 +1,9 @@
 # Playwright Test with Bun.WebView hybrid evaluation
 
+> **Scope:** every performance number in this report comes from the same five
+> anonymous public smoke routes. This report does not benchmark the complete
+> 49-test Playwright suite.
+
 ## Verdict
 
 Playwright Test can host Bun.WebView as a custom fixture. This does not produce
@@ -16,6 +20,18 @@ robust gains were whole-command wall time and memory occupancy.
 Result: keep Playwright Page for the complete E2E suite. Keep this hybrid harness
 as a local experiment and possible lightweight WebKit smoke. Do not build a
 mixed Page/WebView compatibility layer for the 49 canonical tests.
+
+## Winners by boundary
+
+| Question | Matched inventory | Winner | Decision |
+| --- | --- | --- | --- |
+| Which driver was faster with the same Chromium executable? | Five public smokes | Playwright Page | Keep Playwright for Chromium automation. |
+| Which local macOS driver used less wall time and memory? | Five public smokes, cross-engine | Bun.WebView WebKit | Keep as an optional local smoke. |
+| Which runner covers the complete E2E contract? | 49 canonical tests | Not measured by this report | Keep Playwright; WebView does not implement the required capability surface. |
+
+The WebKit row answers an operational question about a small local smoke. It
+does not isolate Bun from the browser engine and does not imply that WebView ran
+or replaced the 49 canonical tests.
 
 ## Final controlled run
 
