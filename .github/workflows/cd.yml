@@ -38,13 +38,34 @@ jobs:
           tags: |
             ghcr.io/${{ github.repository }}:latest
             ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
-      - name: Deploy with Coolify
+      - name: Deploy with Dokploy
         env:
-          COOLIFY_WRITE_TOKEN: ${{ secrets.COOLIFY_WRITE_TOKEN }}
+          DOKPLOY_API_KEY: ${{ secrets.DOKPLOY_API_KEY }}
+          DOKPLOY_APPLICATION_ID: ${{ vars.DOKPLOY_APPLICATION_ID }}
+          DOKPLOY_URL: https://dokploy.antoniofulg.tech
+          IMAGE: ghcr.io/${{ github.repository }}:${{ github.event.workflow_run.head_sha }}
+          DEPLOY_SHA: ${{ github.event.workflow_run.head_sha }}
         run: |
+          image_payload="$(jq --null-input --compact-output \
+            --arg applicationId "${DOKPLOY_APPLICATION_ID}" \
+            --arg dockerImage "${IMAGE}" \
+            '{applicationId: $applicationId, dockerImage: $dockerImage, username: null, password: null, registryUrl: "ghcr.io"}')"
+
           curl --fail-with-body --silent --show-error \
-            --request PATCH \
-            --header "Authorization: Bearer ${COOLIFY_WRITE_TOKEN}" \
+            --request POST \
+            --header "x-api-key: ${DOKPLOY_API_KEY}" \
             --header "Content-Type: application/json" \
-            --data '{"docker_registry_image_tag":"${{ github.event.workflow_run.head_sha }}","instant_deploy":true}' \
-            https://antoniofulg.tech/_ops/coolify/blog/deploy
+            --data "${image_payload}" \
+            "${DOKPLOY_URL}/api/application.saveDockerProvider"
+
+          deploy_payload="$(jq --null-input --compact-output \
+            --arg applicationId "${DOKPLOY_APPLICATION_ID}" \
+            --arg title "Deploy ${DEPLOY_SHA}" \
+            '{applicationId: $applicationId, title: $title}')"
+
+          curl --fail-with-body --silent --show-error \
+            --request POST \
+            --header "x-api-key: ${DOKPLOY_API_KEY}" \
+            --header "Content-Type: application/json" \
+            --data "${deploy_payload}" \
+            "${DOKPLOY_URL}/api/application.deploy"

@@ -13,8 +13,9 @@ S3 backups and notifications are explicitly deferred.
 1. CI remains the quality gate for pushes to `main`.
 2. CD builds the `runner` image on GitHub Actions and publishes immutable SHA
    and convenience `latest` tags to the public GHCR package.
-3. CD asks Dokploy to deploy the application through a scoped API key stored as
-   `DOKPLOY_API_KEY` in GitHub Actions secrets.
+3. CD asks Dokploy to deploy the application through a dedicated API key with
+   the least permissions available, stored as `DOKPLOY_API_KEY` in GitHub
+   Actions secrets.
 4. Dokploy pulls the published image; production secrets remain runtime
    environment variables in Dokploy.
 

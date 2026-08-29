@@ -97,18 +97,17 @@ describe("unit: .github/workflows/cd.yml", () => {
 		expect(cdYml).toContain(`github.event.workflow_run.head_sha == github.sha`);
 	});
 
-	test("requests a Coolify deployment after the image is published", () => {
+	test("updates the immutable image and requests a Dokploy deployment", () => {
 		const publishIndex = cdYml.indexOf("docker/build-push-action@v6");
-		const deployIndex = cdYml.indexOf("Deploy with Coolify");
+		const deployIndex = cdYml.indexOf("Deploy with Dokploy");
 
 		expect(deployIndex).toBeGreaterThan(publishIndex);
-		expect(cdYml).toContain("secrets.COOLIFY_WRITE_TOKEN");
-		expect(cdYml).toContain("--request PATCH");
-		expect(cdYml).toContain(
-			"https://antoniofulg.tech/_ops/coolify/blog/deploy",
-		);
-		expect(cdYml).toContain('"docker_registry_image_tag"');
-		expect(cdYml).toContain('"instant_deploy":true');
+		expect(cdYml).toContain("secrets.DOKPLOY_API_KEY");
+		expect(cdYml).toContain("vars.DOKPLOY_APPLICATION_ID");
+		expect(cdYml).toContain("/api/application.saveDockerProvider");
+		expect(cdYml).toContain("/api/application.deploy");
+		expect(cdYml).toContain("dockerImage: $dockerImage");
+		expect(cdYml).not.toContain("COOLIFY_WRITE_TOKEN");
 	});
 });
 
@@ -117,5 +116,11 @@ describe("unit: production Dockerfile", () => {
 		expect(dockerfile).toContain(
 			'CMD ["sh", "-c", "bun run db:migrate && bun run sync && exec bun .output/server/index.mjs"]',
 		);
+	});
+
+	test("installs curl for the Dokploy health check", () => {
+		expect(dockerfile).toContain("RUN apk add --no-cache curl");
+		expect(dockerfile).toContain("HEALTHCHECK --interval=30s");
+		expect(dockerfile).toContain("http://127.0.0.1:3000/healthz");
 	});
 });
