@@ -117,12 +117,15 @@ All five must pass before merge is allowed.
 CI re-runs on the merge commit → CD fires automatically:
 
 1. Builds the production Docker image → pushes to GHCR (`:latest` + immutable full SHA)
-2. Calls the restricted Coolify endpoint → selects that SHA and queues deployment
+2. Updates the Dokploy application to the immutable SHA image → queues deployment
 3. New container runs migrations and content sync → starts the server → passes health check
 
 VPS updated in ~5 minutes. No manual steps.
 
-Required repository secret: `COOLIFY_WRITE_TOKEN`, created in Coolify with only the `Write` permission.
+Required repository configuration:
+
+- Secret `DOKPLOY_API_KEY`: dedicated Dokploy API key with the least permissions available.
+- Variable `DOKPLOY_APPLICATION_ID`: the production Blog application ID.
 
 ### Emergency hotfix
 

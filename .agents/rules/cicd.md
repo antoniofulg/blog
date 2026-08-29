@@ -2,7 +2,7 @@
 
 ## Overview
 
-Two GitHub Actions workflows handle CI, image publication, and deployment through the self-hosted Coolify instance.
+Two GitHub Actions workflows handle CI, image publication, and deployment through the self-hosted Dokploy instance.
 
 ```
 ci.yml   — quality gate, triggers on every push and PR
@@ -68,9 +68,9 @@ One job runs, under the `production` concurrency group. A newer run cancels an
 older one, and a run is skipped when its triggering commit is no longer the
 latest commit on `main`.
 
-1. **build-push** — checks out and verifies the triggering SHA, builds that local checkout (`context: .`, `target: runner`), tags it with `:latest` and the full commit SHA, pushes both tags to GHCR, then requests an instant deployment through the restricted Coolify API endpoint.
+1. **build-push** — checks out and verifies the triggering SHA, builds that local checkout (`context: .`, `target: runner`), tags it with `:latest` and the full commit SHA, pushes both tags to GHCR, updates the Dokploy Docker provider to the immutable image, then requests a deployment through the Dokploy API.
 
-The workflow has no VPS credentials and performs no SSH deployment. `COOLIFY_WRITE_TOKEN` is used only for the exact application update endpoint exposed by Caddy. The Docker runner executes migrations and content sync before starting the HTTP server, so a failed preparation never becomes healthy.
+The workflow has no VPS credentials and performs no SSH deployment. `DOKPLOY_API_KEY` is a dedicated key with the least permissions available. The Docker runner executes migrations and content sync before starting the HTTP server, so a failed preparation never becomes healthy.
 
 ## Merge to main: what actually happens
 
@@ -80,20 +80,20 @@ PR merged → push to main
   → ci.yml passes
   → cd.yml fires (workflow_run gate)
       → build-push: image at ghcr.io/<owner>/blog:<sha> and :latest
-      → Coolify selects the immutable <sha> image and queues deployment
+      → Dokploy selects the immutable <sha> image and queues deployment
       → new container migrates, syncs content, then starts the server
-  → Coolify health check promotes the new container
+  → Dokploy health check promotes the new container
 ```
 
 ## GHCR image strategy
 
 Images are tagged with two tags per build (ADR-003):
 - `:latest` — convenience pointer to the most recent `main` build
-- `:<full-sha>` — immutable, traceable to the exact commit; used by Coolify and for rollback
+- `:<full-sha>` — immutable, traceable to the exact commit; used by Dokploy and for rollback
 
-Rollback without rebuild: set the application image tag to a previous full SHA in Coolify and deploy it.
+Rollback without rebuild: set the application image tag to a previous full SHA in Dokploy and deploy it.
 
-GHCR package is set to **public** — Coolify pulls without registry credentials. Production secrets (`DATABASE_URL`, etc.) are never in the image; they are runtime environment variables managed by Coolify.
+GHCR package is set to **public** — Dokploy pulls without registry credentials. Production secrets (`DATABASE_URL`, etc.) are never in the image; they are runtime environment variables managed by Dokploy.
 
 ## GitHub Secrets required (one-time setup)
 
@@ -101,9 +101,9 @@ GHCR package is set to **public** — Coolify pulls without registry credentials
 
 | Secret | Value |
 |--------|-------|
-| `COOLIFY_WRITE_TOKEN` | Coolify API token with only the `Write` permission |
+| `DOKPLOY_API_KEY` | Dedicated Dokploy API key with the least permissions available |
 
-The workflow needs no VPS or SSH secrets. Remove legacy `VPS_*` deploy secrets after the Coolify cutover.
+Repository variable `DOKPLOY_APPLICATION_ID` identifies the production Blog application. The workflow needs no VPS or SSH secrets.
 
 ### E2E secrets
 

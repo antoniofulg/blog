@@ -17,6 +17,8 @@ FROM oven/bun:1.4.0-alpine AS runner
 
 WORKDIR /app
 
+RUN apk add --no-cache curl
+
 ENV NODE_ENV=production
 
 COPY --from=builder /app/.output ./.output
@@ -39,6 +41,9 @@ COPY --from=builder /app/app/lib ./app/lib
 COPY --from=builder /app/public ./public
 
 EXPOSE 3000
+
+HEALTHCHECK --interval=30s --timeout=5s --start-period=90s --retries=3 \
+	CMD curl --fail --silent --show-error --max-time 5 http://127.0.0.1:3000/healthz
 
 # Expose HTTP only after migration and content sync succeed.
 CMD ["sh", "-c", "bun run db:migrate && bun run sync && exec bun .output/server/index.mjs"]
